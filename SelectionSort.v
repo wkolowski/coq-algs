@@ -141,7 +141,7 @@ Proof.
       (*exact r.*)
 Defined.
 
-Eval compute in selectionSort3 [1; 2].
+Eval compute in selectionSort3 [2; 1].
 
 Definition selectionSort3' {A : LinDecMin}
     : list A -> list A.
