@@ -110,14 +110,14 @@ Eval cbv in min natle_min (remove eq_nat_dec 0 testl).
 Print testl.
 
 Time Eval cbv in sort' natle testl. (* Insertion sort *)
-Time Eval cbv in selectionSort natle_min testl.
+(*Time Eval cbv in selectionSort natle_min testl.
 Time Eval cbv in qs natle testl.
 Time Eval cbv in mergeSort natle testl.
 
 Time Eval cbv in sort'_inv natle testl.
 
 Time Eval cbv in sort' nat_evenle testl.
-Time Eval cbv in sort'_inv nat_evenle testl.
+Time Eval cbv in sort'_inv nat_evenle testl.*)
 
 Fixpoint to0 (n : nat) : list nat :=
 match n with
@@ -162,25 +162,6 @@ match n with
 end.
 
 Definition testl2 := repeat 50 testl.
-
-(*Time Eval cbv in selectionSort natle_min (to0 15).*)
-(*Time Eval cbv in qs natle (to0 32).
-Time Eval cbv in sort' natle (to0 16).
-Time Eval cbv in mergeSort natle (to0 32).
-Time Eval cbv in ms2 natle (to0 100).
-
-Time Eval cbv in qs natle testl2.
-Time Eval cbv in mergeSort natle testl2.
-Time Eval cbv in ms2 natle testl2.*)
-
-
-
-(*Theorem selectionSort_perm : forall (A : LinDecMin) (l : list A),
-    perm A l (selectionSort A l).
-Proof.
-  intros. destruct l.
-    compute. intros _. auto.
-    compute.*)
 
 Class DenseOrd : Type :=
 {

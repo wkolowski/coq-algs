@@ -1,4 +1,5 @@
-(* Quicksort *)
+Require Import Sort.
+
 Theorem filter_length : forall (A : Type) (f : A -> bool) (l : list A),
     length (filter f l) <= length l.
 Proof.
@@ -19,6 +20,7 @@ Qed.
 
 Hint Resolve le_n_S filter_length.
 
+(* Quicksort using Program Fixpoint *)
 Program Fixpoint qs (A : LinDec) (l : list A) {measure (length l)} : list A :=
 match l with
     | nil => nil
@@ -30,6 +32,7 @@ Next Obligation. simpl. unfold lt. auto. Qed.
 
 Eval compute in (qs natle testl).
 
+(* Quicksort using fuel recursion. *)
 Fixpoint qsortSub (A : LinDec) (fuel : nat) (l : list A) : list A :=
 match fuel, l with
     | 0, _ => l
@@ -47,10 +50,7 @@ Eval compute in (qs' natle testl).
 
 (* Quicksort using Bove-Capretta *)
 
-(*Require Import List.
-Import ListNotations.
-
-Require Import Coq.Init.Wf.*)
+Require Import Coq.Init.Wf.
 
 Inductive qsDom (A : LinDec) : list A -> Type :=
     | qsDom0 : qsDom A nil

@@ -280,3 +280,24 @@ Proof.
 Qed.
 
 Hint Resolve perm_cons perm_refl perm_swap : sort.
+
+Definition lengthOrder {A : Type} (l1 l2 : list A) : Prop :=
+    length l1 < length l2.
+
+Lemma lengthOrder_wf' : forall (A : Type) (n : nat) (l : list A),
+    length l <= n -> Acc lengthOrder l.
+Proof.
+  induction n as [| n'].
+    inversion 1. destruct l; inversion H1. constructor. inversion 1.
+    intros. destruct l.
+      constructor. inversion 1.
+      simpl in H. constructor. intros. apply IHn'.
+        unfold lengthOrder in H0. simpl in H0. unfold lt in H0.
+        apply le_S_n in H. apply le_S_n in H0. eapply Le.le_trans; eauto.
+Defined.
+
+Theorem lengthOrder_wf : forall (A : Type),
+    well_founded (@lengthOrder A).
+Proof.
+  red. intros A l. apply lengthOrder_wf' with (length l). trivial.
+Defined.

@@ -84,7 +84,7 @@ Qed.
 
 Ltac obvious :=
 match goal with
-    | |- ?P => 
+    | |- ?P =>
         change (denote (reify P)); apply solve_denote; reflexivity
 end.
 
@@ -95,6 +95,10 @@ Theorem true_galore' : (True /\ True) -> (True \/ (True /\ (True -> True))).
 Proof.
   obvious.
 Qed.
+
+Goal True /\ 2 = 2.
+Proof.
+  obvious.
 
 Print true_galore.
 Print true_galore'.
