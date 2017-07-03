@@ -1,3 +1,5 @@
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
 Require Import Sort.
 
 (* Insertion sort *)
@@ -66,48 +68,7 @@ Definition sort' (A : LinDec) (l : list A) : list A :=
 Definition sort'_inv (A : LinDec) (l : list A) : list A :=
     proj1_sig (sort (DualLinDec A) l).
 
-(* Tried to prove that quicksort gives a permutation, but failed. *)
-(*Lemma nb_occ_app : forall (A : LinDec) (l1 l2 : list A) (x : A),
-    nb_occ A x (l1 ++ l2) = nb_occ A x (l2 ++ l1).
-Proof.
-  induction l1 as [| h t]; induction l2 as [| h' t']; simpl;
-  intros; repeat rewrite app_nil_r; auto. simpl in *.
-  case_eq (LinDec_eq x h); case_eq (LinDec_eq x h'); intros.
-  f_equal. assert (h = h'). unfold LinDec_eq in H. 
-    
-
-Lemma perm_app : forall (A : LinDec) (l1 l2 : list A),
-    perm A (l1 ++ l2) (l2 ++ l1).
-Proof.
-  induction l1 as [| h t].
-    simpl. intro. rewrite app_nil_r. apply perm_refl.
-    simpl. induction l2 as [| h' t'].
-      simpl. rewrite app_nil_r. apply perm_refl.
-      simpl. SearchAbout perm. Print perm.
-
-Lemma perm_lemma : forall (A : LinDec) (h : A) (t l1 l2 : list A),
-    perm A t (l1 ++ l2) -> perm A (h :: t) (l1 ++ h :: l2).
-Proof.
-  intros.
-
-Program Fixpoint qs' (A : LinDec) (l : list A) {measure (length l)}
-    : {l' : list A | perm A l l'} :=
-match l with
-    | nil => nil
-    | h :: t => qs' A (filter (fun x : A => leqb x h) t) ++ [h]
-             ++ qs' A (filter (fun x : A => negb (leqb x h)) t)
-end.
-Next Obligation. constructor. Qed.
-Next Obligation. simpl. unfold lt. auto. Qed.
-Next Obligation. simpl. unfold lt. auto. Qed.
-Next Obligation. *)
-
-
-Print testl.
 Eval cbv in min natle_min (remove eq_nat_dec 0 testl).
-
-
-Print testl.
 
 Time Eval cbv in sort' natle testl. (* Insertion sort *)
 (*Time Eval cbv in selectionSort natle_min testl.
@@ -133,27 +94,6 @@ match n, l with
     | 0, _ => false
     | S n', h :: t => length_less n' t
 end.
-
-Program Fixpoint ms2 (A : LinDec) (l : list A)  {measure (length l)} : list A :=
-(*if le_dec (length l) 6*)
-if length_less 6 l
-then sort' A l
-else
-      let n := div2 (length l) in
-      let l1 := take n l in
-      let l2 := drop n l in
-      merge A (ms2 A l1) (ms2 A l2).
-(*Next Obligation.
-  apply take_length2. apply lt_div2. destruct l; simpl in *;
-  try (contradiction H0; auto; fail); try omega. Qed.
-Next Obligation.
-  apply drop_length2; auto.
-    destruct l; simpl in *. omega.
-      destruct l; simpl in *; omega.
-    intro. subst. simpl in H. omega.
-Defined.*)
-Next Obligation. admit. Defined.
-Next Obligation. admit. Defined.
 
 Fixpoint repeat {A : Type} (n : nat) (l : list A) : list A :=
 match n with

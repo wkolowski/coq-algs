@@ -1,4 +1,8 @@
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
 Require Import Sort.
+
+Set Implicit Arguments.
 
 Fixpoint merge (A : LinDec) (l1 : list A) {struct l1} : list A -> list A :=
     fix f (l2 : list A) {struct l2} : list A :=
@@ -61,10 +65,7 @@ Proof.
 
 assert (sorted A (y0 :: l0) -> sorted A (merge A (y :: l) (y0 :: l0))).
         intro. clear H3.
-Abort. 
-          
-        
-        
+Abort.
 
 Theorem merge_sorted' : forall (A : LinDec) (n : nat) (l1 l2 l : list A),
     sorted A l1 -> sorted A l2 -> merge' n l1 l2 = Some l ->
@@ -186,7 +187,7 @@ Qed.
 Require Import Arith.
 Require Import Div2.
 
-Program Fixpoint mergeSort (A : LinDec) (l : list A) 
+Program Fixpoint msPF (A : LinDec) (l : list A) 
     {measure (length l)} : list A :=
 match l with
     | [] => []
@@ -195,7 +196,7 @@ match l with
       let n := div2 (length l') in
       let l1 := take n l' in
       let l2 := drop n l' in
-      merge A (mergeSort A l1) (mergeSort A l2)
+      merge A (msPF A l1) (msPF A l2)
 end.
 Next Obligation.
   apply take_length2. apply lt_div2. destruct l; simpl;
@@ -205,7 +206,7 @@ Next Obligation.
     destruct l; simpl. contradiction H0; auto.
       destruct l; simpl. contradiction (H c); auto. omega. Qed.
 Next Obligation.
-  split; repeat intro; inversion H.
+  split; repeat intro; inversion H3.
 Defined.
 
 Fixpoint aux (A : LinDec) (l : list (list A)) : list (list A) :=
@@ -218,36 +219,53 @@ end.
 (*Eval compute in merge natle (qs natle [5; 2; 8]) (qs natle [6; 4; 9]).*)
 Eval compute in aux natle [[5; 2; 8]; [1; 4; 9]].
 
+(* Mergesort using Function. *)
+
+Function msFun (A : LinDec) (l : list A) {measure length l} : list A :=
+match l with
+    | [] => []
+    | [x] => [x]
+    | l' => 
+      let n := div2 (length l') in
+      let l1 := take n l' in
+      let l2 := drop n l' in
+      merge A (msFun A l1) (msFun A l2)
+end.
+Proof.
+  intros. apply drop_length2; simpl. omega. inversion 1.
+  intros. apply take_length2. apply lt_div2. simpl. omega.
+Defined.
+
+Eval compute in msFun natle testl.
+
 (* Mergesort using Bove-Capretta *)
 
-Inductive msDom' (A : LinDec) : list A -> Type :=
-    | msDom_base : msDom' A []
-    | msDom_base' : forall x : A, msDom' A [x]
-    | msDom_rec : forall l : list A,
-        msDom' A (take (div2 (length l)) l) ->
-        msDom' A (drop (div2 (length l)) l) -> msDom' A l.
+Inductive msDom {A : LinDec} : list A -> Type :=
+    | msDom0 : msDom []
+    | msDom1 : forall x : A, msDom [x]
+    | msDom2 : forall l : list A,
+        msDom (take (div2 (length l)) l) ->
+        msDom (drop (div2 (length l)) l) -> msDom l.
 
-Fixpoint ms_aux (A : LinDec) (l : list A) (dom : msDom' A l) : list A :=
+Fixpoint ms_aux {A : LinDec} {l : list A} (dom : msDom l) : list A :=
 match dom with
-    | msDom_base => []
-    | msDom_base' x => [x]
-    | msDom_rec l dom1 dom2 =>
-        let l1 := ms_aux A _ dom1 in
-        let l2 := ms_aux A _ dom2 in merge A l1 l2
+    | msDom0 => []
+    | msDom1 x => [x]
+    | msDom2 l dom1 dom2 =>
+        let l1 := ms_aux dom1 in
+        let l2 := ms_aux dom2 in merge A l1 l2
 end.
 
-Theorem msDom_all : forall (A : LinDec) (l : list A), msDom' A l.
+Theorem msDom_all : forall (A : LinDec) (l : list A), msDom l.
 Proof.
-  intro.
-  apply well_founded_induction_type with (fun l1 l2 => length l1 < length l2).
-    eapply well_founded_lt_compat. eauto.
+  intro. apply well_founded_induction_type with lengthOrder.
+    apply lengthOrder_wf.
     intros l ms. destruct l as [| h [| h' t]]; constructor.
-      
       apply ms. apply take_length2. apply lt_div2. simpl. omega.
       apply ms. apply drop_length2. simpl. omega. inversion 1.
 Defined.
 
 Definition ms {A : LinDec} (l : list A) : list A :=
-    ms_aux A l (msDom_all A l).
+    ms_aux (msDom_all A l).
 
 Eval compute in @ms natle testl.

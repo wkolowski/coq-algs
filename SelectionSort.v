@@ -1,3 +1,5 @@
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
 Require Import Sort.
 
 Fixpoint remove_once {A : LinDec} (x : A) (l : list A) : list A :=
@@ -53,8 +55,8 @@ Lemma remove_once_length2 : forall (A : LinDec) (x : A) (l : list A),
 Proof.
   induction l as [| h t]; simpl; intros.
     inversion H.
-    destruct H; subst; dec; try omega.
-      simpl. apply lt_n_S. apply IHt. assumption.
+    destruct H; subst; dec; unfold lt; auto.
+      apply le_n_S. apply IHt. assumption.
 Defined.
 
 Lemma remove_once_min_lengthOrder : forall (A : LinDecMin) (l : list A),
@@ -68,19 +70,47 @@ Lemma cons_not_nil : forall (A : Type) (h : A) (t : list A),
 Proof. inversion 1. Defined.
 
 (* Selection sort using program fixpoint *)
-Program Fixpoint selectionSort (A : LinDecMin) (l : list A)
+Program Fixpoint ssPF (A : LinDecMin) (l : list A)
     {measure (length l)} : list A :=
 match l with
     | [] => []
     | _ => let m := min' A l in
-        m :: selectionSort A (remove_once m l)
+        m :: ssPF A (remove_once m l)
 end.
 Next Obligation. apply remove_once_length2. apply min'_In. auto. Qed.
 
-Eval compute in selectionSort natle_min testl.
+Eval compute in ssPF natle_min testl.
+
+(* Selection sort using Function. *)
+
+Require Import Recdef.
+
+Function ssFun (A : LinDecMin) (l : list A)
+    {wf (@lengthOrder A) l} : list A :=
+match l with
+    | [] => []
+    | _ => let m := min' A l in m :: ssFun A (remove_once m l)
+end.
+Proof.
+  intros. apply remove_once_length2. apply min'_In. inversion 1.
+  intro. apply lengthOrder_wf.
+Defined.
+
+Check ssFun_equation.
+
+Print Assumptions remove_once_min_lengthOrder.
+Print Assumptions lengthOrder_wf.
+Print Assumptions ssFun.
+
+Goal ssFun natle_min [1] = [1].
+Proof.
+  rewrite ssFun_equation. simpl. reflexivity.
+Defined.
+
+Eval compute in ssFun natle_min testl.
 
 (* Selection sort using fuel recursion. *)
-Fixpoint selectionSortFuel {A : LinDecMin} (n : nat) (l : list A)
+Fixpoint ssFuelOpt {A : LinDecMin} (n : nat) (l : list A)
     : option (list A) :=
 match n with
     | 0 => None
@@ -88,22 +118,21 @@ match n with
         match l with
             | [] => Some []
             | _ => let m := min' A l in
-                match selectionSortFuel n' (remove_once m l) with
+                match ssFuelOpt n' (remove_once m l) with
                     | None => None
                     | Some l' => Some (m :: l')
                 end
             end
 end.
 
-Eval compute in selectionSortFuel 3 [2; 1].
+Eval compute in ssFuelOpt 3 [2; 1].
 
 Lemma wut : forall (A : LinDecMin) (n : nat) (h : A) (t : list A),
-    selectionSortFuel (S n) (h :: t) =
-        (*let m := min' A (h :: t) in*)
-        match selectionSortFuel n (remove_once (min' A (h :: t)) (h :: t)) with
-            | None => None
-            | Some l => Some (min' A (h :: t) :: l)
-        end.
+  ssFuelOpt (S n) (h :: t) =
+    match ssFuelOpt n (remove_once (min' A (h :: t)) (h :: t)) with
+        | None => None
+        | Some l => Some (min' A (h :: t) :: l)
+    end.
 Proof.
   intros. reflexivity.
 Qed.
@@ -117,8 +146,8 @@ Proof.
       subst. intuition.
 Defined.
 
-Theorem selectionSortFuel_extract : forall (A : LinDecMin) (l : list A),
-    {l' : list A | selectionSortFuel (S (length l)) l = Some l'}.
+Theorem ssFuelOpt_extract : forall (A : LinDecMin) (l : list A),
+    {l' : list A | ssFuelOpt (S (length l)) l = Some l'}.
 Proof.
   intro. apply (Fix (@lengthOrder_wf A)). intros l H.
   destruct l as [| h t]; intros.
@@ -134,41 +163,42 @@ Proof.
               unfold m. apply min'_In. inversion 1.
 Defined.
 
-Theorem ssfuel_none : forall (A : LinDecMin) (l : list A),
-    selectionSortFuel (S (length l)) l <> None.
+Theorem ssFuelOpt_None : forall (A : LinDecMin) (l : list A),
+    ssFuelOpt (S (length l)) l <> None.
 Proof.
   unfold not; intros.
-  pose (H' := selectionSortFuel_extract A l).
+  pose (H' := ssFuelOpt_extract A l).
   destruct H'. rewrite e in H. inversion H.
 Defined.
 
-Definition selectionSort4 {A : LinDecMin} (l : list A) : list A :=
-    proj1_sig (selectionSortFuel_extract A l).
+Definition ssFuelOpt' {A : LinDecMin} (l : list A) : list A :=
+    proj1_sig (ssFuelOpt_extract A l).
 
-(* TODO : Eval compute in selectionSort4 [1]. *)
+Eval compute in ssFuelOpt' testl.
 
-Definition selectionSort4' {A : LinDecMin} (l : list A) : list A.
+Definition ssFuelOpt'' {A : LinDecMin} (l : list A) : list A.
 Proof.
-  case_eq (selectionSortFuel (S (length l)) l); intros.
+  case_eq (ssFuelOpt (S (length l)) l); intros.
     exact l0.
-    apply ssfuel_none in H. destruct H.
+    apply ssFuelOpt_None in H. destruct H.
 Defined.
 
-Eval compute in selectionSort4' [3; 1; 2; 3].
+Eval compute in ssFuelOpt'' testl.
 
-Fixpoint ssfuel2 {A : LinDecMin} (n : nat) (l : list A) : list A :=
+(* Selection sort using fuel recursion without options. *)
+Fixpoint ssFuel {A : LinDecMin} (n : nat) (l : list A) : list A :=
 match n, l with
     | 0, _ => []
     | _, [] => []
     | S n', _ => let m := min' A l in
-        m :: ssfuel2 n' (remove_once m l)
+        m :: ssFuel n' (remove_once m l)
 end.
 
-Eval compute in ssfuel2 100 testl.
+Eval compute in ssFuel 100 testl.
 
 (* Selection sort using well-founded recursion *)
 
-Definition selectionSort3 {A : LinDecMin} : list A -> list A.
+Definition ssWf {A : LinDecMin} : list A -> list A.
 Proof.
   apply (Fix (@lengthOrder_wf A)). intros l selectionSort.
   destruct l as [| h t].
@@ -176,29 +206,27 @@ Proof.
     pose (m := min' A (h :: t)). pose (r := remove_once m (h :: t)).
       pose (p := remove_once_min_lengthOrder A (h :: t) (cons_not_nil _ h t)).
       exact (m :: selectionSort r p).
-      (*exact r.*)
 Defined.
 
-Print Assumptions selectionSort3.
+Print Assumptions ssWf.
 
-Transparent selectionSort3.
+Eval compute in ssWf testl.
 
-(* TODO : Eval compute in selectionSort3 [2; 1].
-
-Definition selectionSort3' {A : LinDecMin}
-    : list A -> list A.
+(* Selection sort using well-founded recursion and refine. *)
+Definition ssWfRef {A : LinDecMin} : list A -> list A.
 refine (Fix (@lengthOrder_wf A) _
-(fun (l : list A) (ss : forall l' : list A, lengthOrder l' l -> list A) =>
+  (fun (l : list A) =>
     match l with
-        | [] => []
-        | h :: t => let m := min' A (h :: t) in m :: ss (remove_once m (h :: t)) _
+        | [] => fun _ => []
+        | h :: t =>
+            fun ss : forall l' : list A, lengthOrder l' (h :: t) -> list A =>
+              let m := min' A (h :: t) in m :: ss (remove_once m (h :: t)) _
     end)).
 Proof.
-  red. apply remove_once_length2. apply min'_In.
-*)
+  apply remove_once_min_lengthOrder. inversion 1.
+Defined.
 
-
-
+Eval compute in ssWfRef testl.
 
 (* Selection sort using Bove-Capretta *)
 
@@ -207,11 +235,11 @@ Inductive ssDom {A : LinDecMin} : list A -> Type :=
     | ssDomRec : forall (l : list A),
         ssDom (remove_once (min' A l) l) -> ssDom l.
 
-Fixpoint selectionSort2' {A : LinDecMin} {l : list A} (p : ssDom l)
+Fixpoint ssBC' {A : LinDecMin} {l : list A} (p : ssDom l)
     : list A :=
 match p with
     | ssDomNil => []
-    | ssDomRec l p => min' A l :: selectionSort2' p
+    | ssDomRec l p => min' A l :: ssBC' p
 end.
 
 Theorem ssDom_all : forall (A : LinDecMin) (l : list A), ssDom l.
@@ -221,14 +249,37 @@ Proof.
     eapply well_founded_lt_compat. eauto.
     intros l ss. destruct l as [| h t]; constructor.
       apply ss. apply remove_once_length2. apply min'_In. inversion 1.
-Defined. (*
+Restart.
+  intro. apply well_founded_induction_type with lengthOrder.
+    apply lengthOrder_wf.
+    destruct x as [| h t]; intro IH; constructor.
+      apply IH. apply remove_once_min_lengthOrder. inversion 1.
+Defined.
+
+Definition ssBC {A : LinDecMin} (l : list A) : list A :=
+    ssBC' (ssDom_all A l).
+
+Eval compute in ssBC testl.
+
+Theorem ssFun_sorted : forall (A : LinDecMin) (l : list A),
+  sorted A (ssFun A l).
+Proof.
+  intros. functional induction (ssFun A) l.
+    constructor.
+    inversion IHl0.
+      constructor.
+      constructor.
+    destruct l.
+      inversion y.
+      inversion IHl0.
+Restart.
+  intros. rewrite ssFun_equation.
   induction l as [| h t].
     constructor.
-    apply ssDomRec. simpl. destruct t.
-      dec. constructor.
-Abort.*)
-
-Fixpoint selectionSort2 {A : LinDecMin} (l : list A) : list A :=
-    selectionSort2' (ssDom_all A l).
-
-Eval compute in selectionSort2 testl.
+    rewrite ssFun_equation.
+    destruct t.
+      simpl. destruct (h =? h).
+        constructor.
+        contradiction n. trivial.
+      rewrite ssFun_equation.
+Abort.

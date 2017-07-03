@@ -1,12 +1,14 @@
 Require Export List.
 Export ListNotations.
 
-Require Import Bool.Bool.
-Require Import Coq.Program.Wf.
+Require Export Bool.Bool.
+Require Export Coq.Program.Wf.
 Require Export Arith.
-Require Import Arith.Div2.
-Require Import Omega.
+Require Export Arith.Div2.
+Require Export Omega.
 Require Import Numbers.Natural.Peano.NPeano.
+
+Require Export Recdef.
 
 Class Lin : Type :=
 {
@@ -33,7 +35,7 @@ Theorem LinDec_leqP : forall (A : LinDec) (x y : A),
     reflect (leq x y) (match leq_dec x y with | left _ => true | _ => false end).
 Proof.
   intros. destruct (leq_dec x y); constructor; auto.
-Qed.
+Defined.
 
 Hint Resolve leq_refl leq_antisym leq_trans leq_total leq_dec LinDec_leqP.
 
@@ -79,7 +81,7 @@ Lemma LinDec_not_leq : forall (A : LinDec) (x y : A),
 Proof.
   intros. destruct (leq_dec y x). auto.
   destruct (leq_total_dec x y); contradiction.
-Qed.
+Defined.
 
 Definition LinDec_eq_dec : forall {A : LinDec} (x y : A),
     {x = y} + {x <> y}.
@@ -101,7 +103,7 @@ Proof.
     destruct (leq_total_dec x y).
       do 2 left. split; assumption.
       right. split; auto.
-Qed. 
+Defined. 
 
 Hint Unfold LinDec_eq LinDec_eq_dec.
 
@@ -117,7 +119,7 @@ Theorem sorted_inv : forall (A : LinDec) (h : A) (t : list A),
     sorted A (h :: t) -> sorted A t.
 Proof.
   intros. inversion H; auto with sort.
-Qed.
+Defined.
 
 Instance natle_lin : Lin.
 refine
@@ -144,7 +146,7 @@ Instance natle : LinDec :=
 Proof. intros; simpl. destruct (le_dec x y); auto; right; omega. Defined.
 
 Lemma sort_2357 : sorted natle [2; 3; 5; 7; 9].
-Proof. repeat constructor. Qed.
+Proof. repeat constructor. Defined.
 
 Ltac solve_nat_evenle := intros;
 match goal with
@@ -222,7 +224,7 @@ Proof.
       destruct (leqb h (min' A (c :: t))).
         left; auto.
         right. apply IHt. inversion 1.
-Qed.
+Defined.
 
 (*Theorem min_In : forall (A : LinDecMin) (l : list A),
     l <> [] -> In (min A l) l.
@@ -239,7 +241,7 @@ Proof.
         simpl in IHt. simpl. destruct IHt.
           inversion 1.
           right. left. assumption.
-Qed.*)
+Defined.*)
 
 Fixpoint nb_occ (A : LinDec) (x : A) (l : list A) : nat :=
 match l with
@@ -254,30 +256,30 @@ Definition perm (A : LinDec) (l1 l2 : list A) : Prop :=
     forall x : A, nb_occ A x l1 = nb_occ A x l2.
 
 Lemma perm_refl : forall (A : LinDec) (l : list A), perm A l l.
-Proof. unfold perm; auto. Qed.
+Proof. unfold perm; auto. Defined.
 
 Lemma perm_symm : forall (A : LinDec) (l1 l2 : list A),
     perm A l1 l2 -> perm A l2 l1.
-Proof. unfold perm; auto. Qed.
+Proof. unfold perm; auto. Defined.
 
 Lemma perm_trans : forall (A : LinDec) (l1 l2 l3 : list A),
     perm A l1 l2 -> perm A l2 l3 -> perm A l1 l3.
 Proof.
   unfold perm; intros. eapply eq_trans; auto.
-Qed.
+Defined.
 
 Lemma perm_cons : forall (A : LinDec) (x : A) (l1 l2 : list A),
     perm A l1 l2 -> perm A (x :: l1) (x :: l2).
 Proof.
   unfold perm. intros. simpl. rewrite H. reflexivity.
-Qed.
+Defined.
 
 Lemma perm_swap : forall (A : LinDec) (x y : A) (l1 l2 : list A),
     perm A l1 l2 -> perm A (x :: y :: l1) (y :: x :: l2).
 Proof.
   unfold perm; simpl; intros; destruct (LinDec_eq x0 x), (LinDec_eq x0 y);
   rewrite H; auto.
-Qed.
+Defined.
 
 Hint Resolve perm_cons perm_refl perm_swap : sort.
 
@@ -293,11 +295,15 @@ Proof.
       constructor. inversion 1.
       simpl in H. constructor. intros. apply IHn'.
         unfold lengthOrder in H0. simpl in H0. unfold lt in H0.
-        apply le_S_n in H. apply le_S_n in H0. eapply Le.le_trans; eauto.
+        apply le_S_n in H. apply le_S_n in H0. omega.
+        (*Require Import Le. eapply le_trans; eauto.*)
 Defined.
 
 Theorem lengthOrder_wf : forall (A : Type),
     well_founded (@lengthOrder A).
 Proof.
   red. intros A l. apply lengthOrder_wf' with (length l). trivial.
+Restart.
+  unfold lengthOrder. intro.
+  apply (@well_founded_lt_compat _ (@length A)). trivial.
 Defined.

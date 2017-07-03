@@ -96,9 +96,5 @@ Proof.
   obvious.
 Qed.
 
-Goal True /\ 2 = 2.
-Proof.
-  obvious.
-
 Print true_galore.
 Print true_galore'.
