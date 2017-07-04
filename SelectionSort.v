@@ -82,7 +82,6 @@ Next Obligation. apply remove_once_length2. apply min'_In. auto. Qed.
 Eval compute in ssPF natle_min testl.
 
 (* Selection sort using Function. *)
-
 Require Import Recdef.
 
 Function ssFun (A : LinDecMin) (l : list A)
@@ -283,3 +282,5 @@ Restart.
         contradiction n. trivial.
       rewrite ssFun_equation.
 Abort.
+
+SearchAbout perm.

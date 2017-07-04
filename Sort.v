@@ -307,3 +307,26 @@ Restart.
   unfold lengthOrder. intro.
   apply (@well_founded_lt_compat _ (@length A)). trivial.
 Defined.
+
+Theorem perm_front :
+  forall (A : LinDec) (x : A) (l1 l2 : list A),
+    perm A (l1 ++ x :: l2) (x :: l1 ++ l2).
+Proof.
+  induction l1 as [| h1 t1]; simpl; intros.
+    apply perm_refl.
+    eapply perm_trans with (h1 :: x :: t1 ++ l2).
+      apply perm_cons. apply IHt1.
+      apply perm_swap. apply perm_refl.
+Qed.
+
+Theorem min'_split :
+  forall (A : LinDecMin) (l : list A),
+    l <> [] -> exists l1 l2 : list A, l = l1 ++ min A l :: l2.
+Proof.
+  induction l as [| h t].
+    intro. contradiction H. reflexivity.
+    destruct t as [| h' t']; intros _.
+      exists [], []. simpl. reflexivity.
+      edestruct IHt as [l1 [l2 H]].
+        inversion 1.
+Abort.
