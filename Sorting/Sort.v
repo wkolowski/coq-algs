@@ -1,0 +1,144 @@
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
+Require Export LinDec.
+
+Inductive sorted (A : LinDec) : list A -> Prop :=
+    | sorted0 : sorted A []
+    | sorted1 : forall x : A, sorted A [x]
+    | sorted2 : forall (x y : A) (l : list A),
+        x ≤ y -> sorted A (y :: l) -> sorted A (x :: y :: l).
+
+Hint Constructors sorted.
+
+Fixpoint count (A : LinDec) (x : A) (l : list A) : nat :=
+match l with
+    | [] => 0
+    | h :: t => if x =? h then S (count A x t) else count A x t
+end.
+
+Definition perm (A : LinDec) (l1 l2 : list A) : Prop :=
+    forall x : A, count A x l1 = count A x l2.
+
+Class Sort : Type :=
+{
+    sort : forall {A : LinDec}, list A -> list A;
+    sort_sorted : forall (A : LinDec) (l : list A),
+        sorted A (sort l);
+    sort_perm : forall (A : LinDec) (l : list A),
+        perm A l (sort l);
+}.
+
+(* Lemmas about [sorted]. *)
+
+Theorem sorted_tail :
+  forall (A : LinDec) (h : A) (t : list A),
+    sorted A (h :: t) -> sorted A t.
+Proof.
+  inversion 1; auto.
+Defined.
+
+Theorem sorted_head :
+  forall (A : LinDec) (x y : A) (l : list A),
+    sorted A (x :: y :: l) -> x ≤ y.
+Proof.
+  inversion 1. assumption.
+Qed.
+
+Lemma sorted_app_all :
+  forall (A : LinDec) (l : list A) (h : A) (t : list A),
+    sorted A l -> sorted A (h :: t) -> (forall x : A, In x l -> leq x h) ->
+      sorted A (l ++ h :: t).
+Proof.
+  induction l as [| h t]; simpl; intros.
+    assumption.
+    destruct t as [| h' t'].
+      simpl in *. constructor.
+        eapply (H1 h); eauto.
+        assumption.
+      rewrite <- app_comm_cons. constructor.
+        eapply sorted_head. eassumption.
+        apply IHt.
+          apply sorted_tail with h. assumption.
+          assumption.
+          intros. apply H1. right. assumption.
+Qed.
+
+Hint Resolve sorted_head sorted_tail sorted_app_all.
+
+(* Lemmas about [count]. *)
+
+Lemma count_last :
+  forall (A : LinDec) (l : list A) (x y : A),
+    count A x (l ++ [y]) = count A x l + count A x [y].
+Proof.
+  induction l as [| h t]; simpl; intros.
+    destruct (x =? y); reflexivity.
+    rewrite IHt. simpl. destruct (x =? h), (x =? y); omega.
+Qed.
+
+Lemma count_reverse :
+  forall (A : LinDec) (l : list A) (x : A),
+    count A x (rev l) = count A x l.
+Proof.
+  induction l as [| h t]; simpl; intros.
+    reflexivity.
+    rewrite count_last, IHt. simpl. destruct (x =? h); omega.
+Qed. 
+
+Lemma count_app : forall (A : LinDec) (x : A) (l1 l2 : list A),
+    count A x (l1 ++ l2) = count A x (l2 ++ l1).
+Proof.
+  induction l1 as [| h1 t1].
+    simpl; intros. rewrite app_nil_r. reflexivity.
+    intros. rewrite <- app_comm_cons at 1.
+      replace (l2 ++ h1 :: t1) with ((l2 ++ [h1]) ++ t1).
+        rewrite <- IHt1. rewrite app_assoc. rewrite count_last.
+          simpl. destruct (x =? h1); omega.
+        rewrite <- app_assoc. simpl. reflexivity.
+Qed.
+
+(* Lemmas about [perm]. *)
+Lemma perm_refl : forall (A : LinDec) (l : list A), perm A l l.
+Proof. unfold perm; auto. Defined.
+
+Lemma perm_symm : forall (A : LinDec) (l1 l2 : list A),
+    perm A l1 l2 -> perm A l2 l1.
+Proof. unfold perm; auto. Defined.
+
+Lemma perm_trans : forall (A : LinDec) (l1 l2 l3 : list A),
+    perm A l1 l2 -> perm A l2 l3 -> perm A l1 l3.
+Proof.
+  unfold perm; intros. eapply eq_trans; auto.
+Defined.
+
+Lemma perm_cons : forall (A : LinDec) (x : A) (l1 l2 : list A),
+    perm A l1 l2 -> perm A (x :: l1) (x :: l2).
+Proof.
+  unfold perm. intros. simpl. rewrite H. reflexivity.
+Defined.
+
+Lemma perm_swap : forall (A : LinDec) (x y : A) (l1 l2 : list A),
+    perm A l1 l2 -> perm A (x :: y :: l1) (y :: x :: l2).
+Proof.
+  unfold perm; simpl; intros; destruct (x0 =? x), (x0 =? y);
+  rewrite H; auto.
+Defined.
+
+Theorem perm_front :
+  forall (A : LinDec) (x : A) (l1 l2 : list A),
+    perm A (l1 ++ x :: l2) (x :: l1 ++ l2).
+Proof.
+  induction l1 as [| h1 t1]; simpl; intros.
+    apply perm_refl.
+    eapply perm_trans with (h1 :: x :: t1 ++ l2).
+      apply perm_cons. apply IHt1.
+      apply perm_swap. apply perm_refl.
+Qed.
+
+Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front.
+
+Lemma perm_app : forall (A : LinDec) (l1 l2 : list A),
+    perm A (l1 ++ l2) (l2 ++ l1).
+Proof.
+  unfold perm. intros. apply count_app.
+Qed.
