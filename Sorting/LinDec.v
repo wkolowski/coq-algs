@@ -56,10 +56,12 @@ Ltac dec := simpl; repeat
 match goal with
     | |- context [?x =? ?y] => destruct (LinDec_eqb_spec _ x y); subst; intros
     | |- context [?x <=? ?y] => destruct (leqb_spec x y); intros
+    | H : context [?x =? ?y] |- _ => destruct (LinDec_eqb_spec _ x y); subst; intros
+    | H : context [?x <=? ?y] |- _ => destruct (leqb_spec x y); intros
 end; simpl; try
 match goal with
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
-end; auto; try omega.
+end; eauto; try omega.
 
 Lemma LinDec_not_leq : forall (A : LinDec) (x y : A),
     ~ leq x y -> leq y x.
@@ -95,6 +97,15 @@ Definition testl := [3; 0; 1; 42; 34; 19; 44; 21; 42; 65; 5].
 
 Definition min_dflt (A : LinDec) (d : A) (l : list A) : A :=
     fold_right (fun x y => if x <=? y then x else y) d l.
+
+Lemma min_spec :
+  forall (A : LinDec) (x h : A) (t : list A),
+    In x (h :: t) -> min_dflt A h t ≤ x.
+Proof.
+  induction t as [| h' t']; simpl in *.
+    destruct 1; subst; auto.
+    destruct 1 as [H1 | [H2 | H3]]; subst; dec.
+Qed.
 
 Theorem min_In :
   forall (A : LinDec) (h : A) (t : list A),

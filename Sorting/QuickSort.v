@@ -1,10 +1,10 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Coq.Program.Wf.
-Require Import Recdef.
+Require Export Coq.Program.Wf.
+Require Export Recdef.
 
-Require Import Sort.
-Require Import ListLemmas.
+Require Export Sort.
+Require Export ListLemmas.
 
 Set Implicit Arguments.
 
@@ -36,16 +36,6 @@ Proof.
 Defined.
 
 Eval compute in qsFun natle testl.
-
-(* TODO *) Theorem qsFun_sorted :
-  forall (A : LinDec) (l : list A), sorted A (qsFun A l).
-Proof.
-  intros. functional induction (@qsFun A) l.
-    constructor.
-    apply sorted_app_all.
-      assumption.
-      Focus 2. intros.
-Abort.
 
 (* Quicksort using fuel recursion. *)
 Fixpoint qsFuel' (A : LinDec) (fuel : nat) (l : list A) : list A :=

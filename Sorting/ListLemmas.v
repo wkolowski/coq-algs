@@ -1,7 +1,8 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import LinDec.
+Require Import Sort.
 
+(* General lemmas *)
 Definition lengthOrder {A : Type} (l1 l2 : list A) : Prop :=
     length l1 < length l2.
 
@@ -12,6 +13,7 @@ Proof.
   apply (@well_founded_lt_compat _ (@length A)). trivial.
 Defined.
 
+(* Selection sort lemmas *)
 Fixpoint remove_once {A : LinDec} (x : A) (l : list A) : list A :=
 match l with
     | [] => []
@@ -44,6 +46,74 @@ Proof.
   red; intros. apply remove_once_In_lt. apply min_In.
 Defined.
 
+Lemma remove_once_cons:
+  forall (A : LinDec) (h : A) (t : list A), min_dflt A h t <> h ->
+    lengthOrder (h :: remove_once (min_dflt A h t) t) (h :: t).
+Proof.
+  intros. replace (h :: remove_once (min_dflt A h t) t) with
+    (remove_once (min_dflt A h t) (h :: t)).
+    apply remove_once_min_lengthOrder.
+    simpl. dec. rewrite e in H. contradiction.
+Qed.
+
+Lemma min_split :
+  forall (A : LinDec) (h : A) (t : list A),
+    exists l1 l2 : list A, h :: t = l1 ++ min_dflt A h t :: l2 /\
+      l1 ++ l2 = remove_once (min_dflt A h t) (h :: t).
+Proof.
+  induction t as [| h' t']; intros.
+    exists [], []. simpl. dec.
+    simpl. dec; subst; simpl.
+      exists [h], t'. simpl. auto.
+      rewrite e. exists [], (h' :: t'). simpl. auto.
+      exists [h], t'. simpl. auto.
+      exists [h], t'. simpl. auto.
+      destruct IHt' as [l1 [l2 [H H']]]. destruct l1.
+        inversion H. rewrite <- H1 in n. contradiction.
+        exists (h :: h' :: l1), l2. simpl. split.
+          do 2 f_equal. inversion H. rewrite <- H2. assumption.
+          do 2 f_equal. simpl in H'.
+            destruct (LinDec_eqb_spec A (min_dflt A h t') h).
+              rewrite e in n. contradiction.
+              inversion H'. reflexivity.
+Qed.
+
+Lemma perm_min_front :
+  forall (A : LinDec) (h : A) (t : list A),
+    let m := min_dflt A h t in
+      perm A (m :: remove_once m (h :: t)) (h :: t).
+Proof.
+  intros. destruct (min_split A h t) as [l1 [l2 [H H']]]. fold m in H, H'.
+  rewrite H at 2. rewrite <- H'. apply perm_symm. apply perm_front.
+Qed.
+
+Lemma remove_once_In_conv :
+  forall (A : LinDec) (x h : A) (t : list A),
+    In x (remove_once (min_dflt A h t) (h :: t)) ->
+      In x (h :: t).
+Proof.
+  induction t as [| h' t'].
+    simpl. dec.
+    simpl in *. dec; inversion H; subst; auto.
+      contradiction.
+      inversion H; inversion H0; subst; auto.
+        edestruct IHt'; simpl; auto.
+Qed.
+
+Lemma remove_once_In :
+  forall (A : LinDec) (x h : A) (t : list A),
+    In x t -> min_dflt A h t <> x -> In x (remove_once (min_dflt A h t) t).
+Proof.
+  induction t as [| h' t']; inversion 1; subst; intros.
+    simpl in *. dec. rewrite e in H0. contradiction.
+    simpl. dec. right. apply IHt'.
+      assumption.
+      simpl in *. destruct (leqb_spec h' (min_dflt A h t')).
+        contradiction.
+        assumption.
+Qed.
+
+(* Quicksort lemmas *)
 Lemma filter_length :
   forall (A : Type) (f : A -> bool) (l : list A),
     length (filter f l) <= length l.
@@ -59,6 +129,7 @@ Proof.
   apply filter_length.
 Qed.
 
+(* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=
 match n, l with
     | 0, _ => []
