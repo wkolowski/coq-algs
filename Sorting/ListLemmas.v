@@ -129,6 +129,21 @@ Proof.
   apply filter_length.
 Qed.
 
+Lemma filter_In_app :
+  forall (A : LinDec) (p : A -> bool) (x : A) (l : list A),
+    In x (filter p l ++ filter (fun x => negb (p x)) l) -> In x l.
+Proof.
+  induction l as [| h t]; simpl.
+    auto.
+    destruct (p h); simpl.
+      destruct 1; auto.
+      intro. apply in_app_or in H. destruct H.
+        right. apply IHt. apply in_or_app. auto.
+        inversion H.
+          subst. auto.
+          right. apply IHt. apply in_or_app. auto.
+Qed.
+
 (* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=
 match n, l with
@@ -175,3 +190,51 @@ Proof.
     contradiction H0. trivial.
     unfold lt. apply le_n_S. apply drop_length_le.
 Qed.
+
+Lemma take_In :
+  forall (A : Type) (n : nat) (x : A) (l : list A),
+    In x (take n l) -> In x l.
+Proof.
+  induction n as [| n'].
+    simpl. inversion 1.
+    destruct l as [| h t]; simpl; auto.
+      destruct 1; auto.
+Qed.
+
+Lemma drop_In :
+  forall (A : Type) (n : nat) (x : A) (l : list A),
+    In x (drop n l) -> In x l.
+Proof.
+  induction n as [| n'].
+    simpl. auto.
+    destruct l as [| h t]; simpl; auto.
+Qed.
+
+Lemma take_In_tail :
+  forall (A : Type) (n : nat) (x h : A) (t : list A),
+    In x (take n t) -> In x (take (S n) (h :: t)).
+Proof.
+  induction n as [| n']; simpl.
+    inversion 2.
+    destruct t as [| h' t']; simpl; destruct 1; auto.
+Qed.
+
+Lemma drop_In_tail :
+  forall (A : Type) (n : nat) (x h : A) (t : list A),
+    In x (drop n t) -> In x (drop (S n) (h :: t)).
+Proof.
+  induction n as [| n']; simpl.
+    auto.
+    destruct t as [| h' t']; simpl; auto.
+Qed.
+
+Fixpoint list_ind2 (A : Type) (P : list A -> Prop)
+  (Hnil : P []) (Hsingl : forall x : A, P [x])
+  (Hcons : forall (x y : A) (l : list A), P l -> P (x :: y :: l))
+    (l : list A) : P l.
+Proof.
+  destruct l as [| h [| h' t]].
+    apply Hnil.
+    apply Hsingl.
+    apply Hcons. apply list_ind2; auto.
+Defined.

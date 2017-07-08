@@ -65,6 +65,18 @@ Qed.
 
 Hint Resolve sorted_head sorted_tail sorted_app_all.
 
+Lemma sorted_cons :
+  forall (A : LinDec) (h : A) (t : list A),
+    (forall x : A, In x t -> h ≤ x) -> sorted A t -> sorted A (h :: t).
+Proof.
+  inversion 2; subst.
+    auto.
+    constructor; auto. apply H. simpl. auto.
+    constructor.
+      apply H. left. reflexivity.
+      constructor; auto.
+Qed.
+
 (* Lemmas about [count]. *)
 
 Lemma count_last :
@@ -85,7 +97,7 @@ Proof.
     rewrite count_last, IHt. simpl. destruct (x =? h); omega.
 Qed. 
 
-Lemma count_app : forall (A : LinDec) (x : A) (l1 l2 : list A),
+Lemma count_app_comm : forall (A : LinDec) (x : A) (l1 l2 : list A),
     count A x (l1 ++ l2) = count A x (l2 ++ l1).
 Proof.
   induction l1 as [| h1 t1].
@@ -95,6 +107,21 @@ Proof.
         rewrite <- IHt1. rewrite app_assoc. rewrite count_last.
           simpl. destruct (x =? h1); omega.
         rewrite <- app_assoc. simpl. reflexivity.
+Qed.
+
+Lemma count_app :
+  forall (A : LinDec) (x : A) (l1 l2 : list A),
+    count A x (l1 ++ l2) = count A x l1 + count A x l2.
+Proof.
+  induction l1; dec.
+Qed.
+
+Lemma count_filter :
+  forall (A : LinDec) (x h : A) (t : list A),
+    count A x t = count A x (filter (fun y : A => y <=? h) t) +
+                  count A x (filter (fun y : A => negb (y <=? h)) t).
+Proof.
+  induction t as [| h' t']; simpl; repeat dec.
 Qed.
 
 (* Lemmas about [perm]. *)
@@ -140,5 +167,5 @@ Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front.
 Lemma perm_app : forall (A : LinDec) (l1 l2 : list A),
     perm A (l1 ++ l2) (l2 ++ l1).
 Proof.
-  unfold perm. intros. apply count_app.
+  unfold perm. intros. apply count_app_comm.
 Qed.

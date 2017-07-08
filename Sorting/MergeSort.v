@@ -1,12 +1,11 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Coq.Program.Wf.
-Require Import Recdef.
+Require Export Coq.Program.Wf.
+Require Export Recdef.
+Require Export Div2.
 
-Require Import Div2.
-
-Require Import Sort.
-Require Import ListLemmas.
+Require Export Sort.
+Require Export ListLemmas.
 
 Set Implicit Arguments.
 
@@ -20,19 +19,6 @@ Fixpoint merge (A : LinDec) (l1 : list A) {struct l1} : list A -> list A :=
             then h1 :: merge A t1 l2
             else h2 :: f t2
     end.
-
-(* TODO *) Theorem merge_sorted : forall (A : LinDec) (l1 l2 : list A),
-    sorted A l1 -> sorted A l2 -> sorted A (merge A l1 l2).
-Proof.
-  intros A l1 l2 H. generalize dependent l2.
-  induction H.
-    destruct l2; auto.
-    induction 1; simpl in *; dec.
-    induction 1.
-      simpl. auto.
-      specialize (IHsorted _ (sorted1 A x0)). simpl in *. dec.
-      simpl.
-Abort.
 
 (* Mergesort using Program Fixpoint. *)
 Program Fixpoint msPF (A : LinDec) (l : list A) 

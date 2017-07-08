@@ -3,31 +3,6 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Import QuickSort.
 
 Set Implicit Arguments.
-Check qsFun_equation.
-(*Lemma filter_complete :
-  forall (A : LinDec) (h : A) (t : list A),
-    perm A (h :: t) (filter (fun x : A => x <=? h) t ++ h ::
-                     filter (fun x : A => negb (x <=? h)) t).
-Proof.
-  unfold perm. induction t as [| h' t'].
-    simpl. reflexivity.
-    simpl. dec.
-Abort.*)
-
-Lemma filter_In_app :
-  forall (A : LinDec) (p : A -> bool) (x : A) (l : list A),
-    In x (filter p l ++ filter (fun x => negb (p x)) l) -> In x l.
-Proof.
-  induction l as [| h t]; simpl.
-    auto.
-    destruct (p h); simpl.
-      destruct 1; auto.
-      intro. apply in_app_or in H. destruct H.
-        right. apply IHt. apply in_or_app. auto.
-        inversion H.
-          subst. auto.
-          right. apply IHt. apply in_or_app. auto.
-Qed.
 
 Theorem qsFun_In :
   forall (A : LinDec) (x : A) (l : list A),
@@ -53,7 +28,22 @@ Proof.
                   apply filter_lengthOrder.
                   assumption.
                 contradiction n. auto.
-Abort.
+    apply (well_founded_ind (@lengthOrder_wf A)
+      (fun l : list A => In x l -> In x (qsFun A l))).
+      destruct x0 as [| h t]; intro IH.
+        inversion 1.
+        intro. rewrite qsFun_equation. apply in_or_app.
+          destruct (LinDec_eqb_spec _ x h); subst.
+            right. left. reflexivity.
+            case_eq (x <=? h); intros.
+              left. apply IH.
+                apply filter_lengthOrder.
+                rewrite filter_In. inversion H; subst; intuition.
+              right. right. apply IH.
+                apply filter_lengthOrder.
+                rewrite filter_In. inversion H; subst; intuition.
+                  rewrite H0. simpl. trivial.
+Qed.
 
 Theorem qsFun_sorted :
   forall (A : LinDec) (l : list A), sorted A (qsFun A l).
@@ -62,5 +52,34 @@ Proof.
     constructor.
     apply sorted_app_all.
       assumption.
-      Focus 2. intros.
-Abort.
+      Focus 2. intros. rewrite qsFun_In, filter_In in H. destruct H.
+        destruct (leqb_spec x h); intuition.
+      apply sorted_cons.
+        intros. rewrite qsFun_In, filter_In in H. destruct H.
+          destruct (leqb_spec x h).
+            inversion H0.
+            apply LinDec_not_leq. assumption.
+          assumption.
+Qed.
+
+Hint Resolve filter_lengthOrder.
+
+Theorem qsFun_perm :
+  forall (A : LinDec) (l : list A), perm A l (qsFun A l).
+Proof.
+  unfold perm. intros A l x. generalize dependent l.
+  apply (well_founded_ind (@lengthOrder_wf A)
+    (fun l : list A => count A x l = count A x (qsFun A l))).
+  destruct x0 as [| h t]; intro IH.
+    compute. reflexivity.
+    rewrite qsFun_equation. rewrite count_app. simpl. dec.
+      repeat rewrite <- IH; auto. rewrite (count_filter A h h). omega.
+      repeat rewrite <- IH; auto. erewrite count_filter. reflexivity.
+Qed.
+
+Instance Sort_qsFun : Sort :=
+{
+    sort := qsFun;
+    sort_sorted := qsFun_sorted;
+    sort_perm := qsFun_perm;
+}.
