@@ -70,6 +70,13 @@ Proof.
         apply perm_front.
         apply perm_cons. apply IH. rewrite H. unfold lengthOrder.
           do 2 rewrite app_length. simpl. omega.
+Restart.
+  intros. functional induction (ssFun A) l.
+    auto.
+    destruct (min_split A h t) as [l1 [l2 [H H']]].
+      rewrite <- H' in *. rewrite H. eapply perm_trans.
+        apply perm_front.
+        apply perm_cons. apply IHl0.
 Qed.
 
 Instance Sort_ssFun : Sort :=

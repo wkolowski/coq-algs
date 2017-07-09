@@ -61,7 +61,7 @@ match goal with
 end; simpl; try
 match goal with
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
-end; eauto; try omega.
+end; eauto; try omega; try congruence.
 
 Lemma LinDec_not_leq : forall (A : LinDec) (x y : A),
     ~ leq x y -> leq y x.

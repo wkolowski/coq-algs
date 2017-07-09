@@ -2,6 +2,8 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import Sort.
 
+Set Implicit Arguments.
+
 (* General lemmas *)
 Definition lengthOrder {A : Type} (l1 l2 : list A) : Prop :=
     length l1 < length l2.
@@ -53,7 +55,7 @@ Proof.
   intros. replace (h :: remove_once (min_dflt A h t) t) with
     (remove_once (min_dflt A h t) (h :: t)).
     apply remove_once_min_lengthOrder.
-    simpl. dec. rewrite e in H. contradiction.
+    simpl. dec.
 Qed.
 
 Lemma min_split :
@@ -95,7 +97,6 @@ Proof.
   induction t as [| h' t'].
     simpl. dec.
     simpl in *. dec; inversion H; subst; auto.
-      contradiction.
       inversion H; inversion H0; subst; auto.
         edestruct IHt'; simpl; auto.
 Qed.
@@ -105,7 +106,7 @@ Lemma remove_once_In :
     In x t -> min_dflt A h t <> x -> In x (remove_once (min_dflt A h t) t).
 Proof.
   induction t as [| h' t']; inversion 1; subst; intros.
-    simpl in *. dec. rewrite e in H0. contradiction.
+    simpl in *. dec.
     simpl. dec. right. apply IHt'.
       assumption.
       simpl in *. destruct (leqb_spec h' (min_dflt A h t')).
@@ -238,3 +239,10 @@ Proof.
     apply Hsingl.
     apply Hcons. apply list_ind2; auto.
 Defined.
+
+Lemma take_drop :
+  forall (A : Type) (n : nat) (l : list A),
+    take n l ++ drop n l = l.
+Proof.
+  induction n as [| n']; destruct l as [| h t]; simpl; try f_equal; auto.
+Qed.

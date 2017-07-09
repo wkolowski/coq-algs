@@ -164,8 +164,22 @@ Qed.
 
 Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front.
 
-Lemma perm_app : forall (A : LinDec) (l1 l2 : list A),
+Lemma perm_app_comm : forall (A : LinDec) (l1 l2 : list A),
     perm A (l1 ++ l2) (l2 ++ l1).
 Proof.
   unfold perm. intros. apply count_app_comm.
 Qed.
+
+Lemma perm_app :
+  forall (A : LinDec) (l1 l1' l2 l2' : list A),
+    perm A l1 l1' -> perm A l2 l2' -> perm A (l1 ++ l2) (l1' ++ l2').
+Proof.
+  unfold perm; intros. do 2 rewrite count_app. rewrite H, H0. auto.
+Qed.
+
+Require Import Classes.RelationClasses.
+
+Instance Equiv_perm (A : LinDec) : Equivalence (perm A).
+Proof.
+  split; red; intros; eauto. eapply perm_trans; eauto.
+Defined.

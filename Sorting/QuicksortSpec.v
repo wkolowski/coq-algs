@@ -43,6 +43,19 @@ Proof.
                 apply filter_lengthOrder.
                 rewrite filter_In. inversion H; subst; intuition.
                   rewrite H0. simpl. trivial.
+Restart.
+  split; functional induction (qsFun A) l; auto.
+    intros H %in_app_or. destruct (LinDec_eqb_spec _ x h); subst.
+      left. auto.
+      right. apply filter_In_app with (fun x : A=> x <=? h).
+        apply in_or_app. destruct H.
+          left. apply IHl0. assumption.
+          right. apply IHl1. inversion H; subst; intuition.
+    intro. apply in_or_app. inversion H; subst.
+      right. left. auto.
+      case_eq (x <=? h); intros.
+        left. apply IHl0, filter_In. auto.
+        right. right. apply IHl1, filter_In. rewrite H1. auto.
 Qed.
 
 Theorem qsFun_sorted :
@@ -75,6 +88,13 @@ Proof.
     rewrite qsFun_equation. rewrite count_app. simpl. dec.
       repeat rewrite <- IH; auto. rewrite (count_filter A h h). omega.
       repeat rewrite <- IH; auto. erewrite count_filter. reflexivity.
+Restart.
+  intros A l. functional induction (qsFun A) l.
+    auto.
+    apply perm_symm. eapply perm_trans.
+      apply perm_front.
+      apply perm_cons. unfold perm in *. intro. rewrite count_app.
+        rewrite <- IHl0, <- IHl1. rewrite <- count_filter. auto.
 Qed.
 
 Instance Sort_qsFun : Sort :=

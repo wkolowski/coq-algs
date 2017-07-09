@@ -4,27 +4,20 @@ Require Import MergeSort.
 
 Set Implicit Arguments.
 
-(* TODO *) Theorem merge_sorted : forall (A : LinDec) (l1 l2 : list A),
+(*Functional Scheme merge_ind := Induction for merge Sort Prop.*)
+
+Theorem merge_sorted : forall (A : LinDec) (l1 l2 : list A),
     sorted A l1 -> sorted A l2 -> sorted A (merge A l1 l2).
 Proof.
-  intros A l1 l2 H. generalize dependent l2.
-  induction H.
-    destruct l2; auto.
-    induction 1; simpl in *; dec.
-    induction 1.
-      simpl. auto.
-      specialize (IHsorted _ (sorted1 A x0)). simpl in *. dec.
-      simpl.
-Restart.
-  induction l1 as [| h1 t1].
-    destruct l2; simpl; auto.
-    destruct l2; simpl; auto.
-      dec; intros.
-        
-    
-Abort.
+Admitted.
 
-Lemma merge_In :
+Lemma merge_perm :
+  forall (A : LinDec) (l1 l2 : list A),
+    perm A (l1 ++ l2) (merge A l1 l2).
+Proof.
+Admitted.
+
+(*Lemma merge_In :
   forall (A : LinDec) (x : A) (l1 l2 : list A),
     In x (merge A l1 l2) <-> In x (l1 ++ l2).
 Proof.
@@ -32,92 +25,121 @@ Admitted.
 
 Theorem msFun_In :
   forall (A : LinDec) (x : A) (l : list A),
-    In x (msFun A l) -> In x l.
+    In x (msFun A l) <-> In x l.
 Proof.
-  intros A x. apply (well_founded_ind (@lengthOrder_wf A)
-    (fun l : list A => In x (msFun A l) -> In x l)).
-  destruct x0 as [| h t]; intro IH.
-    inversion 1.
-    intro. rewrite msFun_equation in H. destruct t.
-      assumption.
-      apply merge_In in H. apply in_app_or in H. destruct H.
-        apply IH in H.
-          eapply take_In. eassumption.
-          apply take_length_lt. apply lt_div2. simpl. omega.
-        apply IH in H.
-          eapply drop_In. eassumption.
-          apply drop_length_lt; simpl; intuition. inversion H0.
+  split; functional induction (msFun A) l; auto; clear y; intro.
+    apply merge_In in H. apply in_app_or in H. destruct H.
+      eapply take_In. apply IHl0. assumption.
+      eapply drop_In. apply IHl1. assumption.
+    apply merge_In. apply in_or_app.
+      rewrite <- (take_drop (Nat.div2 (length l))) in H.
+      apply in_app_or in H. destruct H; auto.
+Qed.*)
+
+Theorem msFun_sorted :
+  forall (A : LinDec) (l : list A), sorted A (msFun A l).
+Proof.
+  intros. functional induction (msFun A) l; auto; clear y.
+  apply merge_sorted; assumption.
 Qed.
 
-Theorem msFun_In_conv :
-  forall (A : LinDec) (x : A) (l : list A),
-   In x l -> In x (msFun A l).
+Theorem msFun_perm :
+  forall (A : LinDec) (l : list A), perm A l (msFun A l).
 Proof.
-  intros A x. apply (well_founded_ind (@lengthOrder_wf A)
-    (fun l : list A => In x l -> In x (msFun A l))).
-  destruct x0 as [| h t]; intro IH.
-    inversion 1.
-    intro. rewrite msFun_equation. destruct t.
-      assumption.
-      rewrite merge_In. apply in_or_app. destruct (LinDec_eqb_spec _ x h).
-        left. apply IH.
-          apply take_length_lt. apply lt_div2. simpl. omega.
-          simpl. auto.
-        inversion H; subst.
-          contradiction.
-          apply IH in H0.
-            Focus 2. red; simpl; omega.
-            apply msFun_In in H0.
-            apply IH in H0. rewrite msFun_equation in H0. destruct t.
-              simpl. right. auto.
-              rewrite merge_In in H0. apply in_app_or in H0. destruct H0.
-                left. apply IH.
-                  apply take_length_lt. apply lt_div2. simpl. omega.
-Restart.
-  intros A x. apply (well_founded_ind (@lengthOrder_wf A)
-    (fun l : list A => In x l -> In x (msFun A l))).
-  destruct x0 as [| h t]; intro IH.
-    inversion 1.
-    intro. rewrite msFun_equation. destruct t.
-      assumption.
-      rewrite merge_In. apply in_or_app. inversion H; subst.
-        left. apply IH.
-          apply take_length_lt. apply lt_div2. simpl; omega.
-          simpl. auto.
-        inversion H0; subst.
-          destruct t using list_ind2; auto.
-            right. rewrite msFun_equation. simpl. dec.
-            left. apply IH.
-              apply take_length_lt. apply lt_div2. simpl; omega.
-              simpl. auto.
-          apply IH in H1.
-            Focus 2. red; simpl; omega.
-            rewrite msFun_equation in H1. destruct t using list_ind2.
-              Focus 3.
-Restart.
-  intros A x. apply (well_founded_ind (@lengthOrder_wf A)
-    (fun l : list A => In x l -> In x (msFun A l))).
-  destruct x0 using list_ind2; intro IH; simpl; destruct 1; subst; auto.
-    rewrite msFun_equation. rewrite merge_In. apply in_or_app. left.
-      apply IH.
-        apply take_length_lt. apply lt_div2. simpl; omega.
-        simpl. auto.
-    destruct H; subst.
-      rewrite msFun_equation. rewrite merge_In. apply in_or_app.
-        destruct x1 using list_ind2.
-          right. simpl. auto.
-          right. simpl. rewrite msFun_equation. dec.
-          left. apply IH.
-            apply take_length_lt. apply lt_div2. simpl; omega.
-            simpl. auto.
-      rewrite msFun_equation. rewrite merge_In. apply in_or_app.
-        destruct x1 using list_ind2.
-          inversion H.
-          simpl in H. destruct H; inversion H; subst. right. simpl.
-            rewrite msFun_equation. dec.
-          clear IHx1. apply IH in H.
-            Focus 2. red; simpl; omega.
-            rewrite msFun_equation, merge_In in H. apply in_app_or in H.
-              destruct H.
-                simpl in H. apply msFun_In in H. inversion H; subst.
-Abort.
+  intros. functional induction (msFun A) l; auto; clear y.
+    rewrite <- (take_drop (Nat.div2 (length l))) at 1.
+      rewrite <- merge_perm. apply perm_app; assumption.
+Qed.
+
+Instance Sort_msFun : Sort :=
+{
+    sort := msFun;
+    sort_sorted := msFun_sorted;
+    sort_perm := msFun_perm;
+}.
+
+Definition lenSum {A : Type} (l : list A * list A) : nat :=
+  length (fst l) + length (snd l).
+
+Definition lenSumOrd {A : Type} (l1 l2 : list A * list A) : Prop :=
+  lenSum l1 < lenSum l2.
+
+Lemma lenSumOrd_wf : forall (A : Type), well_founded (@lenSumOrd A).
+Proof.
+  intro. apply well_founded_lt_compat with lenSum.
+  unfold lenSumOrd. auto.
+Qed.
+
+Function merge2 (A : LinDec) (l : list A * list A)
+    {measure lenSum l} : list A :=
+let (l1, l2) := l in match l1, l2 with
+    | [], _ => l2
+    | _, [] => l1
+    | h :: t, h' :: t' =>
+        if h <=? h'
+        then h :: merge2 A (t, l2)
+        else h' :: merge2 A (l1, t')
+end.
+Proof.
+  intros. unfold lenSum. simpl. omega.
+  intros. unfold lenSum. simpl. omega.
+Defined.
+
+Function msFun2 (A : LinDec) (l : list A) {measure length l} : list A :=
+match l with
+    | [] => []
+    | [x] => [x]
+    | l' =>
+        let n := Nat.div2 (length l') in
+        let l1 := take n l' in
+        let l2 := drop n l' in
+          merge2 A (msFun2 A l1, msFun2 A l2)
+end.
+Proof.
+  intros. apply drop_length_lt. simpl. omega. inversion 1.
+  intros. apply take_length_lt. apply lt_div2. simpl. omega.
+Defined.
+
+Theorem merge2_sorted :
+  forall (A : LinDec) (l : list A * list A),
+    sorted A (fst l) -> sorted A (snd l) -> sorted A (merge2 A l).
+Proof.
+  intros. functional induction (merge2 A) l; simpl in *; auto;
+  rewrite merge2_equation in *.
+    destruct t; simpl in *; dec.
+    destruct t'; simpl in *; dec.
+Qed.
+
+Theorem merge2_perm :
+  forall (A : LinDec) (l : list A * list A),
+    perm A (fst l ++ snd l) (merge2 A l).
+Proof.
+  intros. functional induction (merge2 A) l; simpl; auto; try clear y.
+    rewrite app_nil_r. auto.
+    eapply perm_trans.
+      rewrite app_comm_cons. apply perm_app_comm.
+      simpl. apply perm_cons. simpl in IHl0. rewrite <- IHl0.
+        apply perm_app_comm.
+Qed.
+
+Theorem msFun2_sorted :
+  forall (A : LinDec) (l : list A), sorted A (msFun2 A l).
+Proof.
+  intros. functional induction (msFun2 A) l; auto.
+  apply merge2_sorted; simpl; assumption.
+Qed.
+
+Theorem msFun2_perm :
+  forall (A : LinDec) (l : list A), perm A l (msFun2 A l).
+Proof.
+  intros. functional induction (msFun2 A) l; auto; clear y.
+  rewrite <- merge2_perm, <- (take_drop (Nat.div2 (length l))) at 1; simpl.
+  apply perm_app; assumption.
+Qed.
+
+Instance Sort_msFun2 : Sort :=
+{
+    sort := msFun2;
+    sort_sorted := msFun2_sorted;
+    sort_perm := msFun2_perm;
+}.
