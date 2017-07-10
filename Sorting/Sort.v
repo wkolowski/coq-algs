@@ -77,6 +77,33 @@ Proof.
       constructor; auto.
 Qed.
 
+Lemma sorted_mid :
+  forall (A : LinDec) (x y : A) (l : list A),
+    sorted A (x :: y :: l) -> sorted A (x :: l).
+Proof.
+  destruct l.
+    auto.
+    intros. constructor.
+      assert (x ≤ y) by (apply sorted_head in H; auto).
+        apply sorted_tail in H.
+        assert (y ≤ c) by (apply sorted_head in H; auto).
+        eapply leq_trans; eauto.
+      do 2 eapply sorted_tail. eassumption.
+Qed.
+
+Lemma sorted_cons_conv :
+  forall (A : LinDec) (h : A) (t : list A),
+    sorted A (h :: t) -> forall x : A, In x t -> h ≤ x.
+Proof.
+  induction t as [| h' t'].
+    inversion 2.
+    intros. inversion H0; subst.
+      apply sorted_head in H. assumption.
+      apply IHt'.
+        apply sorted_mid in H. assumption.
+        assumption.
+Qed.
+
 (* Lemmas about [count]. *)
 
 Lemma count_last :
@@ -95,7 +122,7 @@ Proof.
   induction l as [| h t]; simpl; intros.
     reflexivity.
     rewrite count_last, IHt. simpl. destruct (x =? h); omega.
-Qed. 
+Qed.
 
 Lemma count_app_comm : forall (A : LinDec) (x : A) (l1 l2 : list A),
     count A x (l1 ++ l2) = count A x (l2 ++ l1).

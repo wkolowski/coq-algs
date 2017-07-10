@@ -113,3 +113,46 @@ Definition qsBC (A : LinDec) (l : list A) : list A :=
     @qsBC' A l (all_qsDom A l).
 
 Eval compute in qsBC natle testl.
+
+(* Now the serious part. TODO *)
+Definition qs := qsFun.
+
+Function bifilter {A : Type} (p : A -> bool) (l : list A)
+    : list A * list A :=
+match l with
+    | [] => ([], [])
+    | h :: t =>
+        let (l1, l2) := bifilter p t in
+        if p h then (h :: l1, l2) else (l1, h :: l2)
+end.
+
+Theorem bifilter_spec :
+  forall (A : Type) (p : A -> bool) (l : list A),
+    bifilter p l = (filter p l, filter (fun x : A => negb (p x)) l).
+Proof.
+  intros. functional induction @bifilter A p l; simpl;
+  try rewrite e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
+Qed.
+
+Function qs2 (A : LinDec) (l : list A) {measure length l} : list A :=
+match l with
+    | [] => []
+    | h :: t =>
+        let (lo, hi) := bifilter (fun x : A => x <=? h) t in
+        qs2 A lo ++ h :: qs2 A hi
+end.
+Proof.
+  intros. rewrite bifilter_spec in teq0. inversion teq0.
+    apply filter_lengthOrder.
+  intros. rewrite bifilter_spec in teq0. inversion teq0.
+    apply filter_lengthOrder.
+Defined.
+
+Theorem qs2_is_qs :
+  forall (A : LinDec) (l : list A), qs2 A l = qs A l.
+Proof.
+  intros. functional induction (qs2 A l).
+    compute. trivial.
+    unfold qs. rewrite qsFun_equation. rewrite bifilter_spec in e0.
+      inversion e0. rewrite H0, H1. repeat f_equal; auto.
+Qed.

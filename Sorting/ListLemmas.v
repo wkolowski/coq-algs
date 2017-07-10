@@ -15,6 +15,18 @@ Proof.
   apply (@well_founded_lt_compat _ (@length A)). trivial.
 Defined.
 
+Definition lenSum {A : Type} (l : list A * list A) : nat :=
+  length (fst l) + length (snd l).
+
+Definition lenSumOrd {A : Type} (l1 l2 : list A * list A) : Prop :=
+  lenSum l1 < lenSum l2.
+
+Lemma lenSumOrd_wf : forall (A : Type), well_founded (@lenSumOrd A).
+Proof.
+  intro. apply well_founded_lt_compat with lenSum.
+  unfold lenSumOrd. auto.
+Qed.
+
 (* Selection sort lemmas *)
 Fixpoint remove_once {A : LinDec} (x : A) (l : list A) : list A :=
 match l with
