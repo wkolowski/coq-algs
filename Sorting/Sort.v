@@ -131,7 +131,7 @@ Proof.
     simpl; intros. rewrite app_nil_r. reflexivity.
     intros. rewrite <- app_comm_cons at 1.
       replace (l2 ++ h1 :: t1) with ((l2 ++ [h1]) ++ t1).
-        rewrite <- IHt1. rewrite app_assoc. rewrite count_last.
+        rewrite <- IHt1, app_assoc, count_last.
           simpl. destruct (x =? h1); omega.
         rewrite <- app_assoc. simpl. reflexivity.
 Qed.
@@ -201,7 +201,7 @@ Lemma perm_app :
   forall (A : LinDec) (l1 l1' l2 l2' : list A),
     perm A l1 l1' -> perm A l2 l2' -> perm A (l1 ++ l2) (l1' ++ l2').
 Proof.
-  unfold perm; intros. do 2 rewrite count_app. rewrite H, H0. auto.
+  unfold perm; intros. rewrite 2 count_app, H, H0. auto.
 Qed.
 
 Require Import Classes.RelationClasses.

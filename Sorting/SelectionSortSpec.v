@@ -46,16 +46,16 @@ Qed.
 Theorem ssFun_sorted :
   forall (A : LinDec) (l : list A), sorted A (ssFun A l).
 Proof.
-  intros. functional induction (ssFun A) l.
+  intros. functional induction ssFun A l.
     constructor.
     case_eq (ssFun A (remove_once (min_dflt A h t) (h :: t))); intros.
       auto.
       constructor.
-        Focus 2. rewrite <- H. assumption.
         assert (In c (ssFun A (remove_once (min_dflt A h t) (h :: t)))).
           rewrite H. left. reflexivity.
           apply ssFun_In_conv in H0. apply min_spec.
           apply remove_once_In_conv in H0. assumption.
+        rewrite <- H. assumption.
 Qed.
 
 Theorem ssFun_perm :
@@ -69,12 +69,12 @@ Proof.
       rewrite <- H', H. eapply perm_trans.
         apply perm_front.
         apply perm_cons. apply IH. rewrite H. unfold lengthOrder.
-          do 2 rewrite app_length. simpl. omega.
+          rewrite 2 app_length. simpl. omega.
 Restart.
-  intros. functional induction (ssFun A) l.
+  intros. functional induction ssFun A l.
     auto.
     destruct (min_split A h t) as [l1 [l2 [H H']]].
-      rewrite <- H' in *. rewrite H. eapply perm_trans.
+      rewrite <- H', H in *. eapply perm_trans.
         apply perm_front.
         apply perm_cons. apply IHl0.
 Qed.

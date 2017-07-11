@@ -27,7 +27,7 @@ Theorem msFun_In :
   forall (A : LinDec) (x : A) (l : list A),
     In x (msFun A l) <-> In x l.
 Proof.
-  split; functional induction (msFun A) l; auto; clear y; intro.
+  split; functional induction msFun A l; auto; clear y; intro.
     apply merge_In in H. apply in_app_or in H. destruct H.
       eapply take_In. apply IHl0. assumption.
       eapply drop_In. apply IHl1. assumption.
@@ -39,14 +39,14 @@ Qed.*)
 Theorem msFun_sorted :
   forall (A : LinDec) (l : list A), sorted A (msFun A l).
 Proof.
-  intros. functional induction (msFun A) l; auto; clear y.
+  intros. functional induction msFun A l; auto; clear y.
   apply merge_sorted; assumption.
 Qed.
 
 Theorem msFun_perm :
   forall (A : LinDec) (l : list A), perm A l (msFun A l).
 Proof.
-  intros. functional induction (msFun A) l; auto; clear y.
+  intros. functional induction msFun A l; auto; clear y.
     rewrite <- (take_drop (Nat.div2 (length l))) at 1.
       rewrite <- merge_perm. apply perm_app; assumption.
 Qed.

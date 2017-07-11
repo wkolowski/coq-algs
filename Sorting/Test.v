@@ -4,6 +4,7 @@ Require Import InsertionSort.
 Require Import SelectionSort.
 Require Import QuickSort.
 Require Import MergeSort2.
+Require Import MergeSort3.
 
 Require Import HybridSorts.
 
@@ -20,12 +21,15 @@ match n with
     | S n' => l ++ cycle n' l
 end.
 
-Time Compute insertionSort natle (cycle 200 testl). (* 0.304 *)
-(*Time Compute ssFun natle (cycle 200 testl).*)
-(*Time Compute qs natle (cycle 200 testl).       
+(*Time Compute hms natle 1024 (cycle 100 testl).
+Time Compute ms3 natle (cycle 100 testl).
+Time Compute msFun2 natle (cycle 100 testl).
+
+Time Compute qs natle (cycle 500 testl).
+Time Compute hqs natle 1024 (cycle 500 testl).
+Time Compute insertionSort natle (cycle 500 testl).
+Time Compute ssFun natle (cycle 200 testl).
 Time Compute qs2 natle (cycle 200 testl).      *)
-Time Compute hqs natle 2048 (cycle 200 testl).
-Time Compute msFun2 natle (cycle 200 testl).        (* 0.872 *)
 
 
 

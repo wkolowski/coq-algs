@@ -131,7 +131,7 @@ Theorem bifilter_spec :
     bifilter p l = (filter p l, filter (fun x : A => negb (p x)) l).
 Proof.
   intros. functional induction @bifilter A p l; simpl;
-  try rewrite e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
+  rewrite ?e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
 Qed.
 
 Function qs2 (A : LinDec) (l : list A) {measure length l} : list A :=
@@ -151,8 +151,46 @@ Defined.
 Theorem qs2_is_qs :
   forall (A : LinDec) (l : list A), qs2 A l = qs A l.
 Proof.
-  intros. functional induction (qs2 A l).
+  intros. functional induction qs2 A l.
     compute. trivial.
     unfold qs. rewrite qsFun_equation. rewrite bifilter_spec in e0.
       inversion e0. rewrite H0, H1. repeat f_equal; auto.
 Qed.
+
+Function trifilter (A : LinDec) (pivot : A) (l : list A)
+  : list A * list A * list A :=
+match l with
+    | [] => ([], [], [])
+    | h :: t =>
+        let '(l1, l2, l3) := trifilter A pivot t in
+        if h <=? pivot
+        then if pivot <=? h then (l1, h :: l2, l3) else (h :: l1, l2, l3)
+        else (l1, l2, h :: l3)
+end.
+
+Compute trifilter natle 5 [1; 5; 5; 5; 2].
+
+Theorem trifilter_spec :
+  forall (A : LinDec) (pivot h : A) (t : list A),
+    trifilter A pivot (h :: t) =
+      (filter (fun x : A => x <=? pivot) (h :: t),
+       filter (fun x : A => x =? pivot) (h :: t),
+       filter (fun x : A => negb (x <=? pivot)) (h :: t)).
+Abort.
+(*  intros. rewrite trifilter_equation.
+    destruct (trifilter A pivot t) as [[l1 l2] l3].
+    Focus 2. assert (h0 = pivot) by (apply leq_antisym; auto).
+      contradiction.
+    Focus 2. contradict n. auto.
+    rewrite e0 in *. inversion IHp. rewrite <- H0, <- H1, <- H2.
+Qed.*)
+
+Function qs3 (A : LinDec) (l : list A) {measure length l} : list A :=
+match l with
+    | [] => []
+    | h :: t =>
+        let '(lo, eq, hi) := trifilter A h t in
+          qs3 A lo ++ eq ++ qs3 A hi
+end.
+Proof.
+Abort.

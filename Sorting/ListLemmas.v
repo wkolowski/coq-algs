@@ -98,7 +98,7 @@ Lemma perm_min_front :
       perm A (m :: remove_once m (h :: t)) (h :: t).
 Proof.
   intros. destruct (min_split A h t) as [l1 [l2 [H H']]]. fold m in H, H'.
-  rewrite H at 2. rewrite <- H'. apply perm_symm. apply perm_front.
+  rewrite H, <- H' in *. apply perm_symm. apply perm_front.
 Qed.
 
 Lemma remove_once_In_conv :
