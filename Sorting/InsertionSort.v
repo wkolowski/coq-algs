@@ -23,17 +23,17 @@ Proof.
     unfold ins; destruct (leqb x a); fold ins.
       reflexivity.
       rewrite (perm_swap A x a l l (perm_refl A l)).
-        simpl. rewrite <- IHl. reflexivity.
+        cbn. rewrite <- IHl. reflexivity.
 Qed.
 
 Lemma ins_sorted : forall (A : LinDec) (x : A) (l : list A),
     sorted A l -> sorted A (ins A x l).
 Proof.
-  induction l as [| h t]; intros; simpl.
+  induction l as [| h t]; intros; cbn.
     constructor.
     destruct (leqb_spec x h).
       auto.
-      induction t as [| h' t']; simpl in *.
+      induction t as [| h' t']; cbn in *.
         repeat constructor.
           destruct (leq_total h x); auto.
         destruct (leqb_spec x h'); intros.

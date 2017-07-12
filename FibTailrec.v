@@ -49,11 +49,10 @@ Lemma fib_aux_front :
     a + fib_aux n b (b + b).
 Proof.
   induction n using nat_ind2; auto.
-    Require Import Omega. intros. simpl. omega.
-    intros. rewrite !IHn. rewrite plus_assoc_reverse. do 2 f_equal.
+    Require Import Omega. intros. cbn. omega.
+    intros. cbn. rewrite !IHn. rewrite plus_assoc_reverse. do 2 f_equal.
       replace (b + (a + b)) with (a + (b + b)).
-        rewrite IHn.
-        
+Abort.
 
 Lemma fix_aux_SS :
   forall n a b : nat, fib_aux (S (S n)) a b =
@@ -64,7 +63,7 @@ Proof.
     change (fib_aux (S (S (S n))) a b) with (fib_aux (S (S n)) b (a + b)).
       rewrite !IHn.
       simpl.
-
+Abort.
 
 Definition fib' (n : nat) := fib_aux n 0 1.
 

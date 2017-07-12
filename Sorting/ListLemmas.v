@@ -2,6 +2,8 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import Sort.
 
+Require Import Div2.
+
 Set Implicit Arguments.
 
 (* General lemmas *)
@@ -257,4 +259,50 @@ Lemma take_drop :
     take n l ++ drop n l = l.
 Proof.
   induction n as [| n']; destruct l as [| h t]; simpl; try f_equal; auto.
+Qed.
+
+Function ms_split {A : Type} (l : list A) : list A * list A :=
+match l with
+    | [] => ([], [])
+    | [x] => ([x], [])
+    | x :: y :: l' =>
+        let (l1, l2) := ms_split l' in (x :: l1, y :: l2)
+end.
+
+Lemma ms_split_len1 :
+  forall (A : Type) (x y : A) (l l1 l2 : list A),
+    ms_split (x :: y :: l) = (l1, l2) -> length l1 < length (x :: y :: l).
+Proof.
+  intros A x y l. functional induction @ms_split A l.
+    inversion 1; simpl; omega.
+    inversion 1; simpl; omega.
+    simpl in *. destruct (ms_split l'). inversion 1; inversion e0; subst.
+      specialize (IHp x0 y (x0 :: l1) (y :: l2) eq_refl). simpl in *.
+        omega.
+Qed.
+
+Lemma ms_split_len2 :
+  forall (A : Type) (x y : A) (l l1 l2 : list A),
+    ms_split (x :: y :: l) = (l1, l2) -> length l2 < length (x :: y :: l).
+Proof.
+  intros A x y l. functional induction @ms_split A l.
+    inversion 1; simpl; omega.
+    inversion 1; simpl; omega.
+    simpl in *. destruct (ms_split l'). inversion 1; inversion e0; subst.
+      specialize (IHp x0 y (x0 :: l1) (y :: l2) eq_refl). simpl in *.
+        omega.
+Qed.
+
+Functional Scheme div2_ind := Induction for div2 Sort Prop.
+
+Lemma div2_pres_le :
+  forall n m : nat, n <= m -> Nat.div2 n <= Nat.div2 m.
+Proof.
+  intro. functional induction div2 n; intros.
+    omega.
+    omega.
+    destruct m as [| [| m']].
+      omega.
+      omega.
+      simpl. apply le_n_S. apply IHn0. omega.
 Qed.

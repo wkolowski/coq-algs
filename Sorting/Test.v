@@ -3,8 +3,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Import InsertionSort.
 Require Import SelectionSort.
 Require Import QuickSort.
-Require Import MergeSort2.
-Require Import MergeSort3.
+Require Import MergeSort.
 
 Require Import HybridSorts.
 
@@ -13,7 +12,6 @@ Set Implicit Arguments.
 Time Eval compute in insertionSort natle testl.
 Time Eval compute in ssFun natle testl.
 Time Eval compute in qsFun natle testl.
-Time Eval compute in msFun2 natle testl.
 
 Fixpoint cycle {A : Type} (n : nat) (l : list A) : list A :=
 match n with
@@ -21,15 +19,16 @@ match n with
     | S n' => l ++ cycle n' l
 end.
 
-(*Time Compute hms natle 1024 (cycle 100 testl).
-Time Compute ms3 natle (cycle 100 testl).
-Time Compute msFun2 natle (cycle 100 testl).
+Extraction Language Haskell.
+Extraction hms2.
+
+(*Time Compute hms2 128 natle (cycle 100 testl).
+Time Compute ms natle (cycle 100 testl).
+Time Compute ms2 natle (cycle 100 testl).
+Time Compute hms 128 natle (cycle 100 testl).
 
 Time Compute qs natle (cycle 500 testl).
 Time Compute hqs natle 1024 (cycle 500 testl).
 Time Compute insertionSort natle (cycle 500 testl).
 Time Compute ssFun natle (cycle 200 testl).
-Time Compute qs2 natle (cycle 200 testl).      *)
-
-
-
+Time Compute qs2 natle (cycle 200 testl).*)
