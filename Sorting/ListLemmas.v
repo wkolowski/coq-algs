@@ -159,6 +159,51 @@ Proof.
           right. apply IHt. apply in_or_app. auto.
 Qed.
 
+Function bifilter {A : Type} (p : A -> bool) (l : list A)
+    : list A * list A :=
+match l with
+    | [] => ([], [])
+    | h :: t =>
+        let (l1, l2) := bifilter p t in
+        if p h then (h :: l1, l2) else (l1, h :: l2)
+end.
+
+Theorem bifilter_spec :
+  forall (A : Type) (p : A -> bool) (l : list A),
+    bifilter p l = (filter p l, filter (fun x : A => negb (p x)) l).
+Proof.
+  intros. functional induction @bifilter A p l; simpl;
+  rewrite ?e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
+Qed.
+
+Function trifilter (A : LinDec) (pivot : A) (l : list A)
+  : list A * list A * list A :=
+match l with
+    | [] => ([], [], [])
+    | h :: t =>
+        let '(l1, l2, l3) := trifilter A pivot t in
+        if h <=? pivot
+        then if pivot <=? h then (l1, h :: l2, l3) else (h :: l1, l2, l3)
+        else (l1, l2, h :: l3)
+end.
+
+Compute trifilter natle 5 [1; 5; 5; 5; 2].
+
+Theorem trifilter_spec :
+  forall (A : LinDec) (pivot h : A) (t : list A),
+    trifilter A pivot (h :: t) =
+      (filter (fun x : A => x <=? pivot) (h :: t),
+       filter (fun x : A => x =? pivot) (h :: t),
+       filter (fun x : A => negb (x <=? pivot)) (h :: t)).
+Abort.
+(*  intros. rewrite trifilter_equation.
+    destruct (trifilter A pivot t) as [[l1 l2] l3].
+    Focus 2. assert (h0 = pivot) by (apply leq_antisym; auto).
+      contradiction.
+    Focus 2. contradict n. auto.
+    rewrite e0 in *. inversion IHp. rewrite <- H0, <- H1, <- H2.
+Qed.*)
+
 (* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=
 match n, l with

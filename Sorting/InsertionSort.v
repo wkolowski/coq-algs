@@ -43,6 +43,10 @@ Proof.
             constructor.
               inversion H. auto.
               apply IHt; auto. eapply sorted_tail; eauto.
+Restart.
+  induction l as [| h t]; intros; cbn.
+    constructor.
+    dec. induction t as [| h' t']; cbn in *; dec.
 Qed.
 
 Instance Sort_insertionSort : Sort :=

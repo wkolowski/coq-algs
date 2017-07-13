@@ -151,6 +151,13 @@ Proof.
   induction t as [| h' t']; simpl; repeat dec.
 Qed.
 
+Lemma count_In :
+  forall (A : LinDec) (x : A) (l : list A),
+    In x l <-> count A x l <> 0.
+Proof.
+  induction l as [| h t]; cbn; intuition dec.
+Qed.
+
 (* Lemmas about [perm]. *)
 Lemma perm_refl : forall (A : LinDec) (l : list A), perm A l l.
 Proof. unfold perm; auto. Defined.
