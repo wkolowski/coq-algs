@@ -9,7 +9,7 @@ Set Implicit Arguments.
 Theorem qs_perm :
   forall (A : LinDec) (l : list A), perm A l (qs A l).
 Proof.
-  intros A l. functional induction qs A l.
+  intros. functional induction qs A l.
     auto.
     apply perm_symm. eapply perm_trans.
       apply perm_front.

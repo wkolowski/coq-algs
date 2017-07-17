@@ -5,8 +5,6 @@ Require Import SelectionSort.
 Require Import QuickSort.
 Require Import MergeSort.
 
-Require Import HybridSorts.
-
 Set Implicit Arguments.
 
 Fixpoint cycle {A : Type} (n : nat) (l : list A) : list A :=
