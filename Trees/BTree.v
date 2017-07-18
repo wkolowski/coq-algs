@@ -52,21 +52,6 @@ match ta, tb with
     | node v1 l1 r1, node v2 l2 r2 => node (v1, v2) (combine l1 l2) (combine r1 r2)
 end.
 
-Fixpoint ins {A : Type} (a : A) (le : A -> A -> bool) (bt : BTree A)
-    : BTree A :=
-match bt with
-    | empty => node a empty empty
-    | node v l r =>
-        if le a v then node v (ins a le l) r else node v l (ins a le r)
-end.
-
-Fixpoint fromList {A : Type} (cmp : A -> A -> bool) (l : list A)
-    : BTree A :=
-match l with
-    | nil => empty
-    | cons h t => ins h cmp (fromList cmp t)
-end.
-
 Definition l1 := [3; 0; 1; 34; 19; 44; 21; 65; 5].
 Definition l2 := [4; 6; 0; 99; 3; 12].
 
@@ -76,19 +61,6 @@ match bt with
     | empty => b
     | node v l r => op v (fold op b l) (fold op b r)
 end.
-
-(*Fixpoint beq_nat (n m : nat) : bool := match n, m with
-    | 0, 0 => true
-    | S n', S m' => beq_nat n' m'
-    | _, _ => false
-end.*)
-
-(*Definition orb (b c : bool) : bool := match b with
-    | true => true
-    | false => c
-end.*)
-(*Locate "||".
-Notation "b || c" := (orb b c) (at level 50).*)
 
 Definition bool_to_nat (b : bool) : nat :=
 match b with
@@ -105,7 +77,7 @@ Definition count_fold (n : nat) : BTree nat -> nat :=
 Definition map_fold {A B : Set} (f : A -> B) : BTree A -> BTree B :=
     fold (fun v l r => node (f v) l r) empty.
 
-Definition t1 : BTree nat := fromList leb l1.
+(*Definition t1 : BTree nat := fromList leb l1.
 
 Eval compute in l1.
 Eval compute in length l1.
@@ -115,7 +87,7 @@ Eval compute in map_fold (fun x => x + 1) t1.
 Eval compute in len_fold t1.
 Eval compute in sum_fold t1.
 Eval compute in find_fold 0 t1.
-Eval compute in count_fold 0 t1.
+Eval compute in count_fold 0 t1.*)
 
 Inductive elem {A : Type} (a : A) : BTree A -> Prop :=
     | elem_root : forall l r : BTree A, elem a (node a l r)
@@ -125,11 +97,6 @@ Inductive elem {A : Type} (a : A) : BTree A -> Prop :=
         elem a r -> elem a (node v l r).
 
 Hint Constructors elem.
-
-Theorem t1_has_44 : elem 44 t1.
-Proof.
-  unfold t1. cbn. auto.
-Qed.
 
 Theorem elem_dec :
   forall {A : Type} {dec : EqDec A eq} (a : A) (t : BTree A),

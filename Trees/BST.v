@@ -95,40 +95,19 @@ Fixpoint BTree_ins {A : LinDec} (x : A) (t : BTree A) : BTree A :=
 match t with
     | empty => node x empty empty
     | node v l r =>
-        if x =? v
-        then t
-        else if x <=? v
-          then node v (BTree_ins x l) r
-          else node v l (BTree_ins x r)
+        if x <=? v
+        then node v (BTree_ins x l) r
+        else node v l (BTree_ins x r)
 end.
-(*Proof.
-  destruct t as [| v l r].
-    exact (node a empty empty).
-    destruct (LinDec_eq_dec A a v).
-      exact (node v l r).
-      destruct (leq_total_dec a v).
-        exact (node v (BTree_ins A a l) r).
-        exact (node v l (BTree_ins A a r)).
-Defined.*)
 
 Lemma elem_ins : forall (A : LinDec) (x a : A) (t : BTree A),
     elem x (BTree_ins a t) -> x = a \/ elem x t.
 Proof.
-  induction t as [| v l Hl r Hr]; simpl.
-    inversion 1; subst; auto.
-    repeat match goal with
-        | |- context [if ?b then _ else _] => destruct b; auto
-    end.
-      inversion 1; subst; auto. destruct (Hl H1); auto.
-      inversion 1; subst; auto. destruct (Hr H1); auto.
-Restart.
   move=> A x a t. elim: t => [| v l Hl r Hr] //=.
     inversion 1; auto.
-    case (LinDec_eqb_spec _ a v) => Hneq; first by auto.
-      case (leqb_spec a v) => [Hleq | Hnleq] Helem;
-      inversion Helem; subst; eauto.
-        destruct Hl; eauto.
-        destruct Hr; eauto.
+    dec; inversion H; subst; auto.
+      case: Hl; auto.
+      case: Hr; auto.
 Qed.
 
 Theorem BTree_ins_is_bst : forall (A : LinDec) (a : A) (bt : BTree A),
@@ -136,10 +115,9 @@ Theorem BTree_ins_is_bst : forall (A : LinDec) (a : A) (bt : BTree A),
 Proof.
   move=> A a bt. elim: bt a => [| v l Hl r Hr] a //=.
     constructor; eauto; inversion 1.
-    case: (LinDec_eqb_spec _ a v) => Hneq; first by [].
-      case (leqb_spec a v) => H H'; inversion H'; subst.
-        1-2: constructor; eauto; move=> x Helt;
-          case: (elem_ins _ _ _ _ Helt) => [-> |]; eauto.
+    dec; inversion H; subst.
+      1-2: constructor; auto; move=> x Helt;
+      case: (elem_ins _ _ _ _ Helt) => [-> |]; eauto.
 Qed.
 
 Fixpoint min {A : Type} (bta : BTree A) : option A :=
@@ -180,7 +158,6 @@ Proof.
       apply leq_trans with v.
         eapply is_bst_inv_leq_l; eauto. eapply min_elem_l; eauto.
         apply H7. assumption.
-(* TODO : Restart. *)
 Qed.
 
 Fixpoint toList {A : LinDec} (t : BTree A) : list A :=
@@ -214,8 +191,14 @@ Proof.
           rewrite <- H0. auto.
 Qed.
 
+Fixpoint fromList (A : LinDec) (l : list A) : BTree A :=
+match l with
+    | [] => empty
+    | h :: t => BTree_ins h (fromList A t)
+end.
+
 Definition treeSort (A : LinDec) (l : list A) : list A :=
-    toList (fromList leqb l).
+    toList (fromList A l).
 
 Functional Scheme fromList_ind := Induction for fromList Sort Prop.
 
@@ -224,21 +207,58 @@ Compute treeSort natle testl.
 
 Check testl.
 
-Fixpoint count_BTree {A : LinDec} (x : A) (t : BTree A) : nat :=
+Fixpoint count_BTree (A : LinDec) (x : A) (t : BTree A) : nat :=
 match t with
     | empty => 0
     | node v l r =>
-        let n := count_BTree x l in
-        let m := count_BTree x r in
+        let n := count_BTree A x l in
+        let m := count_BTree A x r in
         if x =? v then S (n + m) else n + m
 end.
 
+Lemma count_toList :
+  forall (A : LinDec) (x : A) (t : BTree A),
+    count A x (toList t) = count_BTree A x t.
+Proof.
+  intros. elim: t x => [| v l Hl r Hr] //= x.
+    by dec; rewrite count_app Hl //= Hr; dec.
+Qed.
 
+Lemma count_ins :
+  forall (A : LinDec) (x h : A) (t : BTree A),
+    count_BTree A x (BTree_ins h t) =
+      if x =? h
+      then S (count_BTree A x t)
+      else count_BTree A x t.
+Proof.
+  intros. elim: t => [| v l Hl r Hr] //=; repeat dec.
+Qed.
 
 Theorem treeSort_perm :
   forall (A : LinDec) (l : list A),
     perm A l (treeSort A l).
 Proof.
-  unfold treeSort. intros.
-  functional induction (@fromList A) leqb l. cbn. auto.
-Abort.  
+  unfold treeSort, perm. intros.
+  elim: l => [| h t IH] //=.
+    by rewrite count_toList count_ins -count_toList -IH.
+Qed.
+
+Lemma fromList_is_bst :
+  forall (A : LinDec) (l : list A), is_bst (fromList A l).
+Proof.
+  intros. elim: l => [| h t IH] //=.
+    by apply BTree_ins_is_bst.
+Qed.
+
+Theorem treeSort_sorted :
+  forall (A : LinDec) (l : list A), sorted A (treeSort A l).
+Proof.
+  unfold treeSort. intros. apply toList_sorted. apply fromList_is_bst.
+Qed.
+
+Instance Sort_treeSort : Sort :=
+{
+    sort := treeSort;
+    sort_sorted := treeSort_sorted;
+    sort_perm := treeSort_perm
+}.

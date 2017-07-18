@@ -4,6 +4,7 @@ Require Import InsertionSort.
 Require Import SelectionSort.
 Require Import QuickSort.
 Require Import MergeSort.
+Require Import BST.
 
 Set Implicit Arguments.
 
@@ -13,8 +14,9 @@ match n with
     | S n' => l ++ cycle n' l
 end.
 
-(*Time Compute hqs 128 natle (cycle 100 testl).
-Time Compute hms 128 natle (cycle 100 testl).*)
+Time Compute treeSort natle (cycle 1000 testl).
+Time Compute hqs 1024 natle (cycle 1000 testl).
+Time Compute hms 1024 natle (cycle 1000 testl).
 
 (*Time Compute hms2 128 natle (cycle 100 testl).
 Time Compute ms natle (cycle 100 testl).
