@@ -2,7 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import BTree.
 Require Export LinDec.
-Require Import Sort.
+Require Import Sorting.Sort.
 
 From mathcomp Require Import ssreflect.
 
@@ -160,24 +160,6 @@ Proof.
         apply H7. assumption.
 Qed.
 
-Fixpoint toList {A : LinDec} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => toList l ++ v :: toList r
-end.
-
-Lemma elem_In :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    In x (toList t) <-> elem x t.
-Proof.
-  split.
-    elim: t x => [| v l Hl r Hr] x H.
-      inversion H.
-      cbn in H. apply in_app_or in H. do 2 (destruct H; subst; auto).
-    elim: t x => [| v l Hl r Hr] x H //=; inversion H; subst;
-    apply in_or_app; cbn; eauto.
-Qed.
-
 Theorem toList_sorted : forall (A : LinDec) (t : BTree A),
     is_bst t -> sorted A (toList t).
 Proof.
@@ -191,7 +173,7 @@ Proof.
           rewrite <- H0. auto.
 Qed.
 
-Fixpoint fromList (A : LinDec) (l : list A) : BTree A :=
+Function fromList (A : LinDec) (l : list A) : BTree A :=
 match l with
     | [] => empty
     | h :: t => BTree_ins h (fromList A t)
@@ -199,13 +181,6 @@ end.
 
 Definition treeSort (A : LinDec) (l : list A) : list A :=
     toList (fromList A l).
-
-Functional Scheme fromList_ind := Induction for fromList Sort Prop.
-
-Compute testl.
-Compute treeSort natle testl.
-
-Check testl.
 
 Fixpoint count_BTree (A : LinDec) (x : A) (t : BTree A) : nat :=
 match t with

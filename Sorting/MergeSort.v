@@ -4,7 +4,7 @@ Require Export Coq.Program.Wf.
 Require Export Recdef.
 Require Export Div2.
 
-Require Export Sort.
+Require Export Sorting.Sort.
 Require Export ListLemmas.
 
 Require Import InsertionSort.

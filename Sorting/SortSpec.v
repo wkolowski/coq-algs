@@ -1,6 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Export Sort.
+Require Export Sorting.Sort.
 Require Export ListLemmas.
 
 Set Implicit Arguments.

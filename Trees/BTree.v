@@ -20,6 +20,13 @@ match bt with
     | node _ l r => S (len l + len r)
 end.
 
+Lemma len_swap :
+  forall (A : Type) (v : A) (l r : BTree A),
+    len (node v l r) = len (node v r l).
+Proof.
+  intros. cbn. rewrite plus_comm. trivial.
+Qed.
+
 Definition root {A : Type} (bt : BTree A) : option A :=
 match bt with
     | empty => None
@@ -118,3 +125,21 @@ Restart.
       by rewrite H.
       by inversion 1.
 Defined.
+
+Fixpoint toList {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => toList l ++ v :: toList r
+end.
+
+Lemma elem_In :
+  forall (A : Type) (x : A) (t : BTree A),
+    In x (toList t) <-> elem x t.
+Proof.
+  split.
+    elim: t x => [| v l Hl r Hr] x H.
+      inversion H.
+      cbn in H. apply in_app_or in H. do 2 (destruct H; subst; auto).
+    elim: t x => [| v l Hl r Hr] x H //=; inversion H; subst;
+    apply in_or_app; cbn; eauto.
+Qed.

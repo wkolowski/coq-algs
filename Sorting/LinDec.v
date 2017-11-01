@@ -121,3 +121,11 @@ Proof.
         right. left. reflexivity.
         right. right. assumption.
 Qed.
+
+Theorem LinDec_leq_dec :
+  forall (A : LinDec) (x y : A), {x ≤ y} + {y ≤ x}.
+Proof.
+  intros. destruct (leqb_spec x y).
+    left. assumption.
+    right. apply LinDec_not_leq. assumption.
+Defined.

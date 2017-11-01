@@ -1,6 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Sort.
+Require Import Sorting.Sort.
 
 Require Import Div2.
 
