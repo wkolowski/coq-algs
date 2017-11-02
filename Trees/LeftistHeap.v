@@ -93,24 +93,30 @@ Proof.
   inversion 1.
 Qed.
 
+Definition singleton' {A : Type} (x : A)
+  : BTree A := node x empty empty.
+
 Definition singleton {A : LinDec} (x : A) : LeftistHeap A.
 Proof.
-  split with (tree := node x empty empty);
+  split with (tree := singleton' x);
   constructor; auto; inversion 1.
 Defined.
 
-Theorem singleton_spec :
-  forall (A : LinDec) (x : A),
-    elem x (singleton x).
-Proof.
-  cbn. constructor.
-Qed.
+Ltac elem :=
+  intros; unfold singleton, singleton' in *; cbn in *; subst; repeat
+match goal with
+    | |- elem ?x (node ?x _ _) => constructor
+    | H : elem _ empty |- _ => inv H
+    | H : elem _ (node _ empty empty) |- _ => inv H
+    | H : elem _ _ /\ elem _ _ |- _ => destruct H
+    | H : elem _ _ \/ elem _ _ |- _ => destruct H
+end; auto.
 
-Theorem singleton_spec' :
+Theorem singleton_spec :
   forall (A : LinDec) (x y : A),
-    x <> y -> ~ elem x (singleton y).
+    elem x (singleton y) <-> x = y.
 Proof.
-  inversion 2; subst; try contradiction; inv H2.
+  split; elem.
 Qed.
 
 Definition balance {A : Type} (v : A) (l r : BTree A) : BTree A :=
@@ -142,6 +148,23 @@ Proof.
   intros. balance.
     firstorder.
     split; inversion 1; subst; auto.
+Qed.
+
+Theorem balance_is_heap :
+  forall (A : LinDec) (v : A) (l r : BTree A),
+    (forall x : A, elem x l -> v ≤ x) ->
+    (forall x : A, elem x r -> v ≤ x) ->
+    is_heap l -> is_heap r -> is_heap (balance v l r).
+Proof.
+  intros. balance; constructor; elem.
+Qed.
+
+Theorem balance_left_biased :
+  forall (A : LinDec) (v : A) (l r : BTree A),
+    left_biased l -> left_biased r ->
+      left_biased (balance v l r).
+Proof.
+  intros. balance; constructor; cbn in *; dec.
 Qed.
 
 Require Import Recdef.
@@ -180,19 +203,25 @@ Lemma elem_merge'_v2 :
     elem x t1 \/ elem x t2 -> elem x (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp; auto.
-    inv H; inv H0.
-    inv H. inv H0.
-    inv H.
-      rewrite balance_elem. inv H0. apply elem_right.
-        eapply IHb. left. exact H2. reflexivity.
-      rewrite balance_elem. apply elem_right.
-        eapply IHb. right. exact H0. reflexivity.
-    inv H.
-      rewrite balance_elem. apply elem_right.
-        eapply IHb. left. exact H0. reflexivity.
-      rewrite balance_elem. inv H0. apply elem_right.
-        eapply IHb. right. exact H2. reflexivity.
+  functional induction @merge' A p; inv Heqp; clear Heqp;
+  elem; rewrite balance_elem.
+    inv H. apply elem_right.
+      eapply IHb; try ((left + right); eauto); reflexivity.
+    apply elem_right.
+      eapply IHb; try ((left + right); eauto); reflexivity.
+    apply elem_right.
+      eapply IHb; try ((left + right); eauto); reflexivity.
+    inv H. apply elem_right.
+      eapply IHb; try ((left + right); eauto); reflexivity.
+Qed.
+
+Theorem merge'_spec :
+  forall (A : LinDec) (x : A) (t1 t2 : BTree A),
+    elem x (merge' (t1, t2)) <-> elem x t1 \/ elem x t2.
+Proof.
+  split; intros. elem.
+    apply elem_merge'. assumption.
+    apply elem_merge'_v2. assumption.
 Qed.
 
 Arguments elem_merge' [A x t1 t2] _.
@@ -215,31 +244,13 @@ Theorem merge'_is_heap :
 Proof.
   intros. remember (t1, t2) as p.
   functional induction @merge' A p; inv Heqp; clear Heqp;
-  inv H; inv H0; balance.
-    constructor; auto.
-      intros. destruct (elem_merge' H1); auto.
-        destruct (leqb_spec v v'); inv e0. eapply leq_trans with v'.
-          apply l1.
-          inv H2.
-      apply (IHb _ _ H7 H0 eq_refl).
-    constructor; auto.
-      intros. destruct (elem_merge' H1); auto.
-        destruct (leqb_spec v v'); inv e0. eapply leq_trans with v'.
-          dec.
-          inv H2.
-      apply (IHb _ _ H7 H0 eq_refl).
-      constructor; auto.
-        intros. destruct (elem_merge' H1); auto.
-          destruct (leqb_spec v v'); inv e0. eapply leq_trans with v.
-            dec.
-            inv H2.
-      apply (IHb _ _ H H11 eq_refl).
-      constructor; auto.
-        intros. destruct (elem_merge' H1); auto.
-          destruct (leqb_spec v v'); inv e0. eapply leq_trans with v.
-            dec.
-            inv H2.
-      apply (IHb _ _ H H11 eq_refl).
+  inv H; inv H0; apply balance_is_heap; elem.
+    destruct (leqb_spec v v'); inv e0. destruct (elem_merge' H1); auto.
+      eapply leq_trans with v'. auto. inv H2.
+    apply (IHb _ _ H7 H0 eq_refl).
+    destruct (leqb_spec v v'), (elem_merge' H1); inv e0.
+      eapply leq_trans with v. dec. inv H2.
+    apply (IHb _ _ H H11 eq_refl).
 Qed.
 
 Theorem merge'_left_biased :
@@ -248,10 +259,9 @@ Theorem merge'_left_biased :
 Proof.
   intros. remember (t1, t2) as p.
   functional induction @merge' A p; inv Heqp; clear Heqp;
-  inv H; inv H0; balance; cbn in *;
-  constructor; auto; try omega.
-    1-2: apply (IHb _ _ H6 H0 eq_refl).
-    1-2: apply (IHb _ _ H H9 eq_refl).
+  inv H; inv H0; cbn in *; apply balance_left_biased; auto.
+    apply (IHb _ _ H6 H0 eq_refl).
+    apply (IHb _ _ H H9 eq_refl).
 Qed.
 
 Definition merge {A : LinDec} (h1 h2 : LeftistHeap A)
@@ -266,6 +276,7 @@ Defined.
 Definition insert' {A : LinDec} (x : A) (t : BTree A) : BTree A :=
   merge' (node x empty empty, t).
 
+(* TODO *)
 Definition insert {A : LinDec} (x : A) (h : LeftistHeap A)
   : LeftistHeap A.
 Proof.
@@ -280,7 +291,7 @@ Theorem insert_spec :
 Proof.
   split; destruct h; subst; cbn; intros.
     destruct (elem_merge' H); auto. inv H0; inv H2.
-    destruct H; subst; apply elem_merge'_v2; auto.
+    destruct H; subst; apply elem_merge'_v2; elem.
 Qed.
 
 Definition deleteMin {A : LinDec} (t : BTree A)
@@ -289,15 +300,6 @@ match t with
     | empty => (None, empty)
     | node v l r => (Some v, merge' (l, r))
 end.
-
-Theorem deleteMin_is_heap :
-  forall (A : LinDec) (m : A) (t t' : BTree A),
-    is_heap t -> deleteMin t = (Some m, t') ->
-      is_heap t'.
-Proof.
-  destruct t; cbn; inversion 1; inversion 1; subst.
-  apply merge'_is_heap; assumption.
-Qed.
 
 Theorem deleteMin_spec :
   forall (A : LinDec) (m : A) (t t' : BTree A),
@@ -322,114 +324,20 @@ Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
-(* Leftist heapsort *)
-Function fromList {A : LinDec} (l : list A) : BTree A :=
-match l with
-    | [] => emptyHeap
-    | h :: t => insert' h (fromList t)
-end.
-
-Function toList {A : LinDec} (t : BTree A)
-  {measure len t} : list A :=
-match deleteMin t with
-    | (None, _) => []
-    | (Some m, t') => m :: toList t'
-end.
+Theorem deleteMin_is_heap :
+  forall (A : LinDec) (m : A) (t t' : BTree A),
+    is_heap t -> deleteMin t = (Some m, t') ->
+      is_heap t'.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst.
-  rewrite merge'_len. omega.
-Defined.
-
-Arguments toList [x] _.
-
-Definition leftistHeapsort (A : LinDec) (l : list A)
-  : list A := toList (fromList l).
-
-Lemma toList_sorted :
-  forall (A : LinDec) (t : BTree A),
-    is_heap t -> sorted A (toList t).
-Proof.
-  intros A t. functional induction @toList A t.
-    constructor.
-    functional induction @toList A t'; constructor.
-      eapply deleteMin_spec; eauto. eapply deleteMin_elem. eauto.
-      apply IHl. eapply deleteMin_is_heap; eauto.
+  apply merge'_is_heap; assumption.
 Qed.
 
-Lemma fromList_is_heap :
-  forall (A : LinDec) (l : list A),
-    is_heap (fromList l).
+Theorem deleteMin_left_biased :
+  forall (A : LinDec) (m : A) (t t' : BTree A),
+    left_biased t -> deleteMin t = (Some m, t') ->
+      left_biased t'.
 Proof.
-  intros. functional induction @fromList A l; cbn.
-    constructor.
-    unfold insert'. apply merge'_is_heap; auto.
-      constructor; auto; inversion 1.
+  destruct t; cbn; do 2 inversion 1; subst.
+  apply merge'_left_biased; assumption.
 Qed.
-
-Theorem leftistHeapsort_sorted :
-  forall (A : LinDec) (l : list A),
-    sorted A (leftistHeapsort A l).
-Proof.
-  unfold leftistHeapsort. intros.
-    apply toList_sorted. apply fromList_is_heap.
-Qed.
-
-Lemma count_BTree_merge' :
-  forall (A : LinDec) (x : A) (t1 t2 : BTree A),
-    count_BTree A x (merge' (t1, t2)) =
-    count_BTree A x t1 + count_BTree A x t2.
-Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp.
-    balance; cbn.
-      rewrite (IHb _ _ _ eq_refl). dec.
-      rewrite (IHb _ _ _ eq_refl). dec.
-    balance; cbn.
-      rewrite (IHb _ _ _ eq_refl). dec.
-      rewrite (IHb _ _ _ eq_refl). dec.
-Qed.
-
-Lemma count_BTree_insert :
-  forall (A : LinDec) (x y : A) (t : BTree A),
-    count_BTree A x (insert' y t) =
-      if x =? y
-      then S (count_BTree A x t)
-      else count_BTree A x t.
-Proof.
-  intros. unfold insert'. rewrite count_BTree_merge'. dec.
-Qed.
-
-Lemma count_fromList :
-  forall (A : LinDec) (x : A) (l : list A),
-    count_BTree A x (fromList l) = count A x l.
-Proof.
-  intros. functional induction @fromList A l; dec.
-    rewrite count_BTree_insert. dec.
-    rewrite count_BTree_insert. dec.
-Qed.
-
-Lemma count_toList :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    count A x (toList t) = count_BTree A x t.
-Proof.
-  intros. functional induction @toList A t; cbn.
-    destruct t; inv e.
-    destruct t; inv e. dec.
-      rewrite IHl, count_BTree_merge'. trivial.
-      rewrite IHl, count_BTree_merge'. trivial.
-Qed.
-
-Theorem leftistHeapsort_perm :
-  forall (A : LinDec) (l : list A),
-    perm A l (leftistHeapsort A l).
-Proof.
-  unfold perm, leftistHeapsort. intros.
-  rewrite count_toList, count_fromList. trivial.
-Qed.
-
-Instance Sort_leftistHeapsort : Sort :=
-{
-    sort := @leftistHeapsort;
-    sort_sorted := @leftistHeapsort_sorted;
-    sort_perm := leftistHeapsort_perm
-}.

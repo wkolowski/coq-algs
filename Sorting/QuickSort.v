@@ -39,24 +39,14 @@ match l with
 end.
 Proof. all: auto. Defined.
 
-Function qs3 (A : LinDec) (l : list A) {measure length l} : list A :=
-match l with
-    | [] => []
-    | h :: t =>
-        let '(lo, eq, hi) := trifilter A h t in
-          qs3 A lo ++ eq ++ qs3 A hi
-end.
-Proof.
-Abort.
-
-Function hqs (n : nat) (A : LinDec) (l : list A) {measure length l}
-  : list A :=
+Function hqs (n : nat) (A : LinDec) (sort : list A -> list A) (l : list A)
+  {measure length l} : list A :=
   if @leqb natle (length l) n
-  then insertionSort A l
+  then sort l
   else match l with
       | [] => []
       | h :: t =>
           let (lo, hi) := bifilter (fun x : A => x <=? h) t in
-              hqs n A lo ++ h :: hqs n A hi
+              hqs n A sort lo ++ h :: hqs n A sort hi
   end.
 Proof. all: auto. Defined.

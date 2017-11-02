@@ -12,7 +12,8 @@ match n with
     | S (S n'' as n') => fib n' + fib n''
 end.
 
-Function fib_aux (n a b : nat) : nat := match n with
+Function fib_aux (n a b : nat) : nat :=
+match n with
     | 0 => a
     | S n' => fib_aux n' b (a + b)
 end.
@@ -40,7 +41,7 @@ Theorem nat_ind2 :
   (HSS : forall n : nat, P n -> P (S (S n))),
     forall n : nat, P n.
 Proof.
-  fix IH 5; destruct n as [| [| n']]; auto.
+  fix IH 5. destruct n as [| [| n']]; auto.
     apply HSS. apply IH; auto.
 Defined.
 
@@ -54,7 +55,7 @@ Proof.
       replace (b + (a + b)) with (a + (b + b)).
 Abort.
 
-Lemma fix_aux_SS :
+Lemma fib_aux_SS :
   forall n a b : nat, fib_aux (S (S n)) a b =
     fib_aux n a b + fib_aux (S n) a b.
 Proof.
@@ -84,5 +85,3 @@ Restart.
     compute. auto.
     simpl. destruct n'.
       subst. compute. auto.
-      
-      

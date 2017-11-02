@@ -204,6 +204,31 @@ Abort.
     rewrite e0 in *. inversion IHp. rewrite <- H0, <- H1, <- H2.
 Qed.*)
 
+Require Import TrichDec.
+
+Function trifilter' {A : TrichDec} (x : A) (l : list A)
+  : list A * list A * list A :=
+match l with
+    | [] => ([], [], [])
+    | h :: t =>
+        let '(l1, l2, l3) := trifilter' x t in
+        match h <?> x with
+            | Lt => (h :: l1, l2, l3)
+            | Eq => (l1, h :: l2, l3)
+            | Gt => (l1, l2, h :: l3)
+        end
+end.
+
+Theorem trifilter'_spec :
+  forall (A : TrichDec) (pivot : A) (l : list A),
+    trifilter' pivot l =
+      (filter (fun x : A => x <? pivot) l,
+       filter (fun x : A => x =? pivot) l,
+       filter (fun x : A => pivot <? x) l).
+Proof.
+  intros. functional induction @trifilter' A pivot l; cbn; trich.
+Qed.
+
 (* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=
 match n, l with
@@ -351,3 +376,10 @@ Proof.
       omega.
       simpl. apply le_n_S. apply IHn0. omega.
 Qed.
+
+(* Moved from Test.v *)
+Fixpoint cycle {A : Type} (n : nat) (l : list A) : list A :=
+match n with
+    | 0 => []
+    | S n' => l ++ cycle n' l
+end.

@@ -68,10 +68,12 @@ Proof.
 Defined.
 
 Theorem hqs_perm :
-  forall (n : nat) (A : LinDec) (l : list A), perm A l (hqs n A l).
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), perm A l (hqs n A sort l).
 Proof.
-  intros. functional induction hqs n A l; trivial.
-    apply (@sort_perm Sort_insertionSort).
+  intros. functional induction hqs n A sort l; trivial.
     apply perm_symm. eapply perm_trans.
       apply perm_front.
       apply perm_cons. unfold perm in *. intro.
@@ -81,33 +83,29 @@ Proof.
 Qed.
 
 Theorem hqs_In :
-  forall (n : nat) (A : LinDec) (x : A) (l : list A),
-    In x (hqs n A l) <-> In x l.
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (x : A) (l : list A), In x (hqs n A sort l) <-> In x l.
 Proof.
-  intros. rewrite !count_In, <- hqs_perm. reflexivity.
+  intros. rewrite !count_In, <- hqs_perm; auto. reflexivity.
 Qed.
 
 Theorem hqs_sorted :
-  forall (n : nat) (A : LinDec) (l : list A), sorted A (hqs n A l).
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), sorted A (hqs n A sort l).
 Proof.
-  intros. functional induction hqs n A l.
-    apply (@sort_sorted Sort_insertionSort).
-    constructor.
+  intros. functional induction hqs n A sort l; trivial.
     rewrite bifilter_spec in e1; inversion e1; subst. apply sorted_app_all.
       assumption.
        apply sorted_cons.
-        intros. rewrite hqs_In, filter_In in H. destruct H.
+        intros. rewrite hqs_In, filter_In in H; auto. destruct H.
           destruct (leqb_spec x h).
             inversion H0.
             apply LinDec_not_leq. assumption.
           assumption.
-      intros. rewrite hqs_In, filter_In in H. destruct H.
+      intros. rewrite hqs_In, filter_In in H; auto. destruct H.
         destruct (leqb_spec x h); intuition.
 Qed.
-
-Instance Sort_hqs (n : nat) : Sort :=
-{
-    sort := hqs n;
-    sort_sorted := hqs_sorted n;
-    sort_perm := hqs_perm n;
-}.

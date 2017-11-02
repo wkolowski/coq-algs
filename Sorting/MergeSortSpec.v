@@ -124,55 +124,32 @@ Instance Sort_ms2 : Sort :=
 
 (* Specification of hms. *)
 Theorem hms_sorted :
-  forall (n : nat) (A : LinDec) (l : list A), sorted A (hms n A l).
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), sorted A (hms n A sort l).
 Proof.
-  intros. functional induction hms n A l; auto.
-    apply (@sort_sorted Sort_insertionSort).
-    apply merge_sorted; simpl; assumption.
+  intros. functional induction hms n A sort l; auto.
+    apply merge_sorted; cbn; auto.
 Qed.
 
 Theorem hms_perm :
-  forall (n : nat) (A : LinDec) (l : list A), perm A l (hms n A l).
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), perm A l (hms n A sort l).
 Proof.
-  intros. functional induction hms n A l; auto.
-    apply (@sort_perm Sort_insertionSort).
+  intros. functional induction hms n A sort l; auto.
     rewrite <- merge_perm, <- (take_drop (Nat.div2 (length l))) at 1; simpl.
-      apply perm_app; assumption.
+      apply perm_app; auto.
 Qed.
 
-Instance Sort_hms (n : nat) : Sort :=
+(*Instance Sort_hms (n : nat) : Sort :=
 {
     sort := hms n;
     sort_sorted := hms_sorted n;
     sort_perm := hms_perm n;
-}.
-
-(* Specification of hms2. *)
-Theorem hms2_sorted :
-  forall (n : nat) (A : LinDec) (l : list A), sorted A (hms2 n A l).
-Proof.
-  intros. functional induction hms2 n A l; auto.
-    apply (@sort_sorted Sort_insertionSort).
-    apply merge_sorted; simpl; assumption.
-Qed.
-
-Theorem hms2_perm :
-  forall (n : nat) (A : LinDec) (l : list A), perm A l (hms2 n A l).
-Proof.
-  intros. functional induction hms2 n A l; auto.
-    apply (@sort_perm Sort_insertionSort).
-    rewrite merge_perm_interleave. simpl.
-      rewrite <- ms_split_interleave at 1. apply perm_interleave.
-        rewrite e0. simpl. auto.
-        rewrite e0. simpl. auto.
-Qed.
-
-Instance Sort_hms2 (n : nat) : Sort :=
-{
-    sort := hms2 n;
-    sort_sorted := hms2_sorted n;
-    sort_perm := hms2_perm n;
-}.
+}.*)
 
 (* TODO *) Lemma ms2_is_ms :
   forall (A : LinDec) (l : list A), ms2 A l = ms A l.
@@ -181,3 +158,35 @@ Proof.
     rewrite ms_equation. destruct l as [| h [| h' t]]; inversion y.
       rewrite IHl0, IHl1.
 Abort.
+
+(* Specification of hms3. *)
+Theorem hms2_sorted :
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), sorted A (hms2 n A sort l).
+Proof.
+  intros. functional induction hms2 n A sort l; auto.
+    apply merge_sorted; simpl; assumption.
+Qed.
+
+Theorem hms2_perm :
+  forall (n : nat) (A : LinDec) (sort : list A -> list A)
+    (sort_perm : forall l : list A, perm A l (sort l))
+    (sort_sorted : forall l : list A, sorted A (sort l))
+      (l : list A), perm A l (hms2 n A sort l).
+Proof.
+  intros. functional induction hms2 n A sort l; auto.
+    rewrite merge_perm_interleave. simpl.
+      rewrite <- ms_split_interleave at 1. apply perm_interleave.
+        rewrite e0. simpl. auto.
+        rewrite e0. simpl. auto.
+Qed.
+
+(* TODO *)
+(*Instance Sort_hms3 (n : nat) : Sort :=
+{
+    sort := hms3 n;
+    sort_sorted := hms2_sorted n;
+    sort_perm := hms2_perm n;
+}.*)
