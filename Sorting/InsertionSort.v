@@ -59,5 +59,3 @@ Proof.
   induction l as [| h t]; simpl; auto.
     apply perm_trans with (h :: insertionSort A t); auto. apply perm_ins.
 Defined.
-
-Eval cbv in sort testl.

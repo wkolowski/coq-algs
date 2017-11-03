@@ -52,29 +52,6 @@ Proof.
       destruct (leqb_spec y x); simpl; auto.
 Defined.
 
-Ltac dec := simpl; repeat
-match goal with
-    | |- context [?x =? ?y] => destruct (LinDec_eqb_spec _ x y); subst; intros
-    | |- context [?x <=? ?y] => destruct (leqb_spec x y); intros
-    | H : context [?x =? ?y] |- _ => destruct (LinDec_eqb_spec _ x y); subst; intros
-    | H : context [?x <=? ?y] |- _ => destruct (leqb_spec x y); intros
-end; simpl; try
-match goal with
-    | H : ?x <> ?x |- _ => contradiction H; reflexivity
-end; eauto; try omega; try congruence.
-
-Lemma LinDec_not_leq : forall (A : LinDec) (x y : A),
-    ~ leq x y -> leq y x.
-Proof.
-  intros. destruct (leqb_spec y x).
-    assumption.
-    cut False.
-      inversion 1.
-      destruct (leq_total x y); contradiction.
-Defined.
-
-Hint Resolve LinDec_not_leq.
-
 Instance natle : LinDec :=
 {
     carrier := nat;
@@ -92,6 +69,37 @@ Proof.
     apply leb_complete in H. auto.
     apply leb_complete_conv in H. constructor. omega.
 Defined.
+
+Ltac dec := cbn; repeat
+match goal with
+    | |- context [?x =? ?y] =>
+        try destruct (LinDec_eqb_spec natle x y);
+        try destruct (LinDec_eqb_spec _ x y); subst; intros
+    | |- context [?x <=? ?y] =>
+        try destruct (@leqb_spec natle x y);
+        try destruct (leqb_spec x y); intros
+    | H : context [?x =? ?y] |- _ =>
+        try destruct (LinDec_eqb_spec natle x y);
+        try destruct (LinDec_eqb_spec _ x y); subst; intros
+    | H : context [?x <=? ?y] |- _ =>
+        try destruct (@leqb_spec natle x y);
+        try destruct (leqb_spec x y); intros
+end; cbn; try
+match goal with
+    | H : ?x <> ?x |- _ => contradiction H; reflexivity
+end; eauto; try omega; try congruence.
+
+Lemma LinDec_not_leq : forall (A : LinDec) (x y : A),
+    ~ leq x y -> leq y x.
+Proof.
+  intros. destruct (leqb_spec y x).
+    assumption.
+    cut False.
+      inversion 1.
+      destruct (leq_total x y); contradiction.
+Defined.
+
+Hint Resolve LinDec_not_leq.
 
 Definition testl := [3; 0; 1; 42; 34; 19; 44; 21; 42; 65; 5].
 

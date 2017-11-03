@@ -13,7 +13,6 @@ Set Implicit Arguments.
 Local Hint Unfold lt.
 Local Hint Resolve le_n_S filter_length.
 
-(* Quicksort using Function. *)
 Function qs (A : LinDec) (l : list A) {measure length l} : list A :=
 match l with
     | [] => []
@@ -50,3 +49,22 @@ Function hqs (n : nat) (A : LinDec) (sort : list A -> list A) (l : list A)
               hqs n A sort lo ++ h :: hqs n A sort hi
   end.
 Proof. all: auto. Defined.
+
+Function ghqs
+  (n : nat) (A : LinDec)
+  (sort : list A -> list A) (partition : Partition A)
+  (l : list A) {measure length l} : list A :=
+    if @leqb natle (length l) (S n)
+    then sort l
+    else match l with
+        | [] => []
+        | h :: t =>
+            let '(lo, eq, hi) := partition h t in
+              ghqs n A sort partition lo ++
+              h :: eq ++
+              ghqs n A sort partition hi
+    end.
+Proof.
+  intros. apply spec_hi in teq1. cbn. omega.
+  intros. apply spec_lo in teq1. cbn. omega.
+Defined.

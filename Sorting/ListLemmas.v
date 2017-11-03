@@ -78,20 +78,17 @@ Lemma min_split :
       l1 ++ l2 = remove_once (min_dflt A h t) (h :: t).
 Proof.
   induction t as [| h' t']; intros.
-    exists [], []. simpl. dec.
-    simpl. dec; subst; simpl.
-      exists [h], t'. simpl. auto.
-      rewrite e. exists [], (h' :: t'). simpl. auto.
-      exists [h], t'. simpl. auto.
-      exists [h], t'. simpl. auto.
+    exists [], []. cbn. dec.
+    simpl. dec; subst; cbn. eauto.
+      exists [h], t'. dec.
+      exists [], (h' :: t'). rewrite e. dec.
+      exists [h], t'. dec.
+      exists [h], t'. dec.
       destruct IHt' as [l1 [l2 [H H']]]. destruct l1.
-        inversion H. rewrite <- H1 in n. contradiction.
-        exists (h :: h' :: l1), l2. simpl. split.
-          do 2 f_equal. inversion H. rewrite <- H2. assumption.
-          do 2 f_equal. simpl in H'.
-            destruct (LinDec_eqb_spec A (min_dflt A h t') h).
-              rewrite e in n. contradiction.
-              inversion H'. reflexivity.
+        inversion H. dec.
+        exists (h :: h' :: l1), l2. split.
+          inversion H. dec.
+          cbn in H'. dec.
 Qed.
 
 Lemma perm_min_front :

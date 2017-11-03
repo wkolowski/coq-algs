@@ -19,6 +19,9 @@ match l with
     | h :: t => insert' h (fromList t)
 end.
 
+Function fromList' {A : LinDec} (l : list A) : BTree A :=
+  fold_left (fun t x => insert' x t) l empty.
+
 Function toList {A : LinDec} (t : BTree A)
   {measure len t} : list A :=
 match deleteMin t with
@@ -32,7 +35,25 @@ Defined.
 
 Arguments toList [x] _.
 
+Function toList'_aux {A : LinDec} (t : BTree A) (acc : list A)
+  {measure len t} : list A :=
+match deleteMin t with
+    | (None, _) => acc
+    | (Some m, t') => toList'_aux t' (m :: acc)
+end.
+Proof.
+  destruct t; cbn; inversion 2; inversion 1; subst.
+  rewrite merge'_len. omega.
+Defined.
+
+Definition toList' {A : LinDec} (t : BTree A) : list A :=
+  toList'_aux A t [].
+
 Definition leftistHeapsort (A : LinDec) (l : list A)
   : list A := toList (fromList l).
 
-Time Compute leftistHeapsort natle (cycle 25 testl).
+Definition leftistHeapsort' (A : LinDec) (l : list A)
+  : list A := toList' (fromList' l).
+
+Time Compute leftistHeapsort natle (cycle 50 testl).
+Time Compute leftistHeapsort' natle (cycle 50 testl).

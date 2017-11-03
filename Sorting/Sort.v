@@ -21,12 +21,25 @@ Definition perm (A : LinDec) (l1 l2 : list A) : Prop :=
 
 Class Sort : Type :=
 {
-    sort : forall {A : LinDec}, list A -> list A;
+    sort :> forall {A : LinDec}, list A -> list A;
     sort_sorted : forall (A : LinDec) (l : list A),
         sorted A (sort l);
     sort_perm : forall (A : LinDec) (l : list A),
         perm A l (sort l);
 }.
+
+Coercion sort : Sort >-> Funclass.
+
+Class Partition (A : Type) : Type :=
+{
+    partition :> A -> list A -> list A * list A * list A;
+    spec_lo : forall (h : A) (t l1 l2 l3 : list A),
+      partition h t = (l1, l2, l3) -> length l1 <= length t;
+    spec_hi : forall (h : A) (t l1 l2 l3 : list A),
+      partition h t = (l1, l2, l3) -> length l3 <= length t
+}.
+
+Coercion partition : Partition >-> Funclass.
 
 (* Lemmas about [sorted]. *)
 

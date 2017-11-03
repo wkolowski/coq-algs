@@ -33,17 +33,6 @@ Defined.
 Definition tqs (A : TrichDec) (l : list A) : list A :=
   htqs 0 A (fun l => l) l.
 
-Class Partition (A : Type) : Type :=
-{
-    partition :> A -> list A -> list A * list A * list A;
-    spec_lo : forall (h : A) (t l1 l2 l3 : list A),
-      partition h t = (l1, l2, l3) -> length l1 <= length t;
-    spec_hi : forall (h : A) (t l1 l2 l3 : list A),
-      partition h t = (l1, l2, l3) -> length l3 <= length t
-}.
-
-Coercion partition : Partition >-> Funclass.
-
 Function htqs2
   (n : nat) (A : TrichDec)
   (sort : list A -> list A) (partition : Partition A)

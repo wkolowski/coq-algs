@@ -182,6 +182,26 @@ end.
 Definition treeSort (A : LinDec) (l : list A) : list A :=
     toList (fromList A l).
 
+Function toList'_aux {A : LinDec} (t : BTree A) (acc : list A) : list A :=
+match t with
+    | empty => acc
+    | node v l r => toList'_aux l (v :: toList'_aux r acc)
+end.
+
+Definition toList' {A : LinDec} (t : BTree A) : list A :=
+  toList'_aux t [].
+
+Function fromList' {A : LinDec} (l : list A) : BTree A :=
+  fold_left (fun t x => BTree_ins x t) l empty.
+
+Definition treeSort' (A : LinDec) (l : list A) : list A :=
+  toList' (fromList' l).
+
+Require Import ListLemmas.
+
+Time Compute treeSort natle (cycle 1000 testl).
+Time Compute treeSort' natle (cycle 1000 testl).
+
 Fixpoint count_BTree (A : LinDec) (x : A) (t : BTree A) : nat :=
 match t with
     | empty => 0
