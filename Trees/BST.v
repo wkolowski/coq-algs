@@ -160,27 +160,18 @@ Proof.
         apply H7. assumption.
 Qed.
 
-Theorem toList_sorted : forall (A : LinDec) (t : BTree A),
-    is_bst t -> sorted A (toList t).
-Proof.
-  induction t as [| v l Hl r Hr]; intro.
-    simpl. constructor.
-    inversion H; subst; cbn. apply sorted_app_all; auto.
-      Focus 2. intros. apply elem_In in H0. auto.
-      case_eq (toList r); intros; subst; auto.
-        constructor.
-          apply H5. rewrite <- elem_In. rewrite H0. cbn. auto.
-          rewrite <- H0. auto.
-Qed.
+(* toList, fromList and their variants *)
+Function toList {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => toList l ++ v :: toList r
+end.
 
 Function fromList (A : LinDec) (l : list A) : BTree A :=
 match l with
     | [] => empty
     | h :: t => BTree_ins h (fromList A t)
 end.
-
-Definition treeSort (A : LinDec) (l : list A) : list A :=
-    toList (fromList A l).
 
 Function toList'_aux {A : LinDec} (t : BTree A) (acc : list A) : list A :=
 match t with
@@ -194,14 +185,7 @@ Definition toList' {A : LinDec} (t : BTree A) : list A :=
 Function fromList' {A : LinDec} (l : list A) : BTree A :=
   fold_left (fun t x => BTree_ins x t) l empty.
 
-Definition treeSort' (A : LinDec) (l : list A) : list A :=
-  toList' (fromList' l).
-
-Require Import ListLemmas.
-
-Time Compute treeSort natle (cycle 1000 testl).
-Time Compute treeSort' natle (cycle 1000 testl).
-
+(* Counting elements in a binary tree. *)
 Fixpoint count_BTree (A : LinDec) (x : A) (t : BTree A) : nat :=
 match t with
     | empty => 0
@@ -229,13 +213,83 @@ Proof.
   intros. elim: t => [| v l Hl r Hr] //=; repeat dec.
 Qed.
 
-Theorem treeSort_perm :
-  forall (A : LinDec) (l : list A),
-    perm A l (treeSort A l).
+(* Lemmas for toList and others. *)
+Lemma toList'_aux_spec :
+  forall (A : LinDec) (t : BTree A) (acc : list A),
+    toList'_aux t acc = toList t ++ acc.
 Proof.
-  unfold treeSort, perm. intros.
-  elim: l => [| h t IH] //=.
-    by rewrite count_toList count_ins -count_toList -IH.
+  intros. functional induction @toList'_aux A t acc; cbn.
+    trivial.
+    rewrite <- app_assoc. cbn. rewrite <- IHl, <- IHl0. trivial.
+Qed.
+
+Require Import FunctionalExtensionality.
+
+Theorem toList'_spec : @toList' = @toList.
+Proof.
+  extensionality A. extensionality t. unfold toList'.
+  rewrite toList'_aux_spec app_nil_r. trivial.
+Qed.
+
+Function merge {A : LinDec} (t1 t2 : BTree A) : BTree A :=
+match t1 with
+    | empty => t2
+    | node v l r => merge l (merge r (BTree_ins v t2))
+end.
+
+Lemma merge_empty_r :
+  forall (A : LinDec) (t : BTree A),
+    merge t empty = t.
+Proof.
+  intros. remember empty as t'.
+  functional induction @merge A t t'.
+    trivial.
+Abort.
+
+Lemma fromList'_spec :
+  forall (A : LinDec) (l : list A) (t : BTree A),
+    fold_left (fun t x => BTree_ins x t) l t = merge t (fromList A l).
+Proof.
+  intros. generalize dependent t.
+  functional induction @fromList A l; cbn; intros.
+    trivial.
+Abort.
+
+Theorem fromList_spec : @fromList' = @fromList.
+Proof.
+  extensionality A. extensionality l. unfold fromList'.
+  remember empty as t. generalize dependent t.
+  functional induction @fromList A l; cbn; intros.
+    trivial.
+    fold fromList'.
+Abort.
+
+Lemma toList_In_elem :
+  forall (A : Type) (x : A) (t : BTree A),
+    In x (toList t) <-> elem x t.
+Proof.
+  split.
+    elim: t x => [| v l Hl r Hr] x H.
+      inversion H.
+      cbn in H. apply in_app_or in H. do 2 (destruct H; subst; auto).
+    elim: t x => [| v l Hl r Hr] x H //=; inversion H; subst;
+    apply in_or_app; cbn; eauto.
+Qed.
+
+Require Import RCCBase.
+
+Theorem toList_sorted :
+  forall (A : LinDec) (t : BTree A),
+    is_bst t -> sorted A (@toList (@carrier A) t).
+Proof.
+  induction t as [| v l Hl r Hr]; cbn; intros.
+    constructor.
+    inv H. apply sorted_app_all; auto.
+      case_eq (toList r); intros; subst; auto.
+        constructor.
+          apply H5. rewrite <- toList_In_elem. rewrite H0. cbn. auto.
+          rewrite <- H0. auto.
+      intros. apply toList_In_elem in H0. auto.
 Qed.
 
 Lemma fromList_is_bst :
@@ -245,15 +299,16 @@ Proof.
     by apply BTree_ins_is_bst.
 Qed.
 
-Theorem treeSort_sorted :
-  forall (A : LinDec) (l : list A), sorted A (treeSort A l).
+Theorem toList'_sorted :
+  forall (A : LinDec) (t : BTree A),
+    is_bst t -> sorted A (toList' t).
 Proof.
-  unfold treeSort. intros. apply toList_sorted. apply fromList_is_bst.
+  rewrite toList'_spec. apply toList_sorted.
 Qed.
 
-Instance Sort_treeSort : Sort :=
-{
-    sort := treeSort;
-    sort_sorted := treeSort_sorted;
-    sort_perm := treeSort_perm
-}.
+Lemma fromList'_is_bst :
+  forall (A : LinDec) (l : list A), is_bst (fromList' l).
+Proof.
+  intros. induction l as [| h t]; cbn.
+    trivial.
+Abort.

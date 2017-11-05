@@ -7,7 +7,7 @@ Require Export Omega.
 
 Class LinDec : Type :=
 {
-    carrier : Type;
+    carrier :> Type;
     leq : carrier -> carrier -> Prop;
     leq_refl : forall x : carrier, leq x x;
     leq_antisym : forall x y : carrier, leq x y -> leq y x -> x = y;

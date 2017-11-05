@@ -5,7 +5,7 @@ Inductive fib_contract (f: nat -> nat) : Prop :=
     | contract : f 0 = 0 -> f 1 = 1 ->
         (forall n : nat, f (S (S n)) = f n + f (S n)) -> fib_contract f.
 
-Fixpoint fib (n : nat) : nat :=
+Function fib (n : nat) : nat :=
 match n with
     | 0 => 0
     | 1 => 1
@@ -85,3 +85,5 @@ Restart.
     compute. auto.
     simpl. destruct n'.
       subst. compute. auto.
+Restart.
+  intros. functional induction fib n; cbn in *; trivial.

@@ -132,13 +132,13 @@ match goal with
         destruct (@leqb_spec natle (right_spine r) (right_spine l))
 end.
 
-Lemma balance_len :
+Lemma balance_size :
   forall (A : Type) (v : A) (l r : BTree A),
-    len (balance v l r) = len (node v l r).
+    size (balance v l r) = size (node v l r).
 Proof.
   intros. balance.
     trivial.
-    apply len_swap.
+    apply size_swap.
 Qed.
 
 Lemma balance_elem :
@@ -170,7 +170,7 @@ Qed.
 Require Import Recdef.
 
 Definition sum_of_sizes {A : Type} (p : BTree A * BTree A) : nat :=
-  len (fst p) + len (snd p).
+  size (fst p) + size (snd p).
 
 Function merge' {A : LinDec} (p : BTree A * BTree A)
   {measure sum_of_sizes p} : BTree A :=
@@ -226,15 +226,15 @@ Qed.
 
 Arguments elem_merge' [A x t1 t2] _.
 
-Theorem merge'_len :
+Theorem merge'_size :
   forall (A : LinDec) (t1 t2 : BTree A),
-    len (merge' (t1, t2)) = len t1 + len t2.
+    size (merge' (t1, t2)) = size t1 + size t2.
 Proof.
   intros. remember (t1, t2) as p.
   functional induction @merge' A p; inv Heqp; clear Heqp.
-    rewrite balance_len. cbn. rewrite (IHb r (node v' l' r') eq_refl).
+    rewrite balance_size. cbn. rewrite (IHb r (node v' l' r') eq_refl).
       cbn. omega.
-    rewrite balance_len. cbn. rewrite (IHb (node v l r) r' eq_refl).
+    rewrite balance_size. cbn. rewrite (IHb (node v l r) r' eq_refl).
       cbn. omega.
 Qed.
 
@@ -310,11 +310,11 @@ Proof.
   intros. destruct (elem_merge' H0); auto.
 Qed.
 
-Theorem deleteMin_len :
+Theorem deleteMin_size :
   forall (A : LinDec) (m : A) (t t' : BTree A),
-    deleteMin t = (Some m, t') -> len t = S (len t').
+    deleteMin t = (Some m, t') -> size t = S (size t').
 Proof.
-  destruct t; cbn; inversion 1; subst. rewrite merge'_len. trivial.
+  destruct t; cbn; inversion 1; subst. rewrite merge'_size. trivial.
 Qed.
 
 Theorem deleteMin_elem :

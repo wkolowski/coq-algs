@@ -2,6 +2,7 @@ Require Import Coq.Program.Wf.
 Require Export Compare_dec.
 Require Export Arith.
 Require Export Classes.EquivDec.
+
 Require Import List.
 Import ListNotations.
 
@@ -14,15 +15,15 @@ Inductive BTree (A : Type) : Type :=
 Arguments empty [A].
 Arguments node [A] _ _ _.
 
-Fixpoint len {A : Type} (bt : BTree A) : nat :=
+Fixpoint size {A : Type} (bt : BTree A) : nat :=
 match bt with
     | empty => 0
-    | node _ l r => S (len l + len r)
+    | node _ l r => S (size l + size r)
 end.
 
-Lemma len_swap :
+Lemma size_swap :
   forall (A : Type) (v : A) (l r : BTree A),
-    len (node v l r) = len (node v r l).
+    size (node v l r) = size (node v r l).
 Proof.
   intros. cbn. rewrite plus_comm. trivial.
 Qed.
@@ -41,8 +42,8 @@ end.
 
 From mathcomp Require Import ssreflect.
 
-Theorem map_pres_len : forall (A B : Type) (f : A -> B) (bt : BTree A),
-    len bt = len (map f bt).
+Theorem map_pres_size : forall (A B : Type) (f : A -> B) (bt : BTree A),
+    size bt = size (map f bt).
 Proof.
   induction bt as [| v l Hl r Hr]; intros.
     trivial.
@@ -63,7 +64,7 @@ Definition l1 := [3; 0; 1; 34; 19; 44; 21; 65; 5].
 Definition l2 := [4; 6; 0; 99; 3; 12].
 
 Fixpoint fold {A B : Set} (op : A -> B -> B -> B) (b : B) (bt : BTree A)
-    : B :=
+  : B :=
 match bt with
     | empty => b
     | node v l r => op v (fold op b l) (fold op b r)
@@ -75,7 +76,7 @@ match b with
     | false => 0
 end.
 
-Definition len_fold {A : Set} := @fold A nat (fun _ l r => 1 + l + r) 0.
+Definition size_fold {A : Set} := @fold A nat (fun _ l r => 1 + l + r) 0.
 Definition sum_fold := fold (fun v l r => v + l + r) 0.
 Definition find_fold (n : nat) : BTree nat -> bool :=
     fold (fun v l r => orb (beq_nat v n) (orb l r)) false.
@@ -87,11 +88,11 @@ Definition map_fold {A B : Set} (f : A -> B) : BTree A -> BTree B :=
 (*Definition t1 : BTree nat := fromList leb l1.
 
 Eval compute in l1.
-Eval compute in length l1.
+Eval compute in sizegth l1.
 Eval compute in t1.
 Eval compute in map (fun x => x + 1) t1.
 Eval compute in map_fold (fun x => x + 1) t1.
-Eval compute in len_fold t1.
+Eval compute in size_fold t1.
 Eval compute in sum_fold t1.
 Eval compute in find_fold 0 t1.
 Eval compute in count_fold 0 t1.*)
@@ -125,21 +126,3 @@ Restart.
       by rewrite H.
       by inversion 1.
 Defined.
-
-Fixpoint toList {A : Type} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => toList l ++ v :: toList r
-end.
-
-Lemma elem_In :
-  forall (A : Type) (x : A) (t : BTree A),
-    In x (toList t) <-> elem x t.
-Proof.
-  split.
-    elim: t x => [| v l Hl r Hr] x H.
-      inversion H.
-      cbn in H. apply in_app_or in H. do 2 (destruct H; subst; auto).
-    elim: t x => [| v l Hl r Hr] x H //=; inversion H; subst;
-    apply in_or_app; cbn; eauto.
-Qed.

@@ -26,12 +26,21 @@ Proof.
       rewrite H0 in H1. red in H1; simpl in H1. specialize (H1 h). dec.
     rewrite H0 in H. Check sorted_cons_conv.
       assert (wut := sorted_cons_conv A c l H).
-Abort.
+Restart.
+  intros A C h. apply well_founded_ind with lengthOrder.
+    apply lengthOrder_wf.
+    intros.
+Admitted.
 
 Theorem sort_metaspec :
   forall (A : LinDec) (C C' : Sort) (l : list A),
     @sort C A l = @sort C' A l.
 Proof.
-  destruct l as [| h t].
-    assert (sort [] = []).
-Abort.
+  intros A C C'. apply well_founded_ind with lengthOrder.
+    apply lengthOrder_wf.
+    destruct x as [| h t]; cbn; intros.
+      rewrite !sort_nil. trivial.
+      rewrite !sort_cons. f_equal. apply H; dec.
+        red; cbn. omega.
+        apply remove_once_cons. assumption.
+Qed.

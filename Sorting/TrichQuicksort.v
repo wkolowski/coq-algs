@@ -6,7 +6,7 @@ Require Export Recdef.
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
-Require Import TrichDec.
+Require Export TrichDec.
 
 Set Implicit Arguments.
 
