@@ -171,6 +171,15 @@ Proof.
   induction l as [| h t]; cbn; intuition dec.
 Qed.
 
+Lemma count_0 :
+  forall (A : LinDec) (l : list A),
+    (forall x : A, count A x l = 0) -> l = [].
+Proof.
+  induction l as [| h t]; cbn; intros.
+    trivial.
+    specialize (H h). dec.
+Qed.
+
 (* Lemmas about [perm]. *)
 Lemma perm_refl : forall (A : LinDec) (l : list A), perm A l l.
 Proof. unfold perm; auto. Defined.
@@ -211,7 +220,8 @@ Qed.
 
 Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front.
 
-Lemma perm_app_comm : forall (A : LinDec) (l1 l2 : list A),
+Lemma perm_app_comm :
+  forall (A : LinDec) (l1 l2 : list A),
     perm A (l1 ++ l2) (l2 ++ l1).
 Proof.
   unfold perm. intros. apply count_app_comm.
@@ -230,3 +240,49 @@ Instance Equiv_perm (A : LinDec) : Equivalence (perm A).
 Proof.
   split; red; intros; eauto. eapply perm_trans; eauto.
 Defined.
+
+Require Import Permutation.
+
+Theorem bin_rel_list_ind :
+  forall (A : Type) (R : list A -> list A -> Prop)
+    (H_nil_nil : R [] [])
+    (H_cons_nil : forall l : list A, R l [])
+    (H_nil_cons : forall l : list A, R [] l)
+    (H_cons_cons : forall (h h' : A) (t t' : list A),
+      R t t' -> R (h :: t) (h' :: t'))
+      (l1 l2 : list A), R l1 l2.
+Proof.
+  induction l1 as [| h t]; cbn.
+    assumption.
+    destruct l2 as [| h' t']; cbn.
+      apply H_cons_nil.
+      apply H_cons_cons. apply IHt.
+Qed.
+
+Theorem Permutation_perm :
+  forall (A : LinDec) (l1 l2 : list A),
+    Permutation l1 l2 -> perm A l1 l2.
+Proof.
+  induction 1; cbn; intros; dec.
+Qed.
+Check bin_rel_list_ind.
+Theorem perm_Permutation :
+  forall (A : LinDec) (l1 l2 : list A),
+    perm A l1 l2 -> Permutation l1 l2.
+Proof.
+  unfold perm. induction l1 as [| h t]; cbn; intros.
+    rewrite count_0; auto.
+    induction l2 as [| h' t'].
+      specialize (H h). cbn in H. dec.
+      assert (H' := H). specialize (H h'); cbn in H'. dec.
+        apply perm_skip. apply IHt. intro. specialize (H' x). dec.
+Restart.
+  intro. apply (bin_rel_list_ind A
+  (fun l1 l2 => perm A l1 l2 -> Permutation l1 l2));
+  unfold perm; cbn; intros.
+    constructor.
+    rewrite <- count_0 at 1; eauto.
+    rewrite <- count_0 at 1; eauto. Search Permutation.
+    destruct (LinDec_eqb_spec A h h'); subst.
+      constructor. apply H. intro. specialize (H0 x). dec.
+Abort.
