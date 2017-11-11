@@ -4,9 +4,9 @@ Require Import TrichQuicksort.
 
 Set Implicit Arguments.
 
-(* WUT *)
+(* TODO *)
 
-Theorem htqs_perm :
+(*Theorem htqs_perm :
   forall (n : nat) (A : TrichDec) (s : Sort) (l : list A),
     perm A l (htqs n A sort l).
 Proof.
@@ -52,4 +52,4 @@ Instance Sort_htqs (n : nat) (s : Sort) : Sort :=
 Proof.
   intros. apply htqs_sorted.
   intros. apply htqs_perm.
-Defined.
+Defined.*)

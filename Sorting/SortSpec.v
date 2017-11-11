@@ -30,6 +30,26 @@ Restart.
   intros A C h. apply well_founded_ind with lengthOrder.
     apply lengthOrder_wf.
     intros.
+Restart.
+  intros A C h. destruct C; cbn in *.
+  apply well_founded_ind with lengthOrder.
+    apply lengthOrder_wf.
+    intros. rename x into t. case_eq (sort A (h :: t)); intros.
+      assert (perm A (sort A (h :: t)) []).
+        rewrite H0. reflexivity.
+        rewrite <- sort_perm in H1. specialize (H1 h). cbn in H1. dec.
+      f_equal.
+        apply leq_antisym.
+          apply sorted_cons_conv' with l.
+            rewrite <- H0. apply sort_sorted.
+            apply perm_In with (h :: t).
+              apply min_In.
+              rewrite sort_perm. rewrite H0. reflexivity.
+          apply (min_spec A c h t). apply perm_In with (c :: l).
+            left. trivial.
+            symmetry. rewrite sort_perm, H0. reflexivity.
+      dec.
+        Focus 2.
 Admitted.
 
 Theorem sort_metaspec :

@@ -145,20 +145,13 @@ Proof.
     (* TODO *) apply sorted_app_all.
       assumption.
        apply sorted_cons.
-        intros. rewrite hqs_In, filter_In in H; auto. destruct H.
+        intros.
+Abort.
+(* rewrite hqs_In, filter_In in H; auto. destruct H.
           destruct (leqb_spec x h).
             inversion H0.
             apply LinDec_not_leq. assumption.
           assumption.
       intros. rewrite hqs_In, filter_In in H; auto. destruct H.
         destruct (leqb_spec x h); intuition.
-Qed.
-
-Instance Sort_hqs (n : nat) (s : Sort) : Sort :=
-{
-    sort := fun A : LinDec => hqs n A (@sort s A)
-}.
-Proof.
-  intros. apply hqs_sorted.
-  intros. apply hqs_perm.
-Defined.
+Qed.*)

@@ -117,6 +117,21 @@ Proof.
         assumption.
 Qed.
 
+Lemma sorted_cons_conv' :
+  forall (A : LinDec) (h : A) (t : list A),
+    sorted A (h :: t) -> forall x : A, In x (h :: t) -> h ≤ x.
+Proof.
+  induction t as [| h' t'].
+    inversion 2; subst; dec.
+    do 2 inversion 1; subst.
+      dec.
+      inversion H6; subst.
+        assumption.
+        apply IHt'.
+          eapply sorted_mid; eauto.
+          right. assumption.
+Qed.
+
 (* Lemmas about [count]. *)
 
 Lemma count_last :
@@ -234,6 +249,14 @@ Proof.
   unfold perm; intros. rewrite 2 count_app, H, H0. auto.
 Qed.
 
+Lemma perm_In :
+  forall (A : LinDec) (x : A) (l l' : list A),
+    In x l -> perm A l l' -> In x l'.
+Proof.
+  intros. rewrite count_In. red in H0. rewrite <- H0.
+  rewrite <- count_In. assumption.
+Qed.
+
 Require Import Classes.RelationClasses.
 
 Instance Equiv_perm (A : LinDec) : Equivalence (perm A).
@@ -265,7 +288,7 @@ Theorem Permutation_perm :
 Proof.
   induction 1; cbn; intros; dec.
 Qed.
-Check bin_rel_list_ind.
+
 Theorem perm_Permutation :
   forall (A : LinDec) (l1 l2 : list A),
     perm A l1 l2 -> Permutation l1 l2.
@@ -285,4 +308,4 @@ Restart.
     rewrite <- count_0 at 1; eauto. Search Permutation.
     destruct (LinDec_eqb_spec A h h'); subst.
       constructor. apply H. intro. specialize (H0 x). dec.
-Abort.
+Admitted.
