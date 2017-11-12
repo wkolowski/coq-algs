@@ -89,15 +89,15 @@ Theorem simplifyExp_correct :
   forall (X : CMon) (envE : nat -> X) (envP : nat -> Prop) (e : exp elem),
     denote envE envP (simplifyExp e) ~= denote envE envP e.
 Proof.
-  dependent induction e; cbn.
+  dependent induction e; cbn. Show Proof.
     reflexivity.
     reflexivity.
     remember (simplifyExp e1) as s1. remember (simplifyExp e2) as s2.
       specialize (IHe1 _ eq_refl JMeq_refl);
-      specialize (IHe2 _ eq_refl JMeq_refl).
+      specialize (IHe2 _ eq_refl JMeq_refl). Show Proof.
       dependent destruction s1; dependent destruction s2; cbn in *;
       rewrite <- ?IHe1, <- ?IHe2, <- ?Heqs1, <- ?Heqs2; cbn;
-      rewrite ?neutr_l, ?neutr_r; reflexivity.
+      rewrite ?neutr_l, ?neutr_r; reflexivity. Show Proof.
 Qed.
 
 Fixpoint denoteL {X : CMon} (envE : nat -> X) (l : list nat) : X :=
@@ -362,9 +362,13 @@ Proof.
   intros. destruct H. assumption.
 Qed.
 
+Axiom JMeq_eq_refl :
+  forall (A : Type) (x : A) (p : x ~= x),
+    @JMeq_eq A x x p = eq_refl x.
+
 Ltac solve_goal' :=
-  cbn; intros; cmon_subst; reifyGoal;
-  apply solve_spec; cbn; eauto.
+  cbn; intros; cmon_subst; reifyGoal; apply solve_spec;
+  repeat (try eexists; compute; rewrite ?JMeq_eq_refl); eauto.
 
 Ltac solve_goal :=
   try (solve_goal'; fail);
@@ -373,9 +377,5 @@ Ltac solve_goal :=
 Goal forall (X : CMon) (a a' b b' c c' : X),
   a = b -> b = c -> c = a -> a = c /\ op c c = op b b.
 Proof.
-  Require Import Quote.
-  intros. Print denote.
-  cbn; intros; cmon_subst. reifyGoal. apply solve_spec; cbn. cbn.
-  Print Assumptions simplify_correct. compute. eexists.
-  assert (forall (A : Type) (x : A) (p : x = x), p = eq_refl x).
-Abort.
+  solve_goal.
+Qed.
