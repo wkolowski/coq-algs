@@ -39,7 +39,7 @@ match e with
     | Op e1 e2 => op (expDenote env e1) (expDenote env e2)
 end.
 
-Fixpoint simplifyExp {X : CMon} (e : exp X) : exp X :=
+Function simplifyExp {X : CMon} (e : exp X) : exp X :=
 match e with
     | Id => Id
     | Var v => Var v
@@ -60,6 +60,10 @@ Proof.
     reflexivity.
     destruct (simplifyExp e1), (simplifyExp e2); cbn in *;
       rewrite <- ?IHe1, <- ?IHe2, ?neutr_l, ?neutr_r; try reflexivity.
+Restart.
+  intros. functional induction simplifyExp e; cbn;
+  rewrite <- ?IHe, <- ?IHe0, <- ?IHe1, ?e3, ?e4; cbn;
+  rewrite ?neutr_l, ?neutr_r; trivial.
 Qed.
 
 Fixpoint expDenoteL {X : CMon} (env : nat -> X) (l : list nat) : X :=
@@ -279,6 +283,45 @@ match p with
     | fOr p1 p2 => formulaDenote env p1 \/ formulaDenote env p2
     | fImpl p1 p2 => formulaDenote env p1 -> formulaDenote env p2
 end.
+
+Function simplifyFormula {X : CMon} (f : formula X) : formula X :=
+match f with
+    | fVar P => fVar X P
+    | fEquiv e1 e2 => fEquiv e1 e2
+    | fNot f' => fNot (simplifyFormula f')
+    | fAnd f1 f2 =>
+        match simplifyFormula f1, simplifyFormula f2 with
+            | fOr f11 f12, f2' => fOr (fAnd f11 f2') (fAnd f12 f2')
+            | f1', fOr f21 f22 => fOr (fAnd f1' f21) (fAnd f1' f22)
+            | f1', f2' => fAnd f1' f2'
+        end
+    | fOr f1 f2 =>
+        match simplifyFormula f1, simplifyFormula f2 with
+            | fAnd f11 f12, f2' => fAnd (fOr f11 f2') (fOr f12 f2')
+            | f1', fAnd f21 f22 => fAnd (fOr f1' f21) (fOr f1' f22)
+            | f1', f2' => fOr f1' f2'
+        end
+    | fImpl f1 f2 =>
+        match simplifyFormula f1 with
+            | fAnd f11 f12 => fImpl f11 (fImpl f12 f2)
+            | fOr f11 f12 => fAnd (fImpl f11 f2) (fImpl f12 f2)
+            | f1' => fImpl f1' f2
+        end
+end.
+
+Theorem simplifyFormula_correct :
+  forall (X : CMon) (env : nat -> X) (f : formula X),
+    formulaDenote env (simplifyFormula f) <-> formulaDenote env f.
+Proof.
+  intros. Time functional induction simplifyFormula f; cbn;
+  repeat match goal with
+      | env : nat -> _, IH : forall env' : nat -> _, _ |- _ =>
+          specialize (IH env)
+      | e : simplifyFormula ?f = _,
+        IH : formulaDenote _ (simplifyFormula ?f) <-> _ |- _ =>
+        rewrite <- IH, e; cbn
+  end; firstorder.
+Qed.
 
 Ltac allVarsFormula xs P :=
 match P with
