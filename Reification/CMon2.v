@@ -1,12 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Arith.
-Require Import Permutation.
-Require Import Perm.
-Require Import InsertionSort.
-
-Require Import List.
-Import ListNotations.
+Require Import ReificationBase.
 
 Set Implicit Arguments.
 
@@ -34,9 +28,11 @@ Inductive exp {X : CMon} : type X -> Type :=
     | Id : exp elem
     | Var : nat -> exp elem
     | Op : exp elem -> exp elem -> exp elem
-    | fVar : nat -> exp prop
+(*    | fVar : nat -> exp prop*)
+    | fFalse : exp prop
+    | fTrue : exp prop
     | fEquiv : exp elem -> exp elem -> exp prop
-    | fNot : exp prop -> exp prop
+(*    | fNot : exp prop -> exp prop*)
     | fAnd : exp prop -> exp prop -> exp prop
     | fOr : exp prop -> exp prop -> exp prop
     | fImpl : exp prop -> exp prop -> exp prop.
@@ -44,9 +40,9 @@ Inductive exp {X : CMon} : type X -> Type :=
 Arguments Id [X].
 Arguments Var [X] _.
 Arguments Op [X] _ _.
-Arguments fVar [X] _.
+(*Arguments fVar [X] _.*)
 Arguments fEquiv [X] _ _.
-Arguments fNot [X] _.
+(*Arguments fNot [X] _.*)
 Arguments fAnd [X] _ _.
 Arguments fOr [X] _ _.
 Arguments fImpl [X] _ _.
@@ -57,18 +53,20 @@ match t with
     | prop => Prop
 end.
 
-Fixpoint denote {X : CMon} {t : type X} (envE : nat -> X) (envP : nat -> Prop)
+Fixpoint denote {X : CMon} {t : type X} (env : Env X)
   (f : exp t) : typeDenote t :=
 match f with
     | Id => neutr
-    | Var n => envE n
-    | Op e1 e2 => op (denote envE envP e1) (denote envE envP e2)
-    | fVar i => envP i
-    | fEquiv e1 e2 => denote envE envP e1 = denote envE envP e2
-    | fNot f' => ~ denote envE envP f'
-    | fAnd f1 f2 => denote envE envP f1 /\ denote envE envP f2
-    | fOr f1 f2 => denote envE envP f1 \/ denote envE envP f2
-    | fImpl f1 f2 => denote envE envP f1 -> denote envE envP f2
+    | Var n => nth n env neutr
+    | Op e1 e2 => op (denote env e1) (denote env e2)
+(*    | fVar i => nth i False*)
+    | fFalse => False
+    | fTrue => True
+    | fEquiv e1 e2 => denote env e1 = denote env e2
+(*    | fNot f' => ~ denote env f'*)
+    | fAnd f1 f2 => denote env f1 /\ denote env f2
+    | fOr f1 f2 => denote env f1 \/ denote env f2
+    | fImpl f1 f2 => denote env f1 -> denote env f2
 end.
 
 Fixpoint simplifyExp {X : CMon} (e : exp elem) : exp elem :=
@@ -83,36 +81,34 @@ match e with
         end
 end.
 
-Require Import Equality.
-
 Theorem simplifyExp_correct :
-  forall (X : CMon) (envE : nat -> X) (envP : nat -> Prop) (e : exp elem),
-    denote envE envP (simplifyExp e) ~= denote envE envP e.
+  forall (X : CMon) (env : Env X) (e : exp elem),
+    denote env (simplifyExp e) = denote env e.
 Proof.
-  dependent induction e; cbn. Show Proof.
+  dependent induction e; cbn.
     reflexivity.
     reflexivity.
     remember (simplifyExp e1) as s1. remember (simplifyExp e2) as s2.
       specialize (IHe1 _ eq_refl JMeq_refl);
-      specialize (IHe2 _ eq_refl JMeq_refl). Show Proof.
+      specialize (IHe2 _ eq_refl JMeq_refl).
       dependent destruction s1; dependent destruction s2; cbn in *;
       rewrite <- ?IHe1, <- ?IHe2, <- ?Heqs1, <- ?Heqs2; cbn;
-      rewrite ?neutr_l, ?neutr_r; reflexivity. Show Proof.
+      rewrite ?neutr_l, ?neutr_r; reflexivity.
 Qed.
 
-Fixpoint denoteL {X : CMon} (envE : nat -> X) (l : list nat) : X :=
+Function denoteL {X : CMon} (env : Env X) (l : list nat) : X :=
 match l with
     | [] => neutr
-    | h :: t => op (envE h) (denoteL envE t)
+    | h :: t => op (nth h env neutr) (denoteL env t)
 end.
 
 Lemma denoteL_app :
-  forall (X : CMon) (envE : nat -> X) (l1 l2 : list nat),
-    denoteL envE (l1 ++ l2) = op (denoteL envE l1) (denoteL envE l2).
+  forall (X : CMon) (env : Env X) (l1 l2 : list nat),
+    denoteL env (l1 ++ l2) = op (denoteL env l1) (denoteL env l2).
 Proof.
   induction l1 as [| h1 t1]; simpl; intros.
     rewrite neutr_l. reflexivity.
-    rewrite <- assoc, IHt1. reflexivity.
+    rewrite IHt1, ?neutr_r, ?assoc. trivial.
 Qed.
 
 Fixpoint flatten {X : CMon} (e : exp elem) : list nat :=
@@ -123,8 +119,8 @@ match e with
 end.
 
 Theorem flatten_correct :
-  forall (X : CMon) (envE : nat -> X) (envP : nat -> Prop) (e : exp elem),
-    denoteL envE (flatten e) = denote envE envP e.
+  forall (X : CMon) (env : Env X) (e : exp elem),
+    denoteL env (flatten e) = denote env e.
 Proof.
   dependent induction e; cbn.
     reflexivity.
@@ -133,18 +129,18 @@ Proof.
 Qed.
 
 Lemma denoteL_Permutation :
-  forall (X : CMon) (env : nat -> X) (l1 l2 : list nat),
+  forall (X : CMon) (env : Env X) (l1 l2 : list nat),
     Permutation l1 l2 -> denoteL env l1 = denoteL env l2.
 Proof.
   induction 1; cbn.
     reflexivity.
     rewrite IHPermutation. reflexivity.
-    rewrite !assoc. rewrite (comm (env y)). reflexivity.
+    rewrite !assoc. rewrite (comm (nth y env neutr)). reflexivity.
     rewrite IHPermutation1, IHPermutation2. reflexivity.
 Qed.
 
 Theorem sort_correct :
-  forall (X : CMon) (env : nat -> X) (l : list nat) (s : Sort),
+  forall (X : CMon) (env : Env X) (l : list nat) (s : Sort),
     denoteL env (s natle l) = denoteL env l.
 Proof.
   intros. apply denoteL_Permutation. apply (perm_Permutation natle).
@@ -155,172 +151,98 @@ Definition simplify {X : CMon} (e : exp elem) : list nat :=
   insertionSort natle (flatten (simplifyExp e)).
 
 Theorem simplify_correct :
-  forall (X : CMon) (envE : nat -> X) (envP : nat -> Prop) (e1 e2 : exp elem),
-    denoteL envE (simplify e1) = denoteL envE (simplify e2) ->
-      denote envE envP e1 = denote envE envP e2.
+  forall (X : CMon) (env : Env X) (e : exp elem),
+    denoteL env (simplify e) = denote env e.
 Proof.
   unfold simplify. intros.
-  rewrite !(sort_correct X envE _ Sort_insertionSort) in H.
-  erewrite !flatten_correct, !simplifyExp_correct in H.
-  eassumption.
+  rewrite !(sort_correct _ _ _ Sort_insertionSort).
+  erewrite !flatten_correct, !simplifyExp_correct.
+  trivial.
 Qed.
 
-Ltac inList x l :=
-match l with
-    | [] => false
-    | x :: _ => true
-    | _ :: ?l' => inList x l'
-end.
+Theorem reflectEq :
+  forall (X : CMon) (env : Env X) (e1 e2 : exp elem),
+    denoteL env (simplify e1) = denoteL env (simplify e2) ->
+      denote env e1 = denote env e2.
+Proof.
+  intros. rewrite !simplify_correct in H. assumption.
+Qed.
 
-Ltac addToList x l :=
-  let b := inList x l in
-match b with
-    | true => l
-    | false => constr:(x :: l)
-end.
-
-Ltac lookup x l :=
-match l with
-    | x :: _ => constr:(0)
-    | _ :: ?l' => let n := lookup x l' in constr:(S n)
-end.
-
-Ltac allVars xs e :=
+Ltac allVarsExp xs e :=
 match e with
     | op ?e1 ?e2 =>
-        let xs' := allVars xs e2 in allVars xs' e1
-    | ?f ?e' => allVars xs e'
+        let xs' := allVarsExp xs e2 in allVarsExp xs' e1
     | _ => addToList e xs
 end.
 
-Ltac reifyTerm env x :=
+Ltac reifyExp env x :=
 match x with
     | neutr => constr:(Id)
     | op ?a ?b =>
-        let e1 := reifyTerm env a in
-        let e2 := reifyTerm env b in constr:(Op e1 e2)
+        let e1 := reifyExp env a in
+        let e2 := reifyExp env b in constr:(Op e1 e2)
     | _ =>
         let n := lookup x env in constr:(Var n)
 end.
 
-Ltac functionalize l X :=
-let rec loop n l' :=
-    match l' with
-        | [] => constr:(fun _ : nat => @neutr X)
-        | ?h :: ?t =>
-            let f := loop (S n) t in
-            constr:(fun m : nat => if m =? n then h else f m)
-    end
-in loop 0 l.
+Ltac reifyEq env a b :=
+    let e1 := reifyExp env a in
+    let e2 := reifyExp env b in
+      constr:(denote env e1 = denote env e2).
 
-Ltac reify X :=
+Ltac reflectGoal' := cbn; intros; subst;
 match goal with
-    | |- ?e1 = ?e2 =>
-        let xs := allVars constr:(@nil X) e1 in
-        let xs' := allVars xs e2 in
-        let r1 := reifyTerm xs' e1 in
-        let r2 := reifyTerm xs' e2 in
-        let env := functionalize xs' X in
-        change (denote env (fun _ => False) r1 =
-                denote env (fun _ => False) r2)
+    | X : CMon |- ?a = ?b =>
+        let xs := allVarsExp constr:(@nil X) b in
+        let xs' := allVarsExp xs a in
+        let e := reifyEq xs' a b in
+          change e; apply reflectEq; cbn; rewrite ?neutr_l, ?neutr_r
 end.
 
-Ltac reifyEqv X env a b :=
-    let e1 := reifyTerm env a in
-    let e2 := reifyTerm env b in constr:((e1, e2)).
-
-Ltac cmon_subst := repeat
-multimatch goal with
-    | H : ?x = ?y |- _ => rewrite <- ?H in *
-    | H : ?x = ?x |- _ => clear H
-end.
-
-Ltac reflect_cmon' := cbn; intros; cmon_subst;
-match goal with
-    | X : CMon |- ?e1 = ?e2 =>
-        reify X; apply simplify_correct; cbn; rewrite ?neutr_l, ?neutr_r
-end.
-
-Ltac reflect_cmon := reflect_cmon'; try reflexivity.
-
-Ltac reflect_goal := simpl; intros;
-match goal with
-    | X : CMon |- ?e1 = ?e2 =>
-        reify X; apply simplify_correct
-end.
-
-Goal forall (X : CMon) (a b c : X),
-  op a (op b c) = op (op a b) c.
-Proof.
-  reflect_cmon.
-Qed.
-
-Goal forall (X : CMon) (a b : X),
-  op a b = op b a.
-Proof.
-  reflect_cmon.
-Qed.
-
-Goal forall (X : CMon) (a b b' c : X),
-  b = b' -> op a (op b c) = op (op a b') c.
-Proof.
-  reflect_cmon.
-Qed.
-
-Goal forall (X : CMon) (a a' b b' c c' : X),
-  op a b = op a b' -> op (op a b) c = op b' (op a c).
-Proof.
-  reflect_cmon'. rewrite ?assoc. rewrite (comm b').
-  rewrite !H. reflect_cmon.
-Qed.
-
-Goal forall (X : CMon) (a a' b b' c c' : X),
-  a = b -> b = c -> c = a -> op b (op a c) = op a (op neutr (op b c)).
-Proof.
-  reflect_cmon'. reflexivity.
-Qed.
+Ltac reflectGoal := reflectGoal; reflexivity.
 
 Ltac allVarsFormula xs P :=
 match P with
-    | ?a = ?b => allVars xs P
-    | ~ ?P' => allVarsFormula xs P'
+    | ?a = ?b =>
+        let xs' := allVarsExp xs b in allVarsExp xs' a
     | ?P1 /\ ?P2 =>
-        let xs' := allVarsFormula xs P1 in
-          allVarsFormula xs' P2
+        let xs' := allVarsFormula xs P2 in allVarsFormula xs' P1
     | ?P1 \/ ?P2 =>
-        let xs' := allVarsFormula xs P1 in
-          allVarsFormula xs' P2
+        let xs' := allVarsFormula xs P2 in allVarsFormula xs' P1
     | ?P1 -> ?P2 =>
-        let xs' := allVarsFormula xs P1 in
-          allVarsFormula xs' P2
+        let xs' := allVarsFormula xs P2 in allVarsFormula xs' P1
+    | ?P1 <-> ?P2 =>
+        let xs' := allVarsFormula xs P2 in allVarsFormula xs' P1
     | _ => xs
 end.
 
-Ltac reifyFormula X xs P :=
+Ltac reifyFormula xs P :=
 match P with
-    | ~ ?P' =>
-        let e := reifyFormula X xs P' in constr:(fNot e)
     | ?a = ?b =>
-        let e1 := reifyTerm xs a in
-        let e2 := reifyTerm xs b in constr:(fEquiv e1 e2)
+        let e1 := reifyExp xs a in
+        let e2 := reifyExp xs b in constr:(fEquiv e1 e2)
+    | ~ ?P' =>
+        let e := reifyFormula xs P' in constr:(fImpl e fFalse)
     | ?P1 /\ ?P2 =>
-        let e1 := reifyFormula X xs P1 in
-        let e2 := reifyFormula X xs P2 in constr:(fAnd e1 e2)
+        let e1 := reifyFormula xs P1 in
+        let e2 := reifyFormula xs P2 in constr:(fAnd e1 e2)
     | ?P1 \/ ?P2 =>
-        let e1 := reifyFormula X xs P1 in
-        let e2 := reifyFormula X xs P2 in constr:(fOr e1 e2)
+        let e1 := reifyFormula xs P1 in
+        let e2 := reifyFormula xs P2 in constr:(fOr e1 e2)
     | ?P1 -> ?P2 =>
-        let e1 := reifyFormula X xs P1 in
-        let e2 := reifyFormula X xs P2 in constr:(fImpl e1 e2)
-    | _ => constr:(fVar X P)
+        let e1 := reifyFormula xs P1 in
+        let e2 := reifyFormula xs P2 in constr:(fImpl e1 e2)
+    | ?P1 <-> ?P2 =>
+        let e1 := reifyFormula xs P1 in
+        let e2 := reifyFormula xs P2 in
+          constr:(fAnd (fImpl e1 e2) (fImpl e2 e1))
 end.
 
 Ltac reifyGoal :=
 match goal with
     | X : CMon |- ?P =>
         let xs := allVarsFormula constr:(@nil X) P in
-        let envE := functionalize xs X in
-        let e := reifyFormula X xs P in change (denote envE (fun _ => False) e)
+        let e := reifyFormula xs P in change (denote xs e)
 end.
 
 Definition list_eq :
@@ -330,34 +252,34 @@ Proof.
 Defined.
 
 Fixpoint solve
-  {X : CMon} (envE : nat -> X) (envP : nat -> Prop) (f : exp prop)
-  : option (denote envE envP f).
+  {X : CMon} (env : Env X) (f : exp prop)
+  : option (denote env f).
 Proof.
   dependent destruction f; cbn.
     apply None.
+    apply Some. trivial.
     destruct (list_eq
               (insertionSort natle (flatten (simplifyExp f1)))
               (insertionSort natle (flatten (simplifyExp f2)))).
-      apply Some. apply simplify_correct. f_equal. assumption.
+      apply Some. apply reflectEq. f_equal. assumption.
       apply None.
-    apply None.
-    destruct (solve X envE envP f1), (solve X envE envP f2).
+    destruct (solve X env f1), (solve X env f2).
       apply Some. split; assumption.
       1-3: apply None.
-    destruct (solve X envE envP f1).
+    destruct (solve X env f1).
       apply Some. left. assumption.
-      destruct (solve X envE envP f2).
+      destruct (solve X env f2).
         apply Some. right. assumption.
         apply None.
-    destruct (solve X envE envP f2).
+    destruct (solve X env f2).
       apply Some. intro. assumption.
       apply None.
 Defined.
 
 Theorem solve_spec :
-  forall (X : CMon) (envE : nat -> X) (envP : nat -> Prop) (f : exp prop),
-    (exists p : denote envE envP f, solve envE envP f = Some p) ->
-      denote envE envP f.
+  forall (X : CMon) (env : Env X) (f : exp prop),
+    (exists p : denote env f, solve env f = Some p) ->
+      denote env f.
 Proof.
   intros. destruct H. assumption.
 Qed.
@@ -366,16 +288,54 @@ Axiom JMeq_eq_refl :
   forall (A : Type) (x : A) (p : x ~= x),
     @JMeq_eq A x x p = eq_refl x.
 
-Ltac solve_goal' :=
+(*Ltac solve_goal' :=
   cbn; intros; cmon_subst; reifyGoal; apply solve_spec;
   repeat (try eexists; compute; rewrite ?JMeq_eq_refl); eauto.
 
 Ltac solve_goal :=
   try (solve_goal'; fail);
-  fail "Cannot solve the goal".
+  fail "Cannot solve the goal".*)
 
-Goal forall (X : CMon) (a a' b b' c c' : X),
-  a = b -> b = c -> c = a -> a = c /\ op c c = op b b.
+Section Test.
+
+Variable (X : CMon) (a a' b b' c c' d e f : X).
+
+(* [CMon] axioms. *)
+Goal op a (op b c) = op (op a b) c.
+Proof. reflectGoal'. reflexivity. Qed.
+
+Goal op neutr a = a.
+Proof. reflectGoal'. reflexivity. Qed.
+
+Goal op a neutr = a.
+Proof. reflectGoal'. reflexivity. Qed.
+
+Goal op a b = op b a.
+Proof. reflectGoal'. reflexivity. Qed.
+
+Goal op a (op (op b c) (op d (op (op e e) d))) =
+     op (op a d) (op d (op c (op e (op e b)))).
+Proof. reflectGoal'. reflexivity. Qed.
+
+(* Other tests. *)
+Goal b = b' -> op a (op b c) = op (op a b') c.
+Proof. reflectGoal'. reflexivity. Qed.
+
+Goal op a b = op a b' -> op (op a b) c = op b' (op a c).
 Proof.
-  solve_goal.
+  reflectGoal'. rewrite ?assoc. rewrite (comm b').
+  rewrite <- !H. reflectGoal'. reflexivity.
 Qed.
+
+Goal a = b -> b = c -> c = a -> op b (op a c) = op a (op neutr (op b c)).
+Proof. reflectGoal'. reflexivity. Qed.
+
+(* Tests for formulas. *)
+Goal a = b -> b = c -> c = a -> a = c /\ op c c = op b b.
+Proof.
+  intros. split.
+    reflectGoal'. reflexivity.
+    reflectGoal'. reflexivity. 
+Qed.
+
+End Test.
