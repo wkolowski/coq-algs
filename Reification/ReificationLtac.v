@@ -38,7 +38,8 @@ match f with
     | FImp f1 f2 => implb (solve f1) (solve f2)
 end.
 
-Theorem denoteP : forall f : formula, reflect (denote f) (solve f).
+Theorem denoteP :
+  forall f : formula, reflect (denote f) (solve f).
 Proof.
   induction f; simpl.
     destruct b; auto.
@@ -57,15 +58,28 @@ Qed.
 
 Ltac obvious :=
 match goal with
-    | |- ?P => let f := reify P in
-        change (denote f); apply solve_denote; reflexivity
+    | |- ?P =>
+        let f := reify P in
+        change (denote f);
+        apply solve_denote; reflexivity
 end.
 
-Theorem true_galore : (True /\ True) -> (True \/ (True /\ (True -> True))).
+Theorem true_galore :
+  (True /\ True) -> (True \/ (True /\ (True -> True))).
 Proof. tauto. Qed.
 
-Theorem true_galore' : (True /\ True) -> (True \/ (True /\ (True -> True))).
+Theorem true_galore'
+  : (True /\ True) -> (True \/ (True /\ (True -> True))).
 Proof.
+
+match goal with
+    | |- ?P =>
+        let f := reify P in pose f
+end.
+  Compute (denote f).
+  change (denote f).
+  apply solve_denote. cbn. trivial.
+Restart.
   obvious.
 Qed.
 

@@ -73,72 +73,80 @@ Proof.
 Qed.
 
 Definition solveHypothesis (env : Env Prop) :
-  forall (proofs : Proofs) (hyp f : formula)
-    (cont : forall proofs : Proofs,
-      solution (allTrue env proofs -> formulaDenote env f)),
-        solution (allTrue env proofs -> formulaDenote env hyp ->
-          formulaDenote env f).
+  forall (proofs : Proofs) (H : allTrue env proofs) (hyp f : formula)
+    (cont : Proofs -> bool), bool.
 Proof.
   refine (
   fix solve
-    (proofs : Proofs) (hyp f : formula)
-      (cont : forall proofs : Proofs,
-        solution (allTrue env proofs -> formulaDenote env f)) :
-          solution (allTrue env proofs -> formulaDenote env hyp ->
-            formulaDenote env f) :=
+    (proofs : Proofs) (H : allTrue env proofs) (hyp f : formula)
+      (cont : Proofs -> bool) : bool :=
   match hyp with
-      | fFalse => Yes
-      | fTrue => Reduce (cont proofs)
-      | fVar i => Reduce (cont (i :: proofs))
+      | fFalse => false
+      | fTrue => cont proofs
+      | fVar i => cont (i :: proofs)
       | fAnd f1 f2 =>
-          Reduce (solve proofs f1 (fImpl f2 f)
-                        (fun proofs' => Reduce (cont proofs')))
+          solve proofs H f1 (fImpl f2 f)
+                        (fun proofs' => cont proofs')
       | fOr f1 f2 =>
-          solve proofs f1 f cont &&
-          solve proofs f2 f cont
-      | _ => No
+          andb (solve proofs H f1 f cont)
+               (solve proofs H f2 f cont)
+      | _ => false
   end).
-  all: cbn in *; try tauto.
 Defined.
 
 Definition solveGoal (env : Env Prop)
-  : forall (proofs : Proofs) (f : formula),
-      solution (allTrue env proofs -> formulaDenote env f).
+  : forall (proofs : Proofs) (H : allTrue env proofs) (f : formula), bool.
 Proof.
   refine (
   fix solve
-    (proofs : Proofs) (f : formula)
-      : solution (allTrue env proofs -> formulaDenote env f) :=
+    (proofs : Proofs) (H : allTrue env proofs) (f : formula) : bool :=
   match f with
-      | fFalse => No
-      | fTrue => Yes
+      | fFalse => false
+      | fTrue => true
       | fVar i =>
           match in_dec Nat.eq_dec i proofs with
-              | left _ => Yes
-              | right _ => No
-          end
-      | fAnd f1 f2 => solve proofs f1 && solve proofs f2
-      | fOr f1 f2 => solve proofs f1 || solve proofs f2
-      | fImpl f1 f2 =>
-          solveHypothesis env proofs f1 f2
-            (fun proofs' => solve proofs' f2)
+              | left _ => true
+              | right _ => false
+          end 
+      | fAnd f1 f2 => andb (solve proofs H f1) (solve proofs H f2)
+      | fOr f1 f2 => orb (solve proofs H f1) (solve proofs H f2)
+ (*     | fImpl f1 f2 =>
+          solveHypothesis env proofs H f1 f2
+            (fun proofs' => solve proofs' _ f2)*)
+      | _ => false
   end).
-  all: cbn; try tauto.
-    intro. apply find_spec with proofs; assumption.
 Defined.
 
-Definition solveFormula (env : Env Prop) (f : formula)
-  : solution (formulaDenote env f).
+Definition solveFormula (env : Env Prop) (f : formula) : bool.
 Proof.
-  refine (Reduce (solveGoal env [] f)). apply f0. cbn. trivial.
+  refine (solveGoal env [] _ f). cbn. trivial.
 Defined.
+
+Theorem solveGoal_correct :
+  forall (env : Env Prop) (proofs : Proofs) (H : allTrue env proofs)
+  (f : formula),
+    solveGoal env proofs H f = true -> formulaDenote env f.
+Proof.
+  induction f; cbn; intros; try congruence.
+    trivial.
+    destruct (in_dec Nat.eq_dec n proofs).
+      apply find_spec with proofs; auto.
+      congruence.
+    rewrite andb_true_iff in H0. tauto.
+    rewrite orb_true_iff in H0. tauto.
+Qed.
 
 Theorem solveFormula_correct :
   forall (env : Env Prop) (f : formula),
-    (exists p : formulaDenote env f, solveFormula env f = Yes' p) ->
-      formulaDenote env f.
+    solveFormula env f = true -> formulaDenote env f.
 Proof.
-  intros. destruct H. assumption.
+  intros. destruct f; cbn in *; try congruence.
+    trivial.
+    rewrite andb_true_iff in H. destruct H.
+      split; eapply solveGoal_correct; eauto.
+    rewrite orb_true_iff in H. destruct H.
+      left. eapply solveGoal_correct; eauto.
+      right. eapply solveGoal_correct; eauto.
 Qed.
 
 Ltac allVarsFormula xs P :=
@@ -187,13 +195,11 @@ match goal with
           rewrite <- simplifyFormula_correct; cbn
 end.
 
-Ltac solveGoal' :=
+Ltac solveGoal :=
 match goal with
     |- ?P =>
         let xs := allVarsFormula constr:(@nil Prop) P in
         let f := reifyFormula xs P in change (formulaDenote xs f);
-          rewrite <- simplifyFormula_correct; cbn;
-          try apply (unwrap (solveFormula xs (simplifyFormula f)))
+          rewrite <- simplifyFormula_correct;
+          apply solveFormula_correct; cbn; reflexivity
 end.
-
-Ltac solveGoal := solveGoal'; fail.

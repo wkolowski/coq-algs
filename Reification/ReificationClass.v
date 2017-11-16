@@ -75,7 +75,8 @@ Defined.
 
 Eval simpl in reify (True /\ False).
 
-Theorem solve_denote : forall (P : Prop) (RP : Reify P),
+Theorem solve_denote :
+  forall (P : Prop) (RP : Reify P),
     solve (reify P) = true -> denote (reify P).
 Proof.
   destruct RP; simpl; intro. rewrite H in spec0.
@@ -85,7 +86,8 @@ Qed.
 Ltac obvious :=
 match goal with
     | |- ?P =>
-        change (denote (reify P)); apply solve_denote; reflexivity
+        change (denote (reify P));
+        apply solve_denote; reflexivity
 end.
 
 Theorem true_galore : (True /\ True) -> (True \/ (True /\ (True -> True))).
