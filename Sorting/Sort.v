@@ -305,7 +305,7 @@ Restart.
   unfold perm; cbn; intros.
     constructor.
     rewrite <- count_0 at 1; eauto.
-    rewrite <- count_0 at 1; eauto. Search Permutation.
+    rewrite <- count_0 at 1; eauto.
     destruct (LinDec_eqb_spec A h h'); subst.
       constructor. apply H. intro. specialize (H0 x). dec.
 Admitted.

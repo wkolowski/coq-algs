@@ -129,8 +129,8 @@ end.
 (*CoFixpoint rand (seed n1 n2 : Z) : Stream Z :=
 let seed' := Zmod seed n2 in Cons seed' (rand (seed' * n1) n1 n2).*)
 
-Time Compute qs natle (toN 200).
+(*Time Compute qs natle (toN 200).
 Time Compute tqs natlt (toN 200).
 Time Compute insertionSort natle (toN 500).
 Time Compute treeSort natle (toN 500).
-Time Compute redblackSort natle (toN 500).
+Time Compute redblackSort natle (toN 500).*)

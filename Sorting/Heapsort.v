@@ -19,7 +19,7 @@ match l with
     | h :: t => insert' h (fromList t)
 end.
 
-Function fromList' {A : LinDec} (l : list A) : BTree A :=
+Definition fromList' {A : LinDec} (l : list A) : BTree A :=
   fold_left (fun t x => insert' x t) l empty.
 
 Function toList {A : LinDec} (t : BTree A)

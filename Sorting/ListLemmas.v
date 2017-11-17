@@ -173,42 +173,14 @@ Proof.
   rewrite ?e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
 Qed.
 
-Function trifilter (A : LinDec) (pivot : A) (l : list A)
-  : list A * list A * list A :=
-match l with
-    | [] => ([], [], [])
-    | h :: t =>
-        let '(l1, l2, l3) := trifilter A pivot t in
-        if h <=? pivot
-        then if pivot <=? h then (l1, h :: l2, l3) else (h :: l1, l2, l3)
-        else (l1, l2, h :: l3)
-end.
-
-Compute trifilter natle 5 [1; 5; 5; 5; 2].
-
-Theorem trifilter_spec :
-  forall (A : LinDec) (pivot h : A) (t : list A),
-    trifilter A pivot (h :: t) =
-      (filter (fun x : A => x <=? pivot) (h :: t),
-       filter (fun x : A => x =? pivot) (h :: t),
-       filter (fun x : A => negb (x <=? pivot)) (h :: t)).
-Abort.
-(*  intros. rewrite trifilter_equation.
-    destruct (trifilter A pivot t) as [[l1 l2] l3].
-    Focus 2. assert (h0 = pivot) by (apply leq_antisym; auto).
-      contradiction.
-    Focus 2. contradict n. auto.
-    rewrite e0 in *. inversion IHp. rewrite <- H0, <- H1, <- H2.
-Qed.*)
-
 Require Import TrichDec.
 
-Function trifilter' {A : TrichDec} (x : A) (l : list A)
+Function trifilter {A : TrichDec} (x : A) (l : list A)
   : list A * list A * list A :=
 match l with
     | [] => ([], [], [])
     | h :: t =>
-        let '(l1, l2, l3) := trifilter' x t in
+        let '(l1, l2, l3) := trifilter x t in
         match h <?> x with
             | Lt => (h :: l1, l2, l3)
             | Eq => (l1, h :: l2, l3)
@@ -216,14 +188,28 @@ match l with
         end
 end.
 
-Theorem trifilter'_spec :
+Theorem trifilter_spec :
   forall (A : TrichDec) (pivot : A) (l : list A),
-    trifilter' pivot l =
+    trifilter pivot l =
       (filter (fun x : A => x <? pivot) l,
        filter (fun x : A => x =? pivot) l,
        filter (fun x : A => pivot <? x) l).
 Proof.
-  intros. functional induction @trifilter' A pivot l; cbn; trich.
+  intros. functional induction @trifilter A pivot l; cbn;
+  try (rewrite e0 in *; clear e0; inv IHp); trich.
+Qed.
+
+Theorem trifilter_spec' :
+  forall (A : TrichDec) (pivot : A) (l lo eq hi : list A),
+    trifilter pivot l = (lo, eq, hi) ->
+      perm A (lo ++ eq) (filter (fun x : A => x <=? pivot) l) /\
+      hi = filter (fun x : A => pivot <? x) l.
+Proof.
+  intros until hi. functional induction trifilter pivot l;
+  intros; inv H; cbn in *; trich; edestruct IHp; try split; eauto.
+    apply perm_cons; auto.
+    rewrite (perm_front A x lo l2). apply perm_cons. auto.
+    f_equal. auto.
 Qed.
 
 (* Mergesort lemmas *)

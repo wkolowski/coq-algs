@@ -24,7 +24,7 @@ Proof.
   case_eq (sort (h :: t)); intros.
     assert (perm A (h :: t) (sort (h :: t))) by (destruct C; auto).
       rewrite H0 in H1. red in H1; simpl in H1. specialize (H1 h). dec.
-    rewrite H0 in H. Check sorted_cons_conv.
+    rewrite H0 in H.
       assert (wut := sorted_cons_conv A c l H).
 Restart.
   intros A C h. apply well_founded_ind with lengthOrder.

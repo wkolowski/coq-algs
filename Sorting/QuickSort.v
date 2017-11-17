@@ -21,8 +21,6 @@ match l with
 end.
 Proof. all: simpl; auto. Defined.
 
-Eval compute in qs natle testl.
-
 Local Hint Extern 0 (length _ < length _) =>
 match goal with
     | H : bifilter _ _ = _ |- _ => rewrite bifilter_spec in H; inversion H;

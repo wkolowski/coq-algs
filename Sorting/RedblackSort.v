@@ -48,5 +48,5 @@ Definition redblackSort' (A : LinDec) (l : list A) : list A :=
 
 Require Import ListLemmas.
 
-Time Compute redblackSort natle (cycle 200 testl).
-Time Compute redblackSort' natle (cycle 200 testl).
+(*Time Compute redblackSort natle (cycle 200 testl).
+Time Compute redblackSort' natle (cycle 200 testl).*)

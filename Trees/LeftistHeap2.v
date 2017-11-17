@@ -391,4 +391,4 @@ Definition leftistHeapsort (A : LinDec) (l : list A)
 
 Require Import ListLemmas.
 
-Time Compute leftistHeapsort natle (cycle 25 testl).
+(*Time Compute leftistHeapsort natle (cycle 25 testl).*)

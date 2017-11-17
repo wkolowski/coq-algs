@@ -1,5 +1,6 @@
-Require Import Bool.
-Hint Constructors reflect.
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
+Require Import RCCBase.
 
 Inductive formula : Set :=
     | FConst : bool -> formula
@@ -73,8 +74,6 @@ Proof.
     destruct HP, HQ; auto; constructor; tauto.
 Defined.
 
-Eval simpl in reify (True /\ False).
-
 Theorem solve_denote :
   forall (P : Prop) (RP : Reify P),
     solve (reify P) = true -> denote (reify P).
@@ -97,6 +96,3 @@ Theorem true_galore' : (True /\ True) -> (True \/ (True /\ (True -> True))).
 Proof.
   obvious.
 Qed.
-
-Print true_galore.
-Print true_galore'.

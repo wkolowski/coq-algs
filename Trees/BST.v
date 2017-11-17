@@ -182,7 +182,7 @@ end.
 Definition toList' {A : LinDec} (t : BTree A) : list A :=
   toList'_aux t [].
 
-Function fromList' {A : LinDec} (l : list A) : BTree A :=
+Definition fromList' {A : LinDec} (l : list A) : BTree A :=
   fold_left (fun t x => BTree_ins x t) l empty.
 
 (* Counting elements in a binary tree. *)
@@ -287,9 +287,9 @@ Proof.
     inv H. apply sorted_app_all; auto.
       case_eq (toList r); intros; subst; auto.
         constructor.
-          apply H5. rewrite <- toList_In_elem. rewrite H0. cbn. auto.
-          rewrite <- H0. auto.
-      intros. apply toList_In_elem in H0. auto.
+          apply H5. rewrite <- toList_In_elem. rewrite H. cbn. auto.
+          rewrite <- H. auto.
+      intros. apply toList_In_elem in H. auto.
 Qed.
 
 Lemma fromList_is_bst :

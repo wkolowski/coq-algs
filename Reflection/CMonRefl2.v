@@ -1,21 +1,8 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import ReificationBase.
+Require Import CMon.
 
-Set Implicit Arguments.
-
-Class CMon : Type :=
-{
-    carrier : Type;
-    op : carrier -> carrier -> carrier;
-    neutr : carrier;
-    assoc : forall x y z : carrier, op x (op y z) = op (op x y) z;
-    neutr_l : forall x : carrier, op neutr x = x;
-    neutr_r : forall x : carrier, op x neutr = x;
-    comm : forall x y : carrier, op x y = op y x
-}.
-
-Coercion carrier : CMon >-> Sortclass.
+(*Set Implicit Arguments.*)
 
 Inductive type (X : CMon) : Type :=
     | elem : type X
@@ -209,7 +196,7 @@ Proof.
   intros. destruct H. assumption.
 Qed.
 
-Definition simplifyFormula {X : CMon} (t : type X) : exp t -> exp t :=
+Definition simplifyFormula {X : CMon} {t : type X} : exp t -> exp t :=
 match t with
     | elem => fun e => simplify e
     | prop => fun e =>

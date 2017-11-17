@@ -1,6 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import ReificationBase.
+Require Export RCCBase.
 
 Set Implicit Arguments.
 

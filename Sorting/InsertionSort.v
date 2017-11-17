@@ -11,9 +11,7 @@ match l with
 end.
 
 Definition insertionSort (A : LinDec) (l : list A)
-    : list A := fold_right (ins A) [] l.
-
-Eval compute in insertionSort natle testl.
+  : list A := fold_right (ins A) [] l.
 
 Lemma perm_ins: forall (A : LinDec) (x : A) (l : list A),
     perm A (x :: l) (ins A x l).

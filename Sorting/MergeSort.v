@@ -172,6 +172,3 @@ Definition ms (A : LinDec) :=
 
 Definition ms2 (A : LinDec) :=
   @ghms 0 A (fun l => l) (HalfSplit A).
-
-Compute ms natle testl.
-Compute ms2 natle testl.

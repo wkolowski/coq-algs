@@ -1,5 +1,6 @@
-Require Import Bool.
-Hint Constructors reflect.
+Add Rec LoadPath "/home/zeimer/Code/Coq".
+
+Require Import RCCBase.
 
 Inductive formula : Set :=
     | FConst : bool -> formula
@@ -71,17 +72,5 @@ Proof. tauto. Qed.
 Theorem true_galore'
   : (True /\ True) -> (True \/ (True /\ (True -> True))).
 Proof.
-
-match goal with
-    | |- ?P =>
-        let f := reify P in pose f
-end.
-  Compute (denote f).
-  change (denote f).
-  apply solve_denote. cbn. trivial.
-Restart.
   obvious.
 Qed.
-
-Print true_galore.
-Print true_galore'.

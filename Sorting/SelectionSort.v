@@ -16,8 +16,6 @@ match l with
 end.
 Proof. intros. apply remove_once_min_lengthOrder. Defined.
 
-Eval compute in ss natle testl.
-
 Function minmax (A : LinDec) (min : A) (max : A) (l : list A) : A * A :=
 match l with
     | [] => (min, max)
