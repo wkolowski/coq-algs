@@ -85,22 +85,49 @@ Proof.
   end.
 Qed.
 
-Definition simpExp {X : UCRing} (e : exp X) : exp X :=
-  simplifyExp e.
+Function reassoc {X : UCRing} (e : exp X) : exp X :=
+match e with
+    | Add e1 e2 =>
+        match reassoc e1 with
+            | Add e11 e12 => Add e11 (Add e12 (reassoc e2))
+            | e1' => Add e1' (reassoc e2)
+        end
+    | Mul e1 e2 =>
+        match reassoc e1 with
+            | Mul e11 e12 => Mul e11 (Mul e12 (reassoc e2))
+            | e1' => Mul e1' (reassoc e2)
+        end
+    | Neg e' => Neg (reassoc e')
+    | _ => e
+end.
 
-Lemma simpExp_correct :
-  forall (X : UCRing) (env : nat -> X) (e : exp X),
-    expDenote env (simpExp e) = expDenote env e.
+Theorem reassoc_correct :
+  forall (X : UCRing) (envX : nat -> X) (e : exp X),
+    expDenote envX (reassoc e) = expDenote envX e.
 Proof.
-  unfold simpExp; intros. rewrite !simplifyExp_correct. trivial.
+  intros. functional induction reassoc e; cbn;
+  try rewrite e3 in *; cbn in *; rewrite <- ?IHe0, ?IHe1; rng.
+Qed.
+
+Definition simplify {X : UCRing} (e : exp X) : exp X :=
+  reassoc (simplifyExp e).
+
+Lemma simplify_correct :
+  forall (X : UCRing) (env : nat -> X) (e : exp X),
+    expDenote env (simplify e) = expDenote env e.
+Proof.
+  unfold simplify; intros.
+  rewrite reassoc_correct.
+  rewrite !simplifyExp_correct.
+  trivial.
 Qed.
 
 Theorem reflectExp :
   forall (X : UCRing) (env : nat -> X) (e1 e2 : exp X),
-    expDenote env (simpExp e1) = expDenote env (simpExp e2) ->
+    expDenote env (simplify e1) = expDenote env (simplify e2) ->
       expDenote env e1 = expDenote env e2.
 Proof.
-  intros. rewrite !simpExp_correct in H. assumption.
+  intros. rewrite !simplify_correct in H. assumption.
 Qed.
 
 (* Some wut proofs. *)
@@ -181,10 +208,10 @@ match eq with
     | E e1 e2 => expDenote env e1 = expDenote env e2
 end.
 
-Function simpHypEq {X : UCRing} (eq : eqExp X) : eqExp X :=
+(*Function simpHypEq {X : UCRing} (eq : eqExp X) : eqExp X :=
 match eq with
     | E e1 e2 =>
-        match simplifyExp e1, simplifyExp e2 with
+        match simplify e1, simplify e2 with
             | Add e11 e12, Add e21 e22 =>
                 if exp_eq_dec e11 e21
                 then E e12 e22
@@ -200,8 +227,8 @@ Ltac forth :=
 repeat match goal with
     | |- expDenote ?env ?e1 = expDenote ?env ?e2 =>
         is_var e1; is_var e2;
-        rewrite <- (simplifyExp_correct env e1),
-                <- (simplifyExp_correct env e2)
+        rewrite <- (simplify_correct env e1),
+                <- (simplify_correct env e2)
     | H : ?x = _ |- context [?x] => rewrite H; cbn
 end; rng.
 
@@ -209,8 +236,8 @@ Ltac back :=
 repeat match goal with
     | H : expDenote ?env ?e1 = expDenote ?env ?e2 |- _ =>
         is_var e1; is_var e2;
-        rewrite <- (simplifyExp_correct env e1),
-                <- (simplifyExp_correct env e2) in H
+        rewrite <- (simplify_correct env e1),
+                <- (simplify_correct env e2) in H
     | H : ?x = _ , H' : context [?x] |- _ =>
         rewrite H in H'; cbn in H'; auto
 end; rng.
@@ -223,12 +250,86 @@ Proof.
     all: try (forth; fail).
     all: try (back; eapply add_cancel_l + eapply add_cancel_r; eauto; fail).
     back. apply neg_eq. assumption.
+Qed.*)
+
+Fixpoint size {X : UCRing} (e : exp X) : nat :=
+match e with
+    | Add e1 e2 => 1 + size e1 + size e2
+    | Mul e1 e2 => 1 + size e1 + size e2
+    | Neg e' => 1 + size e'
+    | _ => 1
+end.
+
+Definition pair_size {X : UCRing} (p : exp X * exp X) : nat :=
+  size (fst p) + size (snd p).
+
+Require Import Recdef.
+
+Function simpHypEq' {X : UCRing} (p : exp X * exp X)
+  {measure pair_size p} : exp X * exp X :=
+match fst p, snd p with
+    | Add e11 e12, Add e21 e22 =>
+        if exp_eq_dec e11 e21
+        then simpHypEq' (e12, e22)
+        else if exp_eq_dec e12 e22
+             then simpHypEq' (e11, e21)
+             else (Add e11 e12, Add e21 e22)
+    (*| Mul e11 e12, Add e21 e22 =>
+        if exp_eq_dec e11 e21
+        then simpHypEq' (e12, e22)
+        else if exp_eq_dec e12 e22
+             then simpHypEq' (e11, e21)
+             else (Add e11 e12, Add e21 e22)
+    | Neg e1', Neg e2' => simpHypEq' (e1', e2')*)
+    | _, _ => p
+end.
+Proof.
+  all: destruct p; cbn; intros; subst; cbn; omega.
+Defined.
+
+Theorem simpHypEq'_correct :
+  forall (X : UCRing) (env : nat -> X) (p : exp X * exp X),
+    eqExpDenote env (E (fst (simpHypEq' p)) (snd (simpHypEq' p))) <->
+    eqExpDenote env (E (fst p) (snd p)).
+Proof.
+  intros. destruct p. destruct e; cbn; try tauto.
+  split.
+    intros.
+Restart.
+  intros. functional induction simpHypEq' X p; cbn in *.
+  rewrite e, e0. cbn. rewrite IHp0. split; rng.
+    apply add_cancel_l in H. assumption.
+  rewrite e, e0. cbn. rewrite IHp0. split; rng.
+    apply add_cancel_r in H. assumption.
+  rewrite e, e0. cbn. reflexivity.
+  reflexivity.
 Qed.
+
+Definition simpHypEq {X : UCRing} (eq : eqExp X) : eqExp X :=
+match eq with
+    | E e1 e2 =>
+        let '(e1', e2') := simpHypEq' (simplify e1, simplify e2)
+        in E e1' e2'
+end.
+
+Lemma simpHypEq_correct :
+  forall (X : UCRing) (env : nat -> X) (eq : eqExp X),
+    eqExpDenote env (simpHypEq eq) <-> eqExpDenote env eq.
+Proof.
+  split; intros; destruct eq; cbn in *.
+    case_eq (simpHypEq' (simplify e1, simplify e2)); intros.
+      rewrite H0 in H. cbn in H.
+Admitted.
+
+Lemma simpHypEq_correct :
+  forall (X : UCRing) (env : nat -> X) (p : exp X * exp X),
+    eqExpDenote env (simpHypEq eq) <-> eqExpDenote env eq.
+Proof.
 
 (* Simplification for goal equalities. *)
 Function simpGoalEq {X : UCRing} (eq : eqExp X) : eqExp X :=
 match eq with
-    | E e1 e2 => E (simplifyExp e1) (simplifyExp e2)
+    | E e1 e2 => E (simplify e1) (simplify e2)
 end.
 
 Lemma simpGoalEq_correct :
@@ -236,8 +337,8 @@ Lemma simpGoalEq_correct :
     eqExpDenote env (simpGoalEq eq) <-> eqExpDenote env eq.
 Proof.
   intros. functional induction simpGoalEq eq; cbn; split; intros.
-    rewrite ?simplifyExp_correct in H. assumption.
-    rewrite ?simplifyExp_correct. assumption.
+    rewrite ?simplify_correct in H. assumption.
+    rewrite ?simplify_correct. assumption.
 Qed.
 
 (* Formulas. *)
@@ -361,9 +462,9 @@ Proof.
     apply None.
     apply Some. trivial.
     apply None.
-      destruct (exp_eq_dec (simplifyExp e) (simplifyExp e0)).
-        rewrite <- (simplifyExp_correct env e),
-                <- (simplifyExp_correct env e0).
+      destruct (exp_eq_dec (simplify e) (simplify e0)).
+        rewrite <- (simplify_correct env e),
+                <- (simplify_correct env e0).
           rewrite e1. apply Some. trivial.
         apply None.
     apply None.
@@ -538,7 +639,7 @@ Ltac solve_goal :=
   try (solve_goal'; fail);
   fail "Cannot solve the goal".
 
-Ltac ucring := intros; reflect_eq_hyps; subst; reflect_eq_goal.
+Ltac ucring := intros; repeat reflect_eq_hyps; subst; reflect_eq_goal.
 
 Section Test.
 
@@ -550,7 +651,7 @@ Variables a a' b b' c c' d d' e e' : X.
 
 (* UCRing axioms for [add]. *)
 Goal a + (b + c) = (a + b) + c.
-Proof. ucring. rng. Qed.
+Proof. ucring. Qed.
 
 Goal a + b = b + a.
 Proof. ucring. rng. Abort.
@@ -570,7 +671,7 @@ Proof. ucring. Qed.
 
 (* UCRing axioms for [mul]. *)
 Goal a * (b * c) = (a * b) * c.
-Proof. ucring. rng. Qed.
+Proof. ucring. Qed.
 
 Goal a * b = b * a.
 Proof. ucring. rng. Abort.
@@ -605,31 +706,20 @@ Goal a * 0 = 0.
 Proof. ucring. Qed.
 
 Goal b = b' -> a + (b + c) = (a + b') + c.
-Proof.
-  ucring. rng.
-Qed.
+Proof. ucring. Qed.
 
 (* Cancel left and right. *)
 Goal a + b = a + b' -> b + c = b' + c.
-Proof.
-  intros. ucring.
-Qed.
+Proof. ucring. Qed.
 
 Goal a + b = a' + b -> a + c = a' + c.
-Proof.
-  ucring.
-Qed.
+Proof. ucring. Qed.
 
 Goal -a = -b -> a + c = b + c.
-Proof.
-  ucring.
-Qed.
+Proof. ucring. Qed.
 
 Goal (a + b) + c = a + (b' + c) -> b = b'.
-Proof.
-  intros. ucring.
-  rewrite add_assoc in H. ucring. ucring. (* TODO *)
-Qed.
+Proof. ucring. Qed.
 
 Goal False ->  a <> b -> a * a = b * b.
 Proof. solve_goal. Qed.

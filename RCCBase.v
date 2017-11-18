@@ -127,6 +127,7 @@ Proof.
       apply IHt; assumption.
 Qed.
 
+(* A type for solving formulas. *)
 Inductive solution (P : Prop) : Type :=
     | Yes' : P -> solution P
     | No' : solution P.

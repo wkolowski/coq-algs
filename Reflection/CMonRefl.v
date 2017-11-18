@@ -1,8 +1,8 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import CMon.
+Require Export CMon.
 
-(*Set Implicit Arguments.*)
+Set Implicit Arguments.
 
 Inductive exp (X : CMon) : Type :=
     | Id : exp X
@@ -41,6 +41,14 @@ Proof.
   rewrite ?neutr_l, ?neutr_r; trivial.
 Qed.
 
+Theorem simplifyExp_idempotent :
+  forall (X : CMon) (e : exp X),
+    simplifyExp (simplifyExp e) = simplifyExp e.
+Proof.
+  intros. functional induction simplifyExp e; cbn; trivial.
+  rewrite IHe0, IHe1.
+  destruct (simplifyExp e1), (simplifyExp e2); try tauto.
+Qed.
 
 Fixpoint flatten {X : CMon} (e : exp X) : list nat :=
 match e with
@@ -57,6 +65,37 @@ Proof.
     reflexivity.
     rewrite neutr_r. reflexivity.
     rewrite expDenoteL_app. rewrite IHe1, IHe2. reflexivity.
+Qed.
+
+Function reassoc {X : CMon} (e : exp X) : exp X :=
+match e with
+    | Op e1 e2 =>
+        match reassoc e1 with
+            | Op e11 e12 => Op e11 (Op e12 (reassoc e2))
+            | e1' => Op e1' (reassoc e2)
+        end
+    | _ => e
+end.
+
+Theorem reassoc_correct :
+  forall (X : CMon) (envX : Env X) (e : exp X),
+    expDenote envX (reassoc e) = expDenote envX e.
+Proof.
+  intros. functional induction reassoc e; cbn.
+    rewrite e3 in IHe0. cbn in *. rewrite ?assoc, ?IHe0, ?IHe1. trivial.
+    rewrite ?IHe0, ?IHe1. trivial.
+    trivial.
+Qed.
+
+Theorem reassoc_correct' :
+  forall (X : CMon) (envX : Env X) (e : exp X),
+    expDenote envX (reassoc e) = expDenoteL envX (flatten e).
+Proof.
+  intros. functional induction reassoc e; cbn.
+    rewrite e3 in *; cbn in *. rewrite ?assoc. rewrite ?IHe0, ?IHe1.
+      rewrite expDenoteL_app. trivial.
+    rewrite ?IHe0, ?IHe1. rewrite expDenoteL_app. trivial.
+    rewrite flatten_correct. trivial.
 Qed.
 
 Theorem sort_correct :
@@ -98,6 +137,12 @@ Proof.
   trivial.
 Qed.
 
+Theorem simplify_idempotent :
+  forall (X : CMon) (e : exp X),
+    simplify (simplify e) = simplify e.
+Proof.
+Abort. (* TODO *)
+
 Theorem reflectEq :
   forall (X : CMon) (envX : Env X) (e1 e2 : exp X),
     expDenote envX (simplify e1) = expDenote envX (simplify e2) ->
@@ -128,7 +173,7 @@ Ltac reifyEq envX a b :=
     let e2 := reifyExp envX b in
       constr:(expDenote envX e1 = expDenote envX e2).
 
-Ltac cmon_simpl := cbn; intros; subst;
+Ltac cmon_simpl' := cbn; intros;
 match goal with
     | X : CMon |- ?a = ?b =>
         let xs := allVarsExp constr:(@nil X) b in
@@ -137,6 +182,8 @@ match goal with
           change e; apply reflectEq; cbn;
           rewrite ?neutr_l, ?neutr_r
 end.
+
+Ltac cmon_simpl := subst; cmon_simpl'.
 
 Ltac cmon := cmon_simpl; reflexivity.
 
@@ -179,13 +226,28 @@ match e1 with
 end.
 
 Theorem subst_correct :
-  forall (X : CMon) (envX : Env X) (envP : Env Prop) (e1 e2 : exp X) (i : nat),
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (e1 e2 : exp X)
+  (i : nat),
     formulaDenote envX envP (fEq (Var i) e2) ->
       expDenote envX (subst e1 i e2) = expDenote envX e1.
 Proof.
   intros. functional induction subst e1 i e2; cbn in *;
   try rewrite IHe, IHe0; congruence.
 Qed.
+
+Theorem subst_idempotent :
+  forall (X : CMon) (envX : Env X) (e1 e2 : exp X) (i : nat),
+    nth i envX neutr = expDenote envX e2 ->
+      subst (subst e1 i e2) i e2 = subst e1 i e2.
+Proof.
+  intros. functional induction subst e1 i e2; cbn.
+    trivial.
+    Focus 2. rewrite e0. trivial.
+    Focus 2. erewrite IHe0, IHe; eauto.
+    gen e2. induction e2; intros; cbn in *.
+      trivial.
+      destruct (Nat.eq_dec n n0); trivial.
+Abort.
 
 Function substF {X : CMon} (f : formula X) (i : nat) (e : exp X)
   : formula X :=
@@ -200,65 +262,47 @@ end.
 Theorem substF_correct :
   forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X)
   (i : nat) (e : exp X),
-    (*formulaDenote envX envP (fEq (Var i) e) ->*)
     nth i envX neutr = expDenote envX e ->
-    formulaDenote envX envP (substF f i e) <-> 
-      formulaDenote envX envP f.
+    (formulaDenote envX envP (substF f i e) <-> 
+      formulaDenote envX envP f).
 Proof.
   intros. functional induction substF f i e; cbn in *.
     rewrite !(@subst_correct _ envX envP); cbn; firstorder.
     all: firstorder.
 Qed.
 
-Function simplifyFormula {X : CMon} (f : formula X) : formula X :=
+Function simplifyEq {X : CMon} (f : formula X) : formula X :=
 match f with
-    | fFalse => fFalse
-    | fTrue => fTrue
-    | fVar P => fVar P
     | fEq e1 e2 => fEq (simplify e1) (simplify e2)
-    | fAnd f1 f2 =>
-        match simplifyFormula f1, simplifyFormula f2 with
-            | fOr f11 f12, f2' => fOr (fAnd f11 f2') (fAnd f12 f2')
-            | f1', fOr f21 f22 => fOr (fAnd f1' f21) (fAnd f1' f22)
-            | fFalse, _ => fFalse
-            | _, fFalse => fFalse
-            | fTrue, f2' => f2'
-            | f1', fTrue => f1'
-            | f1', f2' => fAnd f1' f2'
-        end
-    | fOr f1 f2 =>
-        match simplifyFormula f1, simplifyFormula f2 with
-            | fAnd f11 f12, f2' => fAnd (fOr f11 f2') (fOr f12 f2')
-            | f1', fAnd f21 f22 => fAnd (fOr f1' f21) (fOr f1' f22)
-            | fFalse, f2' => f2'
-            | f1', fFalse => f1'
-            | fTrue, _ => fTrue
-            | _, fTrue => fTrue
-            | f1', f2' => fOr f1' f2'
-        end
+    | fAnd f1 f2 => fAnd (simplifyEq f1) (simplifyEq f2)
+    | fOr f1 f2 => fOr (simplifyEq f1) (simplifyEq f2)
     | fImpl f1 f2 =>
-        let f2' := simplifyFormula f2 in
-        match simplifyFormula f1 with
-            | fFalse => fTrue
-            | fTrue => f2'
-            | fEq (Var i) e => fImpl (fEq (Var i) e) (substF f2' i e)
-            | fAnd f11 f12 => fImpl f11 (fImpl f12 f2')
-            | fOr f11 f12 => fAnd (fImpl f11 f2') (fImpl f12 f2')
+        let f2' := simplifyEq f2 in
+        match simplifyEq f1 with
+            | fEq (Var i) e as f1' => fImpl f1' (substF f2' i e)
             | f1' => fImpl f1' f2'
         end
+    | _ => f
 end.
 
-(*Fixpoint simpHyp {X : CMon} (hyp goal : formula X) : formula X :=
-match hyp with
-    | fFalse => fTrue
-    | fTrue => simpGoal goal
-    | fEq (Var i) e => fImpl (fEq (Var i) e) (simpGoal (substF goal i e))
-    | fAnd f11 f12 => fImpl f11 (fImpl f12 (simpGoal goal))
-    | fOr f11 f12 => fAnd (fImpl f11 (simpGoal goal)) (fImpl f12 (simpGoal goal))
-    | f1' => fImpl f1' (simpGoal goal)
-end
-
-with simpGoal {X : CMon} (f : formula X) : formula X := f.
+Theorem simplifyEq_correct :
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
+    formulaDenote envX envP (simplifyEq f) <->
+    formulaDenote envX envP f.
+Proof.
+  intros. functional induction simplifyEq f; cbn in *;
+  rewrite ?simplify_correct;
+  repeat multimatch goal with
+      | H : forall _, _ <-> _ |- _ => rewrite ?H
+  end; try tauto.
+    split; intros.
+      rewrite <- IHf0. rewrite substF_correct in H.
+        apply H. rewrite e1 in IHf1. cbn in IHf1. rewrite IHf1. assumption.
+        rewrite <- IHf1 in H0. rewrite e1 in H0. cbn in H0. assumption.
+    rewrite substF_correct.
+      rewrite IHf0. apply H. rewrite <- IHf1, e1. cbn. assumption.
+      assumption.
+Qed.
 
 Fixpoint size {X : CMon} (f : formula X) : nat :=
 match f with
@@ -289,15 +333,55 @@ Require Import Coq.Program.Wf.
 
 Hint Resolve size_gt_0.
 
-Program Fixpoint simp {X : CMon} (f : formula X) {measure (size f)}
-  : formula X :=
+Function simplifyEq' {X : CMon} (f : formula X) {measure size f} : formula X :=
 match f with
-    | fFalse => fFalse
-    | fTrue => fTrue
-    | fVar P => fVar P
     | fEq e1 e2 => fEq (simplify e1) (simplify e2)
+    | fAnd f1 f2 => fAnd (simplifyEq' f1) (simplifyEq' f2)
+    | fOr f1 f2 => fOr (simplifyEq' f1) (simplifyEq' f2)
+    | fImpl f1 f2 =>
+        match simplifyEq f1 with
+            | fEq (Var i) e as f1' => fImpl f1' (simplifyEq' (substF f2 i e))
+            | f1' => fImpl f1' (simplifyEq' f2)
+        end
+    | _ => f
+end.
+Proof.
+  all: cbn; intros;
+  repeat multimatch goal with
+      | f : formula _ |- _ =>
+          match goal with
+              | H : 0 < size f |- _ => idtac
+              | _ => pose (size_gt_0 f)
+          end
+  end; try omega.
+    rewrite size_substF. omega.
+Defined.
+
+Print simplifyEq'_terminate.
+Print simplifyEq'.
+Print simplifyEq'_equation.
+
+Theorem simplifyEq'_correct :
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
+    formulaDenote envX envP (simplifyEq' f) <->
+    formulaDenote envX envP f.
+Proof.
+  intros. functional induction @simplifyEq' X f; cbn in *;
+  rewrite ?simplify_correct;
+  repeat multimatch goal with
+      | H : forall _, _ <-> _ |- _ => rewrite ?H
+  end; try tauto.
+    split; intros.
+      rewrite e1 in 
+      rewrite substF_correct in H.
+        apply H.
+Qed.
+  
+
+Function simplifyLogic {X : CMon} (f : formula X) : formula X :=
+match f with
     | fAnd f1 f2 =>
-        match simp f1, simp f2 with
+        match simplifyLogic f1, simplifyLogic f2 with
             | fOr f11 f12, f2' => fOr (fAnd f11 f2') (fAnd f12 f2')
             | f1', fOr f21 f22 => fOr (fAnd f1' f21) (fAnd f1' f22)
             | fFalse, _ => fFalse
@@ -307,7 +391,7 @@ match f with
             | f1', f2' => fAnd f1' f2'
         end
     | fOr f1 f2 =>
-        match simp f1, simp f2 with
+        match simplifyLogic f1, simplifyLogic f2 with
             | fAnd f11 f12, f2' => fAnd (fOr f11 f2') (fOr f12 f2')
             | f1', fAnd f21 f22 => fAnd (fOr f1' f21) (fOr f1' f22)
             | fFalse, f2' => f2'
@@ -317,49 +401,42 @@ match f with
             | f1', f2' => fOr f1' f2'
         end
     | fImpl f1 f2 =>
-        let f2' := simp f2 in
-        match simp f1 with
+        let f2' := simplifyLogic f2 in
+        match simplifyLogic f1 with
             | fFalse => fTrue
             | fTrue => f2'
-            | fEq (Var i) e =>
-                fImpl (fEq (Var i) e) (simp (substF f2 i e))
             | fAnd f11 f12 => fImpl f11 (fImpl f12 f2')
             | fOr f11 f12 => fAnd (fImpl f11 f2') (fImpl f12 f2')
             | f1' => fImpl f1' f2'
         end
+    | _ => f
 end.
-Obligation Tactic := intros; subst; cbn;
-match goal with
-    | f1 : formula _, f2 : formula _ |- _ =>
-        pose (size_gt_0 f1); pose (size_gt_0 f2); try omega
-end.
-Solve All Obligations.
-Next Obligation. firstorder.
-  
-  try pose (size_gt_0 f1); try pose (size_gt_0 f2); try omega.
-    rewrite size_substF. omega.
-Defined.*)
 
-Theorem simplifyFormula_correct :
+Theorem simplifyLogic_correct :
   forall (X : CMon) (f : formula X) (envX : Env X) (envP : Env Prop),
-    formulaDenote envX envP (simplifyFormula f) <-> formulaDenote envX envP f.
+    formulaDenote envX envP (simplifyLogic f) <-> formulaDenote envX envP f.
 Proof.
-  intros. functional induction simplifyFormula f; cbn.
+  intros. functional induction simplifyLogic f; cbn.
   Time all:
   repeat match goal with
       | envX : Env _, IH : forall _ : Env _, _ |- _ => specialize (IH envX)
-      | e : simplifyFormula ?f = _,
-        IH : formulaDenote _ _ (simplifyFormula ?f) <-> _ |- _ =>
+      | e : simplifyLogic ?f = _,
+        IH : formulaDenote _ _ (simplifyLogic ?f) <-> _ |- _ =>
         rewrite <- IH, e; cbn
   end; try (tauto; fail).
-    rewrite !simplify_correct. tauto.
-    rewrite e1 in IHf1. cbn in *. rewrite IHf1. split; intros.
-      rewrite <- IHf0. rewrite <- substF_correct.
-        apply H. assumption.
-        rewrite IHf1. assumption.
-      rewrite substF_correct.
-        rewrite IHf0. apply H. assumption.
-        rewrite IHf1. assumption.
+Qed.
+
+Definition simplifyFormula {X : CMon} (f : formula X) : formula X :=
+  simplifyLogic (simplifyEq f).
+
+Theorem simplifyFormula_correct :
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
+    formulaDenote envX envP (simplifyFormula f) <->
+    formulaDenote envX envP f.
+Proof.
+  intros. unfold simplifyFormula.
+  rewrite simplifyLogic_correct, simplifyEq_correct.
+  reflexivity.
 Qed.
 
 Definition solveEq
@@ -440,7 +517,10 @@ Definition solveFormula
   {X : CMon} (envX : Env X) (envP : Env Prop) (f : formula X)
     : solution (formulaDenote envX envP f).
 Proof.
-  refine (Reduce (solveGoal envX envP [] f)). apply f0. cbn. trivial.
+(*  refine (Reduce (solveGoal envX envP [] (simplifyFormula f))).*)
+  refine (Reduce (solveGoal envX envP [] f)).
+  (*rewrite <- simplifyFormula_correct.*)
+  apply f0. cbn. trivial.
 Defined.
 
 Theorem solveFormula_correct :
@@ -535,7 +615,7 @@ Instance CMon_unit : CMon :=
 }.
 Proof. all: try destruct x; firstorder. Defined.
 
-Ltac solveGoal := do 2
+Ltac solveGoal :=
 match goal with
     | X : CMon |- ?P => solveGoal' X
     | |- ?P => solveGoal' CMon_unit
