@@ -36,6 +36,23 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma fibzor :
+  forall n : nat, fib_aux 2 (fib n) (fib (S n)) = fib (S (S n)).
+Proof.
+  intros. cbn. 
+  Require Import Omega.
+  omega.
+Qed.
+
+Lemma fibzor' :
+  forall n k : nat, fib_aux (1 + k) (fib n) (fib (1 + n)) = fib (1 + k + n).
+Proof.
+  intros. generalize dependent n.
+  induction k; intros.
+    cbn. omega.
+    rewrite fib_aux_equation.
+
+
 Theorem nat_ind2 :
   forall (P : nat -> Prop) (H0 : P 0) (H1 : P 1)
   (HSS : forall n : nat, P n -> P (S (S n))),

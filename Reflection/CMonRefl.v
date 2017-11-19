@@ -141,6 +141,7 @@ Theorem simplify_idempotent :
   forall (X : CMon) (e : exp X),
     simplify (simplify e) = simplify e.
 Proof.
+  intros. unfold simplify.
 Abort. (* TODO *)
 
 Theorem reflectEq :
@@ -304,6 +305,7 @@ Proof.
       assumption.
 Qed.
 
+(* TODO *)
 Fixpoint size {X : CMon} (f : formula X) : nat :=
 match f with
     | fFalse => 1
@@ -333,7 +335,8 @@ Require Import Coq.Program.Wf.
 
 Hint Resolve size_gt_0.
 
-Function simplifyEq' {X : CMon} (f : formula X) {measure size f} : formula X :=
+(*Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
+  : formula X :=
 match f with
     | fEq e1 e2 => fEq (simplify e1) (simplify e2)
     | fAnd f1 f2 => fAnd (simplifyEq' f1) (simplifyEq' f2)
@@ -357,10 +360,6 @@ Proof.
     rewrite size_substF. omega.
 Defined.
 
-Print simplifyEq'_terminate.
-Print simplifyEq'.
-Print simplifyEq'_equation.
-
 Theorem simplifyEq'_correct :
   forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
     formulaDenote envX envP (simplifyEq' f) <->
@@ -372,11 +371,11 @@ Proof.
       | H : forall _, _ <-> _ |- _ => rewrite ?H
   end; try tauto.
     split; intros.
-      rewrite e1 in 
+      rewrite e1 in H.
       rewrite substF_correct in H.
         apply H.
 Qed.
-  
+  *)
 
 Function simplifyLogic {X : CMon} (f : formula X) : formula X :=
 match f with

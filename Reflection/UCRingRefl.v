@@ -61,12 +61,13 @@ match e with
             | Add e11 e12, e2' => Add (Mul e11 e2') (Mul e12 e2')
             | e1', Add e21 e22 => Add (Mul e1' e21) (Mul e1' e22)
             | Neg e1', Neg e2' => Mul e1' e2'
+            | e1', Neg e2' => Mul (Neg e1') e2'
             | e1', e2' => Mul e1' e2'
         end
     | Neg e' =>
         match simplifyExp e' with
             | Zero => Zero 
-            (*| Add e1 e2 => Add (Neg e1) (Neg e2)*)
+            | Add e1 e2 => Add (Neg e1) (Neg e2)
             | Mul e1 e2 => Mul (Neg e1) e2
             | Neg e'' => e''
             | e'' => Neg e''
@@ -83,6 +84,8 @@ Proof.
       | H : ?a = ?b |- _ => rewrite ?H in *
       | _ => cbn; rng; autorewrite with lemmas
   end.
+    clear y. rewrite <- neg_mul, (mul_comm _ (- expDenote env e2')).
+    rewrite <- neg_mul. rewrite mul_comm. reflexivity.
 Qed.
 
 Function reassoc {X : UCRing} (e : exp X) : exp X :=
@@ -279,8 +282,8 @@ match fst p, snd p with
         then simpHypEq' (e12, e22)
         else if exp_eq_dec e12 e22
              then simpHypEq' (e11, e21)
-             else (Add e11 e12, Add e21 e22)
-    | Neg e1', Neg e2' => simpHypEq' (e1', e2')*)
+             else (Add e11 e12, Add e21 e22)*)
+    | Neg e1', Neg e2' => simpHypEq' (e1', e2')
     | _, _ => p
 end.
 Proof.
@@ -292,17 +295,11 @@ Theorem simpHypEq'_correct :
     eqExpDenote env (E (fst (simpHypEq' p)) (snd (simpHypEq' p))) <->
     eqExpDenote env (E (fst p) (snd p)).
 Proof.
-  intros. destruct p. destruct e; cbn; try tauto.
-  split.
-    intros.
-Restart.
-  intros. functional induction simpHypEq' X p; cbn in *.
-  rewrite e, e0. cbn. rewrite IHp0. split; rng.
+  intros. functional induction simpHypEq' X p; cbn in *;
+  rewrite ?e, ?e0 in *; cbn in *; rewrite ?IHp0; split; rng.
     apply add_cancel_l in H. assumption.
-  rewrite e, e0. cbn. rewrite IHp0. split; rng.
     apply add_cancel_r in H. assumption.
-  rewrite e, e0. cbn. reflexivity.
-  reflexivity.
+  apply neg_eq. assumption.
 Qed.
 
 Definition simpHypEq {X : UCRing} (eq : eqExp X) : eqExp X :=
@@ -317,14 +314,15 @@ Lemma simpHypEq_correct :
     eqExpDenote env (simpHypEq eq) <-> eqExpDenote env eq.
 Proof.
   split; intros; destruct eq; cbn in *.
-    case_eq (simpHypEq' (simplify e1, simplify e2)); intros.
-      rewrite H0 in H. cbn in H.
-Admitted.
-
-Lemma simpHypEq_correct :
-  forall (X : UCRing) (env : nat -> X) (p : exp X * exp X),
-    eqExpDenote env (simpHypEq eq) <-> eqExpDenote env eq.
-Proof.
+    pose (simpHypEq'_correct env (simplify e1, simplify e2)). cbn in i.
+      case_eq (simpHypEq' (simplify e1, simplify e2)); intros.
+      rewrite H0 in *; cbn in *. apply i in H.
+      rewrite ?simplify_correct in H. assumption.
+    pose (simpHypEq'_correct env (simplify e1, simplify e2)). cbn in i.
+      case_eq (simpHypEq' (simplify e1, simplify e2)); intros; cbn.
+      rewrite H0 in *; cbn in *. rewrite i.
+      rewrite ?simplify_correct. assumption.
+Qed.
 
 (* Simplification for goal equalities. *)
 Function simpGoalEq {X : UCRing} (eq : eqExp X) : eqExp X :=
@@ -490,26 +488,6 @@ Proof.
 Qed.
 
 (* Basic tactics for manipulating lists. *)
-(*Ltac inList x l :=
-match l with
-    | [] => false
-    | x :: _ => true
-    | _ :: ?l' => inList x l'
-end.
-
-Ltac addToList x l :=
-  let b := inList x l in
-match b with
-    | true => l
-    | false => constr:(x :: l)
-end.
-
-Ltac lookup x l :=
-match l with
-    | x :: _ => constr:(0%nat)
-    | _ :: ?l' => let n := lookup x l' in constr:(S n)
-end.*)
-
 Ltac functionalize l X :=
 let rec loop n l' :=
     match l' with
@@ -691,7 +669,7 @@ Proof. ucring. Qed.
 
 (* Identities that aren't axioms. *)
 Goal (a + a) - (a + a) = 0.
-Proof. ucring. Qed.
+Proof. ucring.  (* TODO *) Abort.
 
 (* --a = a *)
 Goal --a = a.
@@ -734,9 +712,9 @@ Proof.
   reflectFormula; cbn.
 Abort.
 
-Goal a = b -> b' = c' -> 2 = 2 \/ c * c = c + (a * c').
+Goal a = b -> c' = b' -> 2 = 2 \/ c * c = c + (a * c').
 Proof.
-  reflectFormula.
+  reflectFormula. cbn.
 Abort.
 
 End Test.
