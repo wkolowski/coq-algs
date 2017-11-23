@@ -98,6 +98,46 @@ Proof.
     rewrite flatten_correct. trivial.
 Qed.
 
+Theorem reassoc_correct'' :
+  forall (X : CMon) (e : exp X),
+    ~ exists e1 e2 e3 : exp X, reassoc e = Op (Op e1 e2) e3.
+Proof.
+  intros. functional induction reassoc e;
+  destruct 1 as [e1' [e2' [e3' H]]].
+    inv H. eauto.
+    inv H. rewrite H1 in y. contradiction.
+    rewrite H in y. contradiction.
+Qed.
+
+Theorem reassoc_correct''' :
+  forall (X : CMon) (e e1 e2 e3 : exp X),
+    reassoc e <> Op (Op e1 e2) e3.
+Proof.
+  unfold not; intros. eapply reassoc_correct''. eauto.
+Qed.
+
+Theorem reassoc_idempotent :
+  forall (X : CMon) (e : exp X),
+    reassoc (reassoc e) = reassoc e.
+Proof.
+  intros. functional induction reassoc e; cbn.
+    Focus 3. destruct e; cbn; tauto.
+    Focus 2. rewrite IHe0. destruct (reassoc e1); cbn; rewrite ?IHe1; tauto.
+    functional induction reassoc e11. cbn in *.
+      apply reassoc_correct''' in e3. contradiction.
+      apply reassoc_correct''' in e3. contradiction.
+      destruct _x; try contradiction.
+        case_eq (reassoc e12); intro; rewrite ?H in *.
+          rewrite e3 in *. cbn in IHe0. congruence.
+          rewrite e3 in *. cbn in IHe0. congruence.
+          rewrite e3 in *. cbn in IHe0. inv IHe0.
+            intros. f_equal.
+Restart.
+  induction e; cbn; trivial.
+  induction e1; cbn; try congruence.
+  cbn in *.
+Abort.
+
 Theorem sort_correct :
   forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort),
     expDenoteL envX (s natle l) = expDenoteL envX l.
@@ -142,6 +182,12 @@ Theorem simplify_idempotent :
     simplify (simplify e) = simplify e.
 Proof.
   intros. unfold simplify.
+  functional induction simplifyExp e; cbn.
+    trivial.
+    trivial.
+    rewrite IHe1. trivial.
+    rewrite IHe0. trivial.
+    destruct (simplifyExp e1); cbn in *; try tauto.
 Abort. (* TODO *)
 
 Theorem reflectEq :
