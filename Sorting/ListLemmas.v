@@ -1,6 +1,9 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Sorting.Sort.
+(*Require Import Sorting.Sort.*)
+Require Export RCCBase.
+Require Export LinDec.
+Require Export Sorting.Perm.
 
 Require Import Div2.
 

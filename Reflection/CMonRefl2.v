@@ -1,8 +1,11 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import CMon.
+Require Export Sorting.InsertionSort.
+Require Export Sorting.SortSpec.
 
-(*Set Implicit Arguments.*)
+Require Export CMon.
+
+Set Implicit Arguments.
 
 Inductive type (X : CMon) : Type :=
     | elem : type X
@@ -50,48 +53,6 @@ match f with
     | fImpl f1 f2 => denote env f1 -> denote env f2
 end.
 
-Fixpoint simplifyExp {X : CMon} (e : exp elem) : exp elem :=
-match e with
-    | Id => Id
-    | Var v => Var v
-    | Op e1 e2 =>
-        match simplifyExp e1, simplifyExp e2 with
-            | Id, e2' => e2'
-            | e1', Id => e1'
-            | e1', e2' => Op e1' e2'
-        end
-end.
-
-Theorem simplifyExp_correct :
-  forall (X : CMon) (env : Env X) (e : exp elem),
-    denote env (simplifyExp e) = denote env e.
-Proof.
-  dependent induction e; cbn.
-    reflexivity.
-    reflexivity.
-    remember (simplifyExp e1) as s1. remember (simplifyExp e2) as s2.
-      specialize (IHe1 _ eq_refl JMeq_refl);
-      specialize (IHe2 _ eq_refl JMeq_refl).
-      dependent destruction s1; dependent destruction s2; cbn in *;
-      rewrite <- ?IHe1, <- ?IHe2, <- ?Heqs1, <- ?Heqs2; cbn;
-      rewrite ?neutr_l, ?neutr_r; reflexivity.
-Qed.
-
-Function denoteL {X : CMon} (env : Env X) (l : list nat) : X :=
-match l with
-    | [] => neutr
-    | h :: t => op (nth h env neutr) (denoteL env t)
-end.
-
-Lemma denoteL_app :
-  forall (X : CMon) (env : Env X) (l1 l2 : list nat),
-    denoteL env (l1 ++ l2) = op (denoteL env l1) (denoteL env l2).
-Proof.
-  induction l1 as [| h1 t1]; simpl; intros.
-    rewrite neutr_l. reflexivity.
-    rewrite IHt1, ?neutr_r, ?assoc. trivial.
-Qed.
-
 Fixpoint flatten {X : CMon} (e : exp elem) : list nat :=
 match e with
     | Id => []
@@ -101,30 +62,19 @@ end.
 
 Theorem flatten_correct :
   forall (X : CMon) (env : Env X) (e : exp elem),
-    denoteL env (flatten e) = denote env e.
+    expDenoteL env (flatten e) = denote env e.
 Proof.
   dependent induction e; cbn.
     reflexivity.
     rewrite neutr_r. reflexivity.
-    rewrite denoteL_app. rewrite IHe1, IHe2; reflexivity.
-Qed.
-
-Lemma denoteL_Permutation :
-  forall (X : CMon) (env : Env X) (l1 l2 : list nat),
-    Permutation l1 l2 -> denoteL env l1 = denoteL env l2.
-Proof.
-  induction 1; cbn.
-    reflexivity.
-    rewrite IHPermutation. reflexivity.
-    rewrite !assoc. rewrite (comm (nth y env neutr)). reflexivity.
-    rewrite IHPermutation1, IHPermutation2. reflexivity.
+    rewrite expDenoteL_app. rewrite IHe1, IHe2; reflexivity.
 Qed.
 
 Theorem sort_correct :
   forall (X : CMon) (env : Env X) (l : list nat) (s : Sort),
-    denoteL env (s natle l) = denoteL env l.
+    expDenoteL env (s natle l) = expDenoteL env l.
 Proof.
-  intros. apply denoteL_Permutation. apply (perm_Permutation natle).
+  intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
   rewrite <- sort_perm. reflexivity.
 Qed.
 
@@ -137,7 +87,7 @@ end.
 
 Theorem list_to_exp_correct :
   forall (X : CMon) (env : Env X) (l : list nat),
-    denote env (list_to_exp l) = denoteL env l.
+    denote env (list_to_exp l) = expDenoteL env l.
 Proof.
   intros. functional induction list_to_exp l; cbn.
     trivial.
@@ -146,7 +96,7 @@ Proof.
 Qed.
 
 Definition simplify {X : CMon} (e : exp elem) : exp elem :=
-  list_to_exp (insertionSort natle (flatten (simplifyExp e))).
+  list_to_exp (insertionSort natle (flatten e)).
 
 Theorem simplify_correct :
   forall (X : CMon) (env : Env X) (e : exp elem),
@@ -155,7 +105,7 @@ Proof.
   unfold simplify. intros.
   rewrite !list_to_exp_correct.
   rewrite !(sort_correct _ _ _ Sort_insertionSort).
-  erewrite !flatten_correct, !simplifyExp_correct.
+  erewrite !flatten_correct.
   trivial.
 Qed.
 

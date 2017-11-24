@@ -12,8 +12,10 @@ Require Export Omega.
 Require Export Equality.
 Require Export Eqdep.
 
-Require Export Sorting.Permutation.
-Require Export Sorting.InsertionSort.
+Require Export Permutation.
+
+Require Export Coq.Program.Wf.
+Require Export Recdef.
 
 Set Implicit Arguments.
 

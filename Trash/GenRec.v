@@ -1,8 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import Arith.
-Require Import Omega.
-Require Import Recdef.
+Require Import RCCBase.
+(*Require Import Recdef.*)
 
 Definition divF (f : nat -> forall k : nat, 0 < k -> nat)
   (n k : nat) (H : 0 < k) : nat :=
@@ -36,8 +35,6 @@ Defined.
 
 Definition div (n k : nat) (H : 0 < k) : nat :=
   proj1_sig (divF_terminates n k H).
-
-Require Import RCCBase.
 
 Theorem div_fix : div = divF div.
 Proof.
@@ -102,47 +99,4 @@ Restart.
       rewrite H0. fold divF. unfold div.
       destruct (divF_terminates (n - k) k H). cbn. destruct e as [p' Hp'].
         rewrite Hp'. all: auto. 
-Abort.
-
-Inductive divR' : nat -> nat -> nat -> Prop :=
-    | div_base :
-        forall (n k : nat), 0 < k -> n < k -> divR' n k 0
-    | div_rec :
-        forall (n k r : nat), 0 < k -> k <= n ->
-          divR' (n - k) k r -> divR' n k (S r).
-
-Hint Constructors divR'.
-
-Lemma divR'_correct :
-  forall (n k r : nat) (H : 0 < k),
-    div n k H = r -> divR' n k r.
-Proof.
-  apply (@well_founded_induction nat lt lt_wf
-    (fun n : nat => forall (k r : nat) (H : 0 < k ),
-      div n k H = r -> divR' n k r)).
-  intros. rewrite div_equation' in H1. destruct (le_lt_dec k x); subst.
-    Focus 2. constructor; auto.
-    constructor; auto. apply H with H0; omega.
-Qed.
-
-Lemma divR'_complete :
-  forall (n k r : nat) (H : 0 < k),
-    divR' n k r -> div n k H = r.
-Proof.
-  induction 1.
-    apply div_lt_n_k. assumption.
-    rewrite <- IHdivR' with H. rewrite div_le_k_n; auto.
-Qed.
-
-Theorem div_ind :
-  forall P : nat -> nat -> nat -> Prop,
-    (forall n k : nat, 0 < k -> n < k -> P n k 0) ->
-    (forall (n k : nat) (H : 0 < k), k <= n ->
-      P (n - k) k (div (n - k) k H) -> P n k (S (div (n - k) k H))) ->
-        forall (n k : nat) (H : 0 < k), P n k (div n k H).
-Proof.
-  intros. apply divR'_ind; intros.
-    apply H; auto.
-    eapply (divR'_complete _ _ _ H2) in H4. subst. apply H0; assumption.
-    apply divR'_correct with H1. reflexivity.
-Qed.
+Abort. (* TODO *)

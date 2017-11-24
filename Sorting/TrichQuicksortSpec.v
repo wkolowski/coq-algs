@@ -1,6 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import TrichQuicksort.
+Require Import Sorting.Perm.
 
 Set Implicit Arguments.
 
@@ -51,9 +52,9 @@ Proof.
           cbn.
 Admitted. (* TODO *)
 
-(*Instance Sort_htqs (n : nat) (s : Sort) : Sort :=
+(* TODO Instance Sort_htqs (n : nat) (s : Sort) : Sort :=
 {
-    sort := fun A : TrichDec => htqs n A (@sort s A)
+    TODO sort := fun A : TrichDec => htqs n A (@sort s A)
 }.
 Proof.
   intros. apply htqs_sorted.

@@ -1,5 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
+Require Export RCCBase.
+
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
@@ -7,12 +9,12 @@ Set Implicit Arguments.
 
 (* Properties of sorting *)
 Theorem sort_nil :
-  forall (A : LinDec) (C : Sort), @sort C A [] = [].
+  forall (A : LinDec) (s : Sort), s A [] = [].
 Proof.
-  intros. assert (perm A [] (sort [])) by (destruct C; auto).
-  red in H. simpl in H. destruct (sort []).
+  intros. assert (perm A [] (sort [])) by (destruct s; auto).
+  red in H. cbn in H. destruct (sort []).
     auto.
-    specialize (H c). simpl in H. dec.
+    specialize (H c). cbn in H. dec.
 Qed.
 
 Theorem sort_cons :
@@ -20,12 +22,26 @@ Theorem sort_cons :
     let m := min_dflt A h t in
       @sort C A (h :: t) = m :: @sort C A (remove_once m (h :: t)).
 Proof.
-  intros. assert (sorted A (sort (h :: t))) by (destruct C; auto).
+  intros.
+  assert (sorted A (sort (h :: t))) by (destruct C; auto).
+  assert (perm A (h :: t) (sort (h :: t))) by (destruct C; auto).
   case_eq (sort (h :: t)); intros.
-    assert (perm A (h :: t) (sort (h :: t))) by (destruct C; auto).
-      rewrite H0 in H1. red in H1; simpl in H1. specialize (H1 h). dec.
-    rewrite H0 in H.
-      assert (wut := sorted_cons_conv A c l H).
+    rewrite H1 in H0. red in H0; cbn in H0. specialize (H0 h). dec.
+    rewrite H1 in H. assert (min_dflt A h t ≤ c).
+      apply min_spec. eapply (perm_In A c (c :: l) (h :: t)).
+        cbn. auto.
+        rewrite <- H1. auto.
+      fold m in H2. assert (c ≤ m).
+        eapply sorted_cons_conv'; eauto. rewrite <- H1.
+          apply perm_In with (h :: t); auto. apply min_In.
+        assert (c = m) by auto; subst. f_equal.
+          assert (H4 := perm_min_front A h t). unfold m in H4. fold m in H4.
+            assert (perm A (C A (h :: t)) (m :: remove_once m (h :: t))).
+              eapply perm_trans.
+                rewrite <- H0. reflexivity.
+                rewrite H4. reflexivity.
+          rewrite H1 in H5. assert (perm A l (remove_once m (h :: t))).
+            red. intros. red in H5. specialize (H5 x). cbn in H5. dec.
 Restart.
   intros A C h. apply well_founded_ind with lengthOrder.
     apply lengthOrder_wf.
@@ -50,9 +66,9 @@ Restart.
             symmetry. rewrite sort_perm, H0. reflexivity.
       dec.
         Focus 2.
-Admitted.
+Admitted. (* TODO *)
 
-Theorem sort_metaspec :
+Theorem sort_unique :
   forall (A : LinDec) (C C' : Sort) (l : list A),
     @sort C A l = @sort C' A l.
 Proof.
@@ -64,3 +80,15 @@ Proof.
         red; cbn. omega.
         apply remove_once_cons. assumption.
 Qed.
+
+Theorem sort_perm :
+  forall (A : LinDec) (s : Sort) (l l' : list A),
+    perm A l l' -> s A l = s A l'.
+Proof.
+Abort. (* TODO *)
+
+Theorem sort_idempotent :
+  forall (A : LinDec) (s : Sort) (l : list A),
+    sort (sort l) = sort l.
+Proof.
+Admitted. (* TODO *)

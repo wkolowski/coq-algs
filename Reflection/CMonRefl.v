@@ -1,6 +1,8 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export CMon.
+Require Export Sorting.InsertionSort.
+Require Export Sorting.SortSpec.
 
 Set Implicit Arguments.
 
@@ -20,36 +22,6 @@ match e with
     | Op e1 e2 => op (expDenote envX e1) (expDenote envX e2)
 end.
 
-Function simplifyExp {X : CMon} (e : exp X) : exp X :=
-match e with
-    | Id => Id
-    | Var v => Var v
-    | Op e1 e2 =>
-        match simplifyExp e1, simplifyExp e2 with
-            | Id, e2' => e2'
-            | e1', Id => e1'
-            | e1', e2' => Op e1' e2'
-        end
-end.
-
-Theorem simplifyExp_correct :
-  forall (X : CMon) (envX : Env X) (e : exp X),
-    expDenote envX (simplifyExp e) = expDenote envX e.
-Proof.
-  intros. functional induction simplifyExp e; cbn;
-  rewrite <- ?IHe, <- ?IHe0, <- ?IHe1, ?e3, ?e4; cbn;
-  rewrite ?neutr_l, ?neutr_r; trivial.
-Qed.
-
-Theorem simplifyExp_idempotent :
-  forall (X : CMon) (e : exp X),
-    simplifyExp (simplifyExp e) = simplifyExp e.
-Proof.
-  intros. functional induction simplifyExp e; cbn; trivial.
-  rewrite IHe0, IHe1.
-  destruct (simplifyExp e1), (simplifyExp e2); try tauto.
-Qed.
-
 Fixpoint flatten {X : CMon} (e : exp X) : list nat :=
 match e with
     | Id => []
@@ -65,85 +37,6 @@ Proof.
     reflexivity.
     rewrite neutr_r. reflexivity.
     rewrite expDenoteL_app. rewrite IHe1, IHe2. reflexivity.
-Qed.
-
-Function reassoc {X : CMon} (e : exp X) : exp X :=
-match e with
-    | Op e1 e2 =>
-        match reassoc e1 with
-            | Op e11 e12 => Op e11 (Op e12 (reassoc e2))
-            | e1' => Op e1' (reassoc e2)
-        end
-    | _ => e
-end.
-
-Theorem reassoc_correct :
-  forall (X : CMon) (envX : Env X) (e : exp X),
-    expDenote envX (reassoc e) = expDenote envX e.
-Proof.
-  intros. functional induction reassoc e; cbn.
-    rewrite e3 in IHe0. cbn in *. rewrite ?assoc, ?IHe0, ?IHe1. trivial.
-    rewrite ?IHe0, ?IHe1. trivial.
-    trivial.
-Qed.
-
-Theorem reassoc_correct' :
-  forall (X : CMon) (envX : Env X) (e : exp X),
-    expDenote envX (reassoc e) = expDenoteL envX (flatten e).
-Proof.
-  intros. functional induction reassoc e; cbn.
-    rewrite e3 in *; cbn in *. rewrite ?assoc. rewrite ?IHe0, ?IHe1.
-      rewrite expDenoteL_app. trivial.
-    rewrite ?IHe0, ?IHe1. rewrite expDenoteL_app. trivial.
-    rewrite flatten_correct. trivial.
-Qed.
-
-Theorem reassoc_correct'' :
-  forall (X : CMon) (e : exp X),
-    ~ exists e1 e2 e3 : exp X, reassoc e = Op (Op e1 e2) e3.
-Proof.
-  intros. functional induction reassoc e;
-  destruct 1 as [e1' [e2' [e3' H]]].
-    inv H. eauto.
-    inv H. rewrite H1 in y. contradiction.
-    rewrite H in y. contradiction.
-Qed.
-
-Theorem reassoc_correct''' :
-  forall (X : CMon) (e e1 e2 e3 : exp X),
-    reassoc e <> Op (Op e1 e2) e3.
-Proof.
-  unfold not; intros. eapply reassoc_correct''. eauto.
-Qed.
-
-Theorem reassoc_idempotent :
-  forall (X : CMon) (e : exp X),
-    reassoc (reassoc e) = reassoc e.
-Proof.
-  intros. functional induction reassoc e; cbn.
-    Focus 3. destruct e; cbn; tauto.
-    Focus 2. rewrite IHe0. destruct (reassoc e1); cbn; rewrite ?IHe1; tauto.
-    functional induction reassoc e11. cbn in *.
-      apply reassoc_correct''' in e3. contradiction.
-      apply reassoc_correct''' in e3. contradiction.
-      destruct _x; try contradiction.
-        case_eq (reassoc e12); intro; rewrite ?H in *.
-          rewrite e3 in *. cbn in IHe0. congruence.
-          rewrite e3 in *. cbn in IHe0. congruence.
-          rewrite e3 in *. cbn in IHe0. inv IHe0.
-            intros. f_equal.
-Restart.
-  induction e; cbn; trivial.
-  induction e1; cbn; try congruence.
-  cbn in *.
-Abort.
-
-Theorem sort_correct :
-  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort),
-    expDenoteL envX (s natle l) = expDenoteL envX l.
-Proof.
-  intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
-  rewrite <- sort_perm. reflexivity.
 Qed.
 
 Function list_to_exp {X : CMon} (l : list nat) : exp X :=
@@ -163,8 +56,31 @@ Proof.
     rewrite IHe. trivial.
 Qed.
 
+Theorem flatten_lte :
+  forall (X : CMon) (l : list nat),
+    flatten (list_to_exp l) = l.
+Proof.
+  intros. functional induction list_to_exp l; cbn;
+  rewrite ?IHe; trivial.
+Qed.
+
+Theorem flatten_idempotent :
+  forall (X : CMon) (e : exp X),
+    flatten (list_to_exp (flatten e)) = flatten e.
+Proof.
+  intros. rewrite flatten_lte. trivial.
+Qed.
+
+Theorem sort_correct :
+  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort),
+    expDenoteL envX (s natle l) = expDenoteL envX l.
+Proof.
+  intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
+  rewrite <- sort_perm. reflexivity.
+Qed.
+
 Definition simplify {X : CMon} (e : exp X) : exp X :=
-  list_to_exp (insertionSort natle (flatten (simplifyExp e))).
+  list_to_exp (insertionSort natle (flatten e)).
 
 Theorem simplify_correct :
   forall (X : CMon) (envX : Env X) (e : exp X),
@@ -173,7 +89,7 @@ Proof.
   unfold simplify. intros.
   rewrite !list_to_exp_correct.
   rewrite !(sort_correct _ _ _ Sort_insertionSort).
-  erewrite !flatten_correct, !simplifyExp_correct.
+  erewrite ?flatten_correct.
   trivial.
 Qed.
 
@@ -182,13 +98,10 @@ Theorem simplify_idempotent :
     simplify (simplify e) = simplify e.
 Proof.
   intros. unfold simplify.
-  functional induction simplifyExp e; cbn.
-    trivial.
-    trivial.
-    rewrite IHe1. trivial.
-    rewrite IHe0. trivial.
-    destruct (simplifyExp e1); cbn in *; try tauto.
-Abort. (* TODO *)
+  rewrite ?flatten_lte.
+  rewrite (sort_idempotent natle (Sort_insertionSort)).
+  cbn. trivial.
+Qed.
 
 Theorem reflectEq :
   forall (X : CMon) (envX : Env X) (e1 e2 : exp X),
@@ -375,9 +288,6 @@ Lemma size_substF :
 Proof.
   intros. functional induction substF f i e; cbn; omega.
 Qed.
-
-Require Import Recdef.
-Require Import Coq.Program.Wf.
 
 Hint Resolve size_gt_0.
 

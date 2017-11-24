@@ -1,6 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import CMonRefl.
+Require Import CMonRefl2.
 
 Section Test.
 
