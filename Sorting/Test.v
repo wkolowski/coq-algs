@@ -7,8 +7,11 @@ Require Import MergeSort.
 Require Import QuickSort.
 
 Require Import TreeSort.
-Require Import Heapsort.
 Require Import RedblackSort.
+
+Require Import Heapsort.
+Require Import PairingSort.
+Require Import SplaySort.
 
 Require Import ListLemmas.
 
@@ -16,22 +19,35 @@ Require Import TrichQuicksort.
 
 Set Implicit Arguments.
 
-(*Require Import Coq.Sorting.Heap.
+(* Doesn't work at all. *)
+(*
+Require Import Coq.Sorting.Heap.
 
-Lemma my_le_trans :
+Theorem my_le_trans :
   forall a b c : nat, a <= b -> b <= c -> a <= c.
 Proof.
-  induction a as [| a']; simpl; intros.
-    omega.
-    omega.
-Defined.*)
+  induction 2.
+    assumption.
+    apply le_S. assumption.
+Defined.
+
+Definition stdSort_nat (l : list nat) : list nat :=
+match
+  treesort natle leq eq (LinDec_leq_dec natle) LinDec_eq_dec my_le_trans l
+with
+    | exist2 l' _ _ => l'
+end.
+
+Time Compute stdSort_nat [].
+*)
 
 (* Slow sorts on small lists. *)
 (*Time Compute ss natle (cycle 10 testl).
 Time Compute insertionSort natle (cycle 10 testl).*)
 
 (* Fast sorts on medium lists. *)
-(*Time Compute ms natle (cycle 100 testl).
+(*
+Time Compute ms natle (cycle 100 testl).
 Time Compute ms2 natle (cycle 100 testl).
 
 Time Compute qs natle (cycle 100 testl).
@@ -46,14 +62,23 @@ Time Compute redblackSort natle (cycle 100 testl).
 Time Compute redblackSort' natle (cycle 100 testl).
 
 Time Eval lazy in leftistHeapsort natle (cycle 100 testl).
-Time Eval lazy in leftistHeapsort' natle (cycle 100 testl).*)
+Time Eval lazy in leftistHeapsort' natle (cycle 100 testl).
+
+Time Eval lazy in pairingSort natle (cycle 100 testl).
+
+Time Eval lazy in splaySort natle (cycle 100 testl).
+Time Eval lazy in splaySort' natle (cycle 100 testl).
+*)
 
 (* Fast sorts on big lists. *)
 (*Time Compute ms natle (cycle 200 testl).
 Time Compute ms2 natle (cycle 200 testl).
 
 Time Compute qs natle (cycle 200 testl).
-Time Compute qs2 natle (cycle 200 testl).*)
+Time Compute qs2 natle (cycle 200 testl).
+
+Time Compute treeSort natle (cycle 200 testl).
+Time Compute redblackSort natle (cycle 200 testl).*)
 
 (*Time Compute tqs natlt (cycle 1000 testl).
 
@@ -103,16 +128,17 @@ Definition l1 := cycle 2500 [0].
 (*Time Compute @ghms 64 natle (insertionSort natle) (MsSplit natle) l1.
 
 Time Compute @ghms 64 natle (treeSort natle) (MsSplit natle) l1.
-
 Time Compute @ghms 64 natle (redblackSort natle) (MsSplit natle) l1.
 
 Time Compute @ghms 64 natle (leftistHeapsort' natle) (MsSplit natle) l1.
+Time Compute @ghms 64 natle (pairingSort natle) (MsSplit natle) l1.
 
 Time Compute @hqs 1024 natle (insertionSort natle) l1.
 
 Time Compute @hqs 512 natle (treeSort natle) l1.
-
 Time Compute @hqs 512 natle (redblackSort natle) l1.
+
+Time Compute @hqs 512 natle (pairingSort natle) l1.
 
 Time Compute @htqs 0 natlt (insertionSort natle) l1.
 
@@ -129,8 +155,12 @@ end.
 (*CoFixpoint rand (seed n1 n2 : Z) : Stream Z :=
 let seed' := Zmod seed n2 in Cons seed' (rand (seed' * n1) n1 n2).*)
 
-(*Time Compute qs natle (toN 200).
-Time Compute tqs natlt (toN 200).
-Time Compute insertionSort natle (toN 500).
+(*Time Compute qs natle (toN 500).
+Time Compute tqs natlt (toN 200).*)
+
+(*Time Compute insertionSort natle (toN 500).
+
 Time Compute treeSort natle (toN 500).
-Time Compute redblackSort natle (toN 500).*)
+Time Compute redblackSort natle (toN 500).
+
+Time Compute pairingSort natle (toN 500).*)
