@@ -2,141 +2,237 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RCCBase.
 
-Definition queue (A : Type) : Type := list A * list A.
+Definition Queue (A : Type) : Type := list A * list A.
 
-Definition isQueue {A : Type} (q : queue A) : Prop :=
-  let '(l, r) := q in l = [] -> r = [].
-
-Definition empty {A : Type} : queue A := ([], []).
-
-Lemma empty_isQueue :
-  forall A : Type, isQueue (@empty A).
-Proof.
-  compute. trivial.
-Qed.
-
-Definition normalize {A : Type} (q : queue A) : queue A :=
-match q with
-    | ([], r) => (rev r, [])
-    | _ => q
+Definition queue {A : Type} (f r : list A) : Queue A :=
+match f with
+    | [] => (rev r, [])
+    | _ => (f, r)
 end.
 
-Lemma normalize_isQueue :
-  forall (A : Type) (q : queue A),
-    isQueue (normalize q).
-Proof.
-  intros. destruct q, l; cbn.
-    trivial.
-    inversion 1.
-Qed.
+Definition empty {A : Type} : Queue A := ([], []).
 
-Definition enqueue {A : Type} (x : A) (q : queue A) : queue A :=
-  let '(l, r) := q in normalize (l, x :: r).
-
-Lemma enqueue_isQueue :
-  forall (A : Type) (x : A) (q : queue A),
-    isQueue q -> isQueue (enqueue x q).
-Proof.
-  destruct q, l; cbn; intros.
-    trivial.
-    inv H0.
-Qed.
-
-Definition dequeue {A : Type} (q : queue A) : queue A :=
+Definition isEmpty {A : Type} (q : Queue A) : bool :=
 match q with
-    | ([], []) => ([], [])
-    | (_ :: l, r) => normalize (l, r)
-    | ([], r) => (tl (rev r), [])
-end.
-
-Lemma dequeue_isQueue :
-  forall (A : Type) (q : queue A),
-    isQueue q -> isQueue (dequeue q).
-Proof.
-  destruct q, l as [| hl tl]; cbn; intros.
-    rewrite H; cbn; trivial.
-    destruct tl; cbn.
-      trivial.
-      inversion 1.
-Qed.
-
-Definition first {A : Type} (q : queue A) (H : isQueue q)
-  : option A.
-Proof.
-  destruct q. cbn in *. gen l0; gen l.
-  refine (fun l r => 
-  match l, r with
-      | [], [] => fun _ => None
-      | h :: _, _ => fun _ => Some h
-      | [], _ => _
-  end).
-  intro. specialize (H eq_refl). inv H.
-Defined.
-
-Definition isEmpty {A : Type} (q : queue A) : bool :=
-match q with
-    | ([], []) => true
+    | ([], _) => true
     | _ => false
 end.
 
-Lemma isEmpty_empty :
-  forall A : Type, isEmpty (@empty A) = true.
+Definition snoc {A : Type} (x : A) (q : Queue A) : Queue A :=
+  let '(f, r) := q in queue f (x :: r).
+
+Definition head {A : Type} (q : Queue A) : option A :=
+match q with
+    | ([], _) => None
+    | (h :: _, _) => Some h
+end.
+
+Definition tail {A : Type} (q : Queue A) : option (Queue A) :=
+match q with
+    | ([], _) => None
+    | (_ :: t, r) => Some (queue t r)
+end.
+
+(* The Queue invariant. *)
+Definition isQueue {A : Type} (q : Queue A) : Prop :=
+  let '(f, r) := q in f = [] -> r = [].
+
+Lemma empty_isQueue :
+  forall A : Type, isQueue (@empty A).
+Proof. cbn. trivial. Qed.
+
+Lemma queue_isQueue :
+  forall (A : Type) (f r : list A),
+    isQueue (queue f r).
 Proof.
-  compute. trivial.
+  destruct f; cbn; intros.
+    trivial.
+    inversion H.
 Qed.
 
-Lemma isEmpty_enqueue :
-  forall (A : Type) (x : A) (q : queue A),
-    isEmpty (enqueue x q) = false.
+Definition tail_isQueue :
+  forall (A : Type) (q q' : Queue A),
+    tail q = Some q' -> isQueue q'.
 Proof.
-  destruct q, l; cbn.
-    case_eq (rev l0 ++ [x]); intros.
-      apply app_eq_nil in H. destruct H. congruence.
-      congruence.
+  destruct q as [[| h t] r]; cbn; inversion 1.
+    apply queue_isQueue.
+Qed.
+
+Definition snoc_isQueue :
+  forall (A : Type) (x : A) (q : Queue A),
+    isQueue (snoc x q).
+Proof.
+  destruct q as [[| h t] r]; inversion 1; trivial.
+Qed.
+
+(* Properties of [isEmpty]. *)
+Lemma isEmpty_empty :
+  forall A : Type, isEmpty (@empty A) = true.
+Proof. reflexivity. Qed.
+
+Lemma isEmpty_queue_true :
+  forall (A : Type) (f r : list A),
+    isEmpty (queue f r) = true -> f = [] /\ r = [].
+Proof.
+  destruct f; cbn; intros.
+    case_eq (rev r); intros.
+      assert (rev (rev r) = rev []) by congruence.
+        rewrite rev_involutive in H1. auto.
+      rewrite H0 in H. congruence.
+    congruence.
+Qed.
+
+Lemma isEmpty_queue_false :
+  forall (A : Type) (f r : list A),
+    isEmpty (queue f r) = false -> f <> [] \/ r <> [].
+Proof.
+  destruct f; cbn; intros.
+    case_eq (rev r); intros.
+      rewrite H0 in H. congruence.
+      right. intro. rewrite H1 in H0. inv H0.
+    left. congruence.
+Qed.
+
+Lemma isEmpty_tail_false :
+  forall (A : Type) (q : Queue A),
+    isEmpty q = false -> exists q' : Queue A, tail q = Some q'.
+Proof.
+  destruct q as [[| h t] r]; cbn; intro.
+    inv H.
+    eauto.
+Qed.
+
+Lemma isEmpty_tail_true :
+  forall (A : Type) (q : Queue A),
+    isEmpty q = true -> tail q = None.
+Proof.
+  destruct q as [[| h t] r]; cbn; firstorder.
+Qed.
+
+Lemma isEmpty_snoc :
+  forall (A : Type) (x : A) (q : Queue A),
+    isEmpty (snoc x q) = false.
+Proof.
+  destruct q as [[| h t] r]; cbn.
+    case_eq (rev r ++ [x]); intros.
+      destruct (rev r); inv H.
+      all: trivial.
+Qed.
+
+(* [size] and its properties. *)
+Definition size {A : Type} (q : Queue A) : nat :=
+  let '(f, r) := q in length f + length r.
+
+Lemma size_empty :
+  forall A : Type, size (@empty A) = 0.
+Proof. reflexivity. Qed.
+
+Lemma size_queue :
+  forall (A : Type) (f r : list A),
+    size (queue f r) = length f + length r.
+Proof.
+  destruct f; cbn; intros.
+    rewrite rev_length, <- plus_n_O. reflexivity.
+    reflexivity.
+Qed.
+
+Lemma size_tail :
+  forall (A : Type) (q q' : Queue A),
+    tail q = Some q' -> size q' = pred (size q).
+Proof.
+  destruct q as [[| h t] r]; cbn; intros; inv H.
+    rewrite size_queue. reflexivity.
+Qed.
+
+Lemma size_snoc :
+  forall (A : Type) (x : A) (q : Queue A),
+    size (snoc x q) = S (size q).
+Proof.
+  destruct q as [[| h t] r]; cbn; intros.
+    rewrite app_length, rev_length, <- plus_n_O, plus_comm; cbn. reflexivity.
+    rewrite plus_comm. cbn. rewrite plus_comm. reflexivity.
+Qed.
+
+(* [fmap] and its properties. *)
+Definition fmap {A B : Type} (f : A -> B) (q : Queue A) : Queue B :=
+  let '(front, rear) := q in (map f front, map f rear).
+
+Lemma fmap_queue :
+  forall (A B : Type) (g : A -> B) (f r : list A),
+    fmap g (queue f r) = queue (map g f) (map g r).
+Proof.
+  destruct f as [| h t]; cbn; intros; rewrite ?map_rev; reflexivity.
+Qed.
+
+Lemma fmap_empty :
+  forall (A B : Type) (f : A -> B),
+    fmap f (@empty A) = @empty B.
+Proof. reflexivity. Qed.
+
+Lemma fmap_isEmpty :
+  forall (A B : Type) (f : A -> B) (q : Queue A),
+    isEmpty (fmap f q) = isEmpty q.
+Proof.
+  destruct q as [[| h t] r]; cbn; reflexivity.
+Qed.
+
+Lemma fmap_snoc :
+  forall (A B : Type) (f : A -> B) (x : A) (q : Queue A),
+    fmap f (snoc x q) = snoc (f x) (fmap f q).
+Proof.
+  destruct q. cbn. rewrite fmap_queue. reflexivity.
+Qed.
+
+Lemma fmap_head :
+  forall (A B : Type) (f : A -> B) (q : Queue A),
+    head (fmap f q) =
+    match head q with
+        | None => None
+        | Some x => Some (f x)
+    end.
+Proof.
+  destruct q as [[| h t] r]; cbn; reflexivity.
+Qed.
+
+Lemma fmap_tail :
+  forall (A B : Type) (f : A -> B) (q q' : Queue A),
+    tail q = Some q' -> tail (fmap f q) = Some (fmap f q').
+Proof.
+  destruct q as [[| h t] r]; cbn; intros; inv H.
+  rewrite fmap_queue. reflexivity.
+Qed.
+
+Lemma fmap_size :
+  forall (A B : Type) (f : A -> B) (q : Queue A),
+    size (fmap f q) = size q.
+Proof.
+  destruct q. cbn. rewrite ?map_length. reflexivity.
+Qed.
+
+(* Properties of [head]. *)
+Lemma head_empty :
+  forall A : Type, head (@empty A) = None.
+Proof. reflexivity. Qed.
+
+Lemma head_singl :
+  forall (A : Type) (x : A),
+    head (snoc x empty) = Some x.
+Proof. reflexivity. Qed.
+
+Lemma head_snoc_false :
+  forall (A : Type) (x : A) (q : Queue A),
+    isEmpty q = false -> head (snoc x q) = head q.
+Proof.
+  destruct q as [[| h t] r]; cbn; intros.
+    congruence.
     trivial.
 Qed.
 
-Lemma dequeue_empty :
-  forall A : Type, dequeue (@empty A) = @empty A.
+Lemma head_snoc_true :
+  forall (A : Type) (x : A) (q : Queue A),
+    isQueue q -> isEmpty q = true -> head (snoc x q) = Some x.
 Proof.
-  compute. trivial.
-Qed.
-
-Lemma dequeue_enqueue :
-  forall (A : Type) (x : A),
-    dequeue (enqueue x empty) = empty.
-Proof.
-  compute. trivial.
-Qed.
-
-Lemma first_empty :
-  forall A : Type, first empty (empty_isQueue A) = @None A.
-Proof.
-  compute. trivial.
-Qed.
-
-Lemma first_singl :
-  forall (A : Type) (x : A) (H : isQueue (enqueue x empty)),
-    first (enqueue x empty) H = Some x.
-Proof.
-  compute. trivial.
-Qed.
-
-Lemma first_enqueue :
-  forall (A : Type) (x y : A) (q : queue A)
-  (Hxy : isQueue (enqueue x (enqueue y q))) (Hy : isQueue (enqueue y q)),
-    first (enqueue x (enqueue y q)) Hxy = first (enqueue y q) Hy.
-Proof.
-  destruct q, l; cbn; intros.
-    case_eq (rev l0 ++ [y]); intros.
-
-Lemma enqueue_dequeue' :
-  forall (A : Type) (x y : A) (q : queue A),
-    isQueue q -> isEmpty q = false ->
-      dequeue (enqueue x (enqueue y q)) = enqueue x (dequeue (enqueue y q)).
-Proof.
-  intros.
-  destruct q, l as [| hl tl]; cbn in *; intros.
-    rewrite H in H0; congruence.
-    reflexivity.
+  destruct q as [[| h t] r]; cbn; intros.
+    rewrite (H eq_refl). cbn. trivial.
+    congruence.
 Qed.
