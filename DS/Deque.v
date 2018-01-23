@@ -28,6 +28,7 @@ match f, r with
     | _, _ => (f, r)
 end.
 
+(* The proper Deque functions. *)
 Definition empty {A : Type} : Deque A := ([], []).
 
 Function isEmpty {A : Type} (d : Deque A) : bool :=
@@ -74,7 +75,7 @@ match d with
     | (f, _ :: t) => Some (deque f t)
 end.
 
-(** Lemmas for [deque]. *)
+(** Lemmas for [split]. *)
 Lemma split_inv_l :
   forall (A : Type) (n : nat) (l r : list A),
     split n l = ([], r) -> n = 0 \/ (l = [] /\ r = []).
@@ -95,6 +96,24 @@ Proof.
       inv H. cbn. apply le_0_n.
 Qed.
 
+Lemma map_split :
+  forall (A B : Type) (f : A -> B) (n : nat) (l l1 l2 : list A),
+    split n l = (l1, l2) -> split n (map f l) = (map f l1, map f l2).
+Proof.
+  intros. functional induction @split A n l; cbn; inv H.
+    destruct n; reflexivity.
+    rewrite (IHp _ _ _ e1). cbn. reflexivity.
+Qed.
+
+Lemma map_split' :
+  forall (A B : Type) (f : A -> B) (n : nat) (l : list A),
+    split n (map f l) = (map f (fst (split n l)), map f (snd (split n l))).
+Proof.
+  intros. case_eq (split n l); cbn; intros.
+  apply map_split. assumption.
+Qed.
+
+(* Lemmas for [div2]. *)
 Functional Scheme div2_ind := Induction for div2 Sort Prop.
 
 Lemma div2_inv_aux :
@@ -118,7 +137,7 @@ Proof.
       contradiction.
 Qed.
 
-(* The Deque invariant and proofs that the operation maintain it. *)
+(* The Deque invariant and proofs that operations maintain it. *)
 Definition isDeque {A : Type} (d : Deque A) : Prop :=
   let '(f, r) := d in 2 <= length f + length r -> f <> [] /\ r <> [].
 
@@ -158,19 +177,6 @@ Proof.
     destruct f as [| hf1 [| hf2 tf]], r as [| hr1 [| hr2 tr]]; cbn in *;
       firstorder.
 Qed.
-
-(*Restart.
-  intros. functional induction @deque A f r; cbn; intros;
-  try omega; unfold halve in *.
-    functional inversion e1;
-    repeat match goal with
-        | H : existT _ _ _ = _ |- _ => apply inj_pair2 in H
-    end; subst.
-      destruct f0 as [| h1 [| h2 t]]; cbn in *; firstorder.
-      inv H.
-      destruct t.
-        contradiction.
-        cbn in *.*)
 
 Lemma cons_isDeque :
   forall (A : Type) (x : A) (d : Deque A), isDeque (cons x d).
@@ -376,23 +382,6 @@ Proof.
     destruct d, l, l0; cbn; firstorder.
 Qed.
 
-Lemma map_split :
-  forall (A B : Type) (f : A -> B) (n : nat) (l l1 l2 : list A),
-    split n l = (l1, l2) -> split n (map f l) = (map f l1, map f l2).
-Proof.
-  intros. functional induction @split A n l; cbn; inv H.
-    destruct n; reflexivity.
-    rewrite (IHp _ _ _ e1). cbn. reflexivity.
-Qed.
-
-Lemma map_split' :
-  forall (A B : Type) (f : A -> B) (n : nat) (l : list A),
-    split n (map f l) = (map f (fst (split n l)), map f (snd (split n l))).
-Proof.
-  intros. case_eq (split n l); cbn; intros.
-  apply map_split. assumption.
-Qed.
-
 Lemma fmap_deque :
   forall (A B : Type) (g : A -> B) (f r : list A),
     fmap g (deque f r) = deque (map g f) (map g r).
@@ -503,9 +492,25 @@ Lemma head_cons :
   forall (A : Type) (x : A) (d : Deque A),
     head (cons x d) = Some x.
 Proof.
-  destruct d as [f r]. unfold cons.
-  functional induction @deque A (x :: f) r; cbn.
-Abort.
+  destruct d as [f r]. unfold cons. remember (x :: f) as f'.
+  functional induction @deque A f' r; cbn; try congruence.
+  destruct f as [| hf tf]; cbn in *.
+    inv e1.
+    destruct (split (Nat.div2 (length tf))). inv e1.
+Qed.
+
+Lemma head_snoc :
+  forall (A : Type) (x : A) (d : Deque A),
+    isDeque d -> isEmpty d = false -> head (snoc x d) = head d.
+Proof.
+  destruct d as [f r]. unfold snoc. remember (x :: r) as r'. intros.
+  functional induction @deque A f r'; cbn in *; try inv Heqr'; try congruence.
+    2: destruct _x, r; firstorder.
+    destruct r as [| h1 [| h2 t]]; cbn in *.
+      congruence.
+      inv e1.
+      destruct (H ltac:(omega)). congruence.
+Qed.
 
 (* [toList] and its properties. *)
 Definition toList {A : Type} (d : Deque A) : list A :=
@@ -626,23 +631,28 @@ Proof. destruct d; reflexivity. Qed.
 Compute drev (deque [1] [2; 3]).
 Compute deque [1; 2] [].
 
+Lemma drev_deque_toList :
+  forall (A : Type) (f r : list A),
+    toList (drev (deque f r)) = toList (deque r f).
+Proof.
+  intros. rewrite drev_spec, ?toList_deque, rev_app_distr, rev_involutive.
+  reflexivity.
+Qed.
+
 Lemma drev_deque :
   forall (A : Type) (f r : list A),
     drev (deque f r) = deque r f.
 Proof.
-  intros. functional induction @deque A f r; cbn; auto;
-  unfold halve in *.
-    Focus 3.
-      destruct f as [| hf1 [| hf2 t]], r as [| hr1 [| hr2 tr]]; cbn; firstorder.
-    Focus 2.
-    functional induction @split A (Nat.div2 (length f)) f; inv e1.
-      destruct r0 as [| h1 [| h2 t]]; cbn; try contradiction.
-        rewrite <- app_assoc. reflexivity.
-      destruct t; firstorder.
-    functional induction @split A (Nat.div2 (length r)) r; inv e1.
-      destruct f0 as [| h1 [| h2 t]]; cbn; try contradiction.
-        case_eq (split (Nat.div2 (length t)) (h2 :: t)); intros.
-Admitted.
+  intros. assert (isDeque (deque f r)) by apply deque_isDeque.
+  functional induction @deque A f r; cbn; auto; unfold halve in *.
+    destruct r as [| hr1 [| hr2 tr]]; cbn in *; try contradiction.
+      case_eq (split (Nat.div2 (length tr)) (hr2 :: tr)); intros.
+        rewrite H0 in e1. inv e1.
+    destruct f as [| hf1 [| hf2 tf]]; cbn in *; try contradiction.
+      case_eq (split (Nat.div2 (length tf)) (hf2 :: tf)); intros.
+        rewrite H0 in e1. inv e1.
+    destruct f as [| hf1 [| hf2 t]], r as [| hr1 [| hr2 tr]]; cbn; firstorder.
+Qed.
 
 Lemma drev_cons :
   forall (A : Type) (x : A) (d : Deque A),
@@ -657,4 +667,20 @@ Lemma drev_head :
 Proof.
   intros. functional induction @head A d; cbn; auto.
   destruct _x0, _x; reflexivity.
+Qed.
+
+Lemma drev_tail :
+  forall (A : Type) (d : Deque A),
+    isDeque d -> tail (drev d) =
+    match init d with
+        | None => None
+        | Some d' => Some (drev d')
+    end.
+Proof.
+  intros. functional induction @tail A d; cbn; trivial.
+    destruct _x as [| h1 [| h2 t]]; try contradiction.
+      cbn in H. destruct (H ltac:(omega)). congruence.
+    destruct r as [| hr1 [| hr2 [| hr3 tr]]], t; cbn; auto.
+      destruct (split (Nat.div2 (length t)) (a :: t)).
+        cbn. reflexivity.
 Qed.

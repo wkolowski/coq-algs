@@ -102,6 +102,13 @@ Proof.
     eauto.
 Qed.
 
+Lemma isEmpty_tail_false' :
+  forall (A : Type) (q : Queue A),
+    isEmpty q = false -> tail q <> None.
+Proof.
+  intros A [[| h t] r]; cbn; congruence.
+Qed.
+
 Lemma isEmpty_tail_true :
   forall (A : Type) (q : Queue A),
     isEmpty q = true -> tail q = None.
@@ -236,3 +243,13 @@ Proof.
     rewrite (H eq_refl). cbn. trivial.
     congruence.
 Qed.
+
+(* Properties of tail. *)
+Lemma tail_empty :
+  forall A : Type, tail (@empty A) = None.
+Proof. reflexivity. Qed.
+
+Lemma tail_singl :
+  forall (A : Type) (x : A),
+    tail (snoc x empty) = Some empty.
+Proof. reflexivity. Qed.

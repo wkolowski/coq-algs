@@ -20,7 +20,7 @@ Goal b = c -> a = b -> a = c.
 Proof. solveGoal. Qed.
 
 Goal b = b' -> op a (op b c) = op (op a b') c.
-Proof. solveGoal. solveGoal. cmon_simpl. Print Ltac cmon_simpl'. solveGoal. cbn. Abort.
+Proof. solveGoal. solveGoal. Qed.
 
 Goal op a b = op a b' -> op (op a b) c = op b' (op a c).
 Proof.
@@ -30,3 +30,5 @@ Qed.
 
 Goal a = b -> b = c -> c = a -> op b (op a c) = op a (op neutr (op b c)).
 Proof. cmon_simpl. reflexivity. Qed.
+
+End Test.
