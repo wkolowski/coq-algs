@@ -54,6 +54,13 @@ Proof.
   induction l1; dec.
 Qed.
 
+Lemma count_cons :
+  forall (A : LinDec) (h : A) (t : list A),
+    count A h (h :: t) = 1 + count A h t.
+Proof.
+  intros. dec.
+Qed.
+
 Lemma count_filter :
   forall (A : LinDec) (x h : A) (t : list A),
     count A x t = count A x (filter (fun y : A => y <=? h) t) +

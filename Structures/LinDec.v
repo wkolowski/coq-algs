@@ -22,6 +22,11 @@ Coercion carrier : LinDec >-> Sortclass.
 Infix "≤" := leq (at level 70).
 Infix "<=?" := leqb (at level 70).
 
+(*Definition LinDec_lt
+  {A : LinDec} (x y : A) : Prop := x ≤ y /\ x <> y.
+
+Infix "<" := LinDec_lt (at level 70).*)
+
 Hint Resolve leq_refl leq_antisym leq_trans leq_total.
 Hint Constructors reflect.
 
@@ -94,6 +99,30 @@ Lemma LinDec_not_leq :
 Proof.
   intros. destruct (leqb_spec y x).
     assumption.
+    cut False.
+      inversion 1.
+      destruct (leq_total x y); contradiction.
+Defined.
+
+(*Lemma LinDec_not_leq_lt :
+  forall (A : LinDec) (x y : A), ~ leq x y -> y < x.
+Proof.
+  intros. destruct (leqb_spec y x).
+    split.
+      assumption.
+      intro. subst. contradiction.
+    cut False.
+      inversion 1.
+      destruct (leq_total x y); contradiction.
+Defined.*)
+
+Lemma LinDec_not_leq_lt :
+  forall (A : LinDec) (x y : A), ~ leq x y -> y ≤ x /\ x <> y.
+Proof.
+  intros. destruct (leqb_spec y x).
+    split.
+      assumption.
+      intro. subst. contradiction.
     cut False.
       inversion 1.
       destruct (leq_total x y); contradiction.

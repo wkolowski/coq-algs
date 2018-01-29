@@ -3,6 +3,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Export FunctionalExtensionality.
 
 Require Export Bool.
+
 Require Export List.
 Export ListNotations.
 
@@ -141,8 +142,8 @@ Notation "'Yes'" := (Yes' _).
 Notation "'No'" := No'.
 
 Notation "'Reduce' x" := (if x then Yes else No) (at level 50).
-Notation "x && y" := (if x then Reduce y else No).
-Notation "x || y" := (if x then Yes else Reduce y).
+Notation "x &&& y" := (if x then Reduce y else No).
+Notation "x ||| y" := (if x then Yes else Reduce y).
 
 Definition unwrap {P : Prop} (s : solution P) :=
 match s return if s then P else Prop with

@@ -7,7 +7,7 @@ From mathcomp Require Import ssreflect.
 Theorem treeSort_sorted :
   forall (A : LinDec) (l : list A), sorted A (treeSort A l).
 Proof.
-  unfold treeSort. intros. apply toList_sorted. apply fromList_is_bst.
+  unfold treeSort. intros. apply BTree_toList_sorted. apply fromList_is_bst.
 Qed.
 
 Theorem treeSort_perm :

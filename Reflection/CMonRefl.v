@@ -404,7 +404,7 @@ Proof.
   match e1, e2 with
       | Id, Id => Yes
       | Var n, Var m => if Nat.eq_dec n m then Yes else No
-      | Op e11 e12, Op e21 e22 => solve e11 e21 && solve e12 e22
+      | Op e11 e12, Op e21 e22 => solve e11 e21 &&& solve e12 e22
       | _, _ => No
   end);
   cbn in *; congruence.
@@ -434,7 +434,7 @@ Proof.
           Reduce (solve proofs f1 (fImpl f2 f)
                         (fun proofs' => Reduce (cont proofs')))
       | fOr f1 f2 =>
-          solve proofs f1 f cont &&
+          solve proofs f1 f cont &&&
           solve proofs f2 f cont
       | _ => No
   end).
@@ -458,8 +458,8 @@ Proof.
               | right _ => No
           end
       | fEq e1 e2 => Reduce (solveEq envX envP e1 e2)
-      | fAnd f1 f2 => solve proofs f1 && solve proofs f2
-      | fOr f1 f2 => solve proofs f1 || solve proofs f2
+      | fAnd f1 f2 => solve proofs f1 &&& solve proofs f2
+      | fOr f1 f2 => solve proofs f1 ||| solve proofs f2
       | fImpl f1 f2 =>
           solveHypothesis envX envP proofs f1 f2
             (fun proofs' => solve proofs' f2)

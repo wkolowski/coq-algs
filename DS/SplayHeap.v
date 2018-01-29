@@ -9,26 +9,6 @@ Set Implicit Arguments.
 
 Definition SplayHeap (A : LinDec) : Type := BTree A.
 
-(* TODO: posibly remove *)
-(*Function bigger {A : LinDec} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
-match h with
-    | empty => empty
-    | node v l r =>
-        if v <=? pivot
-        then bigger pivot r
-        else
-          match l with
-              | empty => l
-              | node v' l' r' =>
-                  if v' <=? pivot
-                  then node v (bigger pivot r') r
-                  else node v' (bigger pivot l') (node v r' r)
-          end
-end.
-
-Function smaller {A : LinDec} (pivot : A) (h : SplayHeap A) : SplayHeap A := h.
-*)
-
 Function partition {A : LinDec} (pivot : A) (h : SplayHeap A)
   : SplayHeap A * SplayHeap A :=
 match h with
@@ -73,12 +53,25 @@ Definition insert
     let (smaller, bigger) := partition x h
     in node x smaller bigger.
 
-Function findMin
+Function findMin'
   {A : LinDec} (h : SplayHeap A) : option A :=
 match h with
     | empty => None
     | node m empty _ => Some m
-    | node _ l _ => findMin l
+    | node _ l _ => findMin' l
+end.
+
+Function findMin
+  {A : LinDec} (h : SplayHeap A) : option A :=
+match h with
+    | empty => None
+(*    | node m empty _ => Some m
+    | node _ l _ => findMin l*)
+    | node v l r =>
+        match findMin l with
+            | None => Some v
+            | Some m => Some m
+        end
 end.
 
 Function deleteMin
@@ -96,6 +89,17 @@ match h with
     | node m empty r => (Some m, r)
     | node v l r =>
         let '(min, l') := deleteMin' l in (min, node v l' r)
+end.
+
+Function deleteMin2
+  {A : LinDec} (h : SplayHeap A) : option (A * SplayHeap A) :=
+match h with
+    | empty => None
+    | node v l r =>
+        match deleteMin2 l with
+            | None => Some (v, r)
+            | Some (min, l') => Some (min, node v l' r)
+        end
 end.
 
 Function merge {A : LinDec} (h1 h2 : SplayHeap A) : SplayHeap A :=
@@ -148,6 +152,13 @@ Proof.
   destruct h1; cbn; intros; try destruct (partition c h2); firstorder.
 Qed.
 
+Lemma isEmpty_count_BTree :
+  forall (A : LinDec) (x : A) (t : SplayHeap A),
+    isEmpty t = true -> count_BTree A x t = 0.
+Proof.
+  destruct t; dec.
+Qed.
+
 (** Properties of [partition]. *)
 
 Lemma partition_elem :
@@ -193,6 +204,23 @@ Unshelve.
   all: assumption.
 Qed.
 
+Lemma partition_size :
+  forall (A : LinDec) (x : A) (h h1 h2 : SplayHeap A),
+    partition x h = (h1, h2) -> size h = size h1 + size h2.
+Proof.
+  intros. functional induction partition x h; cbn;
+  inv H; dec; rewrite (IHp _ _ e3); omega.
+Qed.
+
+Lemma partition_count_BTree :
+  forall (A : LinDec) (x pivot : A) (h h1 h2 : SplayHeap A),
+    partition pivot h = (h1, h2) ->
+      count_BTree A x h = count_BTree A x h1 + count_BTree A x h2.
+Proof.
+  intros. functional induction partition pivot h; cbn;
+  inv H; dec; rewrite (IHp _ _ _ e3); omega.
+Qed.
+
 (** Properties of [insert]. *)
 Lemma insert_elem :
   forall (A : LinDec) (x : A) (h : SplayHeap A),
@@ -207,6 +235,23 @@ Lemma insert_is_bst :
 Proof.
   intros. unfold insert. case_eq (partition x h); intros l r H'.
   eapply partition_is_bst; eauto.
+Qed.
+
+Lemma insert_size :
+  forall (A : LinDec) (x : A) (h : SplayHeap A),
+    size (insert x h) = 1 + size h.
+Proof.
+  intros. unfold insert. case_eq (partition x h); intros smaller bigger H.
+  cbn. f_equal. symmetry. eapply partition_size. eassumption.
+Qed.
+
+Lemma insert_count_BTree :
+  forall (A : LinDec) (x y : A) (h : SplayHeap A),
+    count_BTree A x (insert y h) =
+    (if x =? y then S else id) (count_BTree A x h).
+Proof.
+  intros. unfold insert. case_eq (partition y h); intros.
+  apply (@partition_count_BTree A x) in H. dec.
 Qed.
 
 (** Properties of [merge]. *)
@@ -236,4 +281,222 @@ Proof.
       apply partition_is_bst in Hp; aux. constructor; intros; auto.
         apply merge_elem in H. firstorder.
         apply merge_elem in H. firstorder.
+Qed.
+
+Lemma merge_size :
+  forall (A : LinDec) (h1 h2 : SplayHeap A),
+    size (merge h1 h2) = size h1 + size h2.
+Proof.
+  intros. functional induction @merge A h1 h2; cbn.
+    reflexivity. inv e0.
+    rewrite IHs, IHs0. apply partition_size in H0. rewrite H0. omega.
+Qed.
+
+Lemma merge_count_BTree :
+  forall (A : LinDec) (x : A) (h1 h2 : SplayHeap A),
+    count_BTree A x (merge h1 h2) = count_BTree A x h1 + count_BTree A x h2.
+Proof.
+  induction h1; cbn; intros.
+    reflexivity.
+    case_eq (partition a h2); cbn; intros.
+      apply (partition_count_BTree x) in H. rewrite IHh1_1, IHh1_2, H. dec.
+Qed.
+
+(** Properties of [findMin] *)
+
+Lemma findMin_elem :
+  forall (A : LinDec) (m : A) (h : SplayHeap A),
+    findMin h = Some m -> elem m h.
+Proof.
+  intros. functional induction @findMin A h; inv H.
+Qed.
+
+Lemma findMin_elem_node :
+  forall (A : LinDec) (m v : A) (l r : SplayHeap A),
+    findMin (node v l r) = Some m -> m = v \/ elem m l.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @findMin A h; inv Heqh.
+    inv H.
+    inv H. destruct l; cbn in *.
+      congruence.
+      destruct (findMin l1); inv e0.
+        destruct (IHo _ _ _ _ eq_refl eq_refl); subst; auto.
+Qed.
+
+Lemma findMin_aux :
+  forall (A : LinDec) (v : A) (l r : SplayHeap A),
+    findMin (node v l r) = Some v \/
+    findMin (node v l r) = findMin l.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @findMin A h; inv Heqh.
+Qed.
+
+Lemma findMin_spec :
+  forall (A : LinDec) (m : A) (h : SplayHeap A),
+    is_bst h -> findMin h = Some m ->
+      forall x : A, elem x h -> m ≤ x.
+Proof.
+  intros. functional induction @findMin A h; inv H0.
+    inv H1.
+      destruct l.
+        inv H2.
+        cbn in e0. destruct (findMin l1); congruence.
+       inv H.
+    inv H. inv H1.
+      apply H4. apply findMin_elem. assumption.
+      aux. eapply leq_trans with v; try assumption.
+        destruct l.
+          cbn in e0. congruence.
+          destruct (@findMin_aux _ c l1 l2).
+            rewrite H in e0. inv e0.
+            eapply leq_trans with c; eauto.
+Qed.
+
+(** Properties of [findMin']. *)
+Lemma findMin'_elem :
+  forall (A : LinDec) (m : A) (h : SplayHeap A),
+    findMin' h = Some m -> elem m h.
+Proof.
+  intros. functional induction @findMin' A h; inv H.
+Qed.
+
+Lemma findMin'_elem_node :
+  forall (A : LinDec) (m v : A) (l r : SplayHeap A),
+    findMin' (node v l r) = Some m -> m = v \/ elem m l.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @findMin' A h; inv Heqh.
+    inv H.
+    inv H. destruct l; cbn in *.
+      congruence.
+        destruct (IHo _ _ _ _ eq_refl H1); subst; auto.
+Qed.
+
+Lemma findMin'_aux :
+  forall (A : LinDec) (v : A) (l r : SplayHeap A),
+    findMin' (node v l r) = Some v \/
+    findMin' (node v l r) = findMin' l.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @findMin' A h; inv Heqh.
+Qed.
+
+Lemma findMin'_spec :
+  forall (A : LinDec) (m : A) (h : SplayHeap A),
+    is_bst h -> findMin' h = Some m ->
+      forall x : A, elem x h -> m ≤ x.
+Proof.
+  intros. functional induction @findMin' A h; inv H; inv H0; inv H1.
+    inv H0.
+    apply H5. apply findMin'_elem. assumption.
+    aux. eapply leq_trans; try eassumption. destruct l.
+      contradiction.
+      eapply leq_trans with c; eauto.
+Qed.
+
+(** Properties of [deleteMin2]. *)
+Lemma deleteMin2_size :
+  forall (A : LinDec) (m : A) (h h' : SplayHeap A),
+    deleteMin2 h = Some (m, h') -> size h = 1 + size h'.
+Proof.
+  intros. functional induction @deleteMin2 A h; cbn; inv H.
+    destruct l; cbn in *.
+      reflexivity.
+      destruct (deleteMin2 l1).
+        destruct p. congruence.
+        congruence.
+    rewrite (IHo _ _ e0). cbn. reflexivity.
+Qed.
+
+Lemma deleteMin2_isEmpty_None :
+  forall (A : LinDec) (h : SplayHeap A),
+    deleteMin2 h = None -> isEmpty h = true.
+Proof.
+  intros. functional induction @deleteMin2 A h; cbn; inv H.
+Qed.
+
+Lemma deleteMin2_isEmpty_Some :
+  forall (A : LinDec) (m : A) (h h' : SplayHeap A),
+    deleteMin2 h = Some (m, h') -> isEmpty h = false.
+Proof.
+  intros. functional induction @deleteMin2 A h; cbn; inv H.
+Qed.
+
+Lemma deleteMin2_elem :
+  forall (A : LinDec) (m : A) (h h' : SplayHeap A),
+    deleteMin2 h = Some (m, h') -> elem m h.
+Proof.
+  intros. functional induction @deleteMin2 A h; inv H; eauto.
+Qed.
+
+Lemma deleteMin2_elem_node :
+  forall (A : LinDec) (m v : A) (l r h' : SplayHeap A),
+    deleteMin2 (node v l r) = Some (m, h') -> m = v \/ elem m l.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @deleteMin2 A h; inv Heqh.
+    inv H.
+    inv H. destruct l; cbn in *.
+      congruence.
+      destruct (deleteMin2 l1); inv e0. destruct p. inv H0.
+        destruct (IHo _ _ _ _ _ eq_refl eq_refl); subst; auto.
+Qed.
+
+Lemma deleteMin2_aux :
+  forall (A : LinDec) (v : A) (l r : SplayHeap A),
+    deleteMin2 (node v l r) = Some (v, r) \/
+    deleteMin2 (node v l r) =
+      match deleteMin2 l with
+          | None => Some (v, r)
+          | Some (m, l') => Some (m, node v l' r)
+      end.
+Proof.
+  intros. remember (node v l r) as h.
+  functional induction @deleteMin2 A h; inv Heqh.
+  destruct l; cbn in *.
+    congruence.
+    specialize (IHo _ _ _ eq_refl). destruct (deleteMin2 l1).
+      destruct p. inv e0.
+      inv e0.
+Qed.
+
+Lemma deleteMin2_spec :
+  forall (A : LinDec) (m : A) (h h' : SplayHeap A),
+    is_bst h -> deleteMin2 h = Some (m, h') ->
+      forall x : A, elem x h -> m ≤ x.
+Proof.
+  intros. functional induction @deleteMin2 A h; inv H0.
+    inv H1.
+      destruct l.
+        inv H2.
+        cbn in e0. destruct (deleteMin2 l1); try destruct p; congruence.
+       inv H.
+    inv H. inv H1.
+      apply H4. eapply deleteMin2_elem. eassumption.
+      eauto.
+      aux. eapply leq_trans with v; try assumption.
+        destruct l.
+          cbn in e0. congruence.
+          destruct (@deleteMin2_aux _ c l1 l2).
+            rewrite H in e0. inv e0.
+            eapply leq_trans with c; eauto.
+Qed.
+
+Lemma deleteMin2_count_BTree :
+  forall (A : LinDec) (x m : A) (h h' : SplayHeap A),
+    is_bst h -> deleteMin2 h = Some (m, h') ->
+      count_BTree A x h =
+      (if x =? m then S else id) (count_BTree A x h').
+Proof.
+  intros. functional induction deleteMin2 h; cbn; inv H0.
+    destruct l; cbn in *.
+      dec.
+      destruct (deleteMin2 l1); try destruct p; inv e0.
+    destruct l; cbn in *.
+      inv e0.
+      destruct (deleteMin2 l1); try destruct p;
+      inv e0; specialize (IHo x _ _ ltac:(inv H) eq_refl);
+      rewrite IHo; dec.
 Qed.

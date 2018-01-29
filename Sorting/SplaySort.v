@@ -3,33 +3,13 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
+Require Import BST.
+
 Require Export SplayHeap.
 
 Set Implicit Arguments.
 
-Fixpoint size {A : LinDec} (h : SplayHeap A) : nat :=
-match h with
-    | empty => 0
-    | node _ l r => 1 + size l + size r
-end.
-
-Lemma size_partition :
-  forall (A : LinDec) (x : A) (h h1 h2 : SplayHeap A),
-    partition x h = (h1, h2) -> size h = size h1 + size h2.
-Proof.
-  intros. functional induction partition x h; cbn;
-  inv H; dec; rewrite (IHp _ _ e3); omega.
-Qed.
-
-Lemma size_insert :
-  forall (A : LinDec) (x : A) (h : SplayHeap A),
-    size (insert x h) = S (size h).
-Proof.
-  intros. unfold insert. case_eq (partition x h); intros.
-  cbn. apply size_partition in H. omega.
-Qed.
-
-Lemma size_deleteMin :
+(*Lemma size_deleteMin :
   forall (A : LinDec) (h : SplayHeap A),
     size (deleteMin h) = pred (size h).
 Proof.
@@ -47,35 +27,7 @@ Proof.
   destruct l; cbn.
     contradiction.
     rewrite e0 in IHp. cbn in IHp. rewrite IHp; trivial.
-Qed.
-
-Function toList {A : LinDec} (h : SplayHeap A) {measure size h} : list A :=
-match h with
-    | empty => []
-    | _ =>
-        match findMin h with
-            | None => []
-            | Some m => m :: toList (deleteMin h)
-        end
-end.
-Proof.
-  intros. subst. rewrite size_deleteMin. cbn. apply le_n.
-Defined.
-
-Function toList' {A : LinDec} (h : SplayHeap A) {measure size h} : list A :=
-match h with
-    | empty => []
-    | _ =>
-        match deleteMin' h with
-            | (None, _) => []
-            | (Some m, h') => m :: toList' h'
-        end
-end.
-Proof.
-  intros. subst. rewrite size_deleteMin' with (h := node c b b0).
-    cbn. apply le_n.
-    rewrite teq0. cbn. trivial.
-Defined.
+Qed.*)
 
 Fixpoint fromList {A : LinDec} (l : list A) : SplayHeap A :=
 match l with
@@ -84,7 +36,38 @@ match l with
 end.
 
 Definition splaySort (A : LinDec) (l : list A) : list A :=
-  toList (fromList l).
+  BTree_toList (fromList l).
 
-Definition splaySort' (A : LinDec) (l : list A) : list A :=
-  toList' (fromList l).
+Lemma fromList_is_bst :
+  forall (A : LinDec) (l : list A),
+    is_bst (fromList l).
+Proof.
+  induction l as [| h t]; cbn.
+    constructor.
+    apply insert_is_bst. assumption.
+Qed.
+
+Theorem splaySort_sorted :
+  forall (A : LinDec) (l : list A),
+    sorted A (splaySort A l).
+Proof.
+  intros. unfold splaySort. apply BTree_toList_sorted, fromList_is_bst.
+Qed.
+
+Lemma count_BTree_fromList :
+  forall (A : LinDec) (x : A) (l : list A),
+    count_BTree A x (fromList l) = count A x l.
+Proof.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    rewrite insert_count_BTree. dec.
+Qed.
+
+Theorem splaySort_perm :
+  forall (A : LinDec) (l : list A),
+    perm A l (splaySort A l).
+Proof.
+  unfold splaySort, perm. intros.
+  rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
+Qed.
+

@@ -1,10 +1,10 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import BTree.
+Require Import BST.
+
 Require Export LinDec.
 Require Import Sorting.Sort.
-
-Require Import BST.
 
 Set Implicit Arguments.
 

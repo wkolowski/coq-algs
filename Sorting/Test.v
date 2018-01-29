@@ -46,8 +46,8 @@ Time Compute stdSort_nat [].
 Time Compute insertionSort natle (cycle 10 testl).*)
 
 (* Fast sorts on medium lists. *)
-(*
-Time Compute ms natle (cycle 100 testl).
+
+(*Time Compute ms natle (cycle 100 testl).
 Time Compute ms2 natle (cycle 100 testl).
 
 Time Compute qs natle (cycle 100 testl).
@@ -64,10 +64,10 @@ Time Compute redblackSort' natle (cycle 100 testl).
 Time Eval lazy in leftistHeapsort natle (cycle 100 testl).
 Time Eval lazy in leftistHeapsort' natle (cycle 100 testl).
 
+Time Eval lazy in splaySort natle (cycle 100 testl).
+
 Time Eval lazy in pairingSort natle (cycle 100 testl).
 
-Time Eval lazy in splaySort natle (cycle 100 testl).
-Time Eval lazy in splaySort' natle (cycle 100 testl).
 *)
 
 (* Fast sorts on big lists. *)

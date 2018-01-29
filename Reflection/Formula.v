@@ -94,7 +94,7 @@ Proof.
           Reduce (solve proofs f1 (fImpl f2 f)
                         (fun proofs' => Reduce (cont proofs')))
       | fOr f1 f2 =>
-          solve proofs f1 f cont &&
+          solve proofs f1 f cont &&&
           solve proofs f2 f cont
       | _ => No
   end).
@@ -117,8 +117,8 @@ Proof.
               | left _ => Yes
               | right _ => No
           end
-      | fAnd f1 f2 => solve proofs f1 && solve proofs f2
-      | fOr f1 f2 => solve proofs f1 || solve proofs f2
+      | fAnd f1 f2 => solve proofs f1 &&& solve proofs f2
+      | fOr f1 f2 => solve proofs f1 ||| solve proofs f2
       | fImpl f1 f2 =>
           solveHypothesis env proofs f1 f2
             (fun proofs' => solve proofs' f2)

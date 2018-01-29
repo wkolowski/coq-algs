@@ -9,7 +9,7 @@ Require Export BST.
 Require Export ListLemmas.
 
 Definition treeSort (A : LinDec) (l : list A) : list A :=
-  toList (fromList A l).
+  BTree_toList (fromList A l).
 
 Definition treeSort' (A : LinDec) (l : list A) : list A :=
   toList' (fromList' l).

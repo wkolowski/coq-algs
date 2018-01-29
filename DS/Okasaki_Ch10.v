@@ -44,8 +44,8 @@ end.
 
 Add Rec LoadPath "/home/Zeimer/Code/Coq".
 Require Import HSLib.Base.
-Require Import HSLib.Functor.Functor.
-Require Import HSLib.MonadBind.MonadInst.
+Require Import HSLib.Control.Functor.
+Require Import HSLib.Instances.All.
 
 Definition head {A : Type} (s : Seq A) : option A :=
   fmap fst (uncons s).
@@ -105,6 +105,63 @@ Definition lookup
   (i : nat) {A : Type} (s : Seq A) : option A :=
     lookup_aux (lookupDom_all i A s).
 
+(*Lemma lookup_aux_eq :
+  forall (i : nat) (A : Type) (s : Seq A) (dom : lookupDom i A s),
+    lookup_aux dom =
+    match s with
+        | Nil => None
+        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
+                          (lookup_aux (div2 i) s')
+        | One h t =>
+            match i with
+                | 0 => Some h
+                | S i' => fmap (fun '(x, y) => if even i then x else y)
+                               (lookup (div2 i') t)
+            end
+end.*)
+
+Lemma lookup_eq_Nil :
+  forall (i : nat) (A : Type) (s : Seq A),
+    lookup i Nil = @None A.
+Proof. reflexivity. Qed.
+
+Lemma lookup_aux_eq_dom_Zero :
+  forall (i : nat) (A : Type) (s : Seq (A * A))
+  (w : lookupDom (div2 i) (A * A) s),
+    lookup_aux (dom_Zero w) =
+    fmap (fun '(x, y) => if even i then x else y) (lookup_aux w).
+Proof.
+Abort.
+
+(*Lemma lookup_eq_Zero :
+  forall (i : nat) (A : Type) (s : Seq (A * A)),
+    lookup i (Zero s) =
+    fmap (fun '(x, y) => if even i then x else y) (lookup (div2 i) s).
+Proof.
+*)  
+  
+
+Lemma lookup_eq :
+  forall (i : nat) (A : Type) (s : Seq A),
+    lookup i s =
+    match s with
+        | Nil => None
+        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
+                          (lookup (div2 i) s')
+        | One h t =>
+            match i with
+                | 0 => Some h
+                | S i' => lookup i' (Zero t)
+            end
+end.
+Proof.
+  intros. unfold lookup.
+  pose (w := lookupDom_all i A s).
+  replace (lookupDom_all i A s) with w by reflexivity.
+  clearbody w.
+  induction w; auto.
+Abort.
+
 (** lookup v2 *)
 Inductive lookupGraph :
   nat -> forall A : Type, Seq A -> option A -> Type :=
@@ -134,11 +191,84 @@ Proof.
     destruct i as [| i'].
       exists (Some h). constructor.
       destruct (IHt (div2 i')) as [r g]. eauto.
-Defined.
+Defined. (*
+  gen s; gen A; gen i. fix 3. destruct s as [| s' | h t].
+    exists None. constructor.
+    destruct (lookup'_strong (div2 i) _ s'). clear -l. eauto.
+    destruct i as [| i'].
+      exists (Some h). eauto.
+      destruct (lookup'_strong i' _ (Zero t)).
+Defined.*)
 
 Definition lookup'
   (i : nat) {A : Type} (s : Seq A) : option A :=
     projT1 (lookup'_strong i s).
+
+Require Import Eqdep.
+
+        Ltac inj := repeat
+        match goal with
+            | H : existT _ _ _ = existT _ _ _ |- _ =>
+                apply inj_pair2 in H
+        end; subst.
+
+Lemma lookup'_eq :
+  forall (i : nat) (A : Type) (s : Seq A),
+    lookup' i s =
+    match s with
+        | Nil => None
+        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
+                          (lookup' (div2 i) s')
+        | One h t =>
+            match i with
+                | 0 => Some h
+                | S i' => lookup' i' (Zero t)
+            end
+end.
+Proof.
+  intros i A s. gen i.
+  induction s as [| s' | h t]; cbn; intros.
+    reflexivity.
+    Focus 2. unfold lookup'. simpl. destruct i; cbn; auto.
+      destruct (lookup'_strong (PeanoNat.Nat.div2 i) s). cbn. reflexivity.
+    unfold lookup'. cbn in *.
+    destruct (Seq_rect _ _). cbn. unfold lookup' in IHs.
+(* cbn in IHs. rewrite IHs.*)
+      Require Import Eqdep.
+      destruct s.
+        f_equal. inversion l. reflexivity.
+        Focus 2. rewrite IHs. inversion l; inj.
+          reflexivity.
+          f_equal. cbn. destruct (Seq_rect _ _). cbn. 
+        f_equal. inversion l.
+        inj.
+Abort.
+
+Fixpoint size_add {A : Type} (s : Seq A) : nat :=
+match s with
+    | Nil => 0
+    | Zero s' => 1 + size_add s'
+    | One _ t => 2 + size_add t
+end.
+
+Require Import Recdef.
+
+(*Function lookup2
+  (i : nat) {A : Type} (s : Seq A) {measure size s} : option A :=
+match s with
+    | Nil => None
+    | Zero s' => (*fmap (fun '(x, y) => if even i then x else y)
+                      (lookup2 (div2 i) s')*)
+        match @lookup2 (div2 i) (A * A) s' with
+            | None => None
+            | Some p => Some (if even i then fst p else snd p)
+        end
+    | One h t =>
+        match i with
+            | 0 => Some h
+            | S i' => lookup2 i' (Zero t)
+        end
+end.*)
 
 (** update *)
 Definition enhance {A : Type} (i : nat) (f : A -> A) : A * A -> A * A :=
@@ -299,12 +429,6 @@ Qed.
 (** Properties of uncons *)
 
 Require Import Eqdep.
-
-Ltac inj := repeat
-match goal with
-    | H : existT _ _ _ = existT _ _ _ |- _ =>
-        apply inj_pair2 in H
-end.
 
 Fixpoint valid {A : Type} (s : Seq A) : Prop :=
 match s with
