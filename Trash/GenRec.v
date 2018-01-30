@@ -78,7 +78,6 @@ Proof.
       cbn. unfold divF. rewrite ?H1, ?H2. fold divF.
       assert (x - k < x) by omega. specialize (H0 _ H3).
       rewrite H2 in H0. unfold div in H0.
-        
 Restart.
   intros. unfold div.
   destruct (divF_terminates n k H),
@@ -99,4 +98,6 @@ Restart.
       rewrite H0. fold divF. unfold div.
       destruct (divF_terminates (n - k) k H). cbn. destruct e as [p' Hp'].
         rewrite Hp'. all: auto. 
-Abort. (* TODO *)
+Abort.
+
+(* TODO: pursue general recursion. *)

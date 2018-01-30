@@ -23,8 +23,27 @@ Set Implicit Arguments.
 Hint Constructors reflect.
 
 (* General useful tactics. *)
-(*Ltac inv H := inversion H; subst.*)
-Ltac inv H := inversion H; subst; clear H; auto.
+
+Ltac clear_useless :=
+repeat match goal with
+    | H : ?x = ?x |- _ => clear H
+    | H : True |- _ => clear H
+    | x : unit |- _ => destruct x
+end.
+
+(*Ltac inv_aux H :=
+  inversion H; subst; clear H; try (cbn; auto; congruence); clear_useless.*)
+
+Ltac inv_aux H :=
+  inversion H; subst; clear H; auto; try congruence.
+
+Tactic Notation "inv" hyp(H) := inv_aux H.
+
+Tactic Notation "inv" integer(n) :=
+  intros until n;
+match goal with
+    | H : _ |- _ => inv_aux H
+end.
 
 Ltac gen x := generalize dependent x.
 
@@ -51,7 +70,6 @@ end.
 
 Ltac gen_ind H :=
   try intros until H; gen_IH H; induction H; cbn; auto.
-
 
 Ltac invs := repeat
 match goal with

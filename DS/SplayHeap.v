@@ -152,9 +152,16 @@ Proof.
   destruct h1; cbn; intros; try destruct (partition c h2); firstorder.
 Qed.
 
+Lemma isEmpty_size :
+  forall (A : LinDec) (h : SplayHeap A),
+    isEmpty h = true <-> size h = 0.
+Proof.
+  split; destruct h; cbn in *; intros; congruence.
+Qed.
+
 Lemma isEmpty_count_BTree :
   forall (A : LinDec) (x : A) (t : SplayHeap A),
-    isEmpty t = true -> count_BTree A x t = 0.
+    isEmpty t = true -> count_BTree x t = 0.
 Proof.
   destruct t; dec.
 Qed.
@@ -215,7 +222,7 @@ Qed.
 Lemma partition_count_BTree :
   forall (A : LinDec) (x pivot : A) (h h1 h2 : SplayHeap A),
     partition pivot h = (h1, h2) ->
-      count_BTree A x h = count_BTree A x h1 + count_BTree A x h2.
+      count_BTree x h = count_BTree x h1 + count_BTree x h2.
 Proof.
   intros. functional induction partition pivot h; cbn;
   inv H; dec; rewrite (IHp _ _ _ e3); omega.
@@ -247,11 +254,11 @@ Qed.
 
 Lemma insert_count_BTree :
   forall (A : LinDec) (x y : A) (h : SplayHeap A),
-    count_BTree A x (insert y h) =
-    (if x =? y then S else id) (count_BTree A x h).
+    count_BTree x (insert y h) =
+    (if x =? y then S else id) (count_BTree x h).
 Proof.
   intros. unfold insert. case_eq (partition y h); intros.
-  apply (@partition_count_BTree A x) in H. dec.
+  apply (partition_count_BTree x) in H. dec.
 Qed.
 
 (** Properties of [merge]. *)
@@ -294,7 +301,7 @@ Qed.
 
 Lemma merge_count_BTree :
   forall (A : LinDec) (x : A) (h1 h2 : SplayHeap A),
-    count_BTree A x (merge h1 h2) = count_BTree A x h1 + count_BTree A x h2.
+    count_BTree x (merge h1 h2) = count_BTree x h1 + count_BTree x h2.
 Proof.
   induction h1; cbn; intros.
     reflexivity.
@@ -487,8 +494,8 @@ Qed.
 Lemma deleteMin2_count_BTree :
   forall (A : LinDec) (x m : A) (h h' : SplayHeap A),
     is_bst h -> deleteMin2 h = Some (m, h') ->
-      count_BTree A x h =
-      (if x =? m then S else id) (count_BTree A x h').
+      count_BTree x h =
+      (if x =? m then S else id) (count_BTree x h').
 Proof.
   intros. functional induction deleteMin2 h; cbn; inv H0.
     destruct l; cbn in *.

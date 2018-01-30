@@ -56,7 +56,7 @@ Qed.
 
 Lemma count_BTree_fromList :
   forall (A : LinDec) (x : A) (l : list A),
-    count_BTree A x (fromList l) = count A x l.
+    count_BTree x (fromList l) = count A x l.
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
@@ -70,4 +70,3 @@ Proof.
   unfold splaySort, perm. intros.
   rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
 Qed.
-

@@ -45,27 +45,27 @@ Qed.
 
 Lemma count_BTree_merge' :
   forall (A : LinDec) (x : A) (t1 t2 : BTree A),
-    count_BTree A x (merge' (t1, t2)) =
-    count_BTree A x t1 + count_BTree A x t2.
+    count_BTree x (merge' (t1, t2)) =
+    count_BTree x t1 + count_BTree x t2.
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp;
+  functional induction @merge' A p; inv Heqp;
   balance; cbn; rewrite (IHb _ _ _ eq_refl); dec.
 Qed.
 
 Lemma count_BTree_insert :
   forall (A : LinDec) (x y : A) (t : BTree A),
-    count_BTree A x (insert' y t) =
+    count_BTree x (insert' y t) =
       if x =? y
-      then S (count_BTree A x t)
-      else count_BTree A x t.
+      then S (count_BTree x t)
+      else count_BTree x t.
 Proof.
   intros. unfold insert'. rewrite count_BTree_merge'. dec.
 Qed.
 
 Lemma count_fromList :
   forall (A : LinDec) (x : A) (l : list A),
-    count_BTree A x (fromList l) = count A x l.
+    count_BTree x (fromList l) = count A x l.
 Proof.
   intros. functional induction @fromList A l;
   try rewrite count_BTree_insert; dec.
@@ -73,7 +73,7 @@ Qed.
 
 Lemma count_toList :
   forall (A : LinDec) (x : A) (t : BTree A),
-    count A x (toList t) = count_BTree A x t.
+    count A x (toList t) = count_BTree x t.
 Proof.
   intros. functional induction @toList A t; cbn;
   destruct t; inv e; dec; rewrite IHl, count_BTree_merge'; trivial.

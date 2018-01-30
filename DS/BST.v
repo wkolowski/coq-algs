@@ -17,43 +17,26 @@ Hint Constructors elem is_bst.
 
 Lemma is_bst_inv_l : forall (A : LinDec) (v : A) (l r : BTree A),
     is_bst (node v l r) -> is_bst l.
-Proof.
-  inversion 1; eauto.
-Qed.
+Proof. inv 1. Qed.
 
 Lemma is_bst_inv_r : forall (A : LinDec) (v : A) (l r : BTree A),
     is_bst (node v l r) -> is_bst r.
-Proof.
-  inversion 1; eauto.
-Qed.
+Proof. inv 1. Qed.
 
 Lemma is_bst_inv_leq_l : forall (A : LinDec) (a v : A) (l r : BTree A),
     is_bst (node v l r) -> elem a l -> leq a v.
-Proof.
-  inversion 1; auto.
-Qed.
+Proof. inv 1. Qed.
 
 Lemma is_bst_inv_leq_r : forall (A : LinDec) (a v : A) (l r : BTree A),
     is_bst (node v l r) -> elem a r -> leq v a.
-Proof.
-  inversion 1; auto.
-Qed.
+Proof. inv 1. Qed.
 
 Lemma is_bst_inv_elem_l :
   forall (A : LinDec) (x v : A) (l r : BTree A),
     is_bst (node v l r) -> elem x (node v l r) ->
       leq x v -> x <> v -> elem x l.
 Proof.
-  inversion 1; inversion 1; subst; intros.
-    1-2: by [].
-    move: (H5 _ H9) => H'. have Heq : x = v by eapply leq_antisym.
-      contradiction.
-Restart.
-  intros. inv H. inv H0.
-    contradiction.
-    specialize (H8 _ H3). assert (x = v).
-      apply leq_antisym; auto.
-      subst. contradiction.
+  do 2 inv 1; intros. specialize (H5 _ H1). contradiction H0. dec.
 Qed.
 
 Lemma is_bst_inv_elem_r :
@@ -61,17 +44,7 @@ Lemma is_bst_inv_elem_r :
     is_bst (node v l r) -> elem x (node v l r) ->
       leq v x -> x <> v -> elem x r.
 Proof.
-  do 2 inversion 1; subst; intros.
-    contradiction.
-    move: (H3 _ H9) => H'. have Heq : x = v by eapply leq_antisym.
-      contradiction.
-    by [].
-Restart.
-  intros. inv H. inv H0.
-    contradiction.
-    specialize (H6 _ H3). assert (x = v).
-      apply leq_antisym; auto.
-      subst. contradiction.
+  do 2 inv 1; intros. specialize (H3 _ H1). contradiction H0. dec.
 Qed.
 
 Hint Resolve is_bst_inv_l is_bst_inv_r.
@@ -86,19 +59,19 @@ Theorem BST_elem_dec : forall {A : LinDec} (a : A) (t : BTree A),
     is_bst t -> {elem a t} + {~ elem a t}.
 Proof.
   intros. elim: t H => [| v l Hl r Hr] H.
-    right. inversion 1.
+    right. inv 1.
     case (LinDec_eqb_spec _ a v) => [-> | Hneq]; first by auto.
       case (leqb_spec a v) => [Hleq | Hnleq].
-        case: Hl => [| H' | H']; eauto. right. inversion 1; subst; auto.
+        case: Hl => [| H' | H']; eauto. right. inv 1.
           eapply is_bst_inv_leq_r in H2; eauto.
-        case: Hr => [| H' | H']; eauto. right. inversion 1; subst; auto.
+        case: Hr => [| H' | H']; eauto. right. inv 1.
           eapply is_bst_inv_leq_l in H2; eauto.
 Restart.
   intros. elim: t H => [| v l Hl r Hr] H.
-    right. inversion 1.
+    right. inv 1.
     case (LinDec_eqb_spec _ a v) => [-> | Hneq]; first by auto.
       case (leqb_spec a v) => [Hleq | Hnleq]; [case: Hl | case: Hr];
-      eauto; right; inversion 1; subst; auto.
+      eauto; right; inv 1.
         eapply is_bst_inv_leq_r in H2; eauto.
         eapply is_bst_inv_leq_l in H2; eauto.
 Defined.
@@ -116,8 +89,8 @@ Lemma elem_ins : forall (A : LinDec) (x a : A) (t : BTree A),
     elem x (BTree_ins a t) -> x = a \/ elem x t.
 Proof.
   move=> A x a t. elim: t => [| v l Hl r Hr] //=.
-    inversion 1; auto.
-    dec; inversion H; subst; auto.
+    inv 1.
+    dec; inv H.
       case: Hl; auto.
       case: Hr; auto.
 Qed.
@@ -126,8 +99,8 @@ Theorem BTree_ins_is_bst : forall (A : LinDec) (a : A) (bt : BTree A),
     is_bst bt -> is_bst (BTree_ins a bt).
 Proof.
   move=> A a bt. elim: bt a => [| v l Hl r Hr] a //=.
-    constructor; eauto; inversion 1.
-    dec; inversion H; subst.
+    constructor; eauto; inv 1.
+    dec; inv H.
       1-2: constructor; auto; move=> x Helt;
       case: (elem_ins _ _ _ _ Helt) => [-> |]; eauto.
 Qed.
@@ -144,15 +117,14 @@ Lemma min_elem_l :
     min t = Some m -> t = node v (node v' ll lr) r -> elem m (node v' ll lr).
 Proof.
   destruct t.
-    inversion 1.
-    induction t1; intros; inversion H0; subst. destruct ll; simpl in *.
-      inversion H. auto.
+    inv 1.
+    induction t1; intros; inv H0. destruct ll; simpl in *.
+      inv H. auto.
       apply elem_left. eapply IHt1_1; eauto.
 Restart.
-  inversion 2; subst; clear H1.
-  elim: ll lr v' H; intros.
-    inversion H. auto.
-    constructor. apply (H b0 a). auto.
+  inv 2. clear H1. elim: ll lr v' H.
+    inv 1.
+    auto.
 Qed.
 
 Theorem bst_min_spec : forall (A : LinDec) (m : A) (bst : BTree A),
@@ -160,13 +132,13 @@ Theorem bst_min_spec : forall (A : LinDec) (m : A) (bst : BTree A),
 Proof.
   induction 3.
     destruct l.
-      simpl in *. inversion H0; auto.
+      simpl in *. inv H0.
       eapply is_bst_inv_leq_l. eauto. eapply min_elem_l; eauto.
     destruct l.
-      inversion H1.
+      inv H1.
       apply IHelem; try eapply is_bst_inv_l; eauto.
-    inversion H; subst. destruct l.
-      inversion H0; subst. apply H7. assumption.
+    inv H. destruct l.
+      inv H0.
       apply leq_trans with v.
         eapply is_bst_inv_leq_l; eauto. eapply min_elem_l; eauto.
         apply H7. assumption.
@@ -180,14 +152,14 @@ match l with
 end.
 
 Definition fromList' {A : LinDec} (l : list A) : BTree A :=
-  fold_left (fun t x => BTree_ins x t) l empty.
+  fold_right (fun h t => BTree_ins h t) empty l.
 
 Lemma count_ins :
   forall (A : LinDec) (x h : A) (t : BTree A),
-    count_BTree A x (BTree_ins h t) =
+    count_BTree x (BTree_ins h t) =
       if x =? h
-      then S (count_BTree A x t)
-      else count_BTree A x t.
+      then S (count_BTree x t)
+      else count_BTree x t.
 Proof.
   intros. elim: t => [| v l Hl r Hr] //=; repeat dec.
 Qed.
@@ -207,23 +179,14 @@ Proof.
     trivial.
 Abort.
 
-Lemma fromList'_spec :
-  forall (A : LinDec) (l : list A) (t : BTree A),
-    fold_left (fun t x => BTree_ins x t) l t = merge t (fromList A l).
+Theorem fromList'_spec : @fromList' = @fromList.
 Proof.
-  intros. generalize dependent t.
-  functional induction @fromList A l; cbn; intros.
-    trivial.
-Abort.
-
-Theorem fromList_spec : @fromList' = @fromList.
-Proof.
-  extensionality A. extensionality l. unfold fromList'.
+  ext A. ext l. unfold fromList'.
   remember empty as t. generalize dependent t.
   functional induction @fromList A l; cbn; intros.
     trivial.
-    fold fromList'.
-Abort.
+    rewrite IHb; auto.
+Qed.
 
 Theorem BTree_toList_sorted :
   forall (A : LinDec) (t : BTree A),
@@ -238,11 +201,11 @@ Proof.
       intros. apply toList_In_elem in H. auto.
 Qed.
 
-Theorem toList'_sorted :
+Theorem BTree_toList'_sorted :
   forall (A : LinDec) (t : BTree A),
-    is_bst t -> sorted A (toList' t).
+    is_bst t -> sorted A (BTree_toList' t).
 Proof.
-  rewrite toList'_spec. apply BTree_toList_sorted.
+  rewrite BTree_toList'_spec. apply BTree_toList_sorted.
 Qed.
 
 Lemma fromList_is_bst :
@@ -255,6 +218,5 @@ Qed.
 Lemma fromList'_is_bst :
   forall (A : LinDec) (l : list A), is_bst (fromList' l).
 Proof.
-  intros. induction l as [| h t]; cbn.
-    trivial.
-Abort.
+  intros. rewrite fromList'_spec. apply fromList_is_bst.
+Qed.

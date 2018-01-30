@@ -69,6 +69,17 @@ Proof.
           intros. apply H1. right. assumption.
 Qed.
 
+Lemma sorted_app :
+  forall (A : LinDec) (l1 l2 : list A),
+    sorted A l1 -> sorted A l2 ->
+      (forall x y : A, In x l1 -> In y l2 -> x ≤ y) ->
+        sorted A (l1 ++ l2).
+Proof.
+  destruct l2 as [| h2 t2]; cbn; intros.
+    rewrite app_nil_r. assumption.
+    apply sorted_app_all; auto.
+Qed.
+
 Hint Resolve sorted_head sorted_tail sorted_app_all.
 
 Lemma sorted_cons :

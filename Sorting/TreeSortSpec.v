@@ -2,8 +2,6 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import TreeSort.
 
-From mathcomp Require Import ssreflect.
-
 Theorem treeSort_sorted :
   forall (A : LinDec) (l : list A), sorted A (treeSort A l).
 Proof.
@@ -14,9 +12,9 @@ Theorem treeSort_perm :
   forall (A : LinDec) (l : list A),
     perm A l (treeSort A l).
 Proof.
-  unfold treeSort, perm. intros.
-  elim: l => [| h t IH] //=.
-    by rewrite count_toList count_ins -count_toList -IH.
+  unfold perm. induction l as [| h t]; cbn; intro.
+    reflexivity.
+    rewrite count_toList, count_ins, <- count_toList, <- IHt. reflexivity.
 Qed.
 
 Instance Sort_treeSort : Sort :=
@@ -26,9 +24,20 @@ Instance Sort_treeSort : Sort :=
     sort_perm := treeSort_perm
 }.
 
-Theorem treeSort'_sorted :
-  forall (A : LinDec) (l : list A), sorted A (treeSort' A l).
+Lemma treeSort'_spec :
+  @treeSort' = @treeSort.
 Proof.
-  unfold treeSort'. intros. apply toList'_sorted.
-  try apply fromList'_is_bst.
-Abort.
+  ext A. ext l. unfold treeSort'.
+  rewrite fromList'_spec, BTree_toList'_spec.
+  unfold treeSort. reflexivity.
+Qed.
+
+Instance Sort_treeSort' : Sort :=
+{
+    sort := treeSort';
+}.
+Proof.
+  all: intros; rewrite treeSort'_spec.
+    apply treeSort_sorted.
+    apply treeSort_perm.
+Defined.

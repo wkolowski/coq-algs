@@ -12,7 +12,7 @@ Definition treeSort (A : LinDec) (l : list A) : list A :=
   BTree_toList (fromList A l).
 
 Definition treeSort' (A : LinDec) (l : list A) : list A :=
-  toList' (fromList' l).
+  BTree_toList' (fromList' l).
 
 (*Time Compute treeSort natle (cycle 100 testl).
 Time Compute treeSort' natle (cycle 100 testl).*)

@@ -203,6 +203,20 @@ Proof.
   destruct h1; cbn; intros; try destruct (partition c h2); firstorder.
 Qed.
 
+Lemma isEmpty_size :
+  forall (A : LinDec) (h : SplayHeap A),
+    isEmpty h = true <-> size h = 0.
+Proof.
+  split; destruct h; cbn in *; intros; congruence.
+Qed.
+
+Lemma isEmpty_count_BTree :
+  forall (A : LinDec) (x : A) (h : SplayHeap A),
+    isEmpty h = true -> count_BTree x h = 0.
+Proof.
+  destruct h; cbn; congruence.
+Qed.
+
 (** Properties [bigger]. *)
 
 Lemma bigger_spec :
@@ -241,6 +255,77 @@ Proof.
       inv H. eauto.
 Qed.
 
+
+
+(* wut *)
+
+
+Lemma not_elem_count_BTree :
+  forall (A : LinDec) (x : A) (t : BTree A),
+    ~ elem x t -> count_BTree x t = 0.
+Proof.
+  induction t; cbn; intros; rewrite ?IHt1, ?IHt2; dec.
+  contradiction H. constructor.
+Qed.
+
+Lemma elem_lt_not_r :
+  forall (A : LinDec) (x v : A) (l r : BTree A),
+    is_bst (node v l r) -> x ≤ v -> x <> v -> ~ elem x r.
+Proof.
+  unfold not. intros. inv H.
+Qed.
+
+Hint Extern 0 =>
+match goal with
+    | H : elem _ empty |- _ => inv H
+end.
+
+Lemma count_BTree_node :
+  forall (A : LinDec) (x v : A) (l r : BTree A),
+    is_bst (node v l r) -> x ≤ v -> x <> v ->
+      count_BTree x (node v l r) = count_BTree x (node v l empty).
+Proof.
+  intros. destruct (elem_decb_reflect A x (node v l r)).
+    Focus 2. rewrite !not_elem_count_BTree; auto.
+      intro. apply n. inv H2.
+    cbn. dec. rewrite (@not_elem_count_BTree _ _ r).
+      reflexivity.
+      intro. inv H.
+Qed.
+
+Lemma bigger_count_BTree :
+  forall (A : LinDec) (x pivot : A) (h : SplayHeap A),
+    is_bst h -> pivot ≤ x -> x <> pivot ->
+      count_BTree x (bigger pivot h) = count_BTree x h.
+Proof.
+  intros.
+  destruct (elem_decb_reflect _ x h).
+    Focus 2. rewrite !not_elem_count_BTree; auto.
+      intro. apply n. eapply bigger_elem; eauto.
+    functional induction bigger pivot h; cbn.
+      reflexivity.
+      2: dec.
+      dec.
+        contradiction H1. dec.
+        inv H. inv e.
+          contradiction H1. apply leq_antisym; auto.
+            eapply leq_trans; eauto.
+          rewrite (@not_elem_count_BTree _ _ l).
+            rewrite IHs; auto.
+            intro. dec.
+      Focus 2. aux; dec.
+Restart.
+  intros.
+  functional induction bigger pivot h; cbn; aux.
+    dec; rewrite IHs; auto.
+      contradiction H1. apply leq_antisym; auto.
+      rewrite (@not_elem_count_BTree _ _ l).
+        omega.
+        intro. contradiction H1. apply leq_antisym; auto.
+          eapply leq_trans; eauto.
+    dec.
+Abort.
+
 (** Properties of [smaller]. *)
 Lemma smaller_spec :
   forall (A : LinDec) (pivot : A) (h h' : SplayHeap A),
@@ -277,6 +362,10 @@ Proof.
     repeat constructor; auto; intros. apply smaller_elem in H; auto.
 Qed.
 
+(*Lemma smaller_count_BTree :
+  forall (A : LinDec) (x pivot : A) (h : SplayHeap A),
+    is_bst h -> x ≤ pivot *)
+
 (** Properties of [partition]. *)
 
 Lemma partition_elem :
@@ -304,7 +393,15 @@ Proof.
     apply bigger_is_bst. assumption.
 Qed.
 
+Lemma partition_size :
+  forall (A : LinDec) (pivot : A) (h h1 h2 : SplayHeap A),
+    partition pivot h = (h1, h2) -> size h = size h1 + size h2.
+Proof.
+  unfold partition. intros. inv H.
+Abort.
+
 (** Properties of [insert]. *)
+
 Lemma insert_elem :
   forall (A : LinDec) (x : A) (h : SplayHeap A),
     elem x (insert x h).

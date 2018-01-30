@@ -133,7 +133,7 @@ Lemma div2_inv :
 Proof.
   intros. destruct n.
     trivial.
-    assert (H' := div2_inv_aux (S n) ltac:(inversion 1)).
+    assert (H' := div2_inv_aux (S n) ltac:(inv 1)).
       contradiction.
 Qed.
 
@@ -144,7 +144,7 @@ Definition isDeque {A : Type} (d : Deque A) : Prop :=
 Lemma empty_isDeque :
   forall A : Type, isDeque (@empty A).
 Proof.
-  cbn. inversion 1.
+  cbn. inv 1.
 Qed.
 
 Lemma deque_isDeque :
@@ -160,7 +160,7 @@ Proof.
           destruct r as [| h1 [| h2 t]]; cbn in *; firstorder.
           inv H0.
         case_eq (rev (a :: f0)); intros.
-          cbn in H0. apply app_eq_nil in H0. inv H0. inv H2.
+          cbn in H0. apply app_eq_nil in H0. inv H0.
           split; congruence.
     destruct f0.
       destruct (split_inv_l _ _ _ _ e1).
@@ -172,7 +172,7 @@ Proof.
             destruct f as [| h1 [| h2 t]]; cbn in *; firstorder.
           inv H0.
         case_eq (rev (a0 :: r0)); intros.
-          cbn in H0. apply app_eq_nil in H0. inv H0. inv H2.
+          cbn in H0. apply app_eq_nil in H0. inv H0.
           split; congruence.
     destruct f as [| hf1 [| hf2 tf]], r as [| hr1 [| hr2 tr]]; cbn in *;
       firstorder.
@@ -237,7 +237,6 @@ Proof.
   destruct d as [f r]. unfold cons.
   case_eq (isEmpty (deque (x :: f) r)); intros.
     apply isEmpty_deque in H. inv H. congruence.
-    reflexivity.
 Qed.
 
 Lemma isEmpty_head_false :
@@ -275,7 +274,6 @@ Proof.
   destruct d as [f r]. unfold snoc.
   case_eq (isEmpty (deque f (x :: r))); intros.
     apply isEmpty_deque in H. inv H. congruence.
-    reflexivity.
 Qed.
 
 Lemma isEmpty_last_false :

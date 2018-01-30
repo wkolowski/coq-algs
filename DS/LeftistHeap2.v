@@ -75,8 +75,6 @@ Ltac lh x :=
     destruct x as [t H H']; destruct t;
     try inversion H; try inversion H'; subst; cbn.
 
-Ltac inv x := inversion x; subst; auto.
-
 Definition getMin {A : LinDec} (t : RSTree A) : option A :=
 match t with
     | empty => None
@@ -179,7 +177,7 @@ Proof.
 Qed.
 
 Theorem balance_left_biased :
-  forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : LinDec) (v : A) (l r : RSTree A),
     left_biased l -> left_biased r ->
       left_biased (balance v l r).
 Proof.
@@ -212,7 +210,7 @@ Lemma elem_merge' :
     elem x (merge' (t1, t2)) -> elem x t1 \/ elem x t2.
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp; auto.
+  functional induction @merge' A p; inv Heqp.
     rewrite balance_elem in H. inv H. edestruct IHr; eauto.
     rewrite balance_elem in H. inv H. edestruct IHr; eauto.
     Unshelve. all: auto.
@@ -223,7 +221,7 @@ Lemma elem_merge'_v2 :
     elem x t1 \/ elem x t2 -> elem x (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp;
+  functional induction @merge' A p; inv Heqp;
   elem; rewrite balance_elem.
     inv H. apply elem_right.
       eapply IHr; try ((left + right); eauto); reflexivity.
@@ -252,7 +250,7 @@ Theorem merge'_size:
     size (merge' (t1, t2)) = size t1 + size t2.
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp.
+  functional induction @merge' A p; inv Heqp.
     erewrite balance_size. cbn. rewrite (IHr r (node _ v' l' r') eq_refl).
       cbn. omega.
     erewrite balance_size. cbn. rewrite (IHr (node _ v l r) r' eq_refl).
@@ -265,14 +263,16 @@ Theorem merge'_is_heap :
     is_heap t1 -> is_heap t2 -> is_heap (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp;
+  functional induction @merge' A p; inv Heqp;
   inv H; inv H0; apply balance_is_heap; elem.
-    destruct (leqb_spec v v'); inv e0. destruct (elem_merge' H1); auto.
-      eapply leq_trans with v'. auto. inv H2.
-    apply (IHr _ _ H8 H0 eq_refl).
-    destruct (leqb_spec v v'), (elem_merge' H1); inv e0.
-      eapply leq_trans with v. dec. inv H2.
-    apply (IHr _ _ H H12 eq_refl).
+    destruct (leqb_spec v v'); inv e0. destruct (elem_merge' H); auto.
+      eapply leq_trans with v'. auto. inv H0.
+    eapply (IHr _ _ _ _ eq_refl).
+    destruct (leqb_spec v v'), (elem_merge' H); inv e0.
+      eapply leq_trans with v. dec. inv H0.
+    eapply (IHr _ _ _ _ eq_refl).
+Unshelve.
+  all: auto.
 Qed.
 
 Theorem merge'_left_biased :
@@ -280,12 +280,10 @@ Theorem merge'_left_biased :
     left_biased t1 -> left_biased t2 -> left_biased (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp; clear Heqp;
+  functional induction @merge' A p; inv Heqp;
   inv H; inv H0; cbn in *; apply balance_left_biased; auto.
-    exact 0.
-    apply (IHr _ _ H7 H0 eq_refl).
-    exact 0.
-    apply (IHr _ _ H H10 eq_refl).
+    eapply IHr; only 3: eauto; eauto.
+    eapply IHr; only 3: eauto; eauto.
 Qed.
 
 (*Definition merge {A : LinDec} (h1 h2 : LeftistHeap A)
@@ -388,7 +386,3 @@ Arguments toList [x] _.
 
 Definition leftistHeapsort (A : LinDec) (l : list A)
   : list A := toList (fromList l).
-
-Require Import ListLemmas.
-
-(*Time Compute leftistHeapsort natle (cycle 25 testl).*)
