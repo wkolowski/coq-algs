@@ -76,7 +76,7 @@ Theorem sort_correct :
     expDenoteL envX (s natle l) = expDenoteL envX l.
 Proof.
   intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
-  rewrite <- sort_perm. reflexivity.
+  destruct s. cbn. rewrite <- sort_perm. reflexivity.
 Qed.
 
 Definition simplify {X : CMon} (e : exp X) : exp X :=

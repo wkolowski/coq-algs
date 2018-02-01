@@ -398,6 +398,10 @@ Lemma partition_size :
     partition pivot h = (h1, h2) -> size h = size h1 + size h2.
 Proof.
   unfold partition. intros. inv H.
+  functional induction smaller pivot h; cbn; dec.
+    destruct l'; cbn.
+      rewrite <- plus_n_O. reflexivity.
+      dec.
 Abort.
 
 (** Properties of [insert]. *)

@@ -125,7 +125,7 @@ Proof.
       apply perm_front.
       apply perm_cons. unfold perm in *. intro.
         rewrite !count_app, <- IHl0, <- IHl1.
-        destruct p. cbn in *.
+        destruct p. cbn in *. Print Partition.
 Admitted.
 
 Theorem ghqs_In :
@@ -147,11 +147,3 @@ Proof.
        apply sorted_cons.
         intros.
 Abort.
-(* rewrite hqs_In, filter_In in H; auto. destruct H.
-          destruct (leqb_spec x h).
-            inversion H0.
-            apply LinDec_not_leq. assumption.
-          assumption.
-      intros. rewrite hqs_In, filter_In in H; auto. destruct H.
-        destruct (leqb_spec x h); intuition.
-Qed.*)

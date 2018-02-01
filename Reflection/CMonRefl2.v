@@ -75,7 +75,7 @@ Theorem sort_correct :
     expDenoteL env (s natle l) = expDenoteL env l.
 Proof.
   intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
-  rewrite <- sort_perm. reflexivity.
+  destruct s; cbn. rewrite <- sort_perm. reflexivity.
 Qed.
 
 Function list_to_exp {X : CMon} (l : list nat) : exp elem :=

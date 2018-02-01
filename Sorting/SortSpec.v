@@ -85,10 +85,13 @@ Theorem sort_perm :
   forall (A : LinDec) (s : Sort) (l l' : list A),
     perm A l l' -> s A l = s A l'.
 Proof.
-Abort. (* TODO *)
+  intros.
+Admitted. (* TODO *)
 
 Theorem sort_idempotent :
   forall (A : LinDec) (s : Sort) (l : list A),
     sort (sort l) = sort l.
 Proof.
-Admitted. (* TODO *)
+  intros. apply sort_perm. destruct s; cbn.
+  rewrite <- sort_perm0. reflexivity.
+Qed.

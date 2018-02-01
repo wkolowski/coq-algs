@@ -15,6 +15,7 @@ end.
 
 Definition perm (A : LinDec) (l1 l2 : list A) : Prop :=
     forall x : A, count A x l1 = count A x l2.
+
 (* Lemmas about [count]. *)
 
 Lemma count_last :
@@ -154,7 +155,6 @@ Proof.
   rewrite <- count_In. assumption.
 Qed.
 
-
 Instance Equiv_perm (A : LinDec) : Equivalence (perm A).
 Proof.
   split; red; intros; eauto. eapply perm_trans; eauto.
@@ -176,6 +176,16 @@ Proof.
       apply H_cons_cons. apply IHt.
 Qed.
 
+Lemma perm_singl :
+  forall (A : LinDec) (x : A) (l : list A),
+    perm A [x] l -> l = [x].
+Proof.
+  unfold perm; destruct l as [| h1 [| h2 t]]; cbn; intros.
+    specialize (H x). dec.
+    specialize (H x). dec.
+    assert (H1 := H h1). assert (H2 := H h2). dec.
+Qed.
+
 Lemma perm_front_ex :
   forall (A : LinDec) (h : A) (t l : list A),
     perm A (h :: t) l -> exists l1 l2 : list A,
@@ -189,6 +199,19 @@ Proof.
     inv H.
     subst. apply perm_nil_cons in H0. contradiction.
     inv H0.
+Restart.
+  intros A h t. unfold perm. gen h.
+  induction t as [| h' t']; cbn; intros.
+    apply perm_singl in H. subst. exists [], []. cbn. reflexivity.
+    destruct l as [| h1 [| h2 t]].
+      unfold perm in H. cbn in H. specialize (H h). dec.
+      unfold perm in H. cbn in H. specialize (H h). dec.
+        exists [], []. cbn. reflexivity.
+    cbn in H. specialize (H h). dec.
+      exists [h2], t. cbn. reflexivity.
+      exists [], (h2 :: t). cbn. reflexivity.
+      exists [h1], t. cbn. reflexivity.
+      specialize (IHt' h' (h1 :: h2 :: h' :: t')). cbn in IHt'.
 Abort. (* TODO *)
 
 Theorem Permutation_perm :
@@ -208,6 +231,7 @@ Proof.
       specialize (H h). cbn in H. dec.
       assert (H' := H). specialize (H h'); cbn in H'. dec.
         apply perm_skip. apply IHt. intro. specialize (H' x). dec.
+        Search Permutation.
 Restart.
   intro. apply (bin_rel_list_ind A
   (fun l1 l2 => perm A l1 l2 -> Permutation l1 l2));

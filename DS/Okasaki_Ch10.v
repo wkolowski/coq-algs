@@ -55,112 +55,12 @@ Definition tail {A : Type} (s : Seq A) : option (Seq A) :=
 
 Require Import Div2.
 
-(** lookup v1 *)
-Inductive lookupDom : nat -> forall A : Type, Seq A -> Type :=
-    | dom_Nil :
-        forall {i : nat} {A : Type}, lookupDom i A Nil
-    | dom_Zero :
-        forall {i : nat} {A : Type} {s : Seq (A * A)},
-          lookupDom (div2 i) (A * A) s -> lookupDom i A (Zero s)
-    | dom_One_0 :
-        forall {A : Type} (h : A) {t : Seq (A * A)},
-          lookupDom 0 A (One h t)
-    | dom_One_S :
-        forall {i : nat} {A : Type} {h : A} {t : Seq (A * A)},
-          lookupDom i A (Zero t) -> lookupDom (S i) A (One h t).
-
-Lemma lookupDom_all :
-  forall (i : nat) (A : Type) (s : Seq A), lookupDom i A s.
-Proof.
-  intros. gen i.
-  induction s as [| s' | h t]; intros.
-    constructor.
-    constructor. apply IHs.
-    destruct i as [| i'].
-      constructor.
-      constructor. constructor. apply IHs.
-Defined.
-
 Fixpoint even (n : nat) : bool :=
 match n with
     | 0 => true
     | 1 => false
     | S (S n') => even n'
 end.
-
-Fixpoint lookup_aux
-  {i : nat} {A : Type} {s : Seq A} (dom : lookupDom i A s) : option A :=
-match dom with
-    | dom_Nil => None
-    | dom_Zero dom =>
-        match lookup_aux dom with
-            | None => None
-            | Some (x, y) => Some (if even i then x else y)
-        end
-    | dom_One_0 h => Some h
-    | dom_One_S dom => lookup_aux dom
-end.
-
-Definition lookup
-  (i : nat) {A : Type} (s : Seq A) : option A :=
-    lookup_aux (lookupDom_all i A s).
-
-(*Lemma lookup_aux_eq :
-  forall (i : nat) (A : Type) (s : Seq A) (dom : lookupDom i A s),
-    lookup_aux dom =
-    match s with
-        | Nil => None
-        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
-                          (lookup_aux (div2 i) s')
-        | One h t =>
-            match i with
-                | 0 => Some h
-                | S i' => fmap (fun '(x, y) => if even i then x else y)
-                               (lookup (div2 i') t)
-            end
-end.*)
-
-Lemma lookup_eq_Nil :
-  forall (i : nat) (A : Type) (s : Seq A),
-    lookup i Nil = @None A.
-Proof. reflexivity. Qed.
-
-Lemma lookup_aux_eq_dom_Zero :
-  forall (i : nat) (A : Type) (s : Seq (A * A))
-  (w : lookupDom (div2 i) (A * A) s),
-    lookup_aux (dom_Zero w) =
-    fmap (fun '(x, y) => if even i then x else y) (lookup_aux w).
-Proof.
-Abort.
-
-(*Lemma lookup_eq_Zero :
-  forall (i : nat) (A : Type) (s : Seq (A * A)),
-    lookup i (Zero s) =
-    fmap (fun '(x, y) => if even i then x else y) (lookup (div2 i) s).
-Proof.
-*)  
-  
-
-Lemma lookup_eq :
-  forall (i : nat) (A : Type) (s : Seq A),
-    lookup i s =
-    match s with
-        | Nil => None
-        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
-                          (lookup (div2 i) s')
-        | One h t =>
-            match i with
-                | 0 => Some h
-                | S i' => lookup i' (Zero t)
-            end
-end.
-Proof.
-  intros. unfold lookup.
-  pose (w := lookupDom_all i A s).
-  replace (lookupDom_all i A s) with w by reflexivity.
-  clearbody w.
-  induction w; auto.
-Abort.
 
 (** lookup v2 *)
 Inductive lookupGraph :
@@ -181,7 +81,7 @@ Inductive lookupGraph :
 
 Hint Constructors lookupGraph.
 
-Definition lookup'_strong
+Definition lookup_strong
   (i : nat) {A : Type} (s : Seq A)
   : {r : option A & lookupGraph i A s r}.
 Proof.
@@ -191,132 +91,49 @@ Proof.
     destruct i as [| i'].
       exists (Some h). constructor.
       destruct (IHt (div2 i')) as [r g]. eauto.
-Defined. (*
-  gen s; gen A; gen i. fix 3. destruct s as [| s' | h t].
-    exists None. constructor.
-    destruct (lookup'_strong (div2 i) _ s'). clear -l. eauto.
-    destruct i as [| i'].
-      exists (Some h). eauto.
-      destruct (lookup'_strong i' _ (Zero t)).
-Defined.*)
+Defined.
 
-Definition lookup'
+Definition lookup
   (i : nat) {A : Type} (s : Seq A) : option A :=
-    projT1 (lookup'_strong i s).
-
-Require Import Eqdep.
-
-        Ltac inj := repeat
-        match goal with
-            | H : existT _ _ _ = existT _ _ _ |- _ =>
-                apply inj_pair2 in H
-        end; subst.
-
-Lemma lookup'_eq :
-  forall (i : nat) (A : Type) (s : Seq A),
-    lookup' i s =
-    match s with
-        | Nil => None
-        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
-                          (lookup' (div2 i) s')
-        | One h t =>
-            match i with
-                | 0 => Some h
-                | S i' => lookup' i' (Zero t)
-            end
-end.
-Proof.
-  intros i A s. gen i.
-  induction s as [| s' | h t]; cbn; intros.
-    reflexivity.
-    Focus 2. unfold lookup'. simpl. destruct i; cbn; auto.
-      destruct (lookup'_strong (PeanoNat.Nat.div2 i) s). cbn. reflexivity.
-    unfold lookup'. cbn in *.
-    destruct (Seq_rect _ _). cbn. unfold lookup' in IHs.
-(* cbn in IHs. rewrite IHs.*)
-      Require Import Eqdep.
-      destruct s.
-        f_equal. inversion l. reflexivity.
-        Focus 2. rewrite IHs. inversion l; inj.
-          reflexivity.
-          f_equal. cbn. destruct (Seq_rect _ _). cbn. 
-        f_equal. inversion l.
-        inj.
-Abort.
-
-Fixpoint size_add {A : Type} (s : Seq A) : nat :=
-match s with
-    | Nil => 0
-    | Zero s' => 1 + size_add s'
-    | One _ t => 2 + size_add t
-end.
-
-Require Import Recdef.
-
-(*Function lookup2
-  (i : nat) {A : Type} (s : Seq A) {measure size s} : option A :=
-match s with
-    | Nil => None
-    | Zero s' => (*fmap (fun '(x, y) => if even i then x else y)
-                      (lookup2 (div2 i) s')*)
-        match @lookup2 (div2 i) (A * A) s' with
-            | None => None
-            | Some p => Some (if even i then fst p else snd p)
-        end
-    | One h t =>
-        match i with
-            | 0 => Some h
-            | S i' => lookup2 i' (Zero t)
-        end
-end.*)
+    projT1 (lookup_strong i s).
 
 (** update *)
 Definition enhance {A : Type} (i : nat) (f : A -> A) : A * A -> A * A :=
   fun '(x, y) => if even i then (f x, y) else (x, f y).
 
-Inductive fupdateDom
-  : nat -> forall A : Type, (A -> A) -> Seq A -> Type :=
-    | fDom_Nil :
-        forall i A f, fupdateDom i A f Nil
-    | fDom_Zero :
-        forall i A f s,
-          fupdateDom (div2 i) (A * A) (enhance i f) s ->
-          fupdateDom i A f (Zero s)
-    | fDom_One_0 :
+Inductive fupdateGraph
+  : nat -> forall A : Type, (A -> A) -> Seq A -> Seq A -> Type :=
+    | fupdateGraph_Nil :
+        forall i A f, fupdateGraph i A f Nil Nil
+    | fupdateGraph_Zero :
+        forall i A f s r,
+          fupdateGraph (div2 i) (A * A) (enhance i f) s r ->
+          fupdateGraph i A f (Zero s) (Zero r)
+    | fupdateGraph_One_0 :
         forall A f h t,
-          fupdateDom 0 A f (One h t)
-    | fDom_One_S :
-        forall i A f h t,
-          fupdateDom i A f (Zero t) -> fupdateDom (S i) A f (One h t).
+          fupdateGraph 0 A f (One h t) (One (f h) t)
+    | fupdateGraph_One_S :
+        forall i A f h t r,
+          fupdateGraph i A f (Zero t) r ->
+            fupdateGraph (S i) A f (One h t) (cons h r).
 
-Arguments fDom_Nil [i A f].
-Arguments fDom_Zero [i A f s] _.
-Arguments fDom_One_0 [A] _ _ _.
-Arguments fDom_One_S [i A f] _ [t] _.
+Hint Constructors fupdateGraph.
 
-Lemma fupdateDom_all :
-  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A), fupdateDom i A f s.
+Definition fupdate_strong
+  (i : nat) (A : Type) (f : A -> A) (s : Seq A)
+  : {r : Seq A & fupdateGraph i A f s r}.
 Proof.
-  intros. gen f; gen i.
-  induction s as [| s' | h t]; cbn; intros.
-    constructor.
-    constructor. apply IHs.
-    destruct i as [| i']; repeat constructor. apply IHs.
+  gen i. gen f. induction s as [| A s' | A h t]; intros.
+    exists Nil. auto.
+    destruct (IHs' (enhance i f) (div2 i)). eauto.
+    destruct i as [| i'].
+      exists (One (f h) t). constructor.
+      destruct (IHt (enhance i' f) (div2 i')) as [r g]. eauto.
 Defined.
-
-Fixpoint fupdate_aux
-  {i : nat} {A : Type} {f : A -> A} {s : Seq A} (dom : fupdateDom i A f s)
-  : Seq A :=
-match dom with
-    | fDom_Nil => Nil
-    | fDom_Zero dom' => Zero (fupdate_aux dom')
-    | fDom_One_0 f h t => One (f h) t
-    | fDom_One_S h dom' => cons h (fupdate_aux dom')
- end.
 
 Definition fupdate
   (i : nat) {A : Type} (f : A -> A) (s : Seq A) : Seq A :=
-    fupdate_aux (fupdateDom_all i A f s).
+    projT1 (fupdate_strong i A f s).
 
 Definition update
   (i : nat) {A : Type} (y : A) (s : Seq A) : Seq A :=
@@ -380,7 +197,7 @@ Let to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
 Compute fromList to_1_10.
 Compute update 5 42 (fromList to_1_10).
 Compute lookup 1 (fromList to_1_10).
-Compute lookup' 1 (fromList to_1_10).
+Compute lookup 5 (fromList to_1_10).
 Compute update 1 42 (fromList to_1_10).
 
 (** Properties of empty *)
@@ -448,6 +265,14 @@ match s with
     | One h t => One h (normalize t)
 end.
 
+Require Import Eqdep.
+
+Ltac inj := repeat
+match goal with
+    | H : existT _ _ _ = existT _ _ _ |- _ =>
+        apply inj_pair2 in H
+end; subst.
+
 Lemma uncons_cons :
   forall (A : Type) (x : A) (s : Seq A),
     fmap (fun '(x, s) => (x, normalize s)) (uncons (cons x s)) =
@@ -511,53 +336,195 @@ Proof.
     reflexivity.
 Qed.
 
-(** Properties of lookup and lookup' *)
+(** Properties of lookup and lookup *)
 
-Lemma lookup_aux_spec :
-  forall (i : nat) (A : Type) (s : Seq A) (dom : lookupDom i A s),
-    lookup_aux dom = index i (toList s).
+Lemma lookupGraph_unique :
+  forall (i : nat) (A : Type) (s : Seq A) (r r' : option A),
+    lookupGraph i A s r -> lookupGraph i A s r' -> r = r'.
 Proof.
-  induction dom; cbn; auto.
-  rewrite IHdom. clear -s. gen i.
-  induction (toList s) as [| h t]; cbn; intros.
+  induction 1; inversion 1; try inj.
     reflexivity.
-    destruct i as [| [| i']], h; cbn.
-      reflexivity.
-      reflexivity.
-      apply IHt.
+    cbn. f_equal. apply IHX. assumption.
+    reflexivity.
+    eauto.
 Qed.
 
 Lemma lookup_spec :
   forall (i : nat) (A : Type) (s : Seq A),
-    lookup i s = index i (toList s).
+    lookupGraph i A s (@lookup i A s).
 Proof.
-  intros. apply lookup_aux_spec.
+  intros. unfold lookup. destruct (lookup_strong). cbn. assumption.
 Qed.
 
-Theorem lookup'_spec :
+Lemma lookup_eq :
   forall (i : nat) (A : Type) (s : Seq A),
-    lookupGraph i A s (lookup' i s).
+    lookup i s =
+    match s with
+        | Nil => None
+        | Zero s' => fmap (fun '(x, y) => if even i then x else y)
+                          (lookup (div2 i) s')
+        | One h t =>
+            match i with
+                | 0 => Some h
+                | S i' => lookup i' (Zero t)
+            end
+    end.
 Proof.
-  intros. unfold lookup'.
-  destruct (lookup'_strong i s) as [r H].
-  cbn. assumption.
+  intros. apply (@lookupGraph_unique i A s).
+    apply lookup_spec.
+    destruct s as [| s' | h t]; cbn.
+      constructor.
+      constructor. apply lookup_spec.
+      destruct i as [| i']; cbn.
+        constructor.
+        constructor. apply lookup_spec.
+Qed.
+
+Lemma lookup_ind :
+  forall P : nat -> forall A : Type, Seq A -> option A -> Prop,
+    (forall (i : nat) (A : Type),
+      P i A Nil None) ->
+    (forall (i : nat) (A : Type) (s : Seq (A * A)%type),
+      P (div2 i) (A * A)%type s (lookup (div2 i) s) ->
+          P i A (Zero s) (lookup i (Zero s))) ->
+    (forall (A : Type) (h : A) (t : Seq (A * A)%type),
+      P 0 A (One h t) (lookup 0 (One h t))) ->
+    (forall (i : nat) (A : Type) (h : A) (t : Seq (A * A)%type),
+      P i A (Zero t) (lookup i (Zero t)) ->
+        P (S i) A (One h t) (lookup (S i) (One h t))) ->
+    forall (i : nat) (A : Type) (s : Seq A),
+      P i A s (lookup i s).
+Proof.
+  intros.
+  eapply (lookupGraph_ind (fun i A s r _ => P i A s (lookup i s))
+           _ _ _ _ i A s (lookup i s) (lookup_spec i A s)).
+Unshelve.
+  all: cbn in *; intros; auto.
+Defined.
+
+Lemma index_aux :
+  forall (i : nat) (A : Type) (l : list (A * A)%type),
+    fmap (fun '(x, y) => if even i then x else y) (index (div2 i) l) =
+    index i (zipjoin l).
+Proof.
+  intros. gen i. induction l as [| [x y] t]; cbn; intros.
+    reflexivity.
+    destruct i as [| [| i']]; cbn; auto.
+Qed.
+
+Lemma lookup_index :
+  forall (i : nat) (A : Type) (s : Seq A),
+    lookup i s = index i (toList s).
+Proof.
+  intros. functional induction (lookup i s) using lookup_ind; cbn.
+    1, 3: reflexivity.
+    rewrite lookup_eq, IHo, index_aux. reflexivity.
+    rewrite lookup_eq. assumption.
 Qed.
 
 (** Properties of update *)
 
-Lemma fupdate_aux_spec :
-  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A)
-  (dom : fupdateDom i A f s),
-    toList (fupdate_aux dom) = lupdate i f (toList s).
+Lemma fupdate_spec :
+  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+    fupdateGraph i A f s (fupdate i f s).
 Proof.
-  induction dom; cbn; auto.
-    rewrite IHdom. clear -s. gen i.
-      induction (toList s) as [| h t ]; cbn; intros.
-        reflexivity.
-        destruct i as [| [| i']], h; cbn in *; auto.
-          unfold enhance. cbn. rewrite IHt. reflexivity.
-    rewrite toList_cons, IHdom. cbn. reflexivity.
+  intros. unfold fupdate. destruct (fupdate_strong i A f s). cbn.
+  assumption.
 Qed.
+
+Lemma fupdateGraph_unique :
+  forall (i : nat) (A : Type) (f : A -> A) (s r r' : Seq A),
+    fupdateGraph i A f s r -> fupdateGraph i A f s r' -> r = r'.
+Proof.
+  induction 1; inversion 1; inj; f_equal; eauto.
+Qed.
+
+Lemma fupdate_eq :
+  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+    fupdate i f s =
+    match s with
+        | Nil => Nil
+        | Zero s' => Zero (fupdate (div2 i) (enhance i f) s')
+        | One h t =>
+            match i with
+                | 0 => One (f h) t
+                | S i' => cons h (fupdate i' f (Zero t))
+            end
+    end.
+Proof.
+  intros. apply (@fupdateGraph_unique i A f s).
+    apply fupdate_spec.
+    destruct s as [| s' | h t].
+      constructor.
+      constructor. apply fupdate_spec.
+      destruct i as [| i'].
+        constructor.
+        constructor. apply fupdate_spec.
+Qed.
+
+Lemma fupdate_ind :
+  forall P : nat -> forall A : Type, (A -> A) -> Seq A -> Seq A -> Prop,
+    (forall (i : nat) (A : Type) (f : A -> A),
+      P i A f Nil Nil) ->
+    (forall (i : nat) (A : Type) (f : A -> A) (s : Seq (A * A)),
+      P (div2 i) (A * A)%type (enhance i f) s
+        (fupdate (div2 i) (enhance i f) s) ->
+          P i A f (Zero s) (fupdate i f (Zero s))) ->
+    (forall (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
+      P 0 A f (One h t) (One (f h) t)) ->
+    (forall (i : nat) (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
+      P i A f (Zero t) (fupdate i f (Zero t)) ->
+        P (S i) A f (One h t) (fupdate (S i) f (One h t))) ->
+    forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+      P i A f s (fupdate i f s).
+Proof.
+  intros.
+  eapply (@fupdateGraph_ind (fun i A f s _ _ => P i A f s (fupdate i f s))
+          _ _ _ _ i A f s (fupdate i f s) (fupdate_spec i A f s)).
+Unshelve.
+  all: cbn; intros; eauto.
+Defined.
+
+Check lupdate.
+
+Lemma enhance_SS :
+  forall (i : nat) (A : Type) (f : A -> A),
+    enhance (S (S i)) f = enhance i f.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma lupdate_aux :
+  forall (i : nat) (A : Type) (f : A -> A) (l : list (A * A)%type),
+    zipjoin (lupdate (div2 i) (enhance i f) l) =
+    lupdate i f (zipjoin l).
+Proof.
+  intros. gen i. gen f.
+  induction l as [| [x y] t]; cbn; intros.
+    reflexivity.
+    destruct i as [| [| i']]; cbn; auto.
+      rewrite enhance_SS, IHt. reflexivity.
+Qed.
+
+Lemma fupdate_lupdate :
+  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+    toList (fupdate i f s) = lupdate i f (toList s).
+Proof.
+  intros.
+  functional induction (fupdate i f s) using fupdate_ind; cbn.
+    1, 3: reflexivity.
+    rewrite fupdate_eq. cbn. rewrite IHs0, lupdate_aux. reflexivity.
+    rewrite fupdate_eq, toList_cons, IHs0. cbn. reflexivity.
+Qed.
+
+Lemma lookup_fupdate :
+  forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+    lookup i (fupdate i f s) = fmap_Option f (lookup i s).
+Proof.
+  intros. functional induction (fupdate i f s) using fupdate_ind; cbn.
+    1, 3: reflexivity.
+    rewrite fupdate_eq, lookup_eq. rewrite IHs0. cbn.
+Abort.
 
 (* TODO: Ex. 10.2 *)
 
