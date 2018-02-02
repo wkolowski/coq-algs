@@ -47,8 +47,9 @@ Time Compute insertionSort natle (cycle 10 testl).*)
 
 (* Fast sorts on medium lists. *)
 
-(*Time Compute ms natle (cycle 100 testl).
-Time Compute ms2 natle (cycle 100 testl).
+(*Time Eval native_compute in ms natle (cycle 100 testl).
+Time Compute ms natle (cycle 100 testl).
+Time Eval native_compute in ms2 natle (cycle 100 testl).
 
 Time Compute qs natle (cycle 100 testl).
 Time Compute qs2 natle (cycle 100 testl).

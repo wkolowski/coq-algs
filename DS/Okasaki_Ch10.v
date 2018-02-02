@@ -24,6 +24,13 @@ match s with
     | _ => false
 end.
 
+Fixpoint isEmpty' {A : Type} (s : Seq A) : bool :=
+match s with
+    | Nil => true
+    | Zero s' => isEmpty' s'
+    | One _ _ => false
+end.
+
 Function cons {A : Type} (x : A) (s : Seq A) : Seq A :=
 match s with
     | Nil => One x Nil
@@ -47,6 +54,8 @@ Require Import HSLib.Base.
 Require Import HSLib.Control.Functor.
 Require Import HSLib.Instances.All.
 
+Require Import RCCBase.
+
 Definition head {A : Type} (s : Seq A) : option A :=
   fmap fst (uncons s).
 
@@ -62,7 +71,7 @@ match n with
     | S (S n') => even n'
 end.
 
-(** lookup v2 *)
+(** [lookup] *)
 Inductive lookupGraph :
   nat -> forall A : Type, Seq A -> option A -> Type :=
     | graph_Nil :
@@ -97,7 +106,7 @@ Definition lookup
   (i : nat) {A : Type} (s : Seq A) : option A :=
     projT1 (lookup_strong i s).
 
-(** update *)
+(** [update] *)
 Definition enhance {A : Type} (i : nat) (f : A -> A) : A * A -> A * A :=
   fun '(x, y) => if even i then (f x, y) else (x, f y).
 
@@ -142,12 +151,10 @@ Definition update
 (** Other functions *)
 
 Fixpoint fromList {A : Type} (l : list A) : Seq A :=
-  let aux := fix f (l : list A) : Seq A :=
-    match l with
-        | [] => Nil
-        | h :: t => cons h (f t)
-    end
-  in aux l.
+match l with
+    | [] => Nil
+    | h :: t => cons h (fromList t)
+end.
 
 Fixpoint zipjoin {A : Type} (l : list (A * A)) : list A :=
 match l with
@@ -190,63 +197,6 @@ match l with
         end
 end.
 
-(** Tests *)
-
-Let to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
-
-Compute fromList to_1_10.
-Compute update 5 42 (fromList to_1_10).
-Compute lookup 1 (fromList to_1_10).
-Compute lookup 5 (fromList to_1_10).
-Compute update 1 42 (fromList to_1_10).
-
-(** Properties of empty *)
-
-(** Properties of cons *)
-
-Lemma cons_uncons :
-  forall (A : Type) (x : A) (s s' : Seq A),
-    uncons s = Some (x, s') -> cons x s' = s.
-Proof.
-  intros. functional induction @uncons A s.
-    congruence.
-    congruence.
-    inversion H; subst. cbn. rewrite IHo; auto.
-    inversion H. cbn. reflexivity.
-Qed.
-
-Lemma toList_cons :
-  forall (A : Type) (x : A) (s : Seq A),
-    toList (cons x s) = x :: toList s.
-Proof.
-  intros. functional induction @cons A x s; cbn.
-    reflexivity.
-    reflexivity.
-    rewrite IHs0. cbn. reflexivity.
-Qed.
-
-Lemma cons_not_Nil :
-  forall (A : Type) (x : A) (s : Seq A),
-    cons x s <> Nil.
-Proof.
-  induction s as [| s' | h t]; inversion 1.
-Qed.
-
-Lemma cons_size :
-  forall (A : Type) (x : A) (s : Seq A),
-    size (cons x s) = S (size s).
-Proof.
-  induction s as [| s' | h t]; cbn.
-    reflexivity.
-    reflexivity.
-    rewrite <- ?plus_n_O. rewrite IHs. cbn. rewrite <- plus_n_Sm.
-      reflexivity.
-Qed.
-
-(** Properties of uncons *)
-
-Require Import Eqdep.
-
 Fixpoint valid {A : Type} (s : Seq A) : Prop :=
 match s with
     | Nil => True
@@ -264,6 +214,121 @@ match s with
         end
     | One h t => One h (normalize t)
 end.
+
+(** Tests *)
+
+Let to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
+
+Compute fromList to_1_10.
+Compute update 5 42 (fromList to_1_10).
+Compute lookup 1 (fromList to_1_10).
+Compute lookup 5 (fromList to_1_10).
+Compute update 1 42 (fromList to_1_10).
+
+(** Properties of [isEmpty]. *)
+
+Lemma isEmpty_empty :
+  forall (A : Type) (s : Seq A),
+    isEmpty s = true <-> s = empty.
+Proof.
+  split; destruct s; compute; congruence.
+Qed.
+
+Lemma isEmpty_cons :
+  forall (A : Type) (h : A) (t : Seq A),
+    isEmpty (cons h t) = false.
+Proof.
+  destruct t; cbn; reflexivity.
+Qed.
+
+Lemma empty_valid :
+  forall A : Type,
+    valid (@empty A).
+Proof.
+  cbn. trivial.
+Qed.
+
+(** Properties of [isEmpty']. *)
+
+Lemma isEmpty'_empty :
+  forall A : Type,
+    isEmpty' (@empty A) = true.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma isEmpty'_cons :
+  forall (A : Type) (h : A) (t : Seq A),
+    isEmpty' (cons h t) = false.
+Proof.
+  induction t; cbn; rewrite ?IHt; reflexivity.
+Qed.
+
+Lemma isEmpty'_size :
+  forall (A : Type) (s : Seq A),
+    isEmpty' s = true <-> size s = 0.
+Proof.
+  split.
+    induction s as [| s' | h t]; cbn; intro.
+      reflexivity.
+      rewrite IHs; auto.
+      congruence.
+    induction s as [| s' | h t]; cbn; intro.
+      reflexivity.
+      apply IHs. destruct (size s); inv H.
+      inv H.
+Qed.
+
+(** Properties of cons *)
+
+Lemma cons_not_Nil :
+  forall (A : Type) (x : A) (s : Seq A),
+    cons x s <> Nil.
+Proof.
+  induction s as [| s' | h t]; inv 1.
+Qed.
+
+Lemma cons_uncons :
+  forall (A : Type) (x : A) (s s' : Seq A),
+    uncons s = Some (x, s') -> cons x s' = s.
+Proof.
+  intros. functional induction @uncons A s.
+    congruence.
+    congruence.
+    inv H. cbn. rewrite IHo; auto.
+    inv H.
+Qed.
+
+Lemma cons_toList :
+  forall (A : Type) (x : A) (s : Seq A),
+    toList (cons x s) = x :: toList s.
+Proof.
+  intros. functional induction @cons A x s; cbn.
+    reflexivity.
+    reflexivity.
+    rewrite IHs0. cbn. reflexivity.
+Qed.
+
+Lemma cons_size :
+  forall (A : Type) (x : A) (s : Seq A),
+    size (cons x s) = S (size s).
+Proof.
+  induction s as [| s' | h t]; cbn.
+    reflexivity.
+    reflexivity.
+    rewrite <- ?plus_n_O. rewrite IHs. cbn. rewrite <- plus_n_Sm.
+      reflexivity.
+Qed.
+
+Lemma cons_valid :
+  forall (A : Type) (x : A) (s : Seq A),
+    valid s -> valid (cons x s).
+Proof.
+  induction s as [| s' | h t]; cbn; intros; firstorder.
+    apply cons_not_Nil.
+Qed.
+
+(** Properties of uncons *)
 
 Require Import Eqdep.
 
@@ -290,7 +355,27 @@ Proof.
     functional inversion Heqw; inj; subst; cbn; reflexivity.
 Qed.
 
+Lemma uncons_valid :
+  forall (A : Type) (h : A) (t s : Seq A),
+    valid s -> uncons s = None \/ (uncons s = Some (h, t) -> valid t).
+Proof.
+  intros A h t s. gen t; gen h.
+  induction s as [| s' | h' t']; cbn; intros.
+    left. reflexivity.
+    destruct (uncons s).
+      destruct p, p. right. inv 1. cbn. destruct H.
+        destruct (IHs (h, s2) s0 H0).
+          inv H1.
+          apply H1. reflexivity.
+      left. reflexivity.
+    right. inv 1. cbn. split; auto. case_eq (uncons s); intros.
+      destruct p. destruct (IHs p s0 H).
+        congruence.
+        destruct s; cbn in *; congruence.
+Abort.
+
 (** Properties of head *)
+
 Lemma head_cons :
   forall (A : Type) (x : A) (s : Seq A),
     head (cons x s) = Some x.
@@ -332,7 +417,7 @@ Proof.
     rewrite e0 in IHo. cbn in *. destruct (toList s') as [| h t]; cbn.
       reflexivity.
       congruence.
-    apply cons_uncons in e0. rewrite <- e0, toList_cons. cbn. reflexivity.
+    apply cons_uncons in e0. rewrite <- e0, cons_toList. cbn. reflexivity.
     reflexivity.
 Qed.
 
@@ -342,8 +427,7 @@ Lemma lookupGraph_unique :
   forall (i : nat) (A : Type) (s : Seq A) (r r' : option A),
     lookupGraph i A s r -> lookupGraph i A s r' -> r = r'.
 Proof.
-  induction 1; inversion 1; try inj.
-    reflexivity.
+  induction 1; inv 1; try inj.
     cbn. f_equal. apply IHX. assumption.
     reflexivity.
     eauto.
@@ -432,11 +516,50 @@ Proof.
   assumption.
 Qed.
 
+Lemma fupdate_ind :
+  forall P : nat -> forall A : Type, (A -> A) -> Seq A -> Seq A -> Prop,
+    (forall (i : nat) (A : Type) (f : A -> A),
+      P i A f Nil Nil) ->
+    (forall (i : nat) (A : Type) (f : A -> A) (s : Seq (A * A)),
+      P (div2 i) (A * A)%type (enhance i f) s
+        (fupdate (div2 i) (enhance i f) s) ->
+          P i A f (Zero s) (fupdate i f (Zero s))) ->
+    (forall (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
+      P 0 A f (One h t) (One (f h) t)) ->
+    (forall (i : nat) (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
+      P i A f (Zero t) (fupdate i f (Zero t)) ->
+        P (S i) A f (One h t) (fupdate (S i) f (One h t))) ->
+    forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
+      P i A f s (fupdate i f s).
+Proof.
+  intros.
+  eapply (@fupdateGraph_ind (fun i A f s _ _ => P i A f s (fupdate i f s))
+          _ _ _ _ i A f s (fupdate i f s) (fupdate_spec i A f s)).
+Unshelve.
+  all: cbn; intros; eauto.
+Defined.
+
 Lemma fupdateGraph_unique :
   forall (i : nat) (A : Type) (f : A -> A) (s r r' : Seq A),
     fupdateGraph i A f s r -> fupdateGraph i A f s r' -> r = r'.
 Proof.
-  induction 1; inversion 1; inj; f_equal; eauto.
+  induction 1; inv 1; inj; f_equal; eauto.
+Qed.
+
+Lemma fupdateGraph_correct :
+  forall (i : nat) (A : Type) (f : A -> A) (s r : Seq A),
+    fupdate i f s = r -> fupdateGraph i A f s r.
+Proof.
+  intros. subst. apply fupdate_spec.
+Qed.
+
+Lemma fupdateGraph_complete :
+  forall (i : nat) (A : Type) (f : A -> A) (s r : Seq A),
+    fupdateGraph i A f s r -> fupdate i f s = r.
+Proof.
+  intros. eapply fupdateGraph_unique.
+    apply fupdateGraph_correct. reflexivity.
+    assumption.
 Qed.
 
 Lemma fupdate_eq :
@@ -461,31 +584,6 @@ Proof.
         constructor.
         constructor. apply fupdate_spec.
 Qed.
-
-Lemma fupdate_ind :
-  forall P : nat -> forall A : Type, (A -> A) -> Seq A -> Seq A -> Prop,
-    (forall (i : nat) (A : Type) (f : A -> A),
-      P i A f Nil Nil) ->
-    (forall (i : nat) (A : Type) (f : A -> A) (s : Seq (A * A)),
-      P (div2 i) (A * A)%type (enhance i f) s
-        (fupdate (div2 i) (enhance i f) s) ->
-          P i A f (Zero s) (fupdate i f (Zero s))) ->
-    (forall (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
-      P 0 A f (One h t) (One (f h) t)) ->
-    (forall (i : nat) (A : Type) (f : A -> A) (h : A) (t : Seq (A * A)),
-      P i A f (Zero t) (fupdate i f (Zero t)) ->
-        P (S i) A f (One h t) (fupdate (S i) f (One h t))) ->
-    forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
-      P i A f s (fupdate i f s).
-Proof.
-  intros.
-  eapply (@fupdateGraph_ind (fun i A f s _ _ => P i A f s (fupdate i f s))
-          _ _ _ _ i A f s (fupdate i f s) (fupdate_spec i A f s)).
-Unshelve.
-  all: cbn; intros; eauto.
-Defined.
-
-Check lupdate.
 
 Lemma enhance_SS :
   forall (i : nat) (A : Type) (f : A -> A),
@@ -514,7 +612,14 @@ Proof.
   functional induction (fupdate i f s) using fupdate_ind; cbn.
     1, 3: reflexivity.
     rewrite fupdate_eq. cbn. rewrite IHs0, lupdate_aux. reflexivity.
-    rewrite fupdate_eq, toList_cons, IHs0. cbn. reflexivity.
+    rewrite fupdate_eq, cons_toList, IHs0. cbn. reflexivity.
+Qed.
+
+Lemma lookup_cons :
+  forall (i : nat) (A : Type) (h : A) (t : Seq A),
+    lookup (S i) (cons h t) = lookup i t.
+Proof.
+  intros. rewrite !lookup_index, cons_toList. cbn. reflexivity.
 Qed.
 
 Lemma lookup_fupdate :
@@ -523,8 +628,20 @@ Lemma lookup_fupdate :
 Proof.
   intros. functional induction (fupdate i f s) using fupdate_ind; cbn.
     1, 3: reflexivity.
-    rewrite fupdate_eq, lookup_eq. rewrite IHs0. cbn.
-Abort.
+    rewrite (lookup_eq i A (Zero s)). rewrite fupdate_eq, lookup_eq.
+      cbn. rewrite  1!IHs0. destruct (lookup (div2 i) s); cbn.
+        destruct p. cbn. destruct (even i); reflexivity.
+        reflexivity.
+    rewrite (lookup_eq (S i) A (One h t)), <- IHs0.
+    rewrite 2!fupdate_eq. cbn. rewrite lookup_eq. reflexivity.
+Restart.
+  intros. rewrite !lookup_index, !fupdate_lupdate.
+  gen i. induction (toList s); cbn; intros.
+    reflexivity.
+    destruct i; cbn.
+      reflexivity.
+      apply IHl.
+Qed.
 
 (* TODO: Ex. 10.2 *)
 

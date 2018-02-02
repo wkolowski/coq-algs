@@ -5,6 +5,7 @@ Require Export RCCBase.
 
 Set Implicit Arguments.
 
+(* TODO: remove later, when inconsistencies disappear *)
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
     | T : A -> list (Tree A) -> Tree A.
@@ -52,6 +53,21 @@ Proof.
     apply HT; inv H.
 Qed.
 
+Lemma Tree_ind_proper2
+  (A : Type) (P : Tree A -> Prop)
+  (HE : P E)
+  (Hnil : forall x : A, P (T x []))
+  (HT : forall (x : A) (t : Tree A) (ts : list (Tree A)),
+    P t -> P (T x ts) -> P (T x (t :: ts)))
+  (t : Tree A) : P t.
+Proof.
+  induction t using Tree_ind_proper.
+    apply HE.
+    induction H.
+      apply Hnil.
+      apply HT; assumption.
+Qed.
+
 Inductive elem {A : Type} (x : A) : Tree A -> Prop :=
     | elem0 : forall l : list (Tree A), elem x (T x l)
     | elem1 : forall (a : A) (l : list (Tree A)),
@@ -64,21 +80,6 @@ Inductive isHeap {A : LinDec} : Tree A -> Prop :=
           Forall (fun t : Tree A => forall x : A, elem x t -> v ≤ x) l ->
           Forall (fun t : Tree A => isHeap t) l ->
             isHeap (T v l).
-
-Lemma isHeap_inv :
-  forall (A : LinDec) (x : A) (l : list (Tree A)),
-    isHeap (T x l) -> Forall isHeap l.
-Proof.
-  intros. inv H.
-Qed.
-
-Lemma isHeap_inv' :
-  forall (A : LinDec) (v : A) (l : list (Tree A)),
-    isHeap (T v l) ->
-      Forall (fun t : Tree A => forall x : A, elem x t -> v ≤ x) l.
-Proof.
-  intros. inv H.
-Qed.
 
 Hint Constructors elem isHeap.
 
@@ -94,12 +95,6 @@ match h with
 end.
 
 Definition singleton {A : LinDec} (x : A) : PairingHeap A := T x [].
-
-(*Definition findMin {A : LinDec} (h : PairingHeap A) : option A :=
-match h with
-    | E => None
-    | T m _ => Some m
-end.*)
 
 Definition merge
   {A : LinDec} (h1 h2 : PairingHeap A) : PairingHeap A :=
@@ -123,13 +118,6 @@ match hs with
     | [h] => h
     | h1 :: h2 :: hs' => merge (merge h1 h2) (mergePairs hs')
 end.
-
-(*Definition deleteMin' {A : LinDec} (h : PairingHeap A)
-  : option (PairingHeap A) :=
-match h with
-    | E => None
-    | T _ hs => Some (mergePairs hs)
-end.*)
 
 (* TODO: develop *)
 Definition unT
@@ -271,20 +259,6 @@ Lemma merge_isHeap :
   forall (A : LinDec) (h1 h2 : PairingHeap A),
     isHeap h1 -> isHeap h2 -> isHeap (merge h1 h2).
 Proof.
-  destruct h1, h2; cbn; intros; auto. dec; do 2 constructor.
-    apply isHeap_inv' in H0. induction H0; intros.
-      inv H0. inv H2.
-      inv H2. inv H4. eauto.
-    inv H.
-    assumption.
-    inv H.
-    apply isHeap_inv' in H. induction H; intros.
-      inv H. inv H2.
-      inv H2. inv H4. eauto.
-    inv H0.
-    assumption.
-    inv H0.
-Restart.
   destruct h1, h2; cbn; intros; auto.
   dec; do 2 constructor; try (inv H; inv H0; fail).
     inv H0. clear H4. induction H3; intros.
