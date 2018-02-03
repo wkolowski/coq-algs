@@ -26,37 +26,37 @@ Inductive elem {A : Type} (x : A) : RSTree A -> Prop :=
     | elem_right : forall  (n : nat) (v : A) (l r : RSTree A),
         elem x r -> elem x (node n v l r).
 
-Inductive is_heap {A : LinDec} : RSTree A -> Prop :=
-    | is_heap_empty : is_heap empty
-    | is_heap_node :
+Inductive isHeap {A : LinDec} : RSTree A -> Prop :=
+    | isHeap_empty : isHeap empty
+    | isHeap_node :
         forall  (n : nat) (v : A) (l : RSTree A) (r : RSTree A),
-          (forall x : A, elem x l -> v ≤ x) -> is_heap l ->
-          (forall x : A, elem x r -> v ≤ x) -> is_heap r ->
-            is_heap (node n v l r).
+          (forall x : A, elem x l -> v ≤ x) -> isHeap l ->
+          (forall x : A, elem x r -> v ≤ x) -> isHeap r ->
+            isHeap (node n v l r).
 
-Lemma is_heap_inv_l :
+Lemma isHeap_inv_l :
   forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
-    is_heap (node n v l r) -> is_heap l.
+    isHeap (node n v l r) -> isHeap l.
 Proof.
   inversion 1; eauto.
 Qed.
 
-Lemma is_heap_inv_r :
+Lemma isHeap_inv_r :
   forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
-    is_heap (node n v l r) -> is_heap r.
+    isHeap (node n v l r) -> isHeap r.
 Proof.
   inversion 1; eauto.
 Qed.
 
-Lemma is_heap_inv_leq :
+Lemma isHeap_inv_leq :
   forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
-    is_heap (node n v l r) -> forall x : A,
+    isHeap (node n v l r) -> forall x : A,
       elem x (node n v l r) -> v ≤ x.
 Proof.
   do 2 inversion 1; subst; auto.
 Qed.
 
-Hint Resolve is_heap_inv_l is_heap_inv_r.
+Hint Resolve isHeap_inv_l isHeap_inv_r.
 
 Inductive left_biased {A : LinDec} : RSTree A -> Prop :=
     | left_biased_empty : left_biased empty
@@ -66,7 +66,7 @@ Inductive left_biased {A : LinDec} : RSTree A -> Prop :=
           left_biased l -> left_biased r ->
             left_biased (node (S (right_spine r)) v l r).
 
-Hint Constructors RSTree elem is_heap left_biased.
+Hint Constructors RSTree elem isHeap left_biased.
 
 Ltac lh x :=
   let t := fresh "t" in
@@ -167,11 +167,11 @@ Proof.
   intros. balance; split; intro; inv H.
 Qed.
 
-Theorem balance_is_heap :
+Theorem balance_isHeap :
   forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
     (forall x : A, elem x l -> v ≤ x) ->
     (forall x : A, elem x r -> v ≤ x) ->
-      is_heap l -> is_heap r -> is_heap (balance v l r).
+      isHeap l -> isHeap r -> isHeap (balance v l r).
 Proof.
   intros; balance; constructor; elem.
 Qed.
@@ -258,13 +258,13 @@ Proof.
     Unshelve. all: auto.
 Qed.
 
-Theorem merge'_is_heap :
+Theorem merge'_isHeap :
   forall (A : LinDec) (t1 t2 : RSTree A),
-    is_heap t1 -> is_heap t2 -> is_heap (merge' (t1, t2)).
+    isHeap t1 -> isHeap t2 -> isHeap (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
   functional induction @merge' A p; inv Heqp;
-  inv H; inv H0; apply balance_is_heap; elem.
+  inv H; inv H0; apply balance_isHeap; elem.
     destruct (leqb_spec v v'); inv e0. destruct (elem_merge' H); auto.
       eapply leq_trans with v'. auto. inv H0.
     eapply (IHr _ _ _ _ eq_refl).
@@ -291,7 +291,7 @@ Qed.
 Proof.
   destruct h1 as [t1 H11 H12], h2 as [t2 H21 H22].
   split with (tree := @merge' A (t1, t2)).
-  apply merge'_is_heap; assumption.
+  apply merge'_isHeap; assumption.
   apply merge'_left_biased; assumption.
 Defined.*)
 
@@ -325,7 +325,7 @@ end.
 
 Theorem deleteMin_spec :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
-    is_heap t -> deleteMin t = (Some m, t') ->
+    isHeap t -> deleteMin t = (Some m, t') ->
       forall x : A, elem x t' -> m ≤ x.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst; cbn.
@@ -346,13 +346,13 @@ Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
-Theorem deleteMin_is_heap :
+Theorem deleteMin_isHeap :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
-    is_heap t -> deleteMin t = (Some m, t') ->
-      is_heap t'.
+    isHeap t -> deleteMin t = (Some m, t') ->
+      isHeap t'.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst.
-  apply merge'_is_heap; assumption.
+  apply merge'_isHeap; assumption.
 Qed.
 
 Theorem deleteMin_left_biased :

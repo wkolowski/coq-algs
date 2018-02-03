@@ -2,18 +2,6 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RedBlack.
 
-Function toList {A : Type} (t : RBTree A) : list A :=
-match t with
-    | E => []
-    | T _ l v r => toList l ++ v :: toList r
-end.
-
-Fixpoint fromList {A : LinDec} (l : list A) : RBTree A :=
-match l with
-    | [] => E
-    | h :: t => ins h (fromList t)
-end.
-
 Fixpoint toList'_aux {A : Type} (t : RBTree A) (acc : list A) : list A :=
 match t with
     | E => acc
@@ -24,6 +12,9 @@ Definition toList' {A : Type} (t : RBTree A) : list A := toList'_aux t [].
 
 Definition fromList' {A : LinDec} (l : list A) : RBTree A :=
   fold_left (fun t x => ins x t) l E.
+
+Definition fromList'' {A : LinDec} (l : list A) : RBTree A :=
+  fold_right (fun h t => ins h t) E l.
 
 Lemma toList'_aux_spec :
   forall (A : Type) (t : RBTree A) (acc : list A),
@@ -40,13 +31,21 @@ Proof.
   rewrite toList'_aux_spec, app_nil_r. trivial.
 Qed.
 
-Definition redblackSort (A : LinDec) (l : list A) : list A :=
-  toList (fromList l).
-
-Definition redblackSort' (A : LinDec) (l : list A) : list A :=
-  toList' (fromList' l).
-
 Require Import ListLemmas.
 
-(*Time Compute redblackSort natle (cycle 200 testl).
-Time Compute redblackSort' natle (cycle 200 testl).*)
+(*
+Time Eval native_compute in redblackSort natle (cycle 2000 testl). (* 1.5 *)
+Time Eval native_compute in redblackSort' natle (cycle 2000 testl). (* 1.4 *)
+*)
+
+
+
+
+
+
+Instance Sort_redblackSort : Sort :=
+{
+    sort := @redblackSort;
+    sort_sorted := @redblackSort_sorted;
+    sort_perm := @redblackSort_perm;
+}.

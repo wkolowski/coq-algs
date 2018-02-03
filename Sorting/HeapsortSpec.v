@@ -14,24 +14,26 @@ Require Export Heapsort.
 
 Set Implicit Arguments.
 
-Lemma toList_sorted :
+(** TODO: refactor (and remember: it's done in DS/LeftistHeap.v) *)
+
+(*Lemma toList_sorted :
   forall (A : LinDec) (t : BTree A),
-    is_heap t -> sorted A (toList t).
+    isHeap t -> sorted A (toList t).
 Proof.
   intros A t. functional induction @toList A t.
     constructor.
     functional induction @toList A t'; constructor.
       eapply deleteMin_spec; eauto. eapply deleteMin_elem. eauto.
-      apply IHl. eapply deleteMin_is_heap; eauto.
+      apply IHl. eapply deleteMin_isHeap; eauto.
 Qed.
 
-Lemma fromList_is_heap :
+Lemma fromList_isHeap :
   forall (A : LinDec) (l : list A),
-    is_heap (fromList l).
+    isHeap (fromList l).
 Proof.
   intros. functional induction @fromList A l; cbn.
     constructor.
-    unfold insert'. apply merge'_is_heap; auto.
+    unfold insert'. apply merge'_isHeap; auto.
       constructor; auto; inversion 1.
 Qed.
 
@@ -40,7 +42,7 @@ Theorem leftistHeapsort_sorted :
     sorted A (leftistHeapsort A l).
 Proof.
   unfold leftistHeapsort. intros.
-    apply toList_sorted. apply fromList_is_heap.
+    apply toList_sorted. apply fromList_isHeap.
 Qed.
 
 Lemma count_BTree_merge' :
@@ -92,4 +94,4 @@ Instance Sort_leftistHeapsort : Sort :=
     sort := @leftistHeapsort;
     sort_sorted := @leftistHeapsort_sorted;
     sort_perm := leftistHeapsort_perm
-}.
+}.*)

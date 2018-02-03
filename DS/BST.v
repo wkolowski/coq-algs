@@ -164,21 +164,6 @@ Proof.
   intros. elim: t => [| v l Hl r Hr] //=; repeat dec.
 Qed.
 
-Function merge {A : LinDec} (t1 t2 : BTree A) : BTree A :=
-match t1 with
-    | empty => t2
-    | node v l r => merge l (merge r (BTree_ins v t2))
-end.
-
-Lemma merge_empty_r :
-  forall (A : LinDec) (t : BTree A),
-    merge t empty = t.
-Proof.
-  intros. remember empty as t'.
-  functional induction @merge A t t'.
-    trivial.
-Abort.
-
 Theorem fromList'_spec : @fromList' = @fromList.
 Proof.
   ext A. ext l. unfold fromList'.

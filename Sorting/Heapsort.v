@@ -10,8 +10,9 @@ Require Export BST.
 
 Require Import LeftistHeap.
 
-(* Leftist heapsort *)
-Function fromList {A : LinDec} (l : list A) : BTree A :=
+(** Moved to DS/LeftistHeap.v *)
+
+(*Function fromList {A : LinDec} (l : list A) : BTree A :=
 match l with
     | [] => emptyHeap
     | h :: t => insert' h (fromList t)
@@ -52,3 +53,4 @@ Definition leftistHeapsort (A : LinDec) (l : list A)
 
 Definition leftistHeapsort' (A : LinDec) (l : list A)
   : list A := rev_append (toList' (fromList' l)) [].
+*)

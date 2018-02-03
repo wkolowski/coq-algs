@@ -8,7 +8,6 @@ Require Export ListLemmas.
 
 Set Implicit Arguments.
 
-(* Selection sort using Function. *)
 Function ss (A : LinDec) (l : list A) {measure length l} : list A :=
 match l with
     | [] => []
@@ -34,27 +33,3 @@ Lemma remove_once_In' :
 Proof.
   induction t as [| h' t']; cbn; intuition dec.
 Qed.
-
-Lemma minmax_neq :
-  forall (A : LinDec) (l : list A) (x y min max : A),
-    x <> y -> minmax A x y l = (min, max) -> min <> max.
-Proof.
-  induction l as [| h t]; cbn; intros.
-    congruence.
-    dec.
-      destruct (LinDec_eqb_spec _ h x); subst; eauto.
-        destruct (LinDec_eqb_spec _ h y); subst; eauto.
-        eapply IHt; eauto.
-Abort.
-
-Function ss2 (A : LinDec) (l : list A) {measure length l} : list A :=
-match l with
-    | [] => []
-    | [x] => [x]
-    | h :: t => let (min, max) := minmax A h h t in
-        min :: ss2 A (remove_once min (remove_once max l)) ++ [max]
-end.
-Proof.
-  intros. eapply lt_trans.
-    apply remove_once_In_lt. apply remove_once_In'.
-Abort.

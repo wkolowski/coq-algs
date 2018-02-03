@@ -117,33 +117,45 @@ Defined.
 
 Theorem ghqs_perm :
   forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A) (l : list A),
-    perm A l (ghqs n A (@sort s A) p l).
+    perm A l (ghqs n A s p l).
 Proof.
-  intros. functional induction ghqs n A (@sort s A) p l; trivial.
-    destruct s; cbn. apply sort_perm.
+  intros. functional induction @ghqs n A s p l; trivial.
+    apply sort_perm.
     apply perm_symm. eapply perm_trans.
       apply perm_front.
       apply perm_cons. unfold perm in *. intro.
-        rewrite !count_app, <- IHl0, <- IHl1.
-        destruct p. cbn in *. Print Partition.
-Admitted.
+        rewrite !count_app, <- IHl0, <- IHl1; trivial.
+          destruct partition. cbn in *. clear IHl0 IHl1.
+            specialize (partition_perm _ _ _ _ _ e1).
+            rewrite partition_perm, !count_app. reflexivity.
+Qed.
 
 Theorem ghqs_In :
   forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A)
     (x : A) (l : list A),
-      In x (ghqs n A (@sort s A) p l) <-> In x l.
+      In x (ghqs n A s p l) <-> In x l.
 Proof.
   intros. rewrite !count_In, <- ghqs_perm; auto. reflexivity.
 Qed.
 
 Theorem ghqs_sorted :
   forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A) (l : list A),
-    sorted A (ghqs n A (@sort s A) p l).
+    sorted A (ghqs n A s p l).
 Proof.
-  intros. functional induction ghqs n A (@sort s A) p l; trivial.
-    destruct s; cbn. apply sort_sorted.
-    (* TODO *) apply sorted_app_all.
-      assumption.
-       apply sorted_cons.
-        intros.
-Abort.
+  intros. functional induction ghqs n A s p l; trivial.
+    apply sort_sorted.
+    apply sorted_app_all; auto.
+      apply sorted_cons.
+        intros. apply in_app_or in H. destruct H.
+          erewrite spec_eq; eauto.
+          eapply spec_hi; eauto. eapply ghqs_In; eauto.
+        apply sorted_app; auto.
+          assert (forall x : A, In x eq -> x = h).
+            eapply spec_eq; eauto.
+            clear e1. induction eq; auto. destruct eq; auto. constructor.
+              rewrite (H a), (H c); cbn; auto.
+              apply IHeq. intro. inv 1; apply H; cbn; auto.
+          intros. apply ghqs_In in H0. erewrite (spec_eq h) at 1; eauto.
+            eapply spec_hi; eauto.
+        intros. apply ghqs_In in H. eapply spec_lo; eauto.
+Qed.

@@ -87,21 +87,6 @@ Inductive isHeap {A : LinDec} : Tree A -> Prop :=
           Forall (fun t : Tree A => isHeap t) l ->
             isHeap (T v l).
 
-(*Lemma isHeap_inv :
-  forall (A : LinDec) (x : A) (l : list (Tree A)),
-    isHeap (T x l) -> Forall isHeap l.
-Proof.
-  intros. inv H.
-Qed.
-
-Lemma isHeap_inv' :
-  forall (A : LinDec) (v : A) (l : list (Tree A)),
-    isHeap (T v l) ->
-      Forall (fun t : Tree A => forall x : A, elem x t -> v ≤ x) l.
-Proof.
-  intros. inv H.
-Qed.*)
-
 Hint Constructors elem isHeap.
 
 Require Import HSLib.Control.Functor.
@@ -153,12 +138,6 @@ Restart.
       rewrite IHt. inv IHt0.
 Restart.
   all: intros; ext t; gen t; Tree_ind.
-
-(*Hint Extern 1 =>
-match goal with
-    | |- context [id _] => rewrite ?id_eq; try congruence
-end.*)
-
     rewrite !id_eq. inv IHts.
 Defined.
 
@@ -220,27 +199,6 @@ Instance Foldable_Tree : Foldable Tree :=
     foldMap := @foldMap_Tree;
 }.
 Proof.
-  intros. ext t. gen t.
-  destruct t as [| x l].
-    unfold compose; cbn. rewrite H. reflexivity.
-    induction l as [| t ts].
-      unfold compose; cbn. rewrite !id_right. reflexivity.
-      unfold compose in *; cbn in *. rewrite H0 in *.
-        rewrite H0 in *. inv IHts.
-Restart.
-  intros. ext t. gen t.
-  induction t using Tree_ind_proper.
-    unfold compose; cbn. rewrite H. reflexivity.
-    induction H1.
-      unfold compose; cbn. rewrite !id_right. reflexivity.
-      unfold compose in *; cbn in *.
-        rewrite <- ?op_assoc in *. rewrite !H0. f_equal.
-Restart.
-  intros. ext t. gen t. fix 1.
-  destruct t as [| x [| t ts]].
-    unfold compose; cbn. rewrite H. reflexivity.
-    unfold compose; cbn. rewrite !id_right. reflexivity.
-Restart.
   intros. ext t. gen t.
   apply (@Tree_rect' _ _ (fun l =>
       fold_right (fun t ts => op (foldMap_Tree (f .> g) t) ts) neutr l =

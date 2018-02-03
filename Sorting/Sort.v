@@ -23,13 +23,37 @@ Class Sort : Type :=
 
 Coercion sort : Sort >-> Funclass.
 
-Class Partition (A : Type) : Type :=
+Class Partition (A : LinDec) : Type :=
 {
     partition :> A -> list A -> list A * list A * list A;
-    spec_lo : forall (h : A) (t l1 l2 l3 : list A),
-      partition h t = (l1, l2, l3) -> length l1 <= length t;
-    spec_hi : forall (h : A) (t l1 l2 l3 : list A),
-      partition h t = (l1, l2, l3) -> length l3 <= length t
+    spec_lo :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x lo -> x ≤ pivot;
+    spec_eq :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x eq -> x = pivot;
+    spec_hi :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x hi -> pivot ≤ x /\ pivot <> x;
+    len_lo :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length lo <= length l;
+    len_eq :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length eq <= length l;
+    len_hi :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length hi <= length l;
+    partition_perm :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          perm A l (lo ++ eq ++ hi);
 }.
 
 Coercion partition : Partition >-> Funclass.

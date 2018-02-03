@@ -50,19 +50,21 @@ Proof. all: auto. Defined.
 
 Function ghqs
   (n : nat) (A : LinDec)
-  (sort : list A -> list A) (partition : Partition A)
+  (sort : Sort) (*list A -> list A)*) (partition : Partition A)
   (l : list A) {measure length l} : list A :=
     if @leqb natle (length l) (S n)
-    then sort l
+    then sort A l
     else match l with
         | [] => []
         | h :: t =>
             let '(lo, eq, hi) := partition h t in
-              ghqs n A sort partition lo ++
+              ghqs n sort partition lo ++
               h :: eq ++
-              ghqs n A sort partition hi
+              ghqs n sort partition hi
     end.
 Proof.
-  intros. apply spec_hi in teq1. cbn. omega.
-  intros. apply spec_lo in teq1. cbn. omega.
+  intros. apply len_hi in teq1. cbn. omega.
+  intros. apply len_lo in teq1. cbn. omega.
 Defined.
+
+Arguments ghqs _ _ _ _ _ : clear implicits.

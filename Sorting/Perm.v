@@ -186,33 +186,12 @@ Proof.
     assert (H1 := H h1). assert (H2 := H h2). dec.
 Qed.
 
-Lemma perm_front_ex :
+(* TODO *) Lemma perm_front_ex :
   forall (A : LinDec) (h : A) (t l : list A),
     perm A (h :: t) l -> exists l1 l2 : list A,
-      l = l1 ++ h :: l2.
+      perm A l (l1 ++ h :: l2).
 Proof.
-  intros A h t l. remember (h :: t) as w.
-  gen w; gen l. apply (bin_rel_list_ind A
-  (fun l w => w = h :: t -> perm A w l ->
-    exists l1 l2 : list A, l = l1 ++ h :: l2)); intros.
-    inv H.
-    inv H.
-    subst. apply perm_nil_cons in H0. contradiction.
-    inv H0.
-Restart.
-  intros A h t. unfold perm. gen h.
-  induction t as [| h' t']; cbn; intros.
-    apply perm_singl in H. subst. exists [], []. cbn. reflexivity.
-    destruct l as [| h1 [| h2 t]].
-      unfold perm in H. cbn in H. specialize (H h). dec.
-      unfold perm in H. cbn in H. specialize (H h). dec.
-        exists [], []. cbn. reflexivity.
-    cbn in H. specialize (H h). dec.
-      exists [h2], t. cbn. reflexivity.
-      exists [], (h2 :: t). cbn. reflexivity.
-      exists [h1], t. cbn. reflexivity.
-      specialize (IHt' h' (h1 :: h2 :: h' :: t')). cbn in IHt'.
-Abort. (* TODO *)
+Admitted.
 
 Theorem Permutation_perm :
   forall (A : LinDec) (l1 l2 : list A),
@@ -221,38 +200,23 @@ Proof.
   induction 1; cbn; intros; dec.
 Qed.
 
-Theorem perm_Permutation :
+Lemma perm_cons_inv :
+  forall (A : LinDec) (h : A) (t1 t2 : list A),
+    perm A (h :: t1) (h :: t2) -> perm A t1 t2.
+Proof.
+  unfold perm; intros. specialize (H x). cbn in H. dec.
+Qed.
+
+(* TODO *) Theorem perm_Permutation :
   forall (A : LinDec) (l1 l2 : list A),
     perm A l1 l2 -> Permutation l1 l2.
 Proof.
-  unfold perm. induction l1 as [| h t]; cbn; intros.
-    rewrite count_0; auto.
-    induction l2 as [| h' t'].
-      specialize (H h). cbn in H. dec.
-      assert (H' := H). specialize (H h'); cbn in H'. dec.
-        apply perm_skip. apply IHt. intro. specialize (H' x). dec.
-        Search Permutation.
-Restart.
-  intro. apply (bin_rel_list_ind A
-  (fun l1 l2 => perm A l1 l2 -> Permutation l1 l2));
-  unfold perm; cbn; intros.
-    constructor.
-    rewrite <- count_0 at 1; eauto.
-    rewrite <- count_0 at 1; eauto.
-    destruct (LinDec_eqb_spec A h h'); subst.
-      constructor. apply H. intro. specialize (H0 x). dec.
-      assert (H1 := H0). specialize (H0 h). specialize (H1 h').
-        dec; subst.
-Restart.
-  intro.
-  (*apply (@well_founded_ind (list A) (@lengthOrder A) (@lengthOrder_wf A)
-  (fun l1 : list A => forall l2 : list A, perm A l1 l2 -> Permutation l1 l2)).
-    intros l1 IH l2 Hperm. destruct l1 as [| h1 t1], l2 as [| h2 t2]; cbn.
-      trivial.
-      red in Hperm. specialize (Hperm h2). cbn in Hperm. dec.
-      red in Hperm. specialize (Hperm h1). cbn in Hperm. dec.
-      destruct (LinDec_eqb_spec A h1 h2); subst.
-        constructor. apply IH.
-          red; cbn. omega.
-          red; intro. red in Hperm. specialize (Hperm x). cbn in Hperm. dec.*)
-Admitted. (* TODO *)
+  induction l1 as [| h1 t1]; cbn; intros.
+    destruct l2; cbn; auto. red in H. cbn in H. specialize (H c). dec.
+    destruct l2 as [| h2 t2]; cbn.
+      red in H. cbn in H. specialize (H h1). dec.
+      destruct (perm_front_ex _ _ _ _ H) as [l1' [l2' H']].
+        rewrite H' in H. rewrite perm_front in H.
+        apply perm_cons_inv in H. specialize (IHt1 (l1' ++ l2') H).
+          rewrite IHt1.
+Admitted.

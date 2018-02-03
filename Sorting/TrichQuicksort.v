@@ -42,22 +42,37 @@ Function htqs2
         | [] => []
         | h :: t =>
             let '(lo, eq, hi) := partition h t in
-              htqs2 n A sort partition lo ++
+              htqs2 n sort partition lo ++
               h :: eq ++
-              htqs2 n A sort partition hi
+              htqs2 n sort partition hi
     end.
 Proof.
-  intros. apply spec_hi in teq1. cbn. unfold lt. apply le_n_S. assumption.
-  intros. apply spec_lo in teq1. cbn. unfold lt. apply le_n_S. assumption.
+  intros. apply len_hi in teq1. cbn. unfold lt. apply le_n_S. assumption.
+  intros. apply len_lo in teq1. cbn. unfold lt. apply le_n_S. assumption.
 Defined.
+
+Arguments htqs2 _ _ _ _ : clear implicits.
 
 Instance Trifilter (A : TrichDec) : Partition A :=
 {
     partition := trifilter
 }.
 Proof.
-  intros. rewrite trifilter_spec in H. inv H.
-  intros. rewrite trifilter_spec in H. inv H.
+  all: intros.
+    functional induction trifilter pivot l; inv H; trich.
+      inv H0. 1-3: eapply IHp; eauto.
+    functional induction trifilter pivot l; inv H; trich.
+      inv H0. eapply IHp; eauto.
+    functional induction trifilter pivot l; inv H; trich.
+      1-2: eapply IHp; eauto.
+      inv H0.
+        split; intro; trich.
+        eapply IHp; eauto.
+    1-3: rewrite trifilter_spec in H; inv H.
+    unfold perm. intro.
+      functional induction trifilter pivot l; cbn; inv H; trich;
+      specialize (IHp _ _ _ e0); rewrite IHp, !count_app; cbn;
+      rewrite ?count_app; trich.
 Defined.
 
 Definition wut (A : TrichDec) (l : list A) : list A :=
