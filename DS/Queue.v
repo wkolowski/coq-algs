@@ -4,6 +4,9 @@ Require Import RCCBase.
 
 Definition Queue (A : Type) : Type := list A * list A.
 
+Definition isQueue {A : Type} (q : Queue A) : Prop :=
+  let '(f, r) := q in f = [] -> r = [].
+
 Definition queue {A : Type} (f r : list A) : Queue A :=
 match f with
     | [] => (rev r, [])
@@ -32,10 +35,6 @@ match q with
     | ([], _) => None
     | (_ :: t, r) => Some (queue t r)
 end.
-
-(* The Queue invariant. *)
-Definition isQueue {A : Type} (q : Queue A) : Prop :=
-  let '(f, r) := q in f = [] -> r = [].
 
 Lemma empty_isQueue :
   forall A : Type, isQueue (@empty A).
