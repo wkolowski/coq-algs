@@ -2,7 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RCCBase.
 
-Module Type QueueSpec.
+(* TODO *) Module Type QueueSpec.
 
 Parameter Queue : Type -> Type.
 

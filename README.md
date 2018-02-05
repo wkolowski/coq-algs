@@ -47,3 +47,5 @@ Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is usel
 * Prove that perm is equivalent to Permutation from the standard library.
 * Prove general facts about sorting algorithms.
 * Check if the method used for some functions operating on Binary Random Access Lists is a silver bullet/snake oil that can be used always and everywhere (how nice it would be if this were true).
+* Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.
+* Design a hierarchy of abstract data types.

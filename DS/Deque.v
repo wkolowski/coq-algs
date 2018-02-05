@@ -113,6 +113,15 @@ Proof.
   apply map_split. assumption.
 Qed.
 
+(* new *)
+Lemma split_spec :
+  forall (A : Type) (n : nat) (l l1 l2 : list A),
+    split n l = (l1, l2) -> l = l1 ++ l2.
+Proof.
+  intros. functional induction @split A n l; inv H.
+    cbn. f_equal. apply IHp. assumption.
+Qed.
+
 (* Lemmas for [div2]. *)
 Functional Scheme div2_ind := Induction for div2 Sort Prop.
 
