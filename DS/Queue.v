@@ -7,6 +7,7 @@ Definition Queue (A : Type) : Type := list A * list A.
 Definition isQueue {A : Type} (q : Queue A) : Prop :=
   let '(f, r) := q in f = [] -> r = [].
 
+(** TODO: See note in Okasaki, p. 56 *)
 Definition queue {A : Type} (f r : list A) : Queue A :=
 match f with
     | [] => (rev r, [])
