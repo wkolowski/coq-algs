@@ -219,8 +219,8 @@ Proof. sized. Qed.
 
 End ConstantSizedQueue_Queue.
 
-Module ConstantSizedQueue (Q : Queue)
+(*Module ConstantSizedQueue (Q : Queue)
   : SizedQueue (ConstantSizedQueue_Queue Q).
 
 End ConstantSizedQueue.
- ConstantSizedQueue_Queue.
+ ConstantSizedQueue_Queue.*)

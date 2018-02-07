@@ -6,7 +6,7 @@ Require Import LinDec.
 
 (* TODO *) Module Type PriorityQueue.
 
-Parameter PQ : LinDec -> LinDec.
+Parameter PQ : LinDec -> Type.
 
 Parameter empty :
   forall {A : LinDec}, PQ A.
@@ -74,12 +74,12 @@ Parameter isEmpty_insert :
 
 Parameter isEmpty_unMin_false :
   forall (A : LinDec) (q : PQ A),
-    isEmpty q = true <-> unMin q = None.
+    isEmpty q = false <->
+    exists (m : A) (q' : PQ A), unMin q = Some (m, q').
 
 Parameter isEmpty_unMin_true :
   forall (A : LinDec) (q : PQ A),
-    isEmpty q = false <->
-    exists (m : A) (q' : PQ A), unMin q = Some (m, q').
+    isEmpty q = true <-> unMin q = None.
 
 Lemma isEmpty_singleton :
   forall (A : LinDec) (x : A),
