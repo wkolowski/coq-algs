@@ -6,6 +6,7 @@ Require Import Sorting.Sort.
 
 From mathcomp Require Import ssreflect.
 
+(* TODO: fix the definition of [is_bst]. *)
 Inductive is_bst {A : LinDec} : BTree A -> Prop :=
     | is_bst_empty : is_bst empty
     | is_bst_node : forall (v : A) (l r : BTree A),
@@ -55,7 +56,8 @@ Record BST (A : LinDec) : Type :=
     prop : is_bst tree
 }.
 
-Theorem BST_elem_dec : forall {A : LinDec} (a : A) (t : BTree A),
+Theorem BST_elem_dec :
+  forall {A : LinDec} (a : A) (t : BTree A),
     is_bst t -> {elem a t} + {~ elem a t}.
 Proof.
   intros. elim: t H => [| v l Hl r Hr] H.
@@ -75,6 +77,106 @@ Restart.
         eapply is_bst_inv_leq_r in H2; eauto.
         eapply is_bst_inv_leq_l in H2; eauto.
 Defined.
+
+Function elem_decb_BST {A : LinDec} (x : A) (t : BTree A) : bool :=
+match t with
+    | empty => false
+    | node v l r =>
+        if x <=? v
+        then
+          if v <=? x
+          then true
+          else elem_decb_BST x l
+        else
+          elem_decb_BST x r
+end.
+
+Inductive isBST {A : LinDec} : BTree A -> Prop :=
+    | isBST_empty : isBST empty
+    | isBST_node :
+        forall (v : A) (l r : BTree A),
+          (forall x : A, elem x l -> x ≤ v) -> isBST l ->
+          (forall x : A, elem x r -> ~ x ≤ v) -> isBST r ->
+            isBST (node v l r).
+
+Lemma elem_decb_BST_reflect :
+  forall (A : LinDec) (x : A) (t : BTree A),
+    isBST t -> reflect (elem x t) (elem_decb_BST x t).
+Proof.
+  intros. functional induction @elem_decb_BST A x t; dec.
+    constructor. inv 1.
+    assert (x = v) by dec. subst. auto.
+    destruct (IHb ltac:(inv H)); constructor.
+      auto.
+      inv 1. inv H.
+    destruct (IHb ltac:(inv H)); constructor.
+      auto.
+      inv 1. inv H.
+Qed.
+
+Function elem_decb_aux_BST
+  {A : LinDec} (x : A) (ocandidate : option A) (t : BTree A) : bool :=
+match t with
+    | empty =>
+        match ocandidate with
+            | None => false
+            | Some x' => x =? x'
+        end
+    | node v l r =>
+        if x <=? v
+        then elem_decb_aux_BST x (Some v) l
+        else elem_decb_aux_BST x ocandidate r
+end.
+
+Definition elem_decb'_BST
+  {A : LinDec} (x : A) (t : BTree A) : bool :=
+    elem_decb_aux_BST x None t.
+
+(*Lemma elem_decb_aux_BST_spec :
+  forall (A : LinDec) (x y : A) (t : BTree A),
+    isBST t -> elem y t ->
+      elem_decb_aux_BST x (Some y) t =
+      (x =? y) || elem_decb_aux_BST x None t.
+Proof.
+  intros. gen y; gen x. induction t; cbn; intros.
+    destruct (x =? y); reflexivity.
+    inv H. inv H0.
+      Focus 2. dec. rewrite IHt1.
+Restart.
+  induction 2; cbn.
+    dec.
+Abort.*)
+
+Lemma elem_decb_aux_BST_true :
+  forall (A : LinDec) (x : A) (t : BTree A),
+    isBST t -> elem_decb_aux_BST x (Some x) t = true.
+Proof.
+  intros A x t; gen x.
+  induction t; cbn; intros; dec.
+Abort.
+
+Lemma elem_decb_aux_BST_reflect :
+  forall (A : LinDec) (x : A) (ocandidate : option A) (t : BTree A),
+    isBST t -> 
+(*    match ocandidate with
+        | None => True
+        | Some v => elem v t
+    end ->*)
+      reflect (elem x t) (elem_decb_aux_BST x ocandidate t).
+Proof.
+  intros. gen ocandidate; gen x.
+  induction t as [| v l IHl r IHr]; intros.
+    destruct ocandidate; cbn.
+      dec; constructor.
+        admit.
+        inv 1.
+      constructor. inv 1.
+    cbn. dec.
+      case_eq (x =? v); intros.
+        dec. destruct (IHl ltac:(inv H) v (Some v)).
+          auto.
+          constructor. inversion 1; subst; try contradiction.
+Abort.
 
 Fixpoint BTree_ins {A : LinDec} (x : A) (t : BTree A) : BTree A :=
 match t with

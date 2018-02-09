@@ -57,12 +57,20 @@ match t with
     | T _ x _ => x
 end.
 
-Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
+(*Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
 match t1, t2 with
     | T r x ts1, T _ y ts2 =>
         if x <=? y
         then T (S r) x (t2 :: ts1)
         else T (S r) y (t1 :: ts2)
+end.*)
+
+Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
+match t1, t2 with
+    | T r1 x ts1, T r2 y ts2 =>
+        if x <=? y
+        then T (S r1) x (t2 :: ts1)
+        else T (S r2) y (t1 :: ts2)
 end.
 
 Fixpoint insTree {A : LinDec} (t : Tree A) (h : Heap A) : Heap A :=
@@ -498,3 +506,74 @@ Lemma count_Heap_insert :
 Proof.
   intros. unfold insert. rewrite count_Heap_insTree. cbn. dec.
 Qed.
+
+Print Tree.
+
+Inductive validTree' {A : Type} : nat -> Tree A -> Prop :=
+    | validTree'0 :
+        forall x : A, validTree' 0 (T 0 x [])
+    | validTree'S :
+        forall (r : nat) (x : A) (l : list (Tree A)),
+          validForest r l -> validTree' r (T r x l)
+
+with validForest {A : Type} : nat -> list (Tree A) -> Prop :=
+    | validForest0 : validForest 0 []
+    | validForestS :
+        forall (r : nat) (t : Tree A) (l : list (Tree A)),
+          validTree' r t -> validForest r l -> validForest (S r) (t :: l).
+
+Definition validTree {A : Type} (t : Tree A) : Prop :=
+  validTree' (rank t) t.
+
+Inductive heapOrdered {A : LinDec} : Tree A -> Prop :=
+    | heapOrderedC :
+        forall (r : nat) (x : A) (l : list (Tree A)),
+          Forall (fun t => x ≤ root t /\ heapOrdered t) l ->
+            heapOrdered (T r x l).
+
+Hint Constructors validTree' validForest heapOrdered.
+
+Definition isHeap {A : LinDec} (h : Heap A) : Prop :=
+  Forall (fun t => validTree t /\ heapOrdered t) h.
+
+Hint Unfold validTree isHeap.
+
+Lemma empty_isHeap :
+  forall A : LinDec, isHeap (@empty A).
+Proof.
+  intro. unfold isHeap, empty. constructor.
+Qed.
+
+Require Import Max.
+
+Lemma link_validTree' :
+  forall (A : LinDec) (t1 t2 : Tree A) (r : nat),
+    validTree' r t1 -> validTree' r t2 ->
+      validTree' (S r) (link t1 t2).
+Proof.
+  do 2 inv 1; dec.
+Admitted.
+
+Lemma rank_link :
+  forall (A : LinDec) (t1 t2 : Tree A),
+    rank (link t1 t2) = 1 + rank t1.
+Proof.
+  destruct t1, t2. cbn. dec.
+Admitted.
+
+(** TODO WUT ACHTUNG: changed [link]. *)
+Lemma insTree_isHeap :
+  forall (A : LinDec) (t : Tree A) (h : Heap A),
+    validTree t -> heapOrdered t -> isHeap h ->
+      isHeap (insTree t h).
+Proof.
+  intros A t h; gen t.
+  induction h as [| t' h']; cbn; intros.
+    auto.
+    match goal with
+        | |- context [if ?x then _ else _] => destruct x
+    end.
+      auto.
+      apply IHh'.
+        red. rewrite rank_link. apply link_validTree'; auto. inv H1. inv H4.
+          apply H1.
