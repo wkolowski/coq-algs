@@ -20,11 +20,8 @@ Definition halve {A : Type} (l : list A) : list A * list A :=
 
 Function deque {A : Type} (f r : list A) : Deque A :=
 match f, r with
-    | [], [] => (f, r)
-    | [], [_] => (f, r)
-    | [], _ => let '(r, f) := halve r in (rev f, r)
-    | [_], [] => (f, r)
-    | _, [] => let '(f, r) := halve f in (f, rev r)
+    | [], _ :: _ :: _ => let '(r, f) := halve r in (rev f, r)
+    | _ :: _ :: _, [] => let '(f, r) := halve f in (f, rev r)
     | _, _ => (f, r)
 end.
 
@@ -159,26 +156,25 @@ Qed.
 Lemma deque_isDeque :
   forall (A : Type) (f r : list A), isDeque (deque f r).
 Proof.
-  intros. functional induction @deque A f r; cbn; intros; try omega.
+  intros. functional induction @deque A f r; cbn; intros.
     destruct f0.
       destruct (split_inv_r _ _ _ _ e1).
-        apply div2_inv in H0. destruct r; inv H0.
-        destruct H0; subst; cbn in *. contradiction.
+        apply div2_inv in H0. cbn in H0. inv H0.
+        inv H0.
       destruct r0.
-        apply split_inv_l in e1. destruct e1.
-          destruct r as [| h1 [| h2 t]]; cbn in *; firstorder.
+        apply split_inv_l in e1. cbn in e1. destruct e1.
+          inv H0.
           inv H0.
         case_eq (rev (a :: f0)); intros.
           cbn in H0. apply app_eq_nil in H0. inv H0.
           split; congruence.
     destruct f0.
       destruct (split_inv_l _ _ _ _ e1).
-        destruct f as [| h1 [| h2 t]]; cbn in *; firstorder.
+        cbn in H0. inv H0.
         inv H0.
       destruct r0.
         apply split_inv_r in e1. destruct e1.
-          apply div2_inv in H0.
-            destruct f as [| h1 [| h2 t]]; cbn in *; firstorder.
+          apply div2_inv in H0. cbn in H0. inv H0.
           inv H0.
         case_eq (rev (a0 :: r0)); intros.
           cbn in H0. apply app_eq_nil in H0. inv H0.
@@ -223,19 +219,17 @@ Lemma isEmpty_deque :
     isEmpty (deque f r) = true -> f = [] /\ r = [].
 Proof.
   intros. functional induction @deque A f r;
-  cbn in *; auto; try congruence.
+  cbn; auto; try congruence.
     destruct f0.
       destruct (split_inv_r _ _ _ _ e1).
-        apply div2_inv in H0. destruct r; inv H0.
+        apply div2_inv in H0. inv H0.
         tauto.
       case_eq (rev (a :: f0)); intros.
         cbn in H0. apply app_eq_nil in H0. destruct H0. congruence.
-        rewrite H0 in H. congruence.
+        rewrite H0 in H. cbn in H. congruence.
     destruct f0.
-      destruct (split_inv_l _ _ _ _ e1).
-        destruct f as [| h1 [| h2 t]]; cbn in *; firstorder.
-        inv H0.
-      congruence.
+      destruct (split_inv_l _ _ _ _ e1); inv H0.
+      cbn in H. congruence.
     destruct f as [| h1 [| h2 t]], r; firstorder.
 Qed.
 
@@ -324,19 +318,22 @@ Lemma size_empty :
   forall A : Type, size (@empty A) = 0.
 Proof. reflexivity. Qed.
 
+(** TODO: port to Deque.v *)
+Lemma split_length :
+  forall (A : Type) (n : nat) (l l1 l2 : list A),
+    split n l = (l1, l2) -> length l = length l1 + length l2.
+Proof.
+  intros. remember (l1, l2) as p.
+  functional induction @split A n l; inv H; inv H0.
+  cbn. erewrite IHp0; eauto.
+Qed.
+
 Lemma size_deque :
   forall (A : Type) (f r : list A),
     size (deque f r) = length f + length r.
 Proof.
-  intros. functional induction @deque A f r; cbn; try congruence.
-    unfold halve in e1. clear y.
-      functional induction @split A (Nat.div2 (length r)) r; inv e1; cbn.
-        rewrite rev_length, <- plus_n_O. reflexivity.
-        specialize (IHp _ _ e2). omega.
-    unfold halve in e1. clear y.
-      functional induction @split A (Nat.div2 (length f)) f; inv e1; cbn.
-        rewrite <- plus_n_O. apply rev_length.
-        specialize (IHp _ _ e2). omega.
+  intros. functional induction @deque A f r; cbn; auto;
+  apply split_length in e1; cbn in e1; rewrite rev_length; omega.
 Qed.
 
 Lemma size_cons :
@@ -389,24 +386,17 @@ Proof.
     destruct d, l, l0; cbn; firstorder.
 Qed.
 
+Search split.
+
 Lemma fmap_deque :
   forall (A B : Type) (g : A -> B) (f r : list A),
     fmap g (deque f r) = deque (map g f) (map g r).
 Proof.
-  intros. functional induction @deque A f r; cbn;
-  auto; unfold halve in *.
-    rewrite ?map_length, map_split'. destruct r as [| h1 [| h2 t]]; cbn.
-      contradiction.
-      contradiction.
-      cbn in *. destruct (split (Nat.div2 (length t)) (h2 :: t)).
-        inv e1. cbn. rewrite map_rev. reflexivity.
-    destruct f as [| h1 [| h2 t]].
-      contradiction.
-      contradiction.
-      cbn in *. change (g h2 :: map g t) with (map g (h2 :: t)).
-        rewrite ?map_length, map_split'.
-        destruct (split (Nat.div2 (length t)) (h2 :: t)).
-        inv e1. cbn. rewrite map_rev. reflexivity.
+  intros. functional induction @deque A f r; unfold deque, halve.
+    rewrite ?map_split', ?map_length. cbn in *. rewrite e1, map_rev.
+      cbn. reflexivity.
+    rewrite ?map_split', ?map_length. cbn in *. rewrite e1, map_rev.
+      cbn. reflexivity.
     destruct f as [| hf1 [| hf2 tf]], r as [| hr1 [| hr2 tr]]; cbn;
     firstorder.
 Qed.
@@ -500,10 +490,8 @@ Lemma head_cons :
     head (cons x d) = Some x.
 Proof.
   destruct d as [f r]. unfold cons. remember (x :: f) as f'.
-  functional induction @deque A f' r; cbn; try congruence.
-  destruct f as [| hf tf]; cbn in *.
-    inv e1.
-    destruct (split (div2 (length tf)) (hf :: tf)). inv e1.
+  functional induction @deque A f' r; cbn in *; try congruence.
+  destruct (split (div2 (length _x1)) (_x0 :: _x1)). inv e1.
 Qed.
 
 Lemma head_snoc :
@@ -512,29 +500,26 @@ Lemma head_snoc :
 Proof.
   destruct d as [f r]. unfold snoc. remember (x :: r) as r'. intros.
   functional induction @deque A f r'; cbn in *; try inv Heqr'; try congruence.
-    2: destruct _x, r; firstorder.
-    destruct r as [| h1 [| h2 t]]; cbn in *.
-      congruence.
+    destruct _x1 as [| h1 [| h2 t]]; cbn in *.
       inv e1.
+      destruct H; firstorder.
       destruct (H ltac:(omega)). congruence.
+    destruct _x, r; firstorder.
 Qed.
 
 (* [toList] and its properties. *)
 Definition toList {A : Type} (d : Deque A) : list A :=
   let '(f, r) := d in f ++ rev r.
 
+(** TODO: port to Deque.v *)
 Lemma toList_deque :
   forall (A : Type) (f r : list A),
     toList (deque f r) = f ++ rev r.
 Proof.
   intros. functional induction @deque A f r; cbn; auto;
-  unfold halve in *.
-    clear y. functional induction @split A (Nat.div2 (length r)) r; inv e1; cbn.
-      apply app_nil_r.
-      rewrite app_assoc, (IHp _ _ e2). reflexivity.
-    clear y. functional induction @split A (Nat.div2 (length f)) f; inv e1; cbn.
-      rewrite rev_involutive, app_nil_r. reflexivity.
-      rewrite (IHp _ _ e2). reflexivity.
+  unfold halve in *; apply split_spec in e1.
+    rewrite <- rev_app_distr, <- e1. reflexivity.
+    rewrite rev_involutive, app_nil_r, e1. reflexivity.
 Qed.
 
 Lemma toList_empty :
@@ -652,12 +637,12 @@ Lemma drev_deque :
 Proof.
   intros. assert (isDeque (deque f r)) by apply deque_isDeque.
   functional induction @deque A f r; cbn; auto; unfold halve in *.
-    destruct r as [| hr1 [| hr2 tr]]; cbn in *; try contradiction.
-      case_eq (split (Nat.div2 (length tr)) (hr2 :: tr)); intros.
-        rewrite H0 in e1. inv e1.
-    destruct f as [| hf1 [| hf2 tf]]; cbn in *; try contradiction.
-      case_eq (split (Nat.div2 (length tf)) (hf2 :: tf)); intros.
-        rewrite H0 in e1. inv e1.
+    destruct _x1 as [| hr1 [| hr2 tr]]; cbn in *; inv e1.
+      case_eq (split (Nat.div2 (length tr)) (hr1 :: hr2 :: tr)); intros.
+        rewrite H0 in H1. inv H1.
+    destruct _x1 as [| hf1 [| hf2 tf]]; cbn in *; inv e1.
+      case_eq (split (Nat.div2 (length tf)) (hf1 :: hf2 :: tf)); intros.
+        rewrite H0 in H1. inv H1.
     destruct f as [| hf1 [| hf2 t]], r as [| hr1 [| hr2 tr]]; cbn; firstorder.
 Qed.
 
