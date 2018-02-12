@@ -128,7 +128,7 @@ end.
 Definition deleteMin {A : LinDec} (h : Heap A) : option (Heap A) :=
 match removeMinTree h with
     | None => None
-    | Some (T _ x h1, h2) => Some (merge h1 h2)
+    | Some (T _ x h1, h2) => Some (merge (rev h1) h2)
 end.
 
 Definition unMin {A : LinDec} (h : Heap A) : option (A * Heap A) :=
@@ -507,8 +507,6 @@ Proof.
   intros. unfold insert. rewrite count_Heap_insTree. cbn. dec.
 Qed.
 
-Print Tree.
-
 Inductive validTree' {A : Type} : nat -> Tree A -> Prop :=
     | validTree'0 :
         forall x : A, validTree' 0 (T 0 x [])
@@ -576,4 +574,4 @@ Proof.
       auto.
       apply IHh'.
         red. rewrite rank_link. apply link_validTree'; auto. inv H1. inv H4.
-          apply H1.
+Abort.

@@ -269,7 +269,7 @@ Proof.
       exact (node x (bfcons (node x' ts') ts)).
       exact (node x' (bfcons (node x ts) ts')). Show Proof.
 Defined.
-Restart.
+(*Restart.
   refine (
 match t1 in (BinomialTree _ r)
          return (BinomialTree A r -> BinomialTree A (S r))
@@ -285,4 +285,6 @@ with
                 then node x (bfcons (node x' ts') ts)
                 else node x' (bfcons (node x ts) ts')
         end ts
-end t2).
+end t2).*)
+
+End wut4.

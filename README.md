@@ -34,18 +34,20 @@ There's also an unfinished attempt at doing modular reflection using the "Dataty
 
 Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is useless.
 
+## Changelog
+* Somewhere before 12.02.18: solved problems with unvierse inconsistencies.
+* Simplified Deques.
+
 ## TODO
 
-* Investigate universe inconsistencies.
-* Develop the basic data structures more.
-* Define typeclasses for Queues, Heaps, etc.
+* Develop basic, concrete data structures like vectors, various trees etc.
+* Develop a hierarchy of typeclasses/modules for abstract data types like Queues, Heaps, etc.
 * Refactor leftist heaps.
 * Refactor everything else.
-* Investigate modular reflection.
 * Remove axioms from Memoization/.
 * Finish/remove normalizaion by evaluation example for monoids.
+* Investigate modular reflection.
 * Prove that perm is equivalent to Permutation from the standard library.
 * Prove general facts about sorting algorithms.
 * Check if the method used for some functions operating on Binary Random Access Lists is a silver bullet/snake oil that can be used always and everywhere (how nice it would be if this were true).
 * Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.
-* Design a hierarchy of abstract data types.

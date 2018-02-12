@@ -32,6 +32,9 @@ Module Sortable_BottomUpMergesortWithSharing.
 Definition Sortable (A : LinDec) : Type :=
   nat * Lazy (list (list A)).
 
+Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
+  Forall (sorted A) (force (snd s)).
+
 Definition empty {A : LinDec} : Sortable A :=
   (0, delay []).
 
@@ -44,7 +47,12 @@ match n with
     | S (S n') => isEven n'
 end.
 
-Fixpoint merge {A : LinDec} (l1 l2 : list A) : list A :=
+Require Import Sorting.MergeSort.
+
+Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
+  Sorting.MergeSort.merge A (l1, l2).
+
+(*Fixpoint merge {A : LinDec} (l1 l2 : list A) : list A :=
 match l1 with
     | [] => l2
     | h1 :: t1 =>
@@ -58,9 +66,9 @@ match l1 with
                   else h2 :: aux l1 t2
           end
         in aux l1 l2
-end.
+end.*)
 
-Fixpoint addSeg_aux
+Function addSeg_aux
   {A : LinDec} (seg : list A) (segs : list (list A)) (size : nat)
   : list (list A) :=
 match segs with
@@ -83,7 +91,7 @@ match segs with
     | seg' :: segs' => sort_aux (merge seg seg') segs'
 end.
 
-Fixpoint sort {A : LinDec} (s : Sortable A) : list A :=
+Definition sort {A : LinDec} (s : Sortable A) : list A :=
   let '(_, segs) := s in sort_aux [] (force segs).
 
 Lemma addSeg_aux_not_nil :
@@ -98,7 +106,7 @@ Proof.
       apply IHsegs'.
 Qed.
 
-Lemma merge_eq :
+(*Lemma merge_eq :
   forall (A : LinDec) (l1 l2 : list A),
     merge l1 l2 =
     match l1, l2 with
@@ -111,7 +119,7 @@ Lemma merge_eq :
     end.
 Proof.
   destruct l1, l2; reflexivity.
-Qed.
+Qed.*)
 
 Lemma merge_sorted :
   forall (A : LinDec) (l1 l2 : list A),
@@ -122,12 +130,56 @@ Proof.
     induction H.
       cbn. dec.
       cbn. dec.
-      rewrite !merge_eq.
-Restart.
-  induction l1 as [| h1 t1]; induction l2 as [| h2 t2]; intros.
-    1-3: assumption.
-    rewrite merge_eq. dec.
-      case_eq (merge t1 (h2 :: t2)); intros; auto.
 Abort.
 
-Require Import Sorting.MergeSort.
+Print addSeg.
+
+Lemma addSeg_aux_isValid :
+  forall (A : LinDec) (seg : list A) (segs : list (list A))
+    (size : nat),
+      sorted A seg -> isValid (size, delay segs) ->
+        isValid (length seg + size, delay (addSeg_aux seg segs size)).
+Proof.
+  intros A seg segs size.
+  functional induction @addSeg_aux A seg segs size; cbn; intros.
+    red. unfold delay. cbn. auto.
+    red. unfold delay. cbn. inv H0.
+    
+
+unfold delay in *; cbn in *.
+  
+Admitted.
+
+Lemma addSeg_isValid :
+  forall (A : LinDec) (x : A) (s : Sortable A),
+    isValid s -> isValid (addSeg x s).
+Proof.
+  intros. destruct s. cbn.
+  apply addSeg_aux_isValid; auto.
+Qed.
+
+
+Lemma sort_aux_sorted :
+  forall (A : LinDec) (seg : list A) (segs : list (list A)),
+    sorted A seg -> Forall (sorted A) segs ->
+      sorted A (sort_aux seg segs).
+Proof.
+  intros. gen seg.
+  induction segs as [| seg' segs']; cbn; intros.
+    assumption.
+    apply IHsegs'.
+      inv H0.
+      apply merge_sorted; cbn.
+        assumption.
+        inv H0.
+Qed.
+
+Theorem sort_sorted :
+  forall (A : LinDec) (s : Sortable A),
+    sorted A (sort s).
+Proof.
+  destruct s. cbn. apply sort_aux_sorted.
+    constructor.
+Admitted.
+
+End Sortable_BottomUpMergesortWithSharing.
