@@ -212,3 +212,5 @@ Proof.
         rewrite H0.
         rewrite IHt. reflexivity.
 Defined.
+
+Check size.
