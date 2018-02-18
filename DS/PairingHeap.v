@@ -11,13 +11,6 @@ Definition PairingHeap (A : LinDec) : Type := Tree A.
 
 Definition empty {A : LinDec} : PairingHeap A := E.
 
-Definition isEmpty
-  {A : LinDec} (h : PairingHeap A) : bool :=
-match h with
-    | E => true
-    | _ => false
-end.
-
 Definition singleton {A : LinDec} (x : A) : PairingHeap A := T x [].
 
 Definition merge
@@ -63,27 +56,9 @@ Lemma empty_elem :
   forall (A : LinDec) (x : A), ~ elem x empty.
 Proof. inversion 1. Qed.
 
-Lemma isEmpty_elem :
-  forall (A : LinDec) (x : A) (h : PairingHeap A),
-    isEmpty h = true -> ~ elem x h.
-Proof.
-  destruct h; cbn; intro.
-    inversion 1.
-    congruence.
-Qed.
-
 Lemma empty_isHeap :
   forall A : LinDec, isHeap (@empty A).
 Proof. constructor. Qed.
-
-Lemma isEmpty_isHeap :
-  forall (A : LinDec) (h : PairingHeap A),
-    isEmpty h = true -> isHeap h.
-Proof.
-  destruct h; cbn; intro.
-    constructor.
-    congruence.
-Qed.
 
 Lemma isEmpty_empty :
   forall A : LinDec, isEmpty (@empty A) = true.
@@ -124,24 +99,6 @@ Proof.
   destruct h; cbn; dec.
 Qed.
 
-Lemma isEmpty_size_false :
-  forall (A : LinDec) (t : Tree A),
-    isEmpty t = false -> size t <> 0.
-Proof.
-  destruct t; cbn; intro.
-    congruence.
-    inversion 1.
-Qed.
-
-Lemma isEmpty_size_true :
-  forall (A : LinDec) (t : Tree A),
-    isEmpty t = true -> size t = 0.
-Proof.
-  destruct t; cbn; intros.
-    reflexivity.
-    congruence.
-Qed.
-
 (** Properties of [singleton]. *)
 
 Lemma singleton_elem :
@@ -149,7 +106,7 @@ Lemma singleton_elem :
     elem x (singleton y) <-> x = y.
 Proof.
   split; intro; subst.
-    inv H. inv H1.
+    inv H.
     constructor.
 Qed.
 
@@ -186,10 +143,10 @@ Proof.
   destruct h1, h2; cbn; intros; auto.
   dec; do 2 constructor; try (inv H; inv H0; fail).
     inv H0. clear H4. induction H3; intros.
-      inv H0. inv H2.
+      inv H0.
       inv H1. inv H4. eauto.
     inv H. clear H4. induction H3; intros.
-      inv H. inv H2.
+      inv H.
       inv H1. inv H4. eauto.
 Qed.
 
@@ -244,10 +201,8 @@ Proof.
   split; intro.
     functional induction @mergePairs A l; auto.
       rewrite ?merge_elem in H. decompose [or] H; clear H; auto.
-    functional induction @mergePairs A l.
-      inv H.
-      inv H. inv H1.
-      rewrite ?merge_elem. inv H. inv H1.
+    functional induction @mergePairs A l;
+      rewrite ?merge_elem; inv H. inv H1.
 Qed.
 
 Lemma mergePairs_isHeap :
@@ -314,9 +269,7 @@ Lemma unT_spec :
       forall x : A, elem x h -> m ≤ x.
 Proof.
   destruct h; cbn; intros; inv H0.
-  inv H. induction H3; inv H1.
-    inv H0.
-    inv H2. inv H4.
+  inv H. induction H3; inv H1. inv H2. inv H4.
 Qed.
 
 Lemma unT_elem_eq :
@@ -327,7 +280,6 @@ Proof.
   split.
     destruct h; cbn; intros; inv H0.
       inv H. induction H3; inv H1.
-        inv H0.
         inv H2.
           right. rewrite mergePairs_elem. auto.
           inv H4. destruct (IHForall ltac:(auto) H6).
@@ -383,14 +335,7 @@ Proof.
       eapply IHl, unT_isHeap; eauto.
 Qed.
 
-(** [count_Tree] and its properties. *)
-Fixpoint countTree {A : LinDec} (x : A) (t : Tree A) : nat :=
-match t with
-    | E => 0
-    | T x' l =>
-        (if x =? x' then S else id)
-          (fold_right (fun h t => countTree x h + t) 0 l)
-end.
+(** [countTree] and its properties. *)
 
 Lemma countTree_empty :
   forall (A : LinDec) (x : A),
@@ -434,11 +379,6 @@ Lemma countTree_toList :
   forall (A : LinDec) (x : A) (h : PairingHeap A),
     isHeap h -> countTree x h = count A x (toList h).
 Proof.
-(*  induction h using Tree_ind_proper'; cbn; dec.
-    rewrite toList_equation. cbn. dec. f_equal.
-      induction l; cbn.
-      rewrite IHh, <- plus_n_O; auto. inv H0. inv H4.
-      inv H. rewrite H3, IHt. auto.*)
   intros. functional induction @toList A h;
   destruct h; inv e; cbn; dec.
     rewrite <- IHl, countTree_mergePairs.

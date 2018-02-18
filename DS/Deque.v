@@ -269,7 +269,6 @@ Proof.
     destruct f as [| h1 [| h2 t]], r; firstorder.
 Qed.
 
-(** TODO: port this to Deque.v *)
 Lemma isEmpty_deque' :
   forall (A : Type) (f r : list A),
     isEmpty (deque f r) =
@@ -384,7 +383,6 @@ Lemma size_empty :
   forall A : Type, size (@empty A) = 0.
 Proof. reflexivity. Qed.
 
-(** TODO: port to Deque.v *)
 Lemma split_length :
   forall (A : Type) (n : nat) (l l1 l2 : list A),
     split n l = (l1, l2) -> length l = length l1 + length l2.
@@ -575,7 +573,6 @@ Qed.
 Definition toList {A : Type} (d : Deque A) : list A :=
   let '(f, r) := d in f ++ rev r.
 
-(** TODO: port to Deque.v *)
 Lemma toList_deque :
   forall (A : Type) (f r : list A),
     toList (deque f r) = f ++ rev r.
@@ -734,4 +731,23 @@ Proof.
         cbn. reflexivity.
     destruct _x as [| h1 [| h2 t]]; cbn in *; firstorder.
       destruct (H ltac:(omega)). congruence.
+Qed.
+
+(** [fromList] and its properties. *)
+
+(* TODO *) Definition fromList {A : Type} (l : list A) : Deque A :=
+  deque l [].
+
+Lemma fromList_isDeque :
+  forall (A : Type) (l : list A),
+    isDeque (fromList l).
+Proof.
+  intros. apply deque_isDeque. 
+Qed.
+
+Lemma toList_fromList :
+  forall (A : Type) (l : list A),
+    toList (fromList l) = l.
+Proof.
+  intros. unfold fromList. rewrite toList_deque. cbn. apply app_nil_r.
 Qed.

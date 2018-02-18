@@ -8,15 +8,7 @@ Require Import Sorting.Sort.
 
 Set Implicit Arguments.
 
-Inductive isHeap {A : LinDec} : BTree A -> Prop :=
-    | isHeap_empty : isHeap empty
-    | isHeap_node :
-        forall (v : A) (l r : BTree A),
-          (forall x : A, elem x l -> v ≤ x) -> isHeap l ->
-          (forall x : A, elem x r -> v ≤ x) -> isHeap r ->
-            isHeap (node v l r).
-
-Fixpoint right_spine {A : Type} (t : BTree A) : nat :=
+(* TODO: refactor *) Fixpoint right_spine {A : Type} (t : BTree A) : nat :=
 match t with
     | empty => 0
     | node _ _ r => S (right_spine r)
@@ -30,16 +22,7 @@ Inductive leftBiased {A : LinDec} : BTree A -> Prop :=
           leftBiased l -> leftBiased r ->
             leftBiased (node v l r).
 
-Hint Constructors BTree elem isHeap leftBiased.
-
-Definition isEmpty {A : Type} (h : BTree A) : bool :=
-match h with
-    | empty => true
-    | _ => false
-end.
-
-Definition singleton {A : Type} (x : A) : BTree A :=
-  node x empty empty.
+Hint Constructors BTree leftBiased.
 
 Definition balance {A : Type} (v : A) (l r : BTree A) : BTree A :=
   if right_spine r <=? right_spine l
@@ -85,16 +68,6 @@ match t with
     | node v l r => Some (v, merge (l, r))
 end.
 
-Ltac elem :=
-  intros; unfold singleton in *; cbn in *; subst; repeat
-match goal with
-    | |- elem ?x (node ?x _ _) => constructor
-    | H : elem _ empty |- _ => inv H
-    | H : elem _ (node _ empty empty) |- _ => inv H
-    | H : elem _ _ /\ elem _ _ |- _ => destruct H
-    | H : elem _ _ \/ elem _ _ |- _ => destruct H
-end; auto.
-
 Ltac balance := unfold balance in *;
 match goal with
     | H : context [right_spine ?r <=? right_spine ?l] |- _ =>
@@ -104,22 +77,6 @@ match goal with
 end.
 
 (** Properties of [isEmpty]. *)
-
-Lemma empty_spec :
-  forall (A : LinDec) (x : A), ~ elem x empty.
-Proof. inv 1. Qed.
-
-Lemma isEmpty_empty :
-  forall (A : Type) (t : BTree A),
-    isEmpty t = true <-> t = empty.
-Proof.
-  destruct t; cbn; firstorder. inv H.
-Qed.
-
-Lemma isEmpty_singleton :
-  forall (A : Type) (x : A),
-    isEmpty (singleton x) = false.
-Proof. reflexivity. Qed.
 
 Lemma isEmpty_balance :
   forall (A : LinDec) (v : A) (l r : BTree A),
@@ -179,31 +136,6 @@ Proof.
     firstorder congruence.
 Qed.
 
-Lemma isEmpty_elem_true :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = true <-> forall x : A, ~ elem x t.
-Proof.
-  split; destruct t; cbn; firstorder.
-    inv 1.
-    contradiction (H c). auto.
-Qed.
-
-Lemma isEmpty_elem_false :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = false <-> exists x : A, elem x t.
-Proof.
-  split; destruct t; cbn; firstorder.
-    eauto.
-    inv H.
-Qed.
-
-Lemma isEmpty_isHeap :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = true -> isHeap t.
-Proof.
-  destruct t; firstorder.
-Qed.
-
 Lemma isEmpty_leftBiased :
   forall (A : LinDec) (t : BTree A),
     isEmpty t = true -> leftBiased t.
@@ -211,43 +143,7 @@ Proof.
   destruct t; firstorder.
 Qed.
 
-Lemma isEmpty_size_true :
-  forall (A : Type) (t : BTree A),
-    isEmpty t = true <-> size t = 0.
-Proof.
-  split; destruct t; cbn; congruence.
-Qed.
-
-Lemma isEmpty_size_false :
-  forall (A : Type) (t : BTree A),
-    isEmpty t = false <-> size t <> 0.
-Proof.
-  split; destruct t; cbn; firstorder.
-Qed.
-
-Lemma isEmpty_count_BT :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = true <-> forall x : A, count_BTree x t = 0.
-Proof.
-  split; destruct t; cbn; try congruence.
-    intro. specialize (H c). dec.
-Qed.
-
 (** Properties of [singleton]. *)
-
-Lemma singleton_elem :
-  forall (A : LinDec) (x y : A),
-    elem x (singleton y) <-> x = y.
-Proof.
-  split; elem.
-Qed.
-
-Lemma singleton_isHeap :
-  forall (A : LinDec) (x : A),
-    isHeap (singleton x).
-Proof.
-  intros. unfold singleton. constructor; auto; inv 1.
-Qed.
 
 Lemma singleton_leftBiased :
   forall (A : LinDec) (x : A),
@@ -255,16 +151,6 @@ Lemma singleton_leftBiased :
 Proof.
   intros. unfold singleton. auto.
 Qed.
-
-Lemma singleton_size :
-  forall (A : LinDec) (x : A),
-    size (singleton x) = 1.
-Proof. reflexivity. Qed.
-
-Lemma singleton_count_BTree :
-  forall (A : LinDec) (x y : A),
-    count_BTree x (singleton y) = if x =? y then 1 else 0.
-Proof. dec. Qed.
 
 (** Properties of [balance]. *)
 
@@ -326,7 +212,7 @@ Lemma merge_elem_rl :
   forall (A : LinDec) (x : A) (t1 t2 : BTree A),
     elem x t1 \/ elem x t2 -> elem x (merge (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p. 
+  intros. remember (t1, t2) as p.
   functional induction @merge A p; inv Heqp; try clear Heqp;
   elem; rewrite balance_elem.
     inv H. apply elem_right.
@@ -343,9 +229,9 @@ Lemma merge_elem :
   forall (A : LinDec) (x : A) (t1 t2 : BTree A),
     elem x (merge (t1, t2)) <-> elem x t1 \/ elem x t2.
 Proof.
-  split; intros. elem.
-    apply merge_elem_lr. assumption.
-    apply merge_elem_rl. assumption.
+  split; intros; remember (t1, t2) as p;
+    functional induction @merge A p; inv Heqp; elem;
+      rewrite balance_elem in *; inv H; eauto; edestruct IHb; eauto.
 Qed.
 
 Arguments merge_elem_lr {A x t1 t2}.
@@ -355,14 +241,12 @@ Lemma merge_isHeap :
     isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; try clear Heqp;
-  inv H; inv H0; apply balance_isHeap; elem.
-    destruct (leqb_spec v v'); inv e0. destruct (merge_elem_lr H); auto.
-      eapply leq_trans with v'. auto. inv H0.
-    eapply (IHb _ _ _ _ eq_refl).
-    destruct (leqb_spec v v'), (merge_elem_lr H); inv e0.
-      eapply leq_trans with v. dec. inv H0.
-    eapply (IHb _ _ _ _ eq_refl).
+  functional induction @merge A p; inv Heqp; inv H; inv H0;
+  apply balance_isHeap; intros; try rewrite merge_elem in H; elem.
+    2, 4: eapply (IHb _ _ _ _ eq_refl).
+    all: destruct (leqb_spec v v'); inv e0.
+      eapply leq_trans with v'; inv H.
+      eapply leq_trans with v; inv H.
 Unshelve.
   all: auto.
 Qed.
@@ -372,10 +256,9 @@ Lemma merge_leftBiased :
     leftBiased t1 -> leftBiased t2 -> leftBiased (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; try clear Heqp;
-  inv H; inv H0; cbn in *; apply balance_leftBiased; auto.
-    eapply (IHb _ _ _ _ eq_refl).
-    eapply (IHb _ _ _ _ eq_refl).
+  functional induction @merge A p; inv Heqp; inv H; inv H0;
+  cbn in *; apply balance_leftBiased; auto.
+    all: eapply (IHb _ _ _ _ eq_refl).
 Unshelve.
   all: eauto.
 Qed.

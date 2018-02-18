@@ -16,7 +16,6 @@ Inductive BTree (A : Type) : Type :=
 Arguments empty {A}.
 Arguments node {A} _ _ _.
 
-(** The [elem] predicate. *)
 Inductive elem {A : Type} (a : A) : BTree A -> Prop :=
     | elem_root : forall l r : BTree A, elem a (node a l r)
     | elem_left : forall (v : A) (l r : BTree A),
@@ -24,18 +23,18 @@ Inductive elem {A : Type} (a : A) : BTree A -> Prop :=
     | elem_right : forall (v : A) (l r : BTree A),
         elem a r -> elem a (node v l r).
 
-Hint Constructors elem.
+Inductive isHeap {A : LinDec} : BTree A -> Prop :=
+    | isHeap_empty : isHeap empty
+    | isHeap_node :
+        forall (v : A) (l r : BTree A),
+          (forall x : A, elem x l -> v ≤ x) -> isHeap l ->
+          (forall x : A, elem x r -> v ≤ x) -> isHeap r ->
+            isHeap (node v l r).
 
-(*Theorem elem_dec :
-  forall {A : Type} {dec : EqDec A eq} (a : A) (t : BTree A),
-    {elem a t} + {~ elem a t}.
-Proof.
-  induction t as [| v l [IHl | IHl] r [IHr | IHr]]; auto.
-    right. inv 1.
-    destruct (dec a v).
-      left. rewrite  e. auto.
-      right. inv 1.
-Defined.*)
+Hint Constructors elem isHeap.
+
+Definition singleton {A : Type} (x : A) : BTree A :=
+  node x empty empty.
 
 Fixpoint elem_decb
   {A : LinDec} (x : A) (t : BTree A) : bool :=
@@ -49,6 +48,12 @@ Definition root {A : Type} (bt : BTree A) : option A :=
 match bt with
     | empty => None
     | node v l r => Some v
+end.
+
+Definition isEmpty {A : Type} (t : BTree A) : bool :=
+match t with
+    | empty => true
+    | _ => false
 end.
 
 (* [BTree_toList], [fromList] and their variants *)
@@ -83,8 +88,20 @@ match t with
         if x =? v then S (n + m) else n + m
 end.
 
-(** Propertes of [elem] and [elem_decb]. *)
+(** * Tactics *)
+Ltac elem :=
+  intros; unfold singleton in *; cbn in *; subst; repeat
+match goal with
+    | |- elem ?x (node ?x _ _) => constructor
+    | H : elem _ empty |- _ => inv H
+    | H : elem _ (node _ empty empty) |- _ => inv H
+    | H : elem _ _ /\ elem _ _ |- _ => destruct H
+    | H : elem _ _ \/ elem _ _ |- _ => destruct H
+end; auto.
 
+(** * Theorems *)
+
+(** Propertes of [elem] and [elem_decb]. *)
 Lemma elem_decb_reflect :
   forall (A : LinDec) (x : A) (t : BTree A),
     reflect (elem x t) (elem_decb x t).
@@ -145,4 +162,109 @@ Lemma count_toList :
     count A x (BTree_toList t) = count_BTree x t.
 Proof.
   induction t; cbn; rewrite ?count_app; dec.
+Qed.
+
+(** Properties of [empty]. *)
+Lemma empty_elem :
+  forall (A : LinDec) (x : A), ~ elem x empty.
+Proof. inv 1. Qed.
+
+Lemma empty_isHeap :
+  forall A : LinDec, isHeap (@empty A).
+Proof. constructor. Qed.
+
+Lemma empty_size :
+  forall A : LinDec, size (@empty A) = 0.
+Proof. reflexivity. Qed.
+
+Lemma empty_count_BTree :
+  forall (A : LinDec) (x : A),
+    count_BTree x empty = 0.
+Proof. reflexivity. Qed.
+
+(** Properties of [singleton]. *)
+
+Lemma singleton_elem :
+  forall (A : LinDec) (x y : A),
+    elem x (singleton y) <-> x = y.
+Proof.
+  split; elem.
+Qed.
+
+Lemma singleton_isHeap :
+  forall (A : LinDec) (x : A),
+    isHeap (singleton x).
+Proof.
+  intros. unfold singleton. constructor; auto; inv 1.
+Qed.
+
+Lemma singleton_size :
+  forall (A : LinDec) (x : A),
+    size (singleton x) = 1.
+Proof. reflexivity. Qed.
+
+Lemma singleton_count_BTree :
+  forall (A : LinDec) (x y : A),
+    count_BTree x (singleton y) = if x =? y then 1 else 0.
+Proof. dec. Qed.
+
+(** Properties of [isEmpty]. *)
+
+Lemma isEmpty_elem_false :
+  forall (A : LinDec) (t : BTree A),
+    isEmpty t = false <-> exists x : A, elem x t.
+Proof.
+  split; destruct t; cbn; firstorder.
+    eauto.
+    inv H.
+Qed.
+
+Lemma isEmpty_elem_true :
+  forall (A : LinDec) (t : BTree A),
+    isEmpty t = true <-> forall x : A, ~ elem x t.
+Proof.
+  split; destruct t; cbn; firstorder.
+    inv 1.
+    contradiction (H c). auto.
+Qed.
+
+Lemma isEmpty_isHeap :
+  forall (A : LinDec) (t : BTree A),
+    isEmpty t = true -> isHeap t.
+Proof.
+  destruct t; firstorder.
+Qed.
+
+Lemma isEmpty_empty :
+  forall (A : Type) (t : BTree A),
+    isEmpty t = true <-> t = empty.
+Proof.
+  destruct t; cbn; firstorder. inv H.
+Qed.
+
+Lemma isEmpty_singleton :
+  forall (A : Type) (x : A),
+    isEmpty (singleton x) = false.
+Proof. reflexivity. Qed.
+
+Lemma isEmpty_size_false :
+  forall (A : Type) (t : BTree A),
+    isEmpty t = false <-> size t <> 0.
+Proof.
+  split; destruct t; cbn; firstorder.
+Qed.
+
+Lemma isEmpty_size_true :
+  forall (A : Type) (t : BTree A),
+    isEmpty t = true <-> size t = 0.
+Proof.
+  split; destruct t; cbn; congruence.
+Qed.
+
+Lemma isEmpty_count_BT :
+  forall (A : LinDec) (t : BTree A),
+    isEmpty t = true <-> forall x : A, count_BTree x t = 0.
+Proof.
+  split; destruct t; cbn; try congruence.
+    intro. specialize (H c). dec.
 Qed.
