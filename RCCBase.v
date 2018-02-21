@@ -168,3 +168,10 @@ match s return if s then P else Prop with
     | Yes' p => p
     | _ => True
 end.
+
+
+Ltac inj := repeat
+match goal with
+    | H : existT _ _ _ = existT _ _ _ |- _ =>
+        apply inj_pair2 in H
+end; subst.

@@ -330,14 +330,6 @@ Qed.
 
 (** Properties of uncons *)
 
-Require Import Eqdep.
-
-Ltac inj := repeat
-match goal with
-    | H : existT _ _ _ = existT _ _ _ |- _ =>
-        apply inj_pair2 in H
-end; subst.
-
 Lemma uncons_cons :
   forall (A : Type) (x : A) (s : Seq A),
     fmap (fun '(x, s) => (x, normalize s)) (uncons (cons x s)) =

@@ -101,3 +101,50 @@ Restart.
 Abort.
 
 (* TODO: pursue general recursion. *)
+
+Inductive f91_graph : nat -> nat -> Type :=
+    | f91_graph_le100 :
+        forall n r1 r2 : nat, n <= 100 ->
+          f91_graph (11 + n) r1 -> f91_graph r1 r2 -> f91_graph n r2
+    | f91_graph_gt100 :
+        forall n : nat, 100 < n ->
+          f91_graph n (n - 10).
+
+Inductive f91_dom : nat -> Type :=
+    | f91_dom_le100 :
+        forall n : nat, n <= 100 ->
+          f91_dom (11 + n) ->
+          (forall r : nat, f91_graph (11 + n) r -> f91_dom r) ->
+            f91_dom n
+    | f91_dom_gt100 :
+        forall n : nat, 100 < n ->
+          f91_dom n.
+
+Fixpoint f91_fun {n : nat} (H : f91_dom n) : {r : nat & f91_graph n r}.
+Proof.
+  destruct H as [n H_le100 | n H_gt100].
+    Focus 2. exists (n - 10). constructor. assumption.
+    destruct (f91_fun _ H) as [r1 Hr1].
+      destruct (f91_fun _ (f _ Hr1)) as [r2 Hr2].
+        exists r2. apply f91_graph_le100 with (r1 := r1); assumption.
+Defined.
+
+Lemma f91_graph_f91_dom_1 :
+  forall n r : nat,
+    f91_graph n r -> f91_dom n.
+Proof.
+  induction 1.
+    Focus 2. apply f91_dom_gt100. assumption.
+    inv H.
+      Focus 2.
+Abort.
+
+Lemma f91_dom_all :
+  forall n : nat, f91_dom n.
+Proof.
+  Search well_founded.
+  apply well_founded_induction_type with (R := lt).
+    apply lt_wf.
+    destruct x as [| n].
+      intro. do 1 (constructor; try omega).
+Abort.
