@@ -159,3 +159,62 @@ Proof.
             eapply spec_hi; eauto.
         intros. apply ghqs_In in H. eapply spec_lo; eauto.
 Qed.
+
+(** [ultimate_qs] specification *)
+
+Theorem ultimate_qs_perm :
+  forall
+    (A : LinDec) (small : Small A) (sort : Sort)
+    (choosePivot : Pivot A) (partition : Partition A) (l : list A),
+      perm A l (ultimate_qs small sort choosePivot partition l).
+Proof.
+  intros.
+  functional induction @ultimate_qs A small sort choosePivot partition l.
+    apply small_inl in e. subst. apply sort_perm.
+    assert (perm A l (pivot :: rest)).
+      apply small_inr in e. apply pivot_spec in e0.
+        apply Permutation_perm. rewrite e, e0. reflexivity.
+      rewrite H. apply perm_symm. eapply perm_trans.
+        apply perm_front. apply perm_cons. unfold perm in *. intro.
+          rewrite !count_app, <- IHl0, <- IHl1; trivial.
+            destruct partition. cbn in *. clear IHl0 IHl1.
+              specialize (partition_perm _ _ _ _ _ e1).
+              rewrite partition_perm, !count_app. reflexivity.
+Qed.
+
+Theorem ultimate_qs_In :
+  forall
+    (A : LinDec) (small : Small A) (sort : Sort) (choosePivot : Pivot A)
+    (partition : Partition A) (l : list A) (x : A),
+      In x (ultimate_qs small sort choosePivot partition l) <->
+      In x l.
+Proof.
+  intros. rewrite !count_In, <- ultimate_qs_perm; auto. reflexivity.
+Qed.
+
+Theorem ultimate_qs_sorted :
+  forall
+    (A : LinDec) (small : Small A) (sort : Sort) (choosePivot : Pivot A)
+    (partition : Partition A) (l : list A) (x : A),
+      sorted A (ultimate_qs small sort choosePivot partition l).
+Proof.
+  intros.
+  functional induction @ultimate_qs A small sort choosePivot partition l.
+    apply sort_sorted.
+    apply small_inr in e. apply pivot_spec in e0.
+    apply sorted_app_all; auto.
+      apply sorted_cons.
+        intros. apply in_app_or in H. destruct H.
+          erewrite spec_eq; eauto.
+          eapply spec_hi; eauto. eapply ultimate_qs_In; eauto.
+        apply sorted_app; auto.
+          assert (forall x : A, In x eq -> x = pivot).
+            eapply spec_eq; eauto.
+            clear e1. induction eq; auto. destruct eq; auto. constructor.
+              rewrite (H a), (H c); cbn; auto.
+              apply IHeq. intro. inv 1; apply H; cbn; auto.
+          intros. apply ultimate_qs_In in H0.
+            erewrite (spec_eq pivot) at 1; eauto.
+              eapply spec_hi; eauto.
+        intros. apply ultimate_qs_In in H. eapply spec_lo; eauto.
+Qed.

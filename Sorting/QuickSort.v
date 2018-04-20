@@ -68,3 +68,67 @@ Proof.
 Defined.
 
 Arguments ghqs _ _ _ _ _ : clear implicits.
+
+(** Time to generalize [ghqs]:
+    - Rather that [n], the length of the desired "small list",
+      we will just give some function that determines if the
+      input list is small enough (and if not, if returns an
+      element of the list and the rest of the list)
+    - [sort] remains there
+    - [pivot] will be a procedure for choosing the pivot (it
+      needs a default element as an argument)
+    - [partition] stays there]
+*)
+
+Class Small (A : LinDec) : Type :=
+{
+    small : list A -> list A + A * list A;
+    small_inl :
+      forall l l' : list A,
+        small l = inl l' -> l = l';
+    small_inr :
+      forall (h : A) (t l : list A),
+         small l = inr (h, t) -> Permutation l (h :: t)
+}.
+
+Coercion small : Small >-> Funclass.
+
+Class Pivot (A : LinDec) : Type :=
+{
+    pivot : A -> list A -> A * list A;
+    pivot_spec :
+      forall (h h' : A) (t t' : list A),
+        pivot h t = (h', t') -> Permutation (h :: t) (h' :: t')
+}.
+
+Coercion pivot : Pivot >-> Funclass.
+
+Function ultimate_qs
+  (A : LinDec)
+  (small : Small A)
+  (sort : Sort)
+  (choosePivot : Pivot A)
+  (partition : Partition A)
+  (l : list A)
+  {measure length l} : list A :=
+match small l with
+    | inl l' => sort A l'
+    | inr (h, t) =>
+        let
+          '(pivot, rest) := choosePivot h t
+        in
+        let
+          '(lo, eq, hi) := partition pivot rest
+        in
+        ultimate_qs small sort choosePivot partition lo ++
+        pivot :: eq ++
+        ultimate_qs small sort choosePivot partition hi
+end.
+Proof.
+  all: intros;
+    apply small_inr, Permutation_length in teq;
+    apply pivot_spec, Permutation_length in teq1.
+  1: apply len_hi in teq2.
+  2: apply len_lo in teq2.
+  all: cbn in *; omega.
+Defined.
