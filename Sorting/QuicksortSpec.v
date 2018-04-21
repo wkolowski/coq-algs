@@ -6,7 +6,7 @@ Require Import InsertionSort.
 
 Set Implicit Arguments.
 
-Theorem qs_perm :
+(*Theorem qs_perm :
   forall (A : LinDec) (l : list A), perm A l (qs A l).
 Proof.
   intros. functional induction qs A l.
@@ -65,7 +65,7 @@ Proof.
   all: intros; rewrite qs2_is_qs.
     apply (@sort_sorted Sort_qs).
     apply (@sort_perm Sort_qs).
-Defined.
+Defined.*)
 
 Theorem hqs_perm :
   forall (n : nat) (A : LinDec) (s : Sort) (l : list A),
@@ -115,62 +115,18 @@ Proof.
   intros. apply hqs_perm.
 Defined.
 
-Theorem ghqs_perm :
-  forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A) (l : list A),
-    perm A l (ghqs n A s p l).
-Proof.
-  intros. functional induction @ghqs n A s p l; trivial.
-    apply sort_perm.
-    apply perm_symm. eapply perm_trans.
-      apply perm_front.
-      apply perm_cons. unfold perm in *. intro.
-        rewrite !count_app, <- IHl0, <- IHl1; trivial.
-          destruct partition. cbn in *. clear IHl0 IHl1.
-            specialize (partition_perm _ _ _ _ _ e1).
-            rewrite partition_perm, !count_app. reflexivity.
-Qed.
-
-Theorem ghqs_In :
-  forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A)
-    (x : A) (l : list A),
-      In x (ghqs n A s p l) <-> In x l.
-Proof.
-  intros. rewrite !count_In, <- ghqs_perm; auto. reflexivity.
-Qed.
-
-Theorem ghqs_sorted :
-  forall (n : nat) (A : LinDec) (s : Sort) (p : Partition A) (l : list A),
-    sorted A (ghqs n A s p l).
-Proof.
-  intros. functional induction ghqs n A s p l; trivial.
-    apply sort_sorted.
-    apply sorted_app_all; auto.
-      apply sorted_cons.
-        intros. apply in_app_or in H. destruct H.
-          erewrite spec_eq; eauto.
-          eapply spec_hi; eauto. eapply ghqs_In; eauto.
-        apply sorted_app; auto.
-          assert (forall x : A, In x eq -> x = h).
-            eapply spec_eq; eauto.
-            clear e1. induction eq; auto. destruct eq; auto. constructor.
-              rewrite (H a), (H c); cbn; auto.
-              apply IHeq. intro. inv 1; apply H; cbn; auto.
-          intros. apply ghqs_In in H0. erewrite (spec_eq h) at 1; eauto.
-            eapply spec_hi; eauto.
-        intros. apply ghqs_In in H. eapply spec_lo; eauto.
-Qed.
-
 (** [ultimate_qs] specification *)
 
 Theorem ultimate_qs_perm :
   forall
-    (A : LinDec) (small : Small A) (sort : Sort)
+    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
-      perm A l (ultimate_qs small sort choosePivot partition l).
+      perm A l (ultimate_qs adhoc choosePivot partition l).
 Proof.
   intros.
-  functional induction @ultimate_qs A small sort choosePivot partition l.
-    apply small_inl in e. subst. apply sort_perm.
+  functional induction @ultimate_qs A small adhoc choosePivot partition l.
+    pose (e' := e). apply small_inl in e'; subst.
+      apply adhoc_perm in e. assumption.
     assert (perm A l (pivot :: rest)).
       apply small_inr in e. apply pivot_spec in e0.
         apply Permutation_perm. rewrite e, e0. reflexivity.
@@ -184,9 +140,10 @@ Qed.
 
 Theorem ultimate_qs_In :
   forall
-    (A : LinDec) (small : Small A) (sort : Sort) (choosePivot : Pivot A)
-    (partition : Partition A) (l : list A) (x : A),
-      In x (ultimate_qs small sort choosePivot partition l) <->
+    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
+    (choosePivot : Pivot A) (partition : Partition A)
+    (l : list A) (x : A),
+      In x (ultimate_qs adhoc choosePivot partition l) <->
       In x l.
 Proof.
   intros. rewrite !count_In, <- ultimate_qs_perm; auto. reflexivity.
@@ -194,27 +151,39 @@ Qed.
 
 Theorem ultimate_qs_sorted :
   forall
-    (A : LinDec) (small : Small A) (sort : Sort) (choosePivot : Pivot A)
-    (partition : Partition A) (l : list A) (x : A),
-      sorted A (ultimate_qs small sort choosePivot partition l).
+    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
+    (choosePivot : Pivot A) (partition : Partition A) (l : list A),
+      sorted A (ultimate_qs adhoc choosePivot partition l).
 Proof.
   intros.
-  functional induction @ultimate_qs A small sort choosePivot partition l.
-    apply sort_sorted.
+  functional induction @ultimate_qs A small adhoc choosePivot partition l.
+    pose (e' := e). apply small_inl in e'; subst.
+      apply adhoc_sorted in e. assumption.
     apply small_inr in e. apply pivot_spec in e0.
-    apply sorted_app_all; auto.
-      apply sorted_cons.
-        intros. apply in_app_or in H. destruct H.
-          erewrite spec_eq; eauto.
-          eapply spec_hi; eauto. eapply ultimate_qs_In; eauto.
-        apply sorted_app; auto.
-          assert (forall x : A, In x eq -> x = pivot).
-            eapply spec_eq; eauto.
-            clear e1. induction eq; auto. destruct eq; auto. constructor.
-              rewrite (H a), (H c); cbn; auto.
-              apply IHeq. intro. inv 1; apply H; cbn; auto.
-          intros. apply ultimate_qs_In in H0.
-            erewrite (spec_eq pivot) at 1; eauto.
-              eapply spec_hi; eauto.
-        intros. apply ultimate_qs_In in H. eapply spec_lo; eauto.
+      apply sorted_app_all; auto.
+        apply sorted_cons.
+          intros. apply in_app_or in H. destruct H.
+            erewrite spec_eq; eauto.
+            eapply spec_hi; eauto. eapply ultimate_qs_In; eauto.
+          apply sorted_app; auto.
+            assert (forall x : A, In x eq -> x = pivot).
+              eapply spec_eq; eauto.
+              clear e1. induction eq; auto. destruct eq; auto. constructor.
+                rewrite (H a), (H c); cbn; auto.
+                apply IHeq. intro. inv 1; apply H; cbn; auto.
+            intros. apply ultimate_qs_In in H0.
+              erewrite (spec_eq pivot) at 1; eauto.
+                eapply spec_hi; eauto.
+          intros. apply ultimate_qs_In in H. eapply spec_lo; eauto.
 Qed.
+
+Instance Sort_ultimate_qs
+  (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
+  (choosePivot : Pivot A) (partition : Partition A) : Sort' A :=
+{
+    sort' := ultimate_qs adhoc choosePivot partition
+}.
+Proof.
+  intros. apply ultimate_qs_sorted.
+  intros. apply ultimate_qs_perm.
+Defined.

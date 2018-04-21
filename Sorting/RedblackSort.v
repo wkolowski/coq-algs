@@ -1,6 +1,6 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
-Require Import RedBlack.
+Require Export RedBlack.
 
 Fixpoint toList'_aux {A : Type} (t : RBTree A) (acc : list A) : list A :=
 match t with

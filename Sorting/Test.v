@@ -77,9 +77,11 @@ Time Compute ms2 natle (cycle 200 testl).
 
 Time Compute qs natle (cycle 200 testl).
 Time Compute qs2 natle (cycle 200 testl).
+Time Compute uqs natle (cycle 200 testl).
 
 Time Compute treeSort natle (cycle 200 testl).
-Time Compute redblackSort natle (cycle 200 testl).*)
+Time Compute redblackSort natle (cycle 200 testl).
+*)
 
 (*Time Compute tqs natlt (cycle 1000 testl).
 
