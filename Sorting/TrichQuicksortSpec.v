@@ -6,10 +6,10 @@ Require Import Sorting.Perm.
 Set Implicit Arguments.
 
 Theorem htqs_perm :
-  forall (n : nat) (A : TrichDec) (s : Sort) (l : list A),
+  forall (n : nat) (A : TrichDec) (s : Sort A) (l : list A),
     perm A l (htqs n A sort l).
 Proof.
-  intros. functional induction htqs n A (@sort s A) l; trivial.
+  intros. functional induction htqs n A (@sort A s) l; trivial.
     destruct s; cbn. apply sort_perm.
     apply perm_symm. eapply perm_trans.
       apply perm_front.
@@ -25,7 +25,7 @@ Proof.
 Qed.
 
 Theorem htqs_In :
-  forall (n : nat) (A : TrichDec) (s : Sort) (x : A) (l : list A),
+  forall (n : nat) (A : TrichDec) (s : Sort A) (x : A) (l : list A),
     In x (htqs n A sort l) <-> In x l.
 Proof.
   intros. rewrite !count_In, <- htqs_perm; auto. reflexivity.
@@ -68,10 +68,10 @@ Proof.
 Qed.
 
 Theorem htqs_sorted :
-  forall (n : nat) (A : TrichDec) (s : Sort) (l : list A),
+  forall (n : nat) (A : TrichDec) (s : Sort A) (l : list A),
     sorted A (htqs n A sort l).
 Proof.
-  intros. functional induction htqs n A (@sort s A) l; trivial.
+  intros. functional induction htqs n A (@sort A s) l; trivial.
     destruct s; cbn. apply sort_sorted.
     rewrite trifilter_spec in e1; inv e1. apply sorted_app_all.
       assumption.
@@ -95,11 +95,11 @@ Proof.
           rewrite H1 in H0; trich.
 Qed.
 
-(*Instance Sort_htqs (n : nat) (s : Sort) : Sort :=
+Instance Sort_htqs (n : nat) (A : TrichDec) (s : Sort A) : Sort A :=
 {
-    sort := fun A : TrichDec => htqs n A (@sort s A)
+    sort := htqs n A s
 }.
 Proof.
   intros. apply htqs_sorted.
   intros. apply htqs_perm.
-Defined.*)
+Defined.

@@ -49,9 +49,9 @@ Proof.
         apply perm_cons. apply IHl0.
 Qed.
 
-Instance Sort_ss : Sort :=
+Instance Sort_ss (A : LinDec) : Sort A :=
 {
-    sort := ss;
-    sort_sorted := ss_sorted;
-    sort_perm := ss_perm
+    sort := @ss A;
+    sort_sorted := ss_sorted A;
+    sort_perm := ss_perm A
 }.

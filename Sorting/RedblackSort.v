@@ -38,14 +38,9 @@ Time Eval native_compute in redblackSort natle (cycle 2000 testl). (* 1.5 *)
 Time Eval native_compute in redblackSort' natle (cycle 2000 testl). (* 1.4 *)
 *)
 
-
-
-
-
-
-Instance Sort_redblackSort : Sort :=
+Instance Sort_redblackSort (A : LinDec) : Sort A :=
 {
-    sort := @redblackSort;
-    sort_sorted := @redblackSort_sorted;
-    sort_perm := @redblackSort_perm;
+    sort := @redblackSort A;
+    sort_sorted := @redblackSort_sorted A;
+    sort_perm := @redblackSort_perm A;
 }.

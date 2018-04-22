@@ -9,7 +9,7 @@ Set Implicit Arguments.
 
 (* Properties of sorting *)
 Theorem sort_nil :
-  forall (A : LinDec) (s : Sort), s A [] = [].
+  forall (A : LinDec) (s : Sort A), s [] = [].
 Proof.
   intros. assert (perm A [] (sort [])) by (destruct s; auto).
   red in H. cbn in H. destruct (sort []).
@@ -18,9 +18,9 @@ Proof.
 Qed.
 
 Theorem sort_cons :
-  forall (A : LinDec) (C : Sort) (h : A) (t : list A),
+  forall (A : LinDec) (C : Sort A) (h : A) (t : list A),
     let m := min_dflt A h t in
-      @sort C A (h :: t) = m :: @sort C A (remove_once m (h :: t)).
+      @sort A C (h :: t) = m :: @sort A C (remove_once m (h :: t)).
 Proof.
   intros.
   assert (sorted A (sort (h :: t))) by (destruct C; auto).
@@ -36,7 +36,7 @@ Proof.
           apply perm_In with (h :: t); auto. apply min_In.
         assert (c = m) by auto; subst. f_equal.
           assert (H4 := perm_min_front A h t). unfold m in H4. fold m in H4.
-            assert (perm A (C A (h :: t)) (m :: remove_once m (h :: t))).
+            assert (perm A (C (h :: t)) (m :: remove_once m (h :: t))).
               eapply perm_trans.
                 rewrite <- H0. reflexivity.
                 rewrite H4. reflexivity.
@@ -50,8 +50,8 @@ Restart.
   intros A C h. destruct C; cbn in *.
   apply well_founded_ind with lengthOrder.
     apply lengthOrder_wf.
-    intros. rename x into t. case_eq (sort A (h :: t)); intros.
-      assert (perm A (sort A (h :: t)) []).
+    intros. rename x into t. case_eq (sort (h :: t)); intros.
+      assert (perm A (sort (h :: t)) []).
         rewrite H0. reflexivity.
         rewrite <- sort_perm in H1. specialize (H1 h). cbn in H1. dec.
       f_equal.
@@ -69,8 +69,8 @@ Restart.
 Admitted. (* TODO *)
 
 Theorem sort_unique :
-  forall (A : LinDec) (C C' : Sort) (l : list A),
-    @sort C A l = @sort C' A l.
+  forall (A : LinDec) (C C' : Sort A) (l : list A),
+    @sort A C l = @sort A C' l.
 Proof.
   intros A C C'. apply well_founded_ind with lengthOrder.
     apply lengthOrder_wf.
@@ -82,14 +82,14 @@ Proof.
 Qed.
 
 Theorem sort_perm :
-  forall (A : LinDec) (s : Sort) (l l' : list A),
-    perm A l l' -> s A l = s A l'.
+  forall (A : LinDec) (s : Sort A) (l l' : list A),
+    perm A l l' -> s l = s l'.
 Proof.
   intros.
 Admitted. (* TODO *)
 
 Theorem sort_idempotent :
-  forall (A : LinDec) (s : Sort) (l : list A),
+  forall (A : LinDec) (s : Sort A) (l : list A),
     sort (sort l) = sort l.
 Proof.
   intros. apply sort_perm. destruct s; cbn.

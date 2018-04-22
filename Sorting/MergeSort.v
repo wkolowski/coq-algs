@@ -60,11 +60,14 @@ Qed.
 Class Split (A : LinDec) : Type :=
 {
     split' : list A -> list A * list A;
-    split'_spec1 : forall l l1 l2 : list A,
+    split'_spec1 :
+      forall l l1 l2 : list A,
         split' l = (l1, l2) -> 2 <= length l -> length l1 < length l;
-    split'_spec2 : forall l l1 l2 : list A,
+    split'_spec2 :
+      forall l l1 l2 : list A,
         split' l = (l1, l2) -> 2 <= length l -> length l2 < length l;
-    perm_split_app : forall (l : list A),
+    perm_split_app :
+      forall (l : list A),
         perm A l (fst (split' l) ++ snd (split' l))
 }.
 
@@ -172,3 +175,26 @@ Definition ms (A : LinDec) :=
 
 Definition ms2 (A : LinDec) :=
   @ghms 0 A (fun l => l) (HalfSplit A).
+
+(** Time for ultimate mergesort! *)
+
+Function ums
+  (A : LinDec)
+  (depth : nat) (maxdepth : nat)
+  (sort : list A -> list A)
+  (split : Split A)
+  (l : list A)
+  {measure length l} : list A :=
+    if @leqb natle maxdepth depth
+    then sort l
+    else if @leqb natle (length l) 2
+    then sort l
+    else let (l1, l2) := split l in
+      merge A (@ums A (1 + depth) maxdepth sort split l1,
+               @ums A (1 + depth) maxdepth sort split l2).
+Proof.
+  intros. apply split'_spec2 with l1; dec.
+    cbn in *. omega.
+  intros. apply split'_spec1 with l2; dec.
+    cbn in *. omega.
+Defined.

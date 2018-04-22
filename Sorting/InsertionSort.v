@@ -47,9 +47,9 @@ Restart.
     dec. induction t as [| h' t']; cbn in *; dec.
 Qed.
 
-Instance Sort_insertionSort : Sort :=
+Instance Sort_insertionSort (A : LinDec) : Sort A :=
 {
-    sort := insertionSort
+    sort := insertionSort A
 }.
 Proof.
   induction l as [| h t]; simpl; auto.

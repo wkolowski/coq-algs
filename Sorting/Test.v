@@ -74,6 +74,7 @@ Time Eval lazy in pairingSort natle (cycle 100 testl).
 (* Fast sorts on big lists. *)
 (*Time Compute ms natle (cycle 200 testl).
 Time Compute ms2 natle (cycle 200 testl).
+Time Compute ums 0 0 (treeSort natle) (MsSplit natle) (cycle 200 testl).
 
 Time Compute qs natle (cycle 200 testl).
 Time Compute qs2 natle (cycle 200 testl).

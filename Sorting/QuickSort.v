@@ -13,43 +13,11 @@ Set Implicit Arguments.
 Local Hint Unfold lt.
 Local Hint Resolve le_n_S filter_length.
 
-(* TODO: remove *)
-(*Function qs (A : LinDec) (l : list A) {measure length l} : list A :=
-match l with
-    | [] => []
-    | h :: t => qs A (filter (fun x : A => leqb x h) t) ++
-           h :: qs A (filter (fun x : A => negb (leqb x h)) t)
-end.
-Proof. all: simpl; auto. Defined.*)
-
 Local Hint Extern 0 (length _ < length _) =>
 match goal with
     | H : bifilter _ _ = _ |- _ => rewrite bifilter_spec in H; inversion H;
         apply filter_lengthOrder
 end.
-
-(* TODO: remove *)
-(*Function qs2 (A : LinDec) (l : list A) {measure length l} : list A :=
-match l with
-    | [] => []
-    | h :: t =>
-        let (lo, hi) := bifilter (fun x : A => x <=? h) t in
-        qs2 A lo ++ h :: qs2 A hi
-end.
-Proof. all: auto. Defined.*)
-
-(* TODO: remove *)
-Function hqs (n : nat) (A : LinDec) (sort : list A -> list A) (l : list A)
-  {measure length l} : list A :=
-  if @leqb natle (length l) n
-  then sort l
-  else match l with
-      | [] => []
-      | h :: t =>
-          let (lo, hi) := bifilter (fun x : A => x <=? h) t in
-              hqs n A sort lo ++ h :: hqs n A sort hi
-  end.
-Proof. all: auto. Defined.
 
 (** Time to generalize [ghqs]:
     - Rather that [n], the length of the desired "small list",
@@ -98,7 +66,7 @@ Class AdHocSort {A : LinDec} (small : Small A) : Type :=
 
 Coercion adhoc : AdHocSort >-> Funclass.
 
-Function ultimate_qs
+Function uqs
   (A : LinDec)
   (small : Small A)
   (adhoc : AdHocSort small)
@@ -115,9 +83,9 @@ match small l with
         let
           '(lo, eq, hi) := partition pivot rest
         in
-          ultimate_qs adhoc choosePivot partition lo ++
+          uqs adhoc choosePivot partition lo ++
           pivot :: eq ++
-          ultimate_qs adhoc choosePivot partition hi
+          uqs adhoc choosePivot partition hi
 end.
 Proof.
   all: intros;
@@ -128,9 +96,9 @@ Proof.
   all: cbn in *; omega.
 Defined.
 
-(** Ordinary quicksort using [ultimate_qs] *)
+(** Ordinary quicksort using [uqs] *)
 
-Instance head_Small (A : LinDec) : Small A :=
+Instance Small_head (A : LinDec) : Small A :=
 {
     small :=
       fun l : list A =>
@@ -143,35 +111,20 @@ Proof.
   all: destruct l; cbn; inv 1.
 Defined.
 
-Instance head_Pivot (A : LinDec) : Pivot A :=
-{
-    pivot :=
-      fun (h : A) (t : list A) => (h, t)
-}.
-Proof. inv 1. Defined.
-
-Instance bifilter_Partition (A : LinDec) : Partition A :=
-{
-    partition x l :=
-      let '(lo, hi) := bifilter (fun y => y <=? x) l in (lo, [], hi)
-}.
-Proof.
-  all: intros; rewrite bifilter_spec in H; inv H.
-    apply filter_In in H0. firstorder dec.
-    apply filter_In in H0. dec.
-      destruct H0. inv H0.
-      destruct H0. apply LinDec_not_leq_lt in n. firstorder.
-    cbn. omega.
-    cbn. unfold perm. intros. rewrite count_app. apply count_filter.
-Defined.
-
-Instance id_AdHocSort (A : LinDec) : AdHocSort (head_Small A) :=
+Instance AdHocSort_id (A : LinDec) : AdHocSort (Small_head A) :=
 {
     adhoc := id;
 }.
 Proof.
   all: destruct l; inv 1; constructor.
 Defined.
+
+Instance Pivot_head (A : LinDec) : Pivot A :=
+{
+    pivot :=
+      fun (h : A) (t : list A) => (h, t)
+}.
+Proof. inv 1. Defined.
 
 Instance Partition_filter (A : LinDec) : Partition A :=
 {
@@ -190,42 +143,55 @@ Proof.
 Defined.
 
 Definition qs A :=
-  ultimate_qs (id_AdHocSort A) (head_Pivot A) (Partition_filter A).
+  uqs (AdHocSort_id A) (Pivot_head A) (Partition_filter A).
+
+Instance Partition_bifilter (A : LinDec) : Partition A :=
+{
+    partition x l :=
+      let '(lo, hi) := bifilter (fun y => y <=? x) l in (lo, [], hi)
+}.
+Proof.
+  all: intros; rewrite bifilter_spec in H; inv H.
+    apply filter_In in H0. firstorder dec.
+    apply filter_In in H0. dec.
+      destruct H0. inv H0.
+      destruct H0. apply LinDec_not_leq_lt in n. firstorder.
+    cbn. omega.
+    cbn. unfold perm. intros. rewrite count_app. apply count_filter.
+Defined.
 
 Definition qs2 A :=
-  ultimate_qs (id_AdHocSort A) (head_Pivot A) (bifilter_Partition A).
+  uqs (AdHocSort_id A) (Pivot_head A) (Partition_bifilter A).
 
-Compute qs2 natle [4; 3; 2; 1].
-
-(** Like [ultimate_qs], but additionally has knowledge about the
-    recursion's depth. *)
-
-(*Function ultimate_qs
-  (A : LinDec)
-  (small : Small A)
-  (adhoc : AdHocSort small)
-  (choosePivot : Pivot A)
-  (partition : Partition A)
-  (l : list A)
-  {measure length l} : list A :=
-match small l with
-    | inl l' => adhoc l'
-    | inr (h, t) =>
-        let
-          '(pivot, rest) := choosePivot h t
-        in
-        let
-          '(lo, eq, hi) := partition pivot rest
-        in
-          ultimate_qs adhoc choosePivot partition lo ++
-          pivot :: eq ++
-          ultimate_qs adhoc choosePivot partition hi
-end.
+Instance Small_length (A : LinDec) (n : nat) : Small A :=
+{
+    small l :=
+    match l with
+        | [] => inl []
+        | h :: t =>
+            if @leqb natle (length l) n then inl l else inr (h, t)
+    end
+}.
 Proof.
-  all: intros;
-    apply small_inr, Permutation_length in teq;
-    apply pivot_spec, Permutation_length in teq1.
-  1: apply len_hi in teq2.
-  2: apply len_lo in teq2.
-  all: cbn in *; omega.
-Defined.*)
+  destruct l; inv 1. destruct n.
+    inv H1.
+    destruct (Nat.leb (length l) n); inv H1.
+  destruct l; inv 1. destruct n.
+    inv H1.
+    destruct (Nat.leb (length l) n); inv H1.
+Defined.
+
+Instance AdHocSort_Sort
+  {A : LinDec} (small : Small A) (sort : Sort A) : AdHocSort small :=
+{
+    adhoc := sort
+}.
+Proof.
+  intros. apply sort_sorted.
+  intros. apply sort_perm.
+Defined.
+
+Definition hqs
+  (n : nat) (A : LinDec) (sort : Sort A) (l : list A) : list A :=
+    uqs (AdHocSort_Sort (Small_length A n) sort)
+        (Pivot_head A) (Partition_bifilter A) l.

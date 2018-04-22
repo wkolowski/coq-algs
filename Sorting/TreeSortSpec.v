@@ -17,11 +17,11 @@ Proof.
     rewrite count_toList, count_ins, <- count_toList, <- IHt. reflexivity.
 Qed.
 
-Instance Sort_treeSort : Sort :=
+Instance Sort_treeSort (A : LinDec) : Sort A :=
 {
-    sort := treeSort;
-    sort_sorted := treeSort_sorted;
-    sort_perm := treeSort_perm
+    sort := @treeSort A;
+    sort_sorted := treeSort_sorted A;
+    sort_perm := treeSort_perm A
 }.
 
 Lemma treeSort'_spec :
@@ -32,9 +32,9 @@ Proof.
   unfold treeSort. reflexivity.
 Qed.
 
-Instance Sort_treeSort' : Sort :=
+Instance Sort_treeSort' (A : LinDec) : Sort A :=
 {
-    sort := treeSort';
+    sort := @treeSort' A;
 }.
 Proof.
   all: intros; rewrite treeSort'_spec.

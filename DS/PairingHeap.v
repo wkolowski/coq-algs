@@ -427,9 +427,9 @@ Proof.
     apply fromList_isHeap.
 Qed.
 
-Instance Sort_pairingSort : Sort :=
+Instance Sort_pairingSort (A : LinDec) : Sort A :=
 {
-    sort := @pairingSort;
+    sort := @pairingSort A;
 }.
 Proof.
   all: intros.

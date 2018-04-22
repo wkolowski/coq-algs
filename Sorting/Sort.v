@@ -12,29 +12,16 @@ Inductive sorted (A : LinDec) : list A -> Prop :=
 
 Hint Constructors sorted.
 
-Class Sort : Type :=
+Class Sort (A : LinDec) : Type :=
 {
-    sort :> forall {A : LinDec}, list A -> list A;
+    sort :> list A -> list A;
     sort_sorted :
-      forall (A : LinDec) (l : list A),
-        sorted A (sort l);
+      forall l : list A, sorted A (sort l);
     sort_perm :
-      forall (A : LinDec) (l : list A),
-        perm A l (sort l);
+      forall l : list A, perm A l (sort l);
 }.
 
 Coercion sort : Sort >-> Funclass.
-
-Class Sort' (A : LinDec) : Type :=
-{
-    sort' :> list A -> list A;
-    sort'_sorted :
-      forall l : list A, sorted A (sort' l);
-    sort'_perm :
-      forall l : list A, perm A l (sort' l);
-}.
-
-Coercion sort' : Sort' >-> Funclass.
 
 Class Partition (A : LinDec) : Type :=
 {

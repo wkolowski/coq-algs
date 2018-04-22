@@ -38,7 +38,7 @@ Proof.
   in pose x.
   cbn in c0. unfold compose in c0.
   let x := constr:(reify c0) in pose x.
-  unfold c0, reify in c1. cbn in c1.
+  unfold c0, reify in c1. compute in c1. destruct X. cbn in *. cbn in c1.
 Abort.
 
 End test.

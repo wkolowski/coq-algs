@@ -72,8 +72,8 @@ Proof.
 Qed.
 
 Theorem sort_correct :
-  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort),
-    expDenoteL envX (s natle l) = expDenoteL envX l.
+  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort natle),
+    expDenoteL envX (s l) = expDenoteL envX l.
 Proof.
   intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
   destruct s. cbn. rewrite <- sort_perm. reflexivity.
@@ -88,9 +88,10 @@ Theorem simplify_correct :
 Proof.
   unfold simplify. intros.
   rewrite !list_to_exp_correct.
-  rewrite !(sort_correct _ _ _ Sort_insertionSort).
+  pose (sort_correct _ envX (flatten e) (Sort_insertionSort natle)).
+  cbn in e0. rewrite e0.
   erewrite ?flatten_correct.
-  trivial.
+  reflexivity.
 Qed.
 
 Theorem simplify_idempotent :
@@ -99,8 +100,8 @@ Theorem simplify_idempotent :
 Proof.
   intros. unfold simplify.
   rewrite ?flatten_lte.
-  rewrite (sort_idempotent natle (Sort_insertionSort)).
-  cbn. trivial.
+  pose (sort_idempotent (Sort_insertionSort natle)). simpl in e0.
+  rewrite e0. reflexivity.
 Qed.
 
 Theorem reflectEq :

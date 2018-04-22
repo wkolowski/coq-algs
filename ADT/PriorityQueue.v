@@ -166,9 +166,9 @@ Proof.
     admit.
 Admitted.
 
-Instance Sort_priorityQueueSort : Sort :=
+Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=
 {
-    sort := @priorityQueueSort;
+    sort := @priorityQueueSort A;
 }.
 Proof.
   all: intros.

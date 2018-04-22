@@ -515,9 +515,9 @@ Proof.
   rewrite toList_count_BTree, fromList_count_BTree. reflexivity.
 Qed.
 
-Instance Sort_leftistHeapsort : Sort :=
+Instance Sort_leftistHeapsort (A : LinDec) : Sort A :=
 {
-    sort := @leftistHeapsort;
+    sort := @leftistHeapsort A;
 }.
 Proof.
   all: intros.
