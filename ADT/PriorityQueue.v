@@ -40,6 +40,9 @@ match l with
     | h :: t => insert h (fromList t)
 end.
 
+Parameter elem :
+  forall {A : LinDec}, A -> PQ A -> Prop.
+
 (** Properties of [unMin]. *)
 
 Parameter unMin_empty :
@@ -139,15 +142,30 @@ Definition priorityQueueSort (A : LinDec) (l : list A) : list A :=
 
 Require Import Sorting.Sort.
 
+Parameter unMin_spec :
+  forall (A : LinDec) (m : A) (q q' : PQ A),
+    unMin q = Some (m, q') ->
+      forall x : A, elem x q -> m ≤ x.
+
+Parameter unMin_elem :
+  forall (A : LinDec) (x m : A) (q q' : PQ A),
+    unMin q = Some (m, q') -> elem x q <-> x = m \/ elem x q'.
+
 Lemma toList_sorted :
   forall (A : LinDec) (q : PQ A), sorted A (toList q).
 Proof.
   intros. functional induction @toList A q.
     constructor.
-    rewrite toList_equation in *. destruct (unMin q').
-      destruct p. constructor; auto. (*apply unMin_spec.*) admit.
-      constructor.
-Admitted.
+    rewrite toList_equation in *. destruct (unMin q') eqn: H.
+      Focus 2. constructor.
+      destruct p. constructor; auto. apply (unMin_spec A m q q').
+        assumption.
+        rewrite (unMin_elem _ c m q q').
+          right. rewrite (unMin_elem _ c c q' p).
+            left. reflexivity.
+            assumption.
+          assumption.
+Qed.
 
 Lemma priorityQueueSort_sorted :
   forall (A : LinDec) (l : list A),
@@ -156,6 +174,11 @@ Proof.
   intros. unfold priorityQueueSort. apply toList_sorted.
 Qed.
 
+Parameter count_toList_insert :
+  forall (A : LinDec) (x h : A) (l : list A),
+    count A x (toList (insert h (fromList l))) =
+    (if x =? h then S else id) (count A x l).
+
 Lemma priorityQueueSort_perm :
   forall (A : LinDec) (l : list A),
     perm A l (priorityQueueSort A l).
@@ -163,8 +186,8 @@ Proof.
   unfold perm, priorityQueueSort. intros.
   induction l as [| h t]; cbn.
     rewrite toList_equation, unMin_empty. cbn. reflexivity.
-    admit.
-Admitted.
+    rewrite count_toList_insert. dec.
+Qed.
 
 Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=
 {

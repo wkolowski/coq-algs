@@ -17,6 +17,9 @@ Require Import ListLemmas.
 
 Require Import TrichQuicksort.
 
+Require Import LeftistHeap.
+Require Import LeftistHeap3.
+
 Set Implicit Arguments.
 
 (* Doesn't work at all. *)
@@ -47,7 +50,8 @@ Time Compute insertionSort natle (cycle 10 testl).*)
 
 (* Fast sorts on medium lists. *)
 
-(*Time Eval native_compute in ms natle (cycle 100 testl).
+(*
+Time Eval native_compute in ms natle (cycle 100 testl).
 Time Compute ms natle (cycle 100 testl).
 Time Eval native_compute in ms2 natle (cycle 100 testl).
 
@@ -60,10 +64,11 @@ Time Compute treeSort natle (cycle 100 testl).
 Time Compute treeSort' natle (cycle 100 testl).
 
 Time Compute redblackSort natle (cycle 100 testl).
-Time Compute redblackSort' natle (cycle 100 testl).
+(*Time Compute redblackSort' natle (cycle 100 testl).*)
 
 Time Eval lazy in leftistHeapsort natle (cycle 100 testl).
-Time Eval lazy in leftistHeapsort' natle (cycle 100 testl).
+(*Time Eval lazy in leftistHeapsort' natle (cycle 100 testl).*)
+Time Compute leftistHeapsort3 natle (cycle 100 testl).
 
 Time Eval lazy in splaySort natle (cycle 100 testl).
 

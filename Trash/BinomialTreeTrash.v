@@ -2,7 +2,7 @@
     | leaf : A -> BinomialTree A 0
     | link :
         forall (rank : nat) (l r : BinomialTree A rank),
-          BinomialTree A (S rank).*)
+          BinomialTree A (S rank).
 
 Module wut.
 
@@ -196,4 +196,4 @@ Defined.
 
 End wut3.
 
-Module wut4.
+Module wut4.*)

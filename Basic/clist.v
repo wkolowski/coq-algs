@@ -1,7 +1,8 @@
 Add LoadPath "/home/zeimer/Code/Coq/CoqBookPL/book/".
 
-Require Import X3.
-Print list.
+(*Require Import X3.*)
+
+(*Print list.
 Definition clist'
   {A : Type} (P : (forall X : Type, X -> (A -> X -> X) -> X) -> Type)
   : Type :=
@@ -66,3 +67,4 @@ Lemma len_app :
     len (app l1 l2) = len l1 + len l2.
 Proof.
   unfold clist, len, app. intros. unfold clist in *.
+*)
