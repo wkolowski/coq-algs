@@ -29,21 +29,6 @@ Lemma ins_sorted : forall (A : LinDec) (x : A) (l : list A),
 Proof.
   induction l as [| h t]; intros; cbn.
     constructor.
-    destruct (leqb_spec x h).
-      auto.
-      induction t as [| h' t']; cbn in *.
-        repeat constructor.
-          destruct (leq_total h x); auto.
-        destruct (leqb_spec x h'); intros.
-          constructor.
-            destruct (leq_total x h); auto.
-            constructor. eauto. eapply sorted_tail. eauto.
-            constructor.
-              inversion H. auto.
-              apply IHt; auto. eapply sorted_tail; eauto.
-Restart.
-  induction l as [| h t]; intros; cbn.
-    constructor.
     dec. induction t as [| h' t']; cbn in *; dec.
 Qed.
 

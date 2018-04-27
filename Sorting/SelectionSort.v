@@ -4,7 +4,6 @@ Require Export Coq.Program.Wf.
 Require Export Recdef.
 
 Require Export Sorting.Sort.
-Require Export ListLemmas.
 
 Set Implicit Arguments.
 

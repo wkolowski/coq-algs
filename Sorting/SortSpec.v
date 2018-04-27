@@ -81,11 +81,27 @@ Proof.
         apply remove_once_cons. assumption.
 Qed.
 
+Lemma min_dflt_Permutation :
+  forall (A : LinDec) (x : A) (l1 l2 : list A),
+    Permutation l1 l2 -> min_dflt A x l1 = min_dflt A x l2.
+Proof.
+  induction 1; cbn; dec.
+    unfold min_dflt in *. rewrite IHPermutation in l0.
+      contradiction.
+    unfold min_dflt in *. rewrite IHPermutation in n.
+      contradiction.
+Qed.
+
 Theorem sort_perm :
   forall (A : LinDec) (s : Sort A) (l l' : list A),
     perm A l l' -> s l = s l'.
 Proof.
-  intros.
+  intros. apply perm_Permutation in H. induction H.
+    reflexivity.
+    Focus 3. congruence.
+    rewrite !sort_cons. assert (min_dflt A x l = min_dflt A x l').
+      apply min_dflt_Permutation. assumption.
+      rewrite !H0. f_equal. cbn. dec.
 Admitted. (* TODO *)
 
 Theorem sort_idempotent :

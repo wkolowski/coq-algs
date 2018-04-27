@@ -18,7 +18,6 @@ Require Import ListLemmas.
 Require Import TrichQuicksort.
 
 Require Import LeftistHeap.
-Require Import LeftistHeap3.
 
 Set Implicit Arguments.
 

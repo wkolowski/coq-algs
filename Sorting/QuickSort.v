@@ -3,8 +3,8 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Export Coq.Program.Wf.
 Require Export Recdef.
 
-Require Export Sorting.Sort.
 Require Export ListLemmas.
+Require Export Sorting.Sort.
 
 Require Import InsertionSort.
 

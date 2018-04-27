@@ -3,7 +3,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Import QuickSort.
 
 Require Import InsertionSort.
-
+Check perm_trans. Print Permutation.
 Set Implicit Arguments.
 
 (*Theorem hqs_perm :

@@ -4,6 +4,9 @@ Require Export RCCBase.
 
 Require Export LinDec.
 
+Require Export Sorting.ListLemmas.
+Require Import TrichDec.
+
 Require Import Classes.RelationClasses.
 Require Import Permutation.
 
@@ -14,7 +17,7 @@ match l with
 end.
 
 Definition perm (A : LinDec) (l1 l2 : list A) : Prop :=
-    forall x : A, count A x l1 = count A x l2.
+  forall x : A, count A x l1 = count A x l2.
 
 (* Lemmas about [count]. *)
 
@@ -186,12 +189,92 @@ Proof.
     assert (H1 := H h1). assert (H2 := H h2). dec.
 Qed.
 
-(* TODO *) Lemma perm_front_ex :
+Lemma perm_cons_inv :
+  forall (A : LinDec) (h : A) (t1 t2 : list A),
+    perm A (h :: t1) (h :: t2) -> perm A t1 t2.
+Proof.
+  unfold perm; intros. specialize (H x). cbn in H. dec.
+Qed.
+
+Lemma remove_once_In_perm :
+  forall (A : LinDec) (x : A) (l : list A),
+    In x l -> perm A l (x :: remove_once x l).
+Proof.
+  induction l as [| h t]; cbn; inv 1; dec.
+    specialize (IHt H0). rewrite <- perm_swap.
+      apply perm_cons. exact IHt.
+      reflexivity.
+Qed.
+
+Lemma perm_In' :
+  forall (A : LinDec) (h : A) (t l : list A),
+    perm A (h :: t) l -> In h l.
+Proof.
+  intros. rewrite count_In. rewrite <- H. cbn. dec.
+Defined.
+
+Lemma count_remove_once_neq :
+  forall (A : LinDec) (x y : A) (l : list A),
+    x <> y -> count A x (remove_once y l) = count A x l.
+Proof.
+  induction l as [| h t]; cbn; intros; dec; dec.
+Qed.
+
+Lemma count_remove_once_In :
+  forall (A : LinDec) (x : A) (l : list A),
+    In x l -> count A x (remove_once x l) = count A x l - 1.
+Proof.
+  induction l as [| h t]; cbn; intros.
+    reflexivity.
+    firstorder (repeat dec).
+Qed.
+
+Lemma perm_remove_once :
+  forall (A : LinDec) (h h' : A) (t t' : list A),
+    h <> h' -> perm A (h :: t) (h' :: t') ->
+      perm A (h :: remove_once h' t) t'.
+Proof.
+  intros. assert (In h' t).
+    symmetry in H0. apply perm_In' in H0. cbn in H0. destruct H0.
+      congruence.
+      assumption.
+    unfold perm. intro. destruct (x =? h) eqn: Heq; dec.
+      rewrite count_remove_once_neq.
+        red in H0. specialize (H0 h). cbn in H0. dec.
+        assumption.
+      destruct (x =? h') eqn: Heq'; dec.
+        rewrite count_remove_once_In.
+          red in H0. specialize (H0 h'). cbn in H0. dec.
+          assumption.
+        rewrite count_remove_once_neq.
+          red in H0. specialize (H0 x). cbn in H0. dec.
+          assumption.
+Qed.
+
+Lemma perm_front_ex' :
   forall (A : LinDec) (h : A) (t l : list A),
     perm A (h :: t) l -> exists l1 l2 : list A,
-      perm A l (l1 ++ h :: l2).
+      l = l1 ++ h :: l2 /\ perm A (l1 ++ l2) t.
 Proof.
-Admitted.
+  intros A h t l. gen t; gen h.
+  induction l as [| h' t']; cbn; intros.
+    apply perm_nil_cons in H. contradiction.
+    destruct (h =? h') eqn: Heq.
+      dec. exists [], t'. cbn. split.
+        reflexivity.
+        apply perm_cons_inv in H. rewrite H. reflexivity.
+      dec. assert (perm A (h :: remove_once h' t) t').
+        apply perm_remove_once; assumption.
+        destruct (IHt' h (remove_once h' t) H0) as (l1 & l2 & H1 & H2).
+          clear IHt'. subst. exists (h' :: l1), l2. split.
+            reflexivity.
+            cbn. rewrite (remove_once_In_perm A h' t).
+              apply perm_cons. assumption.
+              rewrite app_comm_cons, perm_app_comm in H; cbn in H.
+                apply perm_cons_inv in H. eapply perm_In.
+                  Focus 2. rewrite H. reflexivity.
+                  apply in_or_app. right. left. reflexivity.
+Qed.
 
 Theorem Permutation_perm :
   forall (A : LinDec) (l1 l2 : list A),
@@ -200,23 +283,38 @@ Proof.
   induction 1; cbn; intros; dec.
 Qed.
 
-Lemma perm_cons_inv :
-  forall (A : LinDec) (h : A) (t1 t2 : list A),
-    perm A (h :: t1) (h :: t2) -> perm A t1 t2.
-Proof.
-  unfold perm; intros. specialize (H x). cbn in H. dec.
-Qed.
-
-(* TODO *) Theorem perm_Permutation :
+Theorem perm_Permutation :
   forall (A : LinDec) (l1 l2 : list A),
     perm A l1 l2 -> Permutation l1 l2.
 Proof.
   induction l1 as [| h1 t1]; cbn; intros.
     destruct l2; cbn; auto. red in H. cbn in H. specialize (H c). dec.
-    destruct l2 as [| h2 t2]; cbn.
-      red in H. cbn in H. specialize (H h1). dec.
-      destruct (perm_front_ex _ _ _ _ H) as [l1' [l2' H']].
-        rewrite H' in H. rewrite perm_front in H.
-        apply perm_cons_inv in H. specialize (IHt1 (l1' ++ l2') H).
-          rewrite IHt1.
-Admitted.
+    apply perm_front_ex' in H. destruct H as (l1 & l3 & H1 & H3). subst.
+      rewrite <- Permutation_cons_app.
+        reflexivity.
+        apply IHt1. symmetry. assumption.
+Qed.
+
+(** Moved from ListLemmas to avoid circularity. *)
+
+Lemma perm_min_front :
+  forall (A : LinDec) (h : A) (t : list A),
+    let m := min_dflt A h t in
+      perm A (m :: remove_once m (h :: t)) (h :: t).
+Proof.
+  intros. destruct (min_split A h t) as [l1 [l2 [H H']]]. fold m in H, H'.
+  rewrite H, <- H' in *. apply perm_symm. apply perm_front.
+Qed.
+
+Theorem trifilter_spec' :
+  forall (A : TrichDec) (pivot : A) (l lo eq hi : list A),
+    trifilter pivot l = (lo, eq, hi) ->
+      perm A (lo ++ eq) (filter (fun x : A => x <=? pivot) l) /\
+      hi = filter (fun x : A => pivot <? x) l.
+Proof.
+  intros until hi. functional induction trifilter pivot l;
+  intros; inv H; cbn in *; trich; edestruct IHp; try split; eauto.
+    apply perm_cons; auto.
+    rewrite (perm_front A x lo l2). apply perm_cons. auto.
+    f_equal. auto.
+Qed.

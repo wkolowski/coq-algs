@@ -3,7 +3,6 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 (*Require Import Sorting.Sort.*)
 Require Export RCCBase.
 Require Export LinDec.
-Require Export Sorting.Perm.
 
 Require Import Div2.
 
@@ -92,15 +91,6 @@ Proof.
         exists (h :: h' :: l1), l2. split.
           inversion H. dec.
           cbn in H'. dec.
-Qed.
-
-Lemma perm_min_front :
-  forall (A : LinDec) (h : A) (t : list A),
-    let m := min_dflt A h t in
-      perm A (m :: remove_once m (h :: t)) (h :: t).
-Proof.
-  intros. destruct (min_split A h t) as [l1 [l2 [H H']]]. fold m in H, H'.
-  rewrite H, <- H' in *. apply perm_symm. apply perm_front.
 Qed.
 
 Lemma remove_once_In_conv :
@@ -200,19 +190,6 @@ Theorem trifilter_spec :
 Proof.
   intros. functional induction @trifilter A pivot l; cbn;
   try (rewrite e0 in *; clear e0; inv IHp); trich.
-Qed.
-
-Theorem trifilter_spec' :
-  forall (A : TrichDec) (pivot : A) (l lo eq hi : list A),
-    trifilter pivot l = (lo, eq, hi) ->
-      perm A (lo ++ eq) (filter (fun x : A => x <=? pivot) l) /\
-      hi = filter (fun x : A => pivot <? x) l.
-Proof.
-  intros until hi. functional induction trifilter pivot l;
-  intros; inv H; cbn in *; trich; edestruct IHp; try split; eauto.
-    apply perm_cons; auto.
-    rewrite (perm_front A x lo l2). apply perm_cons. auto.
-    f_equal. auto.
 Qed.
 
 (* Mergesort lemmas *)
