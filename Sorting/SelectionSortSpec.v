@@ -27,13 +27,13 @@ Theorem ss_sorted :
 Proof.
   intros. functional induction ss A l.
     constructor.
-    case_eq (ss A (remove_once (min_dflt A h t) (h :: t))); intros.
+    case_eq (ss A (removeFirst (min_dflt A h t) (h :: t))); intros.
       auto.
       constructor.
-        assert (In c (ss A (remove_once (min_dflt A h t) (h :: t)))).
+        assert (In c (ss A (removeFirst (min_dflt A h t) (h :: t)))).
           rewrite H. left. reflexivity.
           rewrite ss_In in H0. apply min_spec.
-          apply remove_once_In_conv in H0. assumption.
+          apply removeFirst_In_conv in H0. assumption.
         rewrite <- H. assumption.
 Qed.
 

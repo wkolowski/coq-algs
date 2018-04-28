@@ -20,7 +20,7 @@ Qed.
 Theorem sort_cons :
   forall (A : LinDec) (C : Sort A) (h : A) (t : list A),
     let m := min_dflt A h t in
-      @sort A C (h :: t) = m :: @sort A C (remove_once m (h :: t)).
+      @sort A C (h :: t) = m :: @sort A C (removeFirst m (h :: t)).
 Proof.
   intros.
   assert (sorted A (sort (h :: t))) by (destruct C; auto).
@@ -36,11 +36,11 @@ Proof.
           apply perm_In with (h :: t); auto. apply min_In.
         assert (c = m) by auto; subst. f_equal.
           assert (H4 := perm_min_front A h t). unfold m in H4. fold m in H4.
-            assert (perm A (C (h :: t)) (m :: remove_once m (h :: t))).
+            assert (perm A (C (h :: t)) (m :: removeFirst m (h :: t))).
               eapply perm_trans.
                 rewrite <- H0. reflexivity.
                 rewrite H4. reflexivity.
-          rewrite H1 in H5. assert (perm A l (remove_once m (h :: t))).
+          rewrite H1 in H5. assert (perm A l (removeFirst m (h :: t))).
             red. intros. red in H5. specialize (H5 x). cbn in H5. dec.
 Restart.
   intros A C h. apply well_founded_ind with lengthOrder.
@@ -68,6 +68,24 @@ Restart.
         Focus 2.
 Admitted. (* TODO *)
 
+Require Import SelectionSort2.
+
+Theorem sort_cons' :
+  forall (A : LinDec) (s : Sort A) (l : list A),
+    s l =
+    match min l with
+        | None => []
+        | Some m => m :: s (removeFirst m l)
+    end.
+Proof.
+  intros. functional induction min l.
+    rewrite sort_nil. reflexivity.
+    specialize (IHo s). destruct (min t).
+      inv e0.
+      destruct s; cbn in *. specialize (sort_perm t).
+        rewrite IHo in sort_perm. Search (perm _ _ _).
+Abort.
+
 Theorem sort_unique :
   forall (A : LinDec) (C C' : Sort A) (l : list A),
     @sort A C l = @sort A C' l.
@@ -78,7 +96,7 @@ Proof.
       rewrite !sort_nil. trivial.
       rewrite !sort_cons. f_equal. apply H; dec.
         red; cbn. omega.
-        apply remove_once_cons. assumption.
+        apply removeFirst_cons. assumption.
 Qed.
 
 Lemma min_dflt_Permutation :

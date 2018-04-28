@@ -44,7 +44,15 @@ Time Compute stdSort_nat [].
 *)
 
 (* Slow sorts on small lists. *)
-(*Time Compute ss natle (cycle 10 testl).
+
+Require Import SelectionSort2.
+
+(*Time Compute SelectionSort.ss natle (cycle 100 testl).
+Time Compute SelectionSort2.ss natle (cycle 100 testl).
+Time Compute SelectionSort2.ss' natle (cycle 100 testl).
+Time Compute SelectionSort2.ss'' natle (cycle 100 testl).
+
+Time Compute ss natle (cycle 10 testl).
 Time Compute insertionSort natle (cycle 10 testl).*)
 
 (* Fast sorts on medium lists. *)

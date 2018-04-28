@@ -196,9 +196,9 @@ Proof.
   unfold perm; intros. specialize (H x). cbn in H. dec.
 Qed.
 
-Lemma remove_once_In_perm :
+Lemma removeFirst_In_perm :
   forall (A : LinDec) (x : A) (l : list A),
-    In x l -> perm A l (x :: remove_once x l).
+    In x l -> perm A l (x :: removeFirst x l).
 Proof.
   induction l as [| h t]; cbn; inv 1; dec.
     specialize (IHt H0). rewrite <- perm_swap.
@@ -213,40 +213,40 @@ Proof.
   intros. rewrite count_In. rewrite <- H. cbn. dec.
 Defined.
 
-Lemma count_remove_once_neq :
+Lemma count_removeFirst_neq :
   forall (A : LinDec) (x y : A) (l : list A),
-    x <> y -> count A x (remove_once y l) = count A x l.
+    x <> y -> count A x (removeFirst y l) = count A x l.
 Proof.
   induction l as [| h t]; cbn; intros; dec; dec.
 Qed.
 
-Lemma count_remove_once_In :
+Lemma count_removeFirst_In :
   forall (A : LinDec) (x : A) (l : list A),
-    In x l -> count A x (remove_once x l) = count A x l - 1.
+    In x l -> count A x (removeFirst x l) = count A x l - 1.
 Proof.
   induction l as [| h t]; cbn; intros.
     reflexivity.
     firstorder (repeat dec).
 Qed.
 
-Lemma perm_remove_once :
+Lemma perm_removeFirst :
   forall (A : LinDec) (h h' : A) (t t' : list A),
     h <> h' -> perm A (h :: t) (h' :: t') ->
-      perm A (h :: remove_once h' t) t'.
+      perm A (h :: removeFirst h' t) t'.
 Proof.
   intros. assert (In h' t).
     symmetry in H0. apply perm_In' in H0. cbn in H0. destruct H0.
       congruence.
       assumption.
     unfold perm. intro. destruct (x =? h) eqn: Heq; dec.
-      rewrite count_remove_once_neq.
+      rewrite count_removeFirst_neq.
         red in H0. specialize (H0 h). cbn in H0. dec.
         assumption.
       destruct (x =? h') eqn: Heq'; dec.
-        rewrite count_remove_once_In.
+        rewrite count_removeFirst_In.
           red in H0. specialize (H0 h'). cbn in H0. dec.
           assumption.
-        rewrite count_remove_once_neq.
+        rewrite count_removeFirst_neq.
           red in H0. specialize (H0 x). cbn in H0. dec.
           assumption.
 Qed.
@@ -263,12 +263,12 @@ Proof.
       dec. exists [], t'. cbn. split.
         reflexivity.
         apply perm_cons_inv in H. rewrite H. reflexivity.
-      dec. assert (perm A (h :: remove_once h' t) t').
-        apply perm_remove_once; assumption.
-        destruct (IHt' h (remove_once h' t) H0) as (l1 & l2 & H1 & H2).
+      dec. assert (perm A (h :: removeFirst h' t) t').
+        apply perm_removeFirst; assumption.
+        destruct (IHt' h (removeFirst h' t) H0) as (l1 & l2 & H1 & H2).
           clear IHt'. subst. exists (h' :: l1), l2. split.
             reflexivity.
-            cbn. rewrite (remove_once_In_perm A h' t).
+            cbn. rewrite (removeFirst_In_perm A h' t).
               apply perm_cons. assumption.
               rewrite app_comm_cons, perm_app_comm in H; cbn in H.
                 apply perm_cons_inv in H. eapply perm_In.
@@ -300,7 +300,7 @@ Qed.
 Lemma perm_min_front :
   forall (A : LinDec) (h : A) (t : list A),
     let m := min_dflt A h t in
-      perm A (m :: remove_once m (h :: t)) (h :: t).
+      perm A (m :: removeFirst m (h :: t)) (h :: t).
 Proof.
   intros. destruct (min_split A h t) as [l1 [l2 [H H']]]. fold m in H, H'.
   rewrite H, <- H' in *. apply perm_symm. apply perm_front.

@@ -32,82 +32,116 @@ Proof.
 Qed.
 
 (* Selection sort lemmas *)
-Fixpoint removeFirst {A : LinDec} (x : A) (l : list A) : list A :=
+Function removeFirst {A : Type} (p : A -> bool) (l : list A) : list A :=
 match l with
     | [] => []
-    | h :: t => if x =? h then t else h :: removeFirst x t
+    | h :: t => if p h then t else h :: removeFirst p t
 end.
 
-Lemma removeFirst_In_eq : forall (A : LinDec) (x : A) (l : list A),
-    In x l -> S (length (removeFirst x l)) = length l.
+Lemma removeFirst_In_eq :
+  forall (A : Type) (p : A -> bool) (l : list A),
+    Exists (fun x => p x = true) l ->
+      S (length (removeFirst p l)) = length l.
 Proof.
-  induction l as [| h t]; destruct 1; dec.
-Defined.
+  intros. functional induction @removeFirst A p l; inv H; cbn; auto.
+Qed.
 
-Lemma removeFirst_le : forall (A : LinDec) (x : A) (l : list A),
-    length (removeFirst x l) <= length l.
+Lemma removeFirst_le :
+  forall (A : Type) (p : A -> bool) (l : list A),
+    length (removeFirst p l) <= length l.
 Proof.
-  induction l as [| h t]; dec.
-Defined.
+  induction l as [| h t]; cbn; try destruct (p h); cbn; omega.
+Qed.
 
-Lemma removeFirst_In_lt : forall (A : LinDec) (x : A) (l : list A),
-    In x l -> length (removeFirst x l) < length l.
+Lemma removeFirst_In_lt :
+  forall (A : Type) (p : A -> bool) (l : list A),
+    Exists (fun x => p x = true) l ->
+      length (removeFirst p l) < length l.
 Proof.
-  induction l as [| h t]; destruct 1; dec.
+  intros. functional induction @removeFirst A p l; inv H; cbn.
     apply lt_n_S. auto.
-Defined.
+Qed.
+
+Lemma In_Exists :
+  forall (A : Type) (x : A) (l : list A),
+    In x l <-> Exists (fun y => x = y) l.
+Proof.
+  split.
+    induction l as [| h t]; cbn; intros.
+      contradiction.
+      inv H.
+    induction 1; subst.
+      left. reflexivity.
+      right. assumption.
+Qed.
+
+Lemma Exists_In :
+  forall (A : Type) (P : A -> Prop) (l : list A),
+    Exists P l <-> exists x : A, In x l /\ P x.
+Proof.
+  split.
+    induction 1; firstorder.
+    induction l; firstorder (subst; auto).
+Qed.
 
 Lemma removeFirst_min_lengthOrder :
   forall (A : LinDec) (h : A) (t : list A),
-    lengthOrder (removeFirst (min_dflt A h t) (h :: t)) (h :: t).
+    lengthOrder
+      (removeFirst (fun x => x =? min_dflt A h t) (h :: t))
+      (h :: t).
 Proof.
-  red; intros. apply removeFirst_In_lt. apply min_In.
-Defined.
+  red; intros. apply removeFirst_In_lt.
+  rewrite Exists_In. exists (min_dflt A h t). split.
+    apply min_In.
+    dec.
+Qed.
 
-Lemma removeFirst_cons:
+(*Lemma removeFirst_cons:
   forall (A : LinDec) (h : A) (t : list A), min_dflt A h t <> h ->
-    lengthOrder (h :: removeFirst (min_dflt A h t) t) (h :: t).
+    lengthOrder
+      (h :: removeFirst (fun x => x =? min_dflt A h t) t)
+      (h :: t).
 Proof.
   intros. replace (h :: removeFirst (min_dflt A h t) t) with
     (removeFirst (min_dflt A h t) (h :: t)).
     apply removeFirst_min_lengthOrder.
     simpl. dec.
-Qed.
+Qed.*)
 
 Lemma min_split :
   forall (A : LinDec) (h : A) (t : list A),
     exists l1 l2 : list A, h :: t = l1 ++ min_dflt A h t :: l2 /\
-      l1 ++ l2 = removeFirst (min_dflt A h t) (h :: t).
+      l1 ++ l2 = removeFirst (fun x => x =? min_dflt A h t) (h :: t).
 Proof.
   induction t as [| h' t']; intros.
     exists [], []. cbn. dec.
-    simpl. dec; subst; cbn. eauto.
-      exists [h], t'. dec.
-      exists [], (h' :: t'). rewrite e. dec.
-      exists [h], t'. dec.
-      exists [h], t'. dec.
+    simpl. dec; subst; cbn.
+      exists [h'], t'. dec.
+      Focus 2. exists [h], t'. cbn. dec.
+      Focus 2. exists [h], t'. dec.
+      exists [], (h' :: t'). rewrite <- e. dec.
       destruct IHt' as [l1 [l2 [H H']]]. destruct l1.
-        inversion H. dec.
+        inv H.
         exists (h :: h' :: l1), l2. split.
-          inversion H. dec.
+          inv H. dec.
           cbn in H'. dec.
 Qed.
 
 Lemma removeFirst_In_conv :
   forall (A : LinDec) (x h : A) (t : list A),
-    In x (removeFirst (min_dflt A h t) (h :: t)) ->
+    In x (removeFirst (fun x => x =? min_dflt A h t) (h :: t)) ->
       In x (h :: t).
 Proof.
   induction t as [| h' t'].
     simpl. dec.
-    simpl in *. dec; inversion H; subst; auto.
-      inversion H; inversion H0; subst; auto.
-        edestruct IHt'; simpl; auto.
+    simpl in *. dec; inv H. inv H0.
+      edestruct IHt'; cbn; auto.
 Qed.
 
 Lemma removeFirst_In :
   forall (A : LinDec) (x h : A) (t : list A),
-    In x t -> min_dflt A h t <> x -> In x (removeFirst (min_dflt A h t) t).
+    In x t -> min_dflt A h t <> x ->
+      In x (removeFirst (fun x => x =? min_dflt A h t) t).
 Proof.
   induction t as [| h' t']; inversion 1; subst; intros.
     simpl in *. dec.
@@ -207,7 +241,8 @@ match n, l with
     | S n', h :: t => drop n' t
 end.
 
-Theorem take_length_le : forall (A : Type) (n : nat) (l : list A),
+Theorem take_length_le :
+  forall (A : Type) (n : nat) (l : list A),
     length (take n l) <= length l.
 Proof.
   induction n as [| n']; destruct l; simpl; intros; auto.
@@ -215,7 +250,8 @@ Proof.
     apply le_n_S. apply IHn'.
 Qed.
 
-Theorem take_length_lt : forall (A : Type) (n : nat) (l : list A),
+Theorem take_length_lt :
+  forall (A : Type) (n : nat) (l : list A),
     n < length l -> length (take n l) < length l.
 Proof.
   induction n as [| n']; simpl; intros; auto.
