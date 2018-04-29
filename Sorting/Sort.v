@@ -2,6 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export RCCBase.
 
+(*Require Export Sorting.Perm_generalized.*)
 Require Export Sorting.Perm.
 
 Inductive sorted (A : LinDec) : list A -> Prop :=

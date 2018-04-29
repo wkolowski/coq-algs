@@ -17,87 +17,7 @@ Proof.
     specialize (H c). cbn in H. dec.
 Qed.
 
-Theorem sort_cons :
-  forall (A : LinDec) (C : Sort A) (h : A) (t : list A),
-    let m := min_dflt A h t in
-      @sort A C (h :: t) = m :: @sort A C (removeFirst m (h :: t)).
-Proof.
-  intros.
-  assert (sorted A (sort (h :: t))) by (destruct C; auto).
-  assert (perm A (h :: t) (sort (h :: t))) by (destruct C; auto).
-  case_eq (sort (h :: t)); intros.
-    rewrite H1 in H0. red in H0; cbn in H0. specialize (H0 h). dec.
-    rewrite H1 in H. assert (min_dflt A h t ≤ c).
-      apply min_spec. eapply (perm_In A c (c :: l) (h :: t)).
-        cbn. auto.
-        rewrite <- H1. auto.
-      fold m in H2. assert (c ≤ m).
-        eapply sorted_cons_conv'; eauto. rewrite <- H1.
-          apply perm_In with (h :: t); auto. apply min_In.
-        assert (c = m) by auto; subst. f_equal.
-          assert (H4 := perm_min_front A h t). unfold m in H4. fold m in H4.
-            assert (perm A (C (h :: t)) (m :: removeFirst m (h :: t))).
-              eapply perm_trans.
-                rewrite <- H0. reflexivity.
-                rewrite H4. reflexivity.
-          rewrite H1 in H5. assert (perm A l (removeFirst m (h :: t))).
-            red. intros. red in H5. specialize (H5 x). cbn in H5. dec.
-Restart.
-  intros A C h. apply well_founded_ind with lengthOrder.
-    apply lengthOrder_wf.
-    intros.
-Restart.
-  intros A C h. destruct C; cbn in *.
-  apply well_founded_ind with lengthOrder.
-    apply lengthOrder_wf.
-    intros. rename x into t. case_eq (sort (h :: t)); intros.
-      assert (perm A (sort (h :: t)) []).
-        rewrite H0. reflexivity.
-        rewrite <- sort_perm in H1. specialize (H1 h). cbn in H1. dec.
-      f_equal.
-        apply leq_antisym.
-          apply sorted_cons_conv' with l.
-            rewrite <- H0. apply sort_sorted.
-            apply perm_In with (h :: t).
-              apply min_In.
-              rewrite sort_perm. rewrite H0. reflexivity.
-          apply (min_spec A c h t). apply perm_In with (c :: l).
-            left. trivial.
-            symmetry. rewrite sort_perm, H0. reflexivity.
-      dec.
-        Focus 2.
-Admitted. (* TODO *)
-
 Require Import SelectionSort2.
-
-Theorem sort_cons' :
-  forall (A : LinDec) (s : Sort A) (l : list A),
-    s l =
-    match min l with
-        | None => []
-        | Some m => m :: s (removeFirst m l)
-    end.
-Proof.
-  intros. functional induction min l.
-    rewrite sort_nil. reflexivity.
-    specialize (IHo s). destruct (min t).
-      inv e0.
-      destruct s; cbn in *. specialize (sort_perm t).
-        rewrite IHo in sort_perm. Search (perm _ _ _).
-Abort.
-
-Theorem sort_unique :
-  forall (A : LinDec) (C C' : Sort A) (l : list A),
-    @sort A C l = @sort A C' l.
-Proof.
-  intros A C C'. apply well_founded_ind with lengthOrder.
-    apply lengthOrder_wf.
-    destruct x as [| h t]; cbn; intros.
-      rewrite !sort_nil. trivial.
-      rewrite !sort_cons. f_equal. apply H; dec.
-        red; cbn. omega.
-        apply removeFirst_cons. assumption.
-Qed.
 
 Lemma min_dflt_Permutation :
   forall (A : LinDec) (x : A) (l1 l2 : list A),
@@ -110,22 +30,150 @@ Proof.
       contradiction.
 Qed.
 
+Lemma min_Permutation :
+  forall (A : LinDec) (l l' : list A),
+    Permutation l l' -> min l = min l'.
+Proof.
+  induction 1; cbn; rewrite ?IHPermutation.
+    reflexivity.
+    destruct (min l'); dec.
+    destruct (min l); f_equal; dec.
+    congruence.
+Qed.
+
+Lemma lengthOrder_removeFirst_min :
+  forall (A : LinDec) (m : A) (l : list A),
+    min l = Some m -> lengthOrder (removeFirst m l) l.
+Proof.
+  intros. functional induction min l; inv H; dec; red; cbn; try omega.
+    apply lt_n_S. apply IHo. assumption.
+Qed.
+
+Lemma Permutation_removeFirst :
+  forall (A : LinDec) (x : A) (l1 l2 : list A),
+    Permutation l1 l2 ->
+      Permutation (removeFirst x l1) (removeFirst x l2).
+Proof.
+  induction 1; cbn; dec.
+    constructor.
+    eapply Permutation_trans; eauto.
+Qed.
+
+Lemma removeFirst_sort :
+  forall (A : LinDec) (s : Sort A) (x : A) (l : list A),
+    removeFirst x (s l) = s (removeFirst x l).
+Proof.
+  induction l as [| h t]; cbn; intros.
+    rewrite sort_nil. cbn. reflexivity.
+    destruct (s (h :: t)) eqn: Heq.
+      destruct s. cbn in *. specialize (sort_perm (h :: t)).
+        rewrite Heq in sort_perm. apply perm_nil_cons in sort_perm.
+          contradiction.
+Abort.
+
+Theorem sort_cons' :
+  forall (A : LinDec) (s : Sort A) (l : list A),
+    s l =
+    match min l with
+        | None => []
+        | Some m => m :: s (removeFirst m l)
+    end.
+Proof.
+  intros A s.
+  apply well_founded_ind with lengthOrder.
+    apply lengthOrder_wf.
+    destruct x as [| h t]; intros.
+      cbn. apply sort_nil.
+      assert (perm A (s (h :: t)) (h :: t)).
+        rewrite <- sort_perm. reflexivity.
+        destruct (s (h :: t)) eqn: Heq.
+          symmetry in H0. apply perm_nil_cons in H0. contradiction.
+          destruct (min (h :: t))  as [m |] eqn: Hm. assert (c = m).
+            apply leq_antisym.
+              2: admit.
+              apply sorted_cons_conv' with l.
+                rewrite <- Heq. apply sort_sorted.
+                apply perm_In with (h :: t).
+                  admit.
+                  rewrite sort_perm, Heq. reflexivity.
+            f_equal.
+              assumption.
+              Focus 2. cbn in Hm. destruct (min t); dec.
+              subst. rewrite (H (removeFirst m (h :: t))).
+                assert (Permutation (removeFirst m (h :: t))
+                                    (removeFirst m (m :: l))).
+                  apply Permutation_removeFirst. admit.
+                  rewrite (min_Permutation _ H1). cbn. dec.
+                    assert (l = removeFirst h (s (h :: t))).
+                      admit.
+Admitted.
+
 Theorem sort_perm :
   forall (A : LinDec) (s : Sort A) (l l' : list A),
-    perm A l l' -> s l = s l'.
+    Permutation l l' -> s l = s l'.
 Proof.
-  intros. apply perm_Permutation in H. induction H.
-    reflexivity.
-    Focus 3. congruence.
-    rewrite !sort_cons. assert (min_dflt A x l = min_dflt A x l').
-      apply min_dflt_Permutation. assumption.
-      rewrite !H0. f_equal. cbn. dec.
-Admitted. (* TODO *)
+  intros A s.
+  apply (well_founded_ind (@lengthOrder_wf A)
+    (fun l : list A => forall l' : list A, Permutation l l' -> s l = s l')).
+  destruct x as [| h t]; cbn; intros.
+    apply Permutation_nil in H0. rewrite H0. rewrite sort_nil. reflexivity.
+    inv H0.
+      rewrite !sort_cons'. cbn.
+        rewrite <- (min_Permutation A H4). destruct (min t) eqn: Hc; dec.
+          rewrite (H t) with l'0.
+            reflexivity.
+            red. cbn. omega.
+            assumption.
+          rewrite (H t) with l'0.
+            reflexivity.
+            red. cbn. omega.
+            assumption.
+          rewrite (H (h :: removeFirst c t)) with (h :: removeFirst c l'0).
+            reflexivity.
+            red. cbn. apply lt_n_S, lengthOrder_removeFirst_min.
+              assumption.
+              constructor. apply Permutation_removeFirst. assumption.
+          rewrite (H t) with l'0; auto. red. cbn. omega.
+        rewrite !sort_cons'. assert (Permutation (h :: x :: l) (x :: h :: l)).
+          constructor.
+          rewrite (min_Permutation _ H0). destruct (min (x :: h :: l)) eqn: Hc.
+            2: reflexivity.
+            f_equal. rewrite (H (removeFirst c (h :: x :: l))) with
+                                (removeFirst c (x :: h :: l)).
+              reflexivity.
+              apply lengthOrder_removeFirst_min.
+                rewrite (min_Permutation _ H0). assumption.
+              apply Permutation_removeFirst. assumption.
+        destruct l' as [| h' t'].
+          rewrite H2 in H1. apply Permutation_length in H1. inv H1.
+          rewrite !sort_cons'. rewrite H2 in H1.
+            rewrite (min_Permutation A H1). destruct (min (h' :: t')) eqn: Hc.
+              f_equal. rewrite (H (removeFirst c (h :: t)))
+                          with (removeFirst c (h' :: t')).
+                reflexivity.
+                apply lengthOrder_removeFirst_min.
+                  rewrite (min_Permutation _ H1). assumption.
+                apply Permutation_removeFirst. assumption.
+              reflexivity.
+Qed.
+
+Theorem sort_unique :
+  forall (A : LinDec) (C C' : Sort A) (l : list A),
+    @sort A C l = @sort A C' l.
+Proof.
+  intros A C C'. apply well_founded_ind with lengthOrder.
+    apply lengthOrder_wf.
+    destruct x as [| h t]; cbn; intros.
+      rewrite !sort_nil. trivial.
+      rewrite !sort_cons'. destruct (min (h :: t)) eqn: Hc. f_equal.
+        apply H. apply lengthOrder_removeFirst_min. assumption.
+        reflexivity.
+Qed.
 
 Theorem sort_idempotent :
   forall (A : LinDec) (s : Sort A) (l : list A),
     sort (sort l) = sort l.
 Proof.
   intros. apply sort_perm. destruct s; cbn.
-  rewrite <- sort_perm0. reflexivity.
+  apply perm_Permutation. rewrite <- sort_perm0. reflexivity.
 Qed.

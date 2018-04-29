@@ -140,8 +140,6 @@ Arguments toList {x} _.
 Definition priorityQueueSort (A : LinDec) (l : list A) : list A :=
   toList (fromList l).
 
-Require Import Sorting.Sort.
-
 Parameter unMin_spec :
   forall (A : LinDec) (m : A) (q q' : PQ A),
     unMin q = Some (m, q') ->
@@ -150,6 +148,8 @@ Parameter unMin_spec :
 Parameter unMin_elem :
   forall (A : LinDec) (x m : A) (q q' : PQ A),
     unMin q = Some (m, q') -> elem x q <-> x = m \/ elem x q'.
+
+Require Import Sorting.Sort.
 
 Lemma toList_sorted :
   forall (A : LinDec) (q : PQ A), sorted A (toList q).
@@ -173,6 +173,11 @@ Lemma priorityQueueSort_sorted :
 Proof.
   intros. unfold priorityQueueSort. apply toList_sorted.
 Qed.
+
+(*Parameter count_toList_insert :
+  forall (A : LinDec) (x h : A) (l : list A),
+    count (fun y => y =? x) (toList (insert h (fromList l))) =
+    (if x =? h then S else id) (count (fun y => y =? x) l).*)
 
 Parameter count_toList_insert :
   forall (A : LinDec) (x h : A) (l : list A),

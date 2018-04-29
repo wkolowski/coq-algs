@@ -64,7 +64,7 @@ Qed.
 
 Lemma In_Exists :
   forall (A : Type) (x : A) (l : list A),
-    In x l <-> Exists (fun y => x = y) l.
+    In x l <-> Exists (fun y => y = x) l.
 Proof.
   split.
     induction l as [| h t]; cbn; intros.
