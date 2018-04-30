@@ -126,7 +126,7 @@ Qed.
 
 Theorem BTree_toList'_spec : @BTree_toList' = @BTree_toList.
 Proof.
-  ext A. ext t. unfold BTree_toList'.
+  ext A. extensionality t. unfold BTree_toList'.
   rewrite BTree_toList'_aux_spec, app_nil_r. trivial.
 Qed.
 
@@ -309,12 +309,12 @@ Lemma mirror_singleton :
     mirror (singleton x) = singleton x.
 Proof. reflexivity. Qed.
 
-(** [replicate] *)
+(** [complete] *)
 
-Fixpoint replicate {A : Type} (n : nat) (x : A) : BTree A :=
+Fixpoint complete {A : Type} (n : nat) (x : A) : BTree A :=
 match n with
     | 0 => empty
-    | S n' => node x (replicate n' x) (replicate n' x)
+    | S n' => node x (complete n' x) (complete n' x)
 end.
 
 Function pow2 (n : nat) : nat :=
@@ -333,9 +333,9 @@ Proof.
       rewrite <- plus_n_Sm, plus_0_r. reflexivity.
 Qed.
 
-Lemma size_replicate :
+Lemma size_complete :
   forall (A : Type) (n : nat) (x : A),
-    size (replicate n x) = pow2 n - 1.
+    size (complete n x) = pow2 n - 1.
 Proof.
   induction n as [| n']; cbn; intros.
     reflexivity.
@@ -386,14 +386,14 @@ end.
 Definition leaf {A : Type} (x : A) : BTree A :=
   node x empty empty.
 
-Let t :=
+Let test :=
   node 1
     (node 2 (leaf 4) (leaf 5))
     (leaf 3).
 
-Compute inorder t.
-Compute preorder t.
-Compute postorder t.
+Compute inorder test.
+Compute preorder test.
+Compute postorder test.
 
 Fixpoint wut {A : Type} (t : BTree A) : nat :=
 match t with
@@ -433,7 +433,7 @@ Defined.
 Definition bfs {A : Type} (t : BTree A) : list A :=
   rev (bfs_aux A [t] []).
 
-Compute bfs t.
+Compute bfs test.
 
 Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
 match l with
@@ -468,3 +468,211 @@ Proof.
   rewrite rev_length, length_bfs_aux.
   cbn. rewrite ?plus_0_r. reflexivity.
 Qed.
+
+Fixpoint intersperse {A : Type} (x : A) (t : BTree A) : BTree A :=
+match t with
+    | empty => empty
+    | node v l r =>
+        node v
+          (node x (intersperse x l) (intersperse x l))
+          (node x (intersperse x r) (intersperse x r))
+end.
+
+Fixpoint height {A : Type} (t : BTree A) : nat :=
+match t with
+    | empty => 0
+    | node _ l r => 1 + max (height l) (height r)
+end.
+
+Compute size (intersperse 1 (complete 5 0)).
+
+Lemma height_complete :
+  forall (A : Type) (n : nat) (x : A),
+    height (complete n x) = n.
+Proof.
+  induction n as [| n']; cbn; intros.
+    reflexivity.
+    rewrite IHn', Nat.max_id. reflexivity.
+Qed.
+
+Lemma max_height_intersperse :
+  forall (A : Type) (x : A) (t1 t2 : BTree A),
+    height t1 <= height t2 ->
+      height (intersperse x t1) <= height (intersperse x t2).
+Proof.
+  induction t1; cbn; intros.
+    apply le_0_n.
+    destruct t2; cbn in *.
+      inv H.
+      repeat apply le_n_S; repeat apply le_S_n in H.
+        rewrite ?Nat.max_le_iff, ?Nat.max_lub_iff in *.
+Restart.
+  induction t1; cbn; intros.
+    apply le_0_n.
+    destruct t2; cbn in *.
+      inv H.
+      repeat apply le_n_S; repeat apply le_S_n in H.
+        rewrite !Nat.max_id. apply Max.max_lub.
+          destruct (Max.max_dec (height t2_1) (height t2_2)).
+            apply Max.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
+              rewrite H. apply Max.le_max_l.
+            apply Max.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
+              rewrite H. apply Max.le_max_r.
+          destruct (Max.max_dec (height t2_1) (height t2_2)).
+            apply Max.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
+              rewrite H. apply Max.le_max_l.
+            apply Max.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
+              rewrite H. apply Max.le_max_r.
+Qed.
+
+Search (max _ _ <= _).
+Search (_ <= max _ _).
+
+Lemma height_intersperse :
+  forall (A : Type) (x : A) (t : BTree A),
+    height (intersperse x t) = 2 * height t.
+Proof.
+  induction t; cbn.
+    reflexivity.
+    repeat match goal with
+        | |- context [max ?n ?m] =>
+            let H := fresh "H" in
+              destruct (Max.max_dec n m) as [H | H]; rewrite ?H
+    end;
+    rewrite ?IHt1, ?IHt2, ?plus_0_r, ?Nat.mul_max_distr_l,
+            ?Nat.mul_cancel_l, ?Nat.max_id in *;
+    omega.
+Qed.
+
+(* TODO *) Lemma size_intersperse_complete :
+  forall (A : Type) (x y : A) (n : nat),
+    size (intersperse x (complete n y)) = pow 2 (2 * n) - 1.
+Proof.
+  induction n as [| n']; cbn.
+    reflexivity.
+    rewrite IHn'. cbn. rewrite !(plus_comm _ (S _)). cbn.
+      rewrite !plus_0_r.
+Abort.
+
+Fixpoint take {A : Type} (n : nat) (t : BTree A) : BTree A :=
+match n, t with
+    | 0, _ => empty
+    | _, empty => empty
+    | S n', node v l r =>
+        node v (take n' l) (take n' r)
+end.
+
+Lemma height_take :
+  forall (A : Type) (n : nat) (t : BTree A),
+    height (take n t) <= n.
+Proof.
+  induction n as [| n']; cbn.
+    trivial.
+    destruct t; cbn.
+      apply le_0_n.
+      apply le_n_S, Max.max_lub; auto.
+Qed.
+
+Function drop {A : Type} (n : nat) (t : BTree A) : list (BTree A) :=
+match n, t with
+    | 0, _ => [t]
+    | _, empty => []
+    | S n', node _ l r =>
+        drop n' l ++ drop n' r
+end.
+
+Print test.
+Compute drop 4 test.
+
+Lemma height_drop :
+  forall (A : Type) (h : nat) (t : BTree A),
+    height t < h -> drop h t = [].
+Proof.
+  intros. functional induction @drop A h t.
+    destruct _x; inv H.
+    reflexivity.
+    cbn in *. apply lt_S_n in H. rewrite IHl, IHl0. reflexivity.
+      eapply Nat.le_lt_trans.
+        apply Max.le_max_r.
+        eexact H.
+      eapply Nat.le_lt_trans.
+        apply Max.le_max_l.
+        eassumption.
+Qed.
+
+(* [filter] makes no sense. *)
+
+Fixpoint zipWith
+  {A B C : Type} (f : A -> B -> C)
+  (ta : BTree A) (tb : BTree B) : BTree C :=
+match ta, tb with
+    | empty, _ => empty
+    | _, empty => empty
+    | node a la ra, node b lb rb =>
+        node (f a b) (zipWith f la lb) (zipWith f ra rb)
+end.
+
+Lemma height_zipWith :
+  forall
+    (A B C : Type) (f : A -> B -> C)
+    (ta : BTree A) (tb : BTree B),
+      height (zipWith f ta tb) <= height ta /\
+      height (zipWith f ta tb) <= height tb.
+Proof.
+  induction ta; cbn.
+    intros. split; apply le_0_n.
+    destruct tb; cbn.
+      split; apply le_0_n.
+      edestruct IHta1, IHta2. split; apply le_n_S.
+        apply Nat.max_le_compat; eauto.
+        apply Nat.max_le_compat; eauto.
+Qed.
+
+Fixpoint find {A : Type} (p : A -> bool) (t : BTree A) : option A :=
+match t with
+    | empty => None
+    | node v l r =>
+        if p v
+        then Some v
+        else
+          match find p l, find p r with
+              | Some x, _ => Some x
+              | _, Some x => Some x
+              | _, _ => None
+          end
+end.
+
+Inductive Dup {A : Type} : BTree A -> Prop :=
+    | Dup_root_l :
+        forall (v : A) (l r : BTree A),
+          elem v l -> Dup (node v l r)
+    | Dup_root_r :
+        forall (v : A) (l r : BTree A),
+          elem v r -> Dup (node v l r)
+    | Dup_l :
+        forall (v : A) (l r : BTree A),
+          Dup l -> Dup (node v l r)
+    | Dup_r :
+        forall (v : A) (l r : BTree A),
+          Dup r -> Dup (node v l r).
+
+Inductive Exactly {A : Type} (P : A -> Prop) : nat -> BTree A -> Prop :=
+    | Exactly_empty : Exactly P 0 empty
+    | Exactly_node_yes :
+        forall (n m : nat) (v : A) (l r : BTree A),
+          P v -> Exactly P n l -> Exactly P m r ->
+            Exactly P (1 + n + m) (node v l r)
+    | Exactly_node_no :
+        forall (n m : nat) (v : A) (l r : BTree A),
+          ~ P v -> Exactly P n l -> Exactly P m r ->
+            Exactly P (n + m) (node v l r).
+
+Lemma Exactly_0_False :
+  forall (A : Type) (t : BTree A),
+    Exactly (fun _ => False) 0 t.
+Proof.
+  induction t.
+    constructor.
+    change 0 with (0 + 0). constructor; try intro; assumption.
+Qed.
+

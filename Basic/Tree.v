@@ -1,6 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export LinDec.
+
 Require Export RCCBase.
 
 Require Import HSLib.Control.Functor.
@@ -34,6 +35,22 @@ Inductive isHeap {A : LinDec} : Tree A -> Prop :=
           Forall (fun t : Tree A => forall x : A, elem x t -> v ≤ x) l ->
           Forall (fun t : Tree A => isHeap t) l ->
             isHeap (T v l).
+
+Inductive All {A : Type} (P : A -> Prop) : Tree A -> Prop :=
+    | All_E : All P E
+    | All_N :
+        forall (x : A) (ts : list (Tree A)),
+          P x -> Forall (All P) ts -> All P (T x ts).
+
+Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
+    | Any_root :
+        forall (x : A) (ts : list (Tree A)),
+          P x -> Any P (T x ts)
+    | Any_children :
+        forall (x : A) (ts : list (Tree A)),
+          Exists (Any P) ts -> Any P (T x ts).
+
+
 
 Hint Constructors elem elem' isHeap.
 
@@ -225,6 +242,12 @@ match t with
     | T _ ts => 1 + fold_right (fun h t => size h + t) 0 ts
 end.
 
+Fixpoint height {A : Type} (t : Tree A) : nat :=
+match t with
+    | E => 0
+    | T _ ts => 1 + fold_right (fun h t => max (height h) t) 0 ts
+end.
+
 Fixpoint countTree {A : LinDec} (x : A) (t : Tree A) : nat :=
 match t with
     | E => 0
@@ -267,4 +290,25 @@ Lemma fmap_elem' :
     elem' x t -> elem' (f x) (fmap_Tree f t).
 Proof.
   induction 1; cbn; auto.
+Qed.
+
+(** Properties of [height]. *)
+
+Lemma height_fmap :
+  forall (A B : Type) (f : A -> B) (t : Tree A),
+    height (fmap f t) = height t.
+Proof. Tree_ind. Qed.
+
+Lemma height_isEmpty_true :
+  forall (A : Type) (t : Tree A),
+    height t = 0 <-> isEmpty t = true.
+Proof.
+  Tree_ind; firstorder.
+Qed.
+
+Lemma height_isEmpty_false :
+  forall (A : Type) (t : Tree A),
+    height t <> 0 <-> isEmpty t = false.
+Proof.
+  Tree_ind; firstorder.
 Qed.

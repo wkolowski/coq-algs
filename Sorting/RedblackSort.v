@@ -27,7 +27,7 @@ Qed.
 
 Theorem toList'_spec : @toList' = @toList.
 Proof.
-  ext A. ext t. unfold toList'.
+  ext A.  ext t. unfold toList'.
   rewrite toList'_aux_spec, app_nil_r. trivial.
 Qed.
 

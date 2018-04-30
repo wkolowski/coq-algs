@@ -13,7 +13,8 @@ end.
 Definition insertionSort (A : LinDec) (l : list A)
   : list A := fold_right (ins A) [] l.
 
-Lemma perm_ins: forall (A : LinDec) (x : A) (l : list A),
+Lemma perm_ins :
+  forall (A : LinDec) (x : A) (l : list A),
     perm A (x :: l) (ins A x l).
 Proof.
   unfold perm; intros. induction l.
@@ -24,7 +25,8 @@ Proof.
         cbn. rewrite <- IHl. reflexivity.
 Qed.
 
-Lemma ins_sorted : forall (A : LinDec) (x : A) (l : list A),
+Lemma sorted_ins :
+  forall (A : LinDec) (x : A) (l : list A),
     sorted A l -> sorted A (ins A x l).
 Proof.
   induction l as [| h t]; intros; cbn.
@@ -37,8 +39,8 @@ Instance Sort_insertionSort (A : LinDec) : Sort A :=
     sort := insertionSort A
 }.
 Proof.
-  induction l as [| h t]; simpl; auto.
-    apply ins_sorted. assumption.
+  induction l as [| h t]; cbn; auto.
+    apply sorted_ins. assumption.
   induction l as [| h t]; simpl; auto.
     apply perm_trans with (h :: insertionSort A t); auto. apply perm_ins.
 Defined.

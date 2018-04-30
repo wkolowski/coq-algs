@@ -123,10 +123,10 @@ Inductive f91_dom : nat -> Type :=
 Fixpoint f91_fun {n : nat} (H : f91_dom n) : {r : nat & f91_graph n r}.
 Proof.
   destruct H as [n H_le100 | n H_gt100].
-    Focus 2. exists (n - 10). constructor. assumption.
     destruct (f91_fun _ H) as [r1 Hr1].
       destruct (f91_fun _ (f _ Hr1)) as [r2 Hr2].
         exists r2. apply f91_graph_le100 with (r1 := r1); assumption.
+    exists (n - 10). constructor. assumption.
 Defined.
 
 Lemma f91_graph_f91_dom_1 :

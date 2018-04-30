@@ -1,5 +1,8 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
+Require Export Coq.Program.Wf.
+Require Export Recdef.
+
 Require Export FunctionalExtensionality.
 
 Require Export Bool.
@@ -9,14 +12,12 @@ Export ListNotations.
 
 Require Export Arith.
 Require Export Omega.
+Require Export Nat.
 
 Require Export Equality.
 Require Export Eqdep.
 
 Require Export Permutation.
-
-Require Export Coq.Program.Wf.
-Require Export Recdef.
 
 Set Implicit Arguments.
 
@@ -47,7 +48,9 @@ end.
 
 Ltac gen x := generalize dependent x.
 
-Ltac ext x := extensionality x.
+(*Ltac ext x := extensionality x.*)
+
+Tactic Notation "ext" ident(x) := extensionality x.
 
 (* Tactics for easier induction. *)
 Ltac term_contains t x :=
@@ -168,7 +171,6 @@ match s return if s then P else Prop with
     | Yes' p => p
     | _ => True
 end.
-
 
 Ltac inj := repeat
 match goal with

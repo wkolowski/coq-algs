@@ -7,7 +7,7 @@ Require Export Div2.
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
-Require Import InsertionSort.
+(*Require Import InsertionSort.*)
 
 Set Implicit Arguments.
 
@@ -86,6 +86,8 @@ Proof.
   intros. apply split'_spec1 with l2; dec.
     dec. cbn in *. omega.
 Defined.
+
+Functional Scheme div2_ind := Induction for div2 Sort Prop.
 
 Lemma div2_lt_S :
   forall n : nat, div2 n < S n.
