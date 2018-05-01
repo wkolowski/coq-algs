@@ -675,4 +675,3 @@ Proof.
     constructor.
     change 0 with (0 + 0). constructor; try intro; assumption.
 Qed.
-

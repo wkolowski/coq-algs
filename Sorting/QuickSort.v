@@ -24,10 +24,6 @@ end.
       we will just give some function that determines if the
       input list is small enough (and if not, if returns an
       element of the list and the rest of the list)
-    - [sort] remains there
-    - [pivot] will be a procedure for choosing the pivot (it
-      needs a default element as an argument)
-    - [partition] stays there]
 *)
 
 Class Small (A : LinDec) : Type :=
@@ -43,16 +39,6 @@ Class Small (A : LinDec) : Type :=
 
 Coercion small : Small >-> Funclass.
 
-Class Pivot (A : LinDec) : Type :=
-{
-    pivot : A -> list A -> A * list A;
-    pivot_spec :
-      forall (h h' : A) (t t' : list A),
-        pivot h t = (h', t') -> Permutation (h :: t) (h' :: t')
-}.
-
-Coercion pivot : Pivot >-> Funclass.
-
 Class AdHocSort {A : LinDec} (small : Small A) : Type :=
 {
     adhoc :> list A -> list A;
@@ -65,6 +51,51 @@ Class AdHocSort {A : LinDec} (small : Small A) : Type :=
 }.
 
 Coercion adhoc : AdHocSort >-> Funclass.
+
+Class Pivot (A : LinDec) : Type :=
+{
+    pivot : A -> list A -> A * list A;
+    pivot_spec :
+      forall (h h' : A) (t t' : list A),
+        pivot h t = (h', t') -> Permutation (h :: t) (h' :: t')
+}.
+
+Coercion pivot : Pivot >-> Funclass.
+
+Class Partition (A : LinDec) : Type :=
+{
+    partition :> A -> list A -> list A * list A * list A;
+    spec_lo :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x lo -> x ≤ pivot;
+    spec_eq :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x eq -> x = pivot;
+    spec_hi :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          forall x : A, In x hi -> pivot ≤ x /\ pivot <> x;
+    len_lo :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length lo <= length l;
+    len_eq :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length eq <= length l;
+    len_hi :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          length hi <= length l;
+    partition_perm :
+      forall (pivot : A) (l lo eq hi : list A),
+        partition pivot l = (lo, eq, hi) ->
+          perm A l (lo ++ eq ++ hi);
+}.
+
+Coercion partition : Partition >-> Funclass.
 
 Function uqs
   (A : LinDec)
@@ -195,3 +226,29 @@ Definition hqs
   (n : nat) (A : LinDec) (sort : Sort A) (l : list A) : list A :=
     uqs (AdHocSort_Sort (Small_length A n) sort)
         (Pivot_head A) (Partition_bifilter A) l.
+
+(** For trichotomous quicksort. *)
+
+Require Import TrichDec.
+
+Instance Partition_trifilter (A : TrichDec) : Partition A :=
+{
+    partition := @trifilter A
+}.
+Proof.
+  all: intros.
+    functional induction trifilter pivot0 l; inv H; trich.
+      inv H0. 1-3: eapply IHp; eauto.
+    functional induction trifilter pivot0 l; inv H; trich.
+      inv H0. eapply IHp; eauto.
+    functional induction trifilter pivot0 l; inv H; trich.
+      1-2: eapply IHp; eauto.
+      inv H0.
+        split; intro; trich.
+        eapply IHp; eauto.
+    1-3: rewrite trifilter_spec in H; inv H.
+    unfold perm. intro.
+      functional induction trifilter pivot0 l; cbn; inv H; trich;
+      specialize (IHp _ _ _ e0); rewrite IHp, !count_app; cbn;
+      rewrite ?count_app; trich.
+Defined.

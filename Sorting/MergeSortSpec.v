@@ -1,7 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import MergeSort.
-Require Import InsertionSort.
+(*Require Import InsertionSort.*)
 
 Set Implicit Arguments.
 
@@ -25,7 +25,6 @@ Proof.
     rewrite perm_split_app. rewrite e0; cbn.
       rewrite <- merge_perm; cbn. apply perm_app; assumption.
 Qed.
-Check ghms.
 
 Instance Sort_ghms
   (n : nat) (A : LinDec) (sort : Sort A) (split : Split A) : Sort A :=

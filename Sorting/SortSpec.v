@@ -5,6 +5,8 @@ Require Export RCCBase.
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
+Require Export Sorting.SelectionSort.
+
 Set Implicit Arguments.
 
 (* Properties of sorting *)
@@ -16,8 +18,6 @@ Proof.
     auto.
     specialize (H c). cbn in H. dec.
 Qed.
-
-Require Import SelectionSort2.
 
 Lemma min_dflt_Permutation :
   forall (A : LinDec) (x : A) (l1 l2 : list A),
@@ -39,14 +39,6 @@ Proof.
     destruct (min l'); dec.
     destruct (min l); f_equal; dec.
     congruence.
-Qed.
-
-Lemma lengthOrder_removeFirst_min :
-  forall (A : LinDec) (m : A) (l : list A),
-    min l = Some m -> lengthOrder (removeFirst m l) l.
-Proof.
-  intros. functional induction min l; inv H; dec; red; cbn; try omega.
-    apply lt_n_S. apply IHo. assumption.
 Qed.
 
 Lemma Permutation_removeFirst :

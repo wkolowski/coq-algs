@@ -1,7 +1,7 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RCCBase.
-(*Require Import Recdef.*)
+Require Import Recdef.
 
 Definition divF (f : nat -> forall k : nat, 0 < k -> nat)
   (n k : nat) (H : 0 < k) : nat :=
@@ -9,8 +9,7 @@ match le_lt_dec k n with
     | left _ => S (f (n - k) k H)
     | right _ => 0
 end.
-
-Arguments iter [A] _ _.
+Arguments iter {A} _ _.
 
 Theorem divF_terminates :
   forall (n k : nat) (H : 0 < k),

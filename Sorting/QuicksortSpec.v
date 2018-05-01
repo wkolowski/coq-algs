@@ -2,57 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import QuickSort.
 
-Require Import InsertionSort.
-Check perm_trans. Print Permutation.
 Set Implicit Arguments.
-
-(*Theorem hqs_perm :
-  forall (n : nat) (A : LinDec) (s : Sort A) (l : list A),
-    perm A l (hqs n A sort l).
-Proof.
-  intros. functional induction hqs n A sort l; trivial.
-    destruct s; cbn. apply sort_perm.
-    apply perm_symm. eapply perm_trans.
-      apply perm_front.
-      apply perm_cons. unfold perm in *. intro.
-        rewrite count_app, <- IHl0, <- IHl1.
-        rewrite bifilter_spec in e1; inversion_clear e1.
-        rewrite <- count_filter. auto.
-Qed.
-
-Theorem hqs_In :
-  forall (n : nat) (A : LinDec) (s : Sort A) (x : A) (l : list A),
-    In x (hqs n A sort l) <-> In x l.
-Proof.
-  intros. rewrite !count_In, <- hqs_perm; auto. reflexivity.
-Qed.
-
-Theorem hqs_sorted :
-  forall (n : nat) (A : LinDec) (s : Sort A) (l : list A),
-    sorted A (hqs n A sort l).
-Proof.
-  intros. functional induction hqs n A sort l; trivial.
-    destruct s; cbn. apply sort_sorted.
-    rewrite bifilter_spec in e1; inversion e1; subst. apply sorted_app_all.
-      assumption.
-       apply sorted_cons.
-        intros. rewrite hqs_In, filter_In in H; auto. destruct H.
-          destruct (leqb_spec x h).
-            inversion H0.
-            apply LinDec_not_leq. assumption.
-          assumption.
-      intros. rewrite hqs_In, filter_In in H; auto. destruct H.
-        destruct (leqb_spec x h); intuition.
-Qed.
-
-Instance Sort_hqs (n : nat) (A : LinDec) (s : Sort A) : Sort A :=
-{
-    sort := hqs n A (@sort A s)
-}.
-Proof.
-  intros. apply hqs_sorted.
-  intros. apply hqs_perm.
-Defined.*)
 
 (** [uqs] specification *)
 

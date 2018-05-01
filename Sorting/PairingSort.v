@@ -52,5 +52,3 @@ Proof.
     rewrite <- plus_n_O. trivial.
     rewrite !size_merge, IHp, plus_assoc. trivial.
 Qed.*)
-
-Time Eval lazy in @pairingSort natle (cycle 200 testl).

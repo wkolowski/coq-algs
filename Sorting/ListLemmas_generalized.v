@@ -382,3 +382,14 @@ match n with
     | 0 => []
     | S n' => l ++ cycle n' l
 end.
+
+(* Moved from TrichQuicksortSpec.v *)
+
+Lemma filter_eqb_repeat :
+  forall (A : LinDec) (x : A) (l : list A),
+    exists n : nat, filter (fun x' : A => x' =? x) l = repeat x n.
+Proof.
+  induction l as [| h t]; cbn.
+    exists 0. reflexivity.
+    dec. destruct IHt as [n H]. exists (S n). cbn. rewrite H. reflexivity.
+Qed.

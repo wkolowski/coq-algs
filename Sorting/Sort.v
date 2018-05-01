@@ -24,41 +24,6 @@ Class Sort (A : LinDec) : Type :=
 
 Coercion sort : Sort >-> Funclass.
 
-Class Partition (A : LinDec) : Type :=
-{
-    partition :> A -> list A -> list A * list A * list A;
-    spec_lo :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          forall x : A, In x lo -> x ≤ pivot;
-    spec_eq :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          forall x : A, In x eq -> x = pivot;
-    spec_hi :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          forall x : A, In x hi -> pivot ≤ x /\ pivot <> x;
-    len_lo :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          length lo <= length l;
-    len_eq :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          length eq <= length l;
-    len_hi :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          length hi <= length l;
-    partition_perm :
-      forall (pivot : A) (l lo eq hi : list A),
-        partition pivot l = (lo, eq, hi) ->
-          perm A l (lo ++ eq ++ hi);
-}.
-
-Coercion partition : Partition >-> Funclass.
-
 (* Lemmas about [sorted]. *)
 
 Theorem sorted_tail :
@@ -160,4 +125,23 @@ Proof.
         apply IHt'.
           eapply sorted_mid; eauto.
           right. assumption.
+Qed.
+
+(* Moved from TrichQuicksortSpec.v *)
+
+Lemma repeat_sorted :
+  forall (A : LinDec) (x : A) (n : nat),
+    sorted A (repeat x n).
+Proof.
+  induction n as [| n']; cbn.
+    constructor.
+    destruct n'; cbn; constructor; auto.
+Qed.
+
+Lemma filter_eqb_sorted :
+  forall (A : LinDec) (x : A) (l : list A),
+    sorted A (filter (fun x' : A => x' =? x) l).
+Proof.
+  intros. destruct (filter_eqb_repeat A x l) as [n H].
+  rewrite H. apply repeat_sorted.
 Qed.

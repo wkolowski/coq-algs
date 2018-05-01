@@ -33,11 +33,6 @@ Qed.
 
 Require Import ListLemmas.
 
-(*
-Time Eval native_compute in redblackSort natle (cycle 2000 testl). (* 1.5 *)
-Time Eval native_compute in redblackSort' natle (cycle 2000 testl). (* 1.4 *)
-*)
-
 Instance Sort_redblackSort (A : LinDec) : Sort A :=
 {
     sort := @redblackSort A;
