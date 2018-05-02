@@ -63,6 +63,52 @@ Proof.
           contradiction.
 Abort.
 
+Lemma min_spec' :
+  forall (A : LinDec) (m : A) (l : list A),
+    In m l -> (forall x : A, In x l -> m ≤ x) -> min l = Some m.
+Proof.
+  intros. functional induction min l; inv H.
+    erewrite IHo in e0.
+      inv e0.
+      exact H1.
+      intros. apply H0. right. assumption.
+    dec. rewrite (IHo _ H1) in e0.
+      inv e0. f_equal. apply leq_antisym.
+        assumption.
+        apply H0. left. reflexivity.
+      intros. apply H0. right. assumption.
+    dec. contradiction n. apply H0. right. apply min_In. assumption.
+    dec. rewrite <- e0, <- IHo; auto.
+      intros. apply H0. right. assumption.
+Qed.
+
+(*Lemma  min_spec'_conv :
+  forall (A : LinDec) (m : A) (l : list A),
+    min l = Some m -> In m l /\ (forall x : A, In x l -> m ≤ x).
+Proof.
+  intros. functional induction min l; inv H.
+    destruct t.
+      inv H0.
+      cbn in e0. destruct (min t); inv e0.
+    inv H0. dec. apply leq_trans with m0.
+      assumption.
+      apply IHo; auto. apply min_In. assumption.
+    dec. inv H; inv H0.
+Qed.*)
+
+Lemma head_sort :
+  forall (A : LinDec) (s : Sort A) (l : list A),
+    head (sort l) = min l.
+Proof.
+  intros. destruct l as [| h t].
+    rewrite sort_nil. cbn. reflexivity.
+    destruct (s (h :: t)) eqn: Heq.
+      destruct s; cbn in *. specialize (sort_perm (h :: t) h).
+        rewrite Heq in *. cbn in sort_perm. dec.
+      cbn. destruct (min t) eqn: Hwut.
+        dec.
+          f_equal. 
+      
 Theorem sort_cons' :
   forall (A : LinDec) (s : Sort A) (l : list A),
     s l =

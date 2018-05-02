@@ -84,6 +84,11 @@ Time Eval lazy in pairingSort natle (cycle 100 testl).
 (*
 Time Compute ms natle (cycle 200 testl).
 Time Compute ms2 natle (cycle 200 testl).
+Time Compute ums_wut (Small_recdepth natle 0) (redblackSort natle)
+                     (MsSplit natle) (cycle 200 testl).
+Time Compute trollms 1 (redblackSort natle) (MsSplit natle)
+               (cycle 200 testl).
+
 
 Time Compute qs natle (cycle 200 testl).
 Time Compute qs2 natle (cycle 200 testl).

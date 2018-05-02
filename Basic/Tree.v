@@ -312,3 +312,53 @@ Lemma height_isEmpty_false :
 Proof.
   Tree_ind; firstorder.
 Qed.
+
+Fixpoint mirror {A : Type} (t : Tree A) : Tree A :=
+match t with
+    | E => E
+    | T x ts => T x (rev (map mirror ts))
+end.
+
+Lemma mirror_inv :
+  forall (A : Type) (t : Tree A),
+    mirror (mirror t) = t.
+Proof.
+  Tree_ind. rewrite ?map_app, ?rev_app_distr. cbn. inv IHts.
+Qed.
+
+Fixpoint count {A : Type} (p : A -> bool) (t : Tree A) : nat :=
+match t with
+    | E => 0
+    | T x ts =>
+        (if p x then S else id) (fold_left (fun t h => count p h + t) ts 0)
+end.
+
+Lemma fold_left_snoc :
+  forall (A B : Type) (f : A -> B -> A) (a : A) (l : list B) (b : B),
+    fold_left f (l ++ [b]) a = f (fold_left f l a) b.
+Proof.
+  intros A B f a l. gen a.
+  induction l as [| h t]; cbn; intros.
+    reflexivity.
+    rewrite IHt. reflexivity.
+Qed.
+
+Lemma fold_left_init :
+forall (A B : Type) (f : A -> B -> A) (a : A) (l : list B) (b : B),
+  fold_left f l (f a b) = fold_left f (b :: l) a.
+Proof.
+  induction l as [| h t]; cbn; intros.
+    reflexivity.
+    reflexivity.
+Qed.
+  
+
+Lemma count_mirror :
+  forall (A : Type) (p : A -> bool) (t : Tree A),
+    count p (mirror t) = count p t.
+Proof.
+  Tree_ind. destruct (p x) eqn: Hpx.
+    inv IHts. rewrite fold_left_snoc, IHt, H0.
+      change (count p t0 + 0) with ((fun t h => count p h + t) 0 t0).
+      rewrite fold_left_init.
+Abort.

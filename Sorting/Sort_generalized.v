@@ -159,3 +159,48 @@ Proof.
         apply sorted_mid with h'; assumption.
         right. assumption.
 Qed.
+
+(** An alternative characterization of sortedness *)
+
+Fixpoint nth {A : Type} (n : nat) (l : list A) {struct l} : option A :=
+match l, n with
+    | [], _ => None
+    | h :: t, 0 => Some h
+    | _ :: t, S n' => nth n' t
+end.
+
+Definition sorted' {A : Type} (R : A -> A -> Prop) (l : list A) : Prop :=
+  forall (n1 n2 : nat) (x y : A),
+    nth n1 l = Some x -> nth n2 l = Some y -> n1 <= n2 -> R x y.
+
+Lemma sorted'_sorted_aux :
+  forall (A : Type) (R : A -> A -> Prop) (l : list A),
+    sorted' R l -> sorted R l.
+Proof.
+  unfold sorted'. intros.
+  induction l as [| x [| y l]]; constructor.
+    apply (H 0 1 x y); cbn; auto.
+    apply IHl. intros. apply (H (S n1) (S n2)); cbn in *; auto.
+      apply le_n_S. assumption.
+Qed.
+
+Lemma sorted_sorted'_aux :
+  forall
+    (A : Type) (R : A -> A -> Prop) (l : list A)
+    (R_refl : forall x : A, R x x)
+    (R_trans : forall x y z : A, R x y -> R y z -> R x z),
+      sorted R l -> sorted' R l.
+Proof.
+  induction 3; unfold sorted' in *; cbn in *; intros.
+    inv H.
+    destruct n1, n2; inv H; inv H0.
+    destruct n1 as [| [| n1']], n2 as [| [| n2']]; inv H1; inv H2.
+      apply R_trans with y; auto. apply (IHsorted 0 (S n2')); auto.
+        apply le_0_n.
+      inv H3.
+      apply (IHsorted 0 (S n2') x0 y0); auto. apply le_0_n.
+      inv H3.
+      inv H3. inv H2.
+      apply (IHsorted (S n1') (S n2') x0 y0); auto.
+        apply le_S_n. assumption.
+Qed.

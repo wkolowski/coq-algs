@@ -205,18 +205,18 @@ Defined.
 
 Class Small (A : LinDec) : Type :=
 {
-    small :> nat -> list A -> list A + A * list A;
-    small_inl :
-      forall (n : nat) (l l' : list A),
-        small n l = inl l' -> l = l';
-    small_inr :
+    small :> nat -> list A -> bool;
+    small_spec :
+      forall (n : nat) (l : list A),
+        small n l = false -> 2 <= length l;
+(*    small_inr :
       forall (n : nat) (h : A) (t l : list A),
-         small n l = inr (h, t) -> Permutation l (h :: t)
+         small n l = inr (h, t) -> Permutation l (h :: t)*)
 }.
 
 Coercion small : Small >-> Funclass.
 
-(* TODO *) Function ums'
+Function ums'
   (A : LinDec)
   (recdepth : nat)
   (s : Small A)
@@ -224,16 +224,52 @@ Coercion small : Small >-> Funclass.
   (split : Split A)
   (l : list A)
   {measure length l} : list A :=
-match small recdepth l with
-    | inl _ => sort l
-    | inr (h, t) =>
+    if small recdepth l
+    then sort l
+    else
+      let
+        (l1, l2) := split l
+      in
+        merge A (ums' (1 + recdepth) s sort split l1,
+                 ums' (1 + recdepth) s sort split l2).
+Proof.
+  intros. apply split'_spec2 with l1.
+    assumption.
+    eapply small_spec. eassumption.
+  intros. apply split'_spec1 with l2.
+    assumption.
+    eapply small_spec. eassumption.
+Defined.
+
+Definition ums_wut A := @ums' A 0.
+
+Instance Small_recdepth (A : LinDec) (max : nat) : Small A :=
+{
+    small recdepth l :=
+      match l with
+          | [] | [_] => true
+          | _ => @leqb natle max recdepth
+      end
+}.
+Proof.
+  destruct l as [| x [| y t]]; cbn.
+    1-2: inv 1.
+    dec.
+Defined.
+
+Function trollms
+  (A : LinDec)
+  (fuel : nat)
+  (sort : list A -> list A)
+  (split : Split A)
+  (l : list A)
+  : list A :=
+match fuel with
+    | 0 => sort l
+    | S fuel' =>
         let
           (l1, l2) := split l
         in
-          merge A (ums' (1 + recdepth) s sort split l1,
-                   ums' (1 + recdepth) s sort split l2)
+          merge A (trollms fuel' sort split l1,
+                   trollms fuel' sort split l2)
 end.
-Proof.
-  intros. apply small_inr in teq.
-Abort.
-

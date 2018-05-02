@@ -343,6 +343,15 @@ Proof.
       rewrite !H. cbn. rewrite <- !minus_n_O, plus_n_Sm. reflexivity.
 Qed.
 
+Lemma mirror_complete :
+  forall (A : Type) (n : nat) (x : A),
+    mirror (complete n x) = complete n x.
+Proof.
+  induction n as [| n']; cbn; intros.
+    reflexivity.
+    rewrite IHn'. reflexivity.
+Qed.
+
 (** [takeWhile] *)
 
 Fixpoint takeWhile {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
@@ -363,6 +372,17 @@ Proof.
     destruct (p a); cbn.
       apply le_n_S. omega.
       apply le_0_n.
+Qed.
+
+Lemma mirror_takeWhile :
+  forall (A : Type) (p : A -> bool) (t : BTree A),
+    takeWhile p (mirror t) = mirror (takeWhile p t).
+Proof.
+  induction t; cbn; intros.
+    reflexivity.
+    destruct (p a).
+      rewrite IHt1, IHt2. cbn. reflexivity.
+      reflexivity.
 Qed.
 
 Fixpoint inorder {A : Type} (t : BTree A) : list A :=
@@ -394,6 +414,33 @@ Let test :=
 Compute inorder test.
 Compute preorder test.
 Compute postorder test.
+
+Lemma preorder_mirror :
+  forall (A : Type) (t : BTree A),
+    preorder (mirror t) = rev (postorder t).
+Proof.
+  induction t; cbn.
+    reflexivity.
+    rewrite ?rev_app_distr, IHt1, IHt2. cbn. reflexivity.
+Qed.
+
+Lemma postorder_mirror :
+  forall (A : Type) (t : BTree A),
+    postorder (mirror t) = rev (preorder t).
+Proof.
+  intros. rewrite <- rev_involutive at 1. rewrite <- preorder_mirror.
+  rewrite mirror_inv. reflexivity.
+Qed.
+
+Lemma inorder_mirror :
+  forall (A : Type) (t : BTree A),
+    inorder (mirror t) = rev (inorder t).
+Proof.
+  induction t; cbn.
+    reflexivity.
+    rewrite ?rev_app_distr, IHt1, IHt2. cbn.
+      rewrite <- app_assoc. cbn. reflexivity.
+Qed.
 
 Fixpoint wut {A : Type} (t : BTree A) : nat :=
 match t with
@@ -434,6 +481,8 @@ Definition bfs {A : Type} (t : BTree A) : list A :=
   rev (bfs_aux A [t] []).
 
 Compute bfs test.
+
+Compute bfs (mirror test).
 
 Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
 match l with
@@ -554,6 +603,13 @@ Proof.
       rewrite !plus_0_r.
 Abort.
 
+Lemma mirror_intersperse :
+  forall (A : Type) (x : A) (t : BTree A),
+    mirror (intersperse x t) = intersperse x (mirror t).
+Proof.
+  induction t; cbn; rewrite ?IHt1, ?IHt2; reflexivity.
+Qed.
+
 Fixpoint take {A : Type} (n : nat) (t : BTree A) : BTree A :=
 match n, t with
     | 0, _ => empty
@@ -573,6 +629,15 @@ Proof.
       apply le_n_S, Max.max_lub; auto.
 Qed.
 
+Lemma take_mirror :
+  forall (A : Type) (n : nat) (t : BTree A),
+    take n (mirror t) = mirror (take n t).
+Proof.
+  induction n as [| n']; cbn; intros.
+    reflexivity.
+    destruct t; cbn; rewrite ?IHn'; reflexivity.
+Qed.
+
 Function drop {A : Type} (n : nat) (t : BTree A) : list (BTree A) :=
 match n, t with
     | 0, _ => [t]
@@ -581,7 +646,6 @@ match n, t with
         drop n' l ++ drop n' r
 end.
 
-Print test.
 Compute drop 4 test.
 
 Lemma height_drop :
@@ -598,6 +662,17 @@ Proof.
       eapply Nat.le_lt_trans.
         apply Max.le_max_l.
         eassumption.
+Qed.
+
+Lemma drop_mirror :
+  forall (A : Type) (n : nat) (t : BTree A),
+    drop n (mirror t) = rev (map mirror (drop n t)).
+Proof.
+  induction n as [| n']; cbn; intros.
+    reflexivity.
+    destruct t; cbn.
+      reflexivity.
+      rewrite ?IHn'. rewrite map_app, rev_app_distr. reflexivity.
 Qed.
 
 (* [filter] makes no sense. *)
@@ -628,7 +703,19 @@ Proof.
         apply Nat.max_le_compat; eauto.
 Qed.
 
-Fixpoint find {A : Type} (p : A -> bool) (t : BTree A) : option A :=
+Lemma zipWith_mirror :
+  forall (A B C : Type) (f : A -> B -> C) (ta : BTree A) (tb : BTree B),
+    zipWith f (mirror ta) (mirror tb) =
+    mirror (zipWith f ta tb).
+Proof.
+  induction ta; cbn; intros.
+    reflexivity.
+    destruct tb; cbn.
+      reflexivity.
+      rewrite IHta1, IHta2. reflexivity.
+Qed.
+
+Function find {A : Type} (p : A -> bool) (t : BTree A) : option A :=
 match t with
     | empty => None
     | node v l r =>
@@ -641,6 +728,39 @@ match t with
               | _, _ => None
           end
 end.
+
+Inductive Any {A : Type} (P : A -> Prop) : BTree A -> Prop :=
+    | Any_root :
+        forall (v : A) (l r : BTree A),
+          P v -> Any P (node v l r)
+    | Any_child_l :
+        forall (v : A) (l r : BTree A),
+          Any P l -> Any P (node v l r)
+    | Any_child_r :
+        forall (v : A) (l r : BTree A),
+          Any P r -> Any P (node v l r).
+
+Hint Constructors Any.
+
+Lemma Any_find :
+  forall (A : Type) (P : A -> Prop) (p : A -> bool) (t : BTree A),
+    (forall x : A, reflect (P x) (p x)) ->
+      reflect (Any P t) (match find p t with
+                             | None => false
+                             | _ => true
+                         end).
+Proof.
+  intros. induction t; cbn.
+    constructor. inv 1.
+    destruct (p a) eqn: Hpa.
+      do 2 constructor. specialize (X a). inv X.
+      destruct (find p t1).
+        inv IHt1.
+        destruct (find p t2).
+          inv IHt2.
+          constructor. inv IHt1; inv IHt2. inv 1.
+            specialize (X a). inv X.
+Qed.
 
 Inductive Dup {A : Type} : BTree A -> Prop :=
     | Dup_root_l :
@@ -675,3 +795,136 @@ Proof.
     constructor.
     change 0 with (0 + 0). constructor; try intro; assumption.
 Qed.
+
+Fixpoint count {A : Type} (p : A -> bool) (t : BTree A) : nat :=
+match t with
+    | empty => 0
+    | node v l r =>
+        (if p v then S else id) (count p l + count p r)
+end.
+
+Lemma Exactly_count :
+  forall
+    (A : Type) (P : A -> Prop) (p : A -> bool) (n : nat) (t : BTree A),
+      (forall x : A, reflect (P x) (p x)) ->
+        Exactly P n t <-> count p t = n.
+Proof.
+  split.
+    induction 1; cbn.
+      reflexivity.
+      destruct (p v) eqn: Hpv; rewrite ?IHExactly1, ?IHExactly2.
+        reflexivity.
+        specialize (X v). inv X.
+      destruct (p v) eqn: Hpv; rewrite ?IHExactly1, ?IHExactly2.
+        specialize (X v). inv X.
+        reflexivity.
+    gen n. induction t; cbn; intros; subst.
+      constructor.
+      destruct (p a) eqn: Hpa; constructor; auto.
+        1-2: specialize (X a); inv X.
+Qed.
+
+Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
+    | All_empty : All P empty
+    | All_node :
+        forall (v : A) (l r : BTree A),
+          P v -> All P l -> All P r -> All P (node v l r).
+
+Lemma count_size :
+  forall (A : Type) (p : A -> bool) (t : BTree A),
+    count p t <= size t.
+Proof.
+  induction t; cbn.
+    reflexivity.
+    destruct (p a).
+      apply le_n_S. apply plus_le_compat; assumption.
+      unfold id. apply le_S. apply plus_le_compat; assumption.
+Qed.
+
+Lemma count_size_aux :
+  forall (A : Type) (p : A -> bool) (t1 t2 : BTree A),
+    count p t1 + count p t2 = size t1 + size t2 ->
+      count p t1 = size t1 /\ count p t2 = size t2.
+Proof.
+  induction t1; cbn; intros.
+    split; [reflexivity | assumption].
+    destruct (p a) eqn: Hpa.
+      inv H. specialize (IHt1_1 (node a t1_2 t2)). cbn in *.
+        rewrite Hpa in *. destruct (IHt1_1 ltac:(omega)). inv H0.
+        destruct (IHt1_2 _ H3). omega.
+      assert (S (size t1_1 + size t1_2 + size t2) <=
+                (size t1_1 + size t1_2 + size t2)).
+        rewrite <- H. unfold id.
+          repeat apply plus_le_compat; apply count_size.
+        omega.
+Qed.
+
+Lemma All_count :
+  forall (A : Type) (P : A -> Prop) (p : A -> bool) (t : BTree A),
+    (forall x : A, reflect (P x) (p x)) ->
+      All P t <-> count p t = size t.
+Proof.
+  split.
+    induction 1; cbn.
+      reflexivity.
+      destruct (p v) eqn: Hpv.
+        rewrite ?IHAll1, ?IHAll2. reflexivity.
+        specialize (X v). inv X.
+    induction t; cbn; intros.
+      constructor.
+      destruct (p a) eqn: Hpa; inv H.
+        apply count_size_aux in H1.
+          destruct H1. constructor; auto. specialize (X a). inv X.
+        assert (S (size t1 + size t2) <=
+                  (size t1 + size t2)).
+          rewrite <- H1. unfold id.
+            apply plus_le_compat; apply count_size.
+          omega.
+Qed.
+
+Inductive SameStructure {A B : Type} : BTree A -> BTree B -> Prop :=
+    | SS_empty : SameStructure empty empty
+    | SS_node :
+        forall (v1 : A) (l1 r1 : BTree A) (v2 : B) (l2 r2 : BTree B),
+          SameStructure l1 l2 ->
+          SameStructure r1 r2 ->
+            SameStructure (node v1 l1 r1) (node v2 l2 r2).
+
+Lemma zipWith_swap :
+  forall (A B C : Type) (f : A -> B -> C) (ta : BTree A) (tb : BTree B),
+    zipWith f ta tb = zipWith (fun b a => f a b) tb ta.
+Proof.
+  induction ta; destruct tb; cbn; intros; f_equal; auto.
+Qed.
+
+Inductive subtree {A : Type} : BTree A -> BTree A -> Prop :=
+    | subtree_l :
+        forall (v : A) (l r : BTree A),
+          subtree l (node v l r)
+    | subtree_r :
+        forall (v : A) (l r : BTree A),
+          subtree r (node v l r)
+    | subtree_trans :
+        forall t1 t2 t3 : BTree A,
+          subtree t1 t2 -> subtree t2 t3 -> subtree t1 t3.
+
+Lemma size_subtree :
+  forall (A : Type) (t1 t2 : BTree A),
+    subtree t1 t2 -> size t1 < size t2.
+Proof.
+  induction 1; cbn.
+    apply le_n_S, le_plus_l.
+    apply le_n_S, le_plus_r.
+    apply lt_trans with (size t2); assumption.
+Qed.
+
+Lemma height_subtree :
+  forall (A : Type) (t1 t2 : BTree A),
+    subtree t1 t2 -> height t1 < height t2.
+Proof.
+  induction 1; cbn.
+    apply le_n_S, Max.le_max_l.
+    apply le_n_S, Max.le_max_r.
+    apply lt_trans with (height t2); assumption.
+Qed.
+
