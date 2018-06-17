@@ -309,6 +309,16 @@ Lemma mirror_singleton :
     mirror (singleton x) = singleton x.
 Proof. reflexivity. Qed.
 
+Lemma toList_mirror :
+  forall (A : Type) (t : BTree A),
+    BTree_toList (mirror t) = rev (BTree_toList t).
+Proof.
+  induction t; cbn.
+    reflexivity.
+    rewrite IHt1, IHt2, rev_app_distr. cbn. rewrite <- app_assoc. cbn.
+      reflexivity.
+Qed.
+
 (** [complete] *)
 
 Fixpoint complete {A : Type} (n : nat) (x : A) : BTree A :=

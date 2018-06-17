@@ -14,7 +14,7 @@ match l with
                 Some (if h <=? m then h else m)
         end
 end.
-
+Print removeFirst.
 Function ss (A : LinDec) (l : list A) {measure length l} : list A :=
 match min l with
     | None => []
