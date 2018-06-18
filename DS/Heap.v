@@ -24,10 +24,10 @@ match t with
               | empty, empty => (m, (node M l r))
               | empty, _ =>
                   let '(m', r') := sendDown M r in
-                    (min m m', node (max m m') l r')
+                    (min m m', node (max m m') empty r')
               | _, empty =>
                   let '(m', l') := sendDown M l in
-                    (min m m', node (max m m') l' r)
+                    (min m m', node (max m m') l' empty)
               | node vl _ _, node vr _ _ =>
                   if vl <=? vr
                   then
@@ -38,9 +38,6 @@ match t with
                       (min m m', node (max m m') l r')
           end
 end.
-
-Compute @sendDown natle
-  2 (node 4 (node 10 empty empty) (node 8 empty empty)).
 
 Lemma sendDown_elem :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
@@ -57,6 +54,8 @@ Proof.
   unfold min, max, minmax in *; dec; inv e0.
 Qed.
 
+(*
+*)
 Lemma sendDown_elem' :
   forall (A : LinDec) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> elem y t -> y = m \/ elem y t'.
@@ -67,28 +66,9 @@ Lemma sendDown_elem'' :
   forall (A : LinDec) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> elem y t ->
       (x = m /\ t = t') \/
-      (y = m \/ elem x t').
+      (y = m /\ elem x t').
 Proof.
 Admitted.
-
-(*Lemma isHeap_sendDown :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
-    isHeap t -> sendDown x t = (m, t') ->
-      isHeap t' /\ forall a : A, elem a t' -> m ≤ a.
-Proof.
-  intros. functional induction @sendDown A x t; inv H0.
-    split; [constructor | inv 1].
-    split.
-      repeat constructor; inv 1.
-      inv 1; try inv H2. unfold minmax in e0; dec. inv e0.
-    destruct _x.
-      contradiction.
-      inv H. destruct (IHp _ _ H6 e3); clear IHp y. split.
-        repeat constructor.
-          inv 1.
-          intros. unfold max, minmax in *. dec; inv e0.
-Admitted.
-*)
 
 Function makeHeap {A : LinDec} (t : BTree A) : BTree A :=
 match t with
@@ -157,54 +137,108 @@ Proof.
   unfold min, max. intros. dec.
 Qed.
 
+Lemma ih_elem :
+  forall (A : LinDec) (x y v : A) (l r : BTree A),
+    elem y (node v l r) -> ih (node v l r) ->
+      x ≤ v -> x ≤ y.
+Proof.
+  intros. remember (node v l r) as t. revert v l r Heqt x H1 H0.
+  induction H; intros; inv Heqt.
+    destruct l0.
+      inv H.
+      inv H0; eapply IHelem; dec.
+    destruct r0.
+      inv H.
+      inv H0; eapply IHelem; dec.
+Qed.
+
 Lemma sendDown_ih :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
-    sendDown x t = (m, t') ->
+    sendDown x t = (m, t') -> ih t ->
       t = empty /\ t' = empty \/
       exists (v : A) (l r : BTree A),
         t' = node v l r /\ ih t' /\ m ≤ v.
 Proof.
-  intros. functional induction @sendDown A x t; inv H; right.
-    exists M, empty, empty. repeat split.
-      constructor.
-      eapply minmax_leq. eauto.
-    do 3 eexists. repeat split.
-      2: apply leq_min_max.
-      decompose [and or ex] (IHp _ _ e3); clear IHp; subst.
-        contradiction.
-        constructor.
-Admitted.
-(*
-        contradiction.
-        constructor.
-          apply minmax_leq in e0. unfold max; dec. inv e0.
-      eauto.
-      apply leq_min_max.
-    do 3 eexists. split.
-      eauto.
-      apply leq_min_max.
-    do 3 eexists. split.
-      eauto.
-      apply leq_min_max.
-    do 3 eexists. split.
-      eauto.
-      apply leq_min_max.
-Qed.*)
+  intros. functional induction @sendDown A x t; inv H; right; inv H0;
+  repeat match goal with
+      | H : match ?x with _ => _ end |- _ => destruct x
+      | H : False |- _ => contradiction
+      | H : True |- _ => clear H
+      | IH : forall _ _ , sendDown _ _ = _ -> ?ih -> _,
+        H1 : sendDown _ _ = _,
+        H2 : ?ih |- _ =>
+            specialize (IH _ _ H1 H2);
+            decompose [and or ex] IH; clear IH; subst
+      | H : node _ _ _ = empty |- _ => inv H
+      | |- exists _, _ => eexists
+      | |- _ /\ _ => split
+      | |- _ = _ => reflexivity
+      | |- min _ _ ≤ max _ _ => apply leq_min_max
+      | |- ih _ => constructor
+      | H : sendDown ?M _ = _ |- _ =>
+          let H' := fresh "H" in
+          assert (H' := sendDown_elem'' _ M _ _ _ _ H ltac:(constructor));
+          decompose [and or] H'; clear H H'; subst
+      | H : node _ _ _ = node _ _ _ |- _ => inv H
+  end;
+  try assumption;
+  unfold max, minmax in *; dec'; inv e0; dec.
+Qed.
 
 Lemma ih_sendDown_arg :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> ih t ->
       forall a : A, elem a t -> m ≤ a.
 Proof.
-  intros. functional induction @sendDown A x t.
-Abort.
-
-Lemma ih_sendDown_res :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
-    sendDown x t = (m, t') -> ih t ->
-      forall a : A, elem a t' -> m ≤ a.
-Proof.
-Admitted.
+  Ltac wut := 
+  repeat match goal with
+      | H : match ?x with _ => _ end |- _ => destruct x
+      | H : False |- _ => contradiction
+      | H : True |- _ => clear H
+      | H : (_, _) = _ |- _ => inv H
+      | H : elem _ empty |- _ => inv H
+      | H : ih empty |- _ => clear H
+      | H : ih (node _ ?x ?y) |- _ =>
+          tryif is_var x then fail else
+          tryif is_var y then fail else inv H
+  end.
+  intros. functional induction @sendDown A x t; wut.
+    inv H1; try inv H0. unfold minmax in e0; dec'; inv e0.
+    inv H1.
+      unfold minmax, min in *; dec'; inv e0; dec.
+      inv H0.
+      unfold min; dec'.
+        apply leq_trans with m'.
+          assumption.
+          eapply IHp; eauto.
+        eapply IHp; eauto.
+    inv H1.
+      unfold minmax, min in *; dec'; inv e0; dec.
+      unfold min; dec'.
+        apply leq_trans with m'.
+          assumption.
+          eapply IHp; eauto.
+        eapply IHp; eauto.
+      inv H0.
+    inv H1.
+      unfold minmax, min in *; dec'; inv e0; dec.
+      unfold min; dec'.
+        apply leq_trans with m'.
+          assumption.
+          eapply IHp; eauto.
+        eapply IHp; eauto.
+      apply (ih_elem _ _ _ _ _ _ H0 H11).
+        unfold minmax, min in *; dec'; inv e0; dec.
+    inv H1.
+      unfold minmax, min in *; dec'; inv e0; dec.
+      apply (ih_elem _ _ _ _ _ _ H0 H9).
+        unfold minmax, min in *; dec'; inv e0; dec.
+      unfold min; dec'.
+        apply leq_trans with m'.
+          assumption.
+          eapply IHp; eauto.
+        eapply IHp; eauto.
+Qed.
 
 Lemma makeHeap_ih :
   forall (A : LinDec) (t : BTree A),
