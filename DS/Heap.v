@@ -39,6 +39,46 @@ match t with
           end
 end.
 
+Ltac dec' := cbn;
+repeat match goal with
+    | |- context [?x =? ?y] =>
+        try destruct (LinDec_eqb_spec natle x y);
+        try destruct (LinDec_eqb_spec _ x y); subst; intros
+    | |- context [?x <=? ?y] =>
+        try destruct (@leqb_spec natle x y);
+        try destruct (leqb_spec x y); intros
+    | H : context [?x =? ?y] |- _ =>
+        try destruct (LinDec_eqb_spec natle x y);
+        try destruct (LinDec_eqb_spec _ x y); subst; intros
+    | H : context [?x <=? ?y] |- _ =>
+        try destruct (@leqb_spec natle x y);
+        try destruct (leqb_spec x y); intros
+    | H : ?a ≤ ?b, H' : ?b ≤ ?a |- _ =>
+        let H'' := fresh "H" in
+          assert (H'' := leq_antisym _ _ H H'); clear H H'; subst
+end; cbn;
+repeat match goal with
+    | H : ?x <> ?x |- _ => contradiction H; reflexivity
+    | H : True |- _ => clear H
+    | H : ?x = ?x |- _ => clear H
+end; try congruence.
+
+Ltac wut :=
+repeat match goal with
+    | H : match ?x with _ => _ end |- _ => destruct x
+    | H : False |- _ => contradiction
+    | H : True |- _ => clear H
+    | H : node _ _ _ = empty |- _ => inv H
+    | |- _ /\ _ => split
+    | |- _ = _ => reflexivity
+    | H : elem _ empty |- _ => inv H
+    | H : elem _ (node _ empty empty) |- _ => inv H
+    | H : (_, _) = (_, _) |- _ => inv H
+    | H : context [_ <=? _] |- _ => dec'
+end.
+
+Ltac m := unfold min, max, minmax in *; wut.
+
 Lemma sendDown_elem :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
@@ -54,13 +94,46 @@ Proof.
   unfold min, max, minmax in *; dec; inv e0.
 Qed.
 
-(*
-*)
-Lemma sendDown_elem' :
-  forall (A : LinDec) (x m y : A) (t t' : BTree A),
-    sendDown x t = (m, t') -> elem y t -> y = m \/ elem y t'.
+Lemma sendDown_elem2 :
+  forall (A : LinDec) (x m : A) (t t' : BTree A),
+    sendDown x t = (m, t') ->
+      (x = m /\ t = t') \/ elem x t'.
 Proof.
-Admitted.
+  intros. functional induction @sendDown A x t; inv H; dec.
+  Focus 2.
+  repeat match goal with
+      | H : match ?x with _ => _ end |- _ => destruct x
+      | H : False |- _ => contradiction
+      | IH : forall _ _, _ -> _, H : sendDown _ _ = _ |- _ =>
+          decompose [and or] (IH _ _ H); clear IH; subst
+  end;
+  unfold min, max, minmax in *; dec; inv e0.
+    cbn in e3. destruct (minmax M c), r1, r2. wut. inv H; wut.
+    apply sendDown_elem in e3. destruct e3; subst; wut.
+Qed.
+
+Lemma sendDown_elem' :
+  forall (A : LinDec) (x m : A) (t t' : BTree A),
+    sendDown x t = (m, t') ->
+      forall y : A, elem y t ->
+        y = m \/ elem y t'.
+Proof.
+  intros A x m t. revert m.
+  functional induction @sendDown A x t; cbn; intros; wut.
+    inv H0. m.
+    inv H0.
+      apply sendDown_elem in e3. destruct e3; subst; m.
+      destruct (IHp _ _ e3 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e3. destruct e3; subst; m.
+      destruct (IHp _ _ e3 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e4. destruct e4; subst; m.
+      destruct (IHp _ _ e4 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e4. destruct e4; subst; m.
+      destruct (IHp _ _ e4 _ H1); subst; m.
+Qed.
 
 Lemma sendDown_elem'' :
   forall (A : LinDec) (x m y : A) (t t' : BTree A),
@@ -68,6 +141,36 @@ Lemma sendDown_elem'' :
       (x = m /\ t = t') \/
       (y = m /\ elem x t').
 Proof.
+  intros.
+  pose (H' := H).
+  apply sendDown_elem in H'.
+  eapply sendDown_elem' in H.
+Restart.
+  intros A x m y t. revert m y.
+  functional induction @sendDown A x t; cbn; intros; wut.
+    inv H0; wut. m.
+    inv H0; wut.
+      apply sendDown_elem in e3. destruct e3; subst; m.
+      destruct (IHp _ _ e3 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e3. destruct e3; subst; m.
+      destruct (IHp _ _ e3 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e4. destruct e4; subst; m.
+      destruct (IHp _ _ e4 _ H1); subst; m.
+    inv H0.
+      apply sendDown_elem in e4. destruct e4; subst; m.
+      destruct (IHp _ _ e4 _ H1); subst; m.
+Qed.
+    inv H0; wut.
+      unfold min, max, minmax in *; dec'; inv e0.
+
+      Focus 2. specialize (IHp _ _ _ e3 H1).
+      decompose [and or] IHp; clear IHp; subst.
+        unfold min, max, minmax in *; dec'; inv e0.
+        
+         
+      
 Admitted.
 
 Function makeHeap {A : LinDec} (t : BTree A) : BTree A :=
@@ -86,27 +189,6 @@ match t with
                 else let '(m, r'') := sendDown v r' in node m l' r''
         end
 end.
-
-Ltac dec' := cbn;
-repeat match goal with
-    | |- context [?x =? ?y] =>
-        try destruct (LinDec_eqb_spec natle x y);
-        try destruct (LinDec_eqb_spec _ x y); subst; intros
-    | |- context [?x <=? ?y] =>
-        try destruct (@leqb_spec natle x y);
-        try destruct (leqb_spec x y); intros
-    | H : context [?x =? ?y] |- _ =>
-        try destruct (LinDec_eqb_spec natle x y);
-        try destruct (LinDec_eqb_spec _ x y); subst; intros
-    | H : context [?x <=? ?y] |- _ =>
-        try destruct (@leqb_spec natle x y);
-        try destruct (leqb_spec x y); intros
-end; cbn;
-repeat match goal with
-    | H : ?x <> ?x |- _ => contradiction H; reflexivity
-    | H : True |- _ => clear H
-    | H : ?x = ?x |- _ => clear H
-end; try congruence.
 
 Inductive ih {A : LinDec} : BTree A -> Prop :=
     | ih_empty : ih empty
@@ -254,9 +336,9 @@ Proof.
       | H : ih empty |- _ => clear H
   end;
   try match goal with
-      | H : sendDown _ _ = _ |- _ =>
+      | H : sendDown _ _ = _, H0 : ih _ |- _ =>
           let H' := fresh "H" in 
-          assert (H' := sendDown_ih _ _ _ _ _ H);
+          assert (H' := sendDown_ih _ _ _ _ _ H H0);
           decompose [and or ex] H'; clear H'; subst
   end;
   constructor; try assumption; try congruence.
