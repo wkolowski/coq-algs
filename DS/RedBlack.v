@@ -299,6 +299,42 @@ Proof.
   rewrite makeBlack_count_RBT, ins_count_RBT. reflexivity.
 Qed.
 
+Lemma Permutation_toList_balance :
+  forall (A : Type) (c : color) (v : A) (l r : RBTree A),
+    Permutation (toList (balance c l v r)) (toList (T c l v r)).
+Proof.
+  intros. functional induction @balance A c l v r; cbn.
+    reflexivity.
+    rewrite <- !app_assoc. cbn. reflexivity.
+    rewrite <- !app_assoc. cbn. rewrite <- !app_assoc. cbn. reflexivity.
+    rewrite <- !app_assoc. cbn. reflexivity.
+    rewrite <- !app_assoc. cbn. reflexivity.
+    reflexivity.
+Qed.
+
+Lemma Permutation_toList_ins :
+  forall (A : LinDec) (x : A) (t : RBTree A),
+    Permutation (toList (ins x t)) (x :: toList t).
+Proof.
+  intros. functional induction @ins A x t.
+    cbn. reflexivity.
+    rewrite Permutation_toList_balance. cbn. rewrite IHr. cbn. reflexivity.
+    rewrite Permutation_toList_balance. cbn. rewrite IHr.
+      rewrite Permutation_middle. apply Permutation_app.
+        reflexivity.
+        constructor.
+Qed.
+
+Lemma Permutation_toList_insert :
+  forall (A : LinDec) (x : A) (t : RBTree A),
+    Permutation (toList (insert x t)) (x :: toList t).
+Proof.
+  intros. unfold insert. destruct (ins x t) eqn: Heq; cbn.
+    admit.
+    rewrite <- (Permutation_toList_ins _ x t). rewrite Heq.
+      cbn. reflexivity.
+Admitted.
+
 (** Properties of [toList]. *)
 
 Lemma toList_elem :
@@ -381,3 +417,15 @@ Proof.
   unfold perm, redblackSort. intros.
   rewrite <- toList_count_RBT, fromList_count_RBT. reflexivity.
 Qed.
+
+Lemma Permutation_redblackSort :
+  forall (A : LinDec) (l : list A),
+    Permutation (redblackSort A l) l.
+Proof.
+  intros. unfold redblackSort.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    rewrite Permutation_toList_insert, IHt. reflexivity.
+Qed.
+
+(** TODO: [join] and [split] *)

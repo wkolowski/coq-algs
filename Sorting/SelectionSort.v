@@ -14,7 +14,7 @@ match l with
                 Some (if h <=? m then h else m)
         end
 end.
-Print removeFirst.
+
 Function ss (A : LinDec) (l : list A) {measure length l} : list A :=
 match min l with
     | None => []
@@ -31,7 +31,8 @@ Lemma min_present :
     min l = Some m -> exists l1 l2 : list A,
       l = l1 ++ m :: l2.
 Proof.
-  intros. functional induction min l; inv H.
+  intros. revert m H.
+  functional induction min l; inv 1; intros.
     exists [], t. cbn. reflexivity.
     exists [], t. cbn. reflexivity.
     destruct (IHo _ e0) as (l1 & l2 & Heq). subst.
@@ -67,12 +68,12 @@ Lemma min_spec :
   forall (A : LinDec) (x m : A) (l : list A),
     In x l -> min l = Some m -> m ≤ x.
 Proof.
-  intros. functional induction min l; inv H0.
-    inv H. destruct t.
+  intros. revert x m H0 H. functional induction min l; do 2 inv 1.
+    destruct t.
       inv H0.
       cbn in e0. destruct (min t); inv e0.
-    inv H. apply leq_trans with m0; dec.
-    inv H. dec.
+    apply leq_trans with m0; dec.
+    dec.
 Qed.
 
 Lemma removeFirst_min_In :
@@ -203,22 +204,22 @@ Proof.
     destruct x as [| h t]; cbn; intros.
       reflexivity.
       rewrite ss''_equation. destruct (min (h :: t)) eqn: Hc.
-        Focus 2. cbn in Hc. destruct (min t); inv Hc.
         cbn. dec.
           apply perm_cons. eapply perm_trans.
             apply perm_filter.
             apply perm_app.
               reflexivity.
               apply H. red. cbn. apply le_n_S. apply filter_length.
-          rewrite (perm_filter A (fun x => x =? c)). cbn. dec.
-            apply perm_app.
-              reflexivity.
-              apply H. red. cbn in *. apply lt_n_S.
-                functional induction min t; cbn in *; inv Hc; dec.
-                  1-3: apply le_n_S; apply filter_length.
-                  apply le_n_S. apply (IHo h); auto.
-                    intros. apply H. red. red in H0. cbn in *. omega.
-                      rewrite e0. dec.
+          rewrite (perm_filter A (fun x => x =? c)). cbn. dec. apply perm_app.
+            reflexivity.
+            apply H. red. cbn in *. apply lt_n_S.
+              revert H.
+              functional induction min t; cbn in *; inv 1; dec.
+                1-3: apply le_n_S; apply filter_length.
+                apply le_n_S. apply IHo.
+                  rewrite e0. dec.
+                  intros. apply H. red. red in H0. cbn in *. omega.
+        cbn in Hc. destruct (min t); inv Hc.
 Qed.
 
 Lemma min_cons :
@@ -246,8 +247,6 @@ Lemma filter_cons :
     then h :: filter p t
     else filter p t.
 Proof. reflexivity. Qed.
-
-Check ss_ind.
 
 Lemma lengthOrder_filter_min :
   forall (A : LinDec) (m : A) (l : list A),
@@ -333,7 +332,7 @@ match min l with
           l1 ++ ss_bifilter l2
 end.
 Proof.
-  intros. functional induction min l; cbn in *; inv teq;
+  intros A l. functional induction min l; cbn in *; inv 1;
   rewrite bifilter_spec in *; dec; inv teq0.
     1-3: apply le_n_S, filter_length.
     cbn. apply lt_n_S. eapply IHo; eauto. apply bifilter_spec.
@@ -388,7 +387,7 @@ Lemma mins'_length :
   forall (A : TrichDec) (l mins rest : list A),
     mins' l = (mins, rest) -> length l = length mins + length rest.
 Proof.
-  intros. functional induction mins' l; inv H; cbn in *.
+  intros A l. functional induction mins' l; inv 1; cbn in *.
     destruct t; cbn in e0.
       inv e0.
       destruct (mins' t), l.
@@ -435,6 +434,30 @@ Class Select (A : LinDec) : Type :=
 }.
 
 Coercion select : Select >-> Funclass.
+
+Function gss
+  {A : LinDec} (s : Select A) (l : list A)
+  {measure length l} : list A :=
+match select l with
+    | ([], [], []) => []
+    | (mins, rest, maxes) =>
+        mins ++ gss s rest ++ maxes
+end.
+Proof.
+  all: intros; subst;
+  apply select_length_rest in teq;
+  decompose [and or] teq; clear teq;
+  try congruence; try assumption.
+Defined.
+
+Lemma Permutation_gss :
+  forall (A : LinDec) (s : Select A) (l : list A),
+    Permutation l (gss s l).
+Proof.
+  intros. functional induction @gss A s l.
+    apply select_Permutation in e. cbn in e. assumption.
+    rewrite <- IHl0. apply select_Permutation. assumption.
+Qed.
 
 Lemma select_In :
   forall (A : LinDec) (s : Select A) (l mins rest maxes : list A) (x : A),
@@ -495,35 +518,28 @@ Proof.
           right. assumption.
 Qed.
 
-Function gss
-  {A : LinDec} (s : Select A) (l : list A)
-  {measure length l} : list A :=
-match select l with
-    | ([], [], []) => []
-    | (mins, rest, maxes) =>
-        mins ++ gss s rest ++ maxes
-end.
+Lemma select_mins_sorted :
+  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+    select l = (mins, rest, maxes) -> sorted A mins.
 Proof.
-  all: intros; subst;
-  apply select_length_rest in teq;
-  decompose [and or] teq; clear teq;
-  try congruence; try assumption.
-Defined.
-
-Lemma gss_Permutation :
-  forall (A : LinDec) (s : Select A) (l : list A),
-    Permutation l (gss s l).
-Proof.
-  intros. functional induction @gss A s l.
-    apply select_Permutation in e. cbn in e. assumption.
-    rewrite <- IHl0. apply select_Permutation. assumption.
+  destruct mins0; intros.
+    constructor.
+    apply same_sorted with c. intros. eapply select_mins_same.
+      exact H.
+      left. reflexivity.
+      assumption.
 Qed.
 
-Lemma gss_perm :
-  forall (A : LinDec) (s : Select A) (l : list A),
-    perm A l (gss s l).
+Lemma select_maxes_sorted :
+  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+    select l = (mins, rest, maxes) -> sorted A maxes.
 Proof.
-  intros. apply Permutation_perm, gss_Permutation.
+  destruct maxes; intros.
+    constructor.
+    apply same_sorted with c. intros. eapply select_maxes_same.
+      exact H.
+      left. reflexivity.
+      assumption.
 Qed.
 
 Lemma gss_In :
@@ -532,10 +548,10 @@ Lemma gss_In :
 Proof.
   intros. split; intros.
     eapply Permutation_in.
-      symmetry. apply gss_Permutation.
+      symmetry. apply Permutation_gss.
       assumption.
     eapply Permutation_in.
-      apply gss_Permutation.
+      apply Permutation_gss.
       assumption.
 Qed.
 
@@ -543,33 +559,30 @@ Lemma gss_sorted :
   forall (A : LinDec) (s : Select A) (l : list A),
     sorted A (gss s l).
 Proof.
-  intros. functional induction @gss A s l.
+  intros. functional induction @gss A s l; try clear y.
     constructor.
     apply sorted_app.
-      destruct mins0.
-        constructor.
-        apply same_sorted with c. intros.
-          eapply select_mins_same; eauto. left. reflexivity.
-      Focus 2. intros. apply in_app_or in H0. destruct H0.
+      eapply select_mins_sorted. eassumption.
+      apply sorted_app.
+        assumption.
+        eapply select_maxes_sorted. eassumption.
+        intros. rewrite gss_In in H. eapply select_maxes; eauto.
+          eapply select_In; eauto.
+      intros. apply in_app_or in H0. destruct H0.
         rewrite gss_In in H0. eapply select_mins; try eassumption.
           eapply select_In; eauto.
         eapply select_mins_maxes; eauto.
-      apply sorted_app.
-        assumption.
-        destruct maxes.
-          constructor.
-          apply same_sorted with c. intros.
-            eapply select_maxes_same; eauto. left. reflexivity.
-        intros. rewrite gss_In in H. eapply select_maxes; eauto.
-          eapply select_In; eauto.
 Qed.
 
 Instance Sort_gss (A : LinDec) (s : Select A) : Sort A :=
 {
     sort := gss s;
     sort_sorted := gss_sorted s;
-    sort_perm := gss_perm s;
+(*    sort_perm := gss_perm s;*)
 }.
+Proof.
+  intros. apply Permutation_perm. apply Permutation_gss.
+Defined.
 
 (*Require Import SortSpec.*)
 

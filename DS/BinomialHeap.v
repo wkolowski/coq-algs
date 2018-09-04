@@ -392,12 +392,12 @@ Lemma removeMinTree_elemHeap :
     removeMinTree h = Some (t, h') ->
       elemHeap x h <-> elemTree' x t \/ elemHeap x h'.
 Proof.
-  split.
-    functional induction @removeMinTree A h; inv 1; inv H.
-      specialize (IHo x _ _ e0 H2). inv IHo.
-    functional induction @removeMinTree A h; inv 1; inv H.
+  split; revert x t h' H.
+    functional induction @removeMinTree A h; inv 1; intro; inv H.
+      specialize (IHo _ _ _ e0 H1). inv IHo.
+    functional induction @removeMinTree A h; inv 1; intro; inv H.
       specialize (IHo x _ _ e0 ltac:(auto)). inv IHo.
-      inv H1. specialize (IHo x _ _ e0 ltac:(auto)). inv IHo.
+      inv H0. specialize (IHo x _ _ e0 ltac:(auto)). inv IHo.
 Qed.
 
 Lemma unMin_elemHeap :

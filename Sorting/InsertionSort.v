@@ -25,6 +25,17 @@ Proof.
         cbn. rewrite <- IHl. reflexivity.
 Qed.
 
+Lemma Permutation_ins :
+  forall (A : LinDec) (x : A) (l : list A),
+    Permutation (ins A x l) (x :: l).
+Proof.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    destruct (x <=? h).
+      reflexivity.
+      rewrite IHt. constructor.
+Qed.
+
 Lemma sorted_ins :
   forall (A : LinDec) (x : A) (l : list A),
     sorted A l -> sorted A (ins A x l).

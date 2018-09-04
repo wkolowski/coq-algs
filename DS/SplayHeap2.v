@@ -332,7 +332,7 @@ Lemma smaller_spec :
     is_bst h -> smaller pivot h = h' ->
       forall x : A, elem x h' -> x ≤ pivot.
 Proof.
-  intros. functional induction @smaller A pivot h; aux; eauto.
+  intros until h. functional induction @smaller A pivot h; aux; eauto.
 Qed.
 
 Lemma smaller_elem :
@@ -428,7 +428,7 @@ Lemma merge_elem :
     is_bst h1 -> is_bst h2 ->
       elem x (merge h1 h2) <-> elem x h1 \/ elem x h2.
 Proof.
-  split; intros.
+  split; revert x H H0.
     functional induction @merge A h1 h2; intros.
       right. assumption.
       assert (is_bst (node v l' r')) by (eapply partition_is_bst; eauto).

@@ -114,10 +114,11 @@ Proof.
              1-2: firstorder.
 Qed.
 
-Lemma height_insert :
+(* TODO *) Lemma height_insert :
   forall (A : LinDec) (x : A) (t : Tree A),
     height' (insert x t) <= 1 + height' t.
 Proof.
   intros. functional induction @insert A x t; cbn.
     reflexivity.
     rewrite height_rebalance.
+Abort.

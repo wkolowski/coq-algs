@@ -26,6 +26,16 @@ Proof.
       rewrite <- merge_perm; cbn. apply perm_app; assumption.
 Qed.
 
+Theorem Permutation_ghms :
+  forall (n : nat) (A : LinDec) (s : Sort A) (split : Split A) (l : list A),
+    Permutation (@ghms n A (@sort A s) split l) l.
+Proof.
+  intros. functional induction @ghms n A (@sort A s) split l.
+    apply Permutation_sort.
+    rewrite <- (@Permutation_app_split _ _ l). rewrite e0; cbn.
+      rewrite <- Permutation_merge. cbn. apply Permutation_app; assumption.
+Qed.
+
 Instance Sort_ghms
   (n : nat) (A : LinDec) (sort : Sort A) (split : Split A) : Sort A :=
 {

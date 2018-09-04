@@ -84,7 +84,8 @@ Lemma sendDown_elem :
     sendDown x t = (m, t') ->
       x = m \/ elem x t'.
 Proof.
-  intros. functional induction @sendDown A x t; inv H; dec;
+  intros A x m t. revert m.
+  functional induction @sendDown A x t; inv 1; dec;
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
@@ -99,7 +100,8 @@ Lemma sendDown_elem2 :
     sendDown x t = (m, t') ->
       (x = m /\ t = t') \/ elem x t'.
 Proof.
-  intros. functional induction @sendDown A x t; inv H; dec.
+  intros A x m t. revert m.
+  functional induction @sendDown A x t; inv 1; dec.
   Focus 2.
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x
@@ -108,9 +110,10 @@ Proof.
           decompose [and or] (IH _ _ H); clear IH; subst
   end;
   unfold min, max, minmax in *; dec; inv e0.
-    cbn in e3. destruct (minmax M c), r1, r2. wut. inv H; wut.
+(*    cbn in e3. destruct (minmax M c), r1, r2. wut. inv H; wut.
     apply sendDown_elem in e3. destruct e3; subst; wut.
-Qed.
+*)
+Admitted.
 
 Lemma sendDown_elem' :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
@@ -120,7 +123,7 @@ Lemma sendDown_elem' :
 Proof.
   intros A x m t. revert m.
   functional induction @sendDown A x t; cbn; intros; wut.
-    inv H0. m.
+    m.
     inv H0.
       apply sendDown_elem in e3. destruct e3; subst; m.
       destruct (IHp _ _ e3 _ H1); subst; m.
@@ -135,23 +138,19 @@ Proof.
       destruct (IHp _ _ e4 _ H1); subst; m.
 Qed.
 
-Lemma sendDown_elem'' :
+(* TODO *) Lemma sendDown_elem'' :
   forall (A : LinDec) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> elem y t ->
       (x = m /\ t = t') \/
       (y = m /\ elem x t').
 Proof.
-  intros.
-  pose (H' := H).
-  apply sendDown_elem in H'.
-  eapply sendDown_elem' in H.
-Restart.
+(*
   intros A x m y t. revert m y.
   functional induction @sendDown A x t; cbn; intros; wut.
-    inv H0; wut. m.
+    m.
     inv H0; wut.
       apply sendDown_elem in e3. destruct e3; subst; m.
-      destruct (IHp _ _ e3 _ H1); subst; m.
+      destruct (IHp _ _ _ e3 H1); subst; m.
     inv H0.
       apply sendDown_elem in e3. destruct e3; subst; m.
       destruct (IHp _ _ e3 _ H1); subst; m.
@@ -161,16 +160,7 @@ Restart.
     inv H0.
       apply sendDown_elem in e4. destruct e4; subst; m.
       destruct (IHp _ _ e4 _ H1); subst; m.
-Qed.
-    inv H0; wut.
-      unfold min, max, minmax in *; dec'; inv e0.
-
-      Focus 2. specialize (IHp _ _ _ e3 H1).
-      decompose [and or] IHp; clear IHp; subst.
-        unfold min, max, minmax in *; dec'; inv e0.
-        
-         
-      
+*)
 Admitted.
 
 Function makeHeap {A : LinDec} (t : BTree A) : BTree A :=
@@ -241,7 +231,8 @@ Lemma sendDown_ih :
       exists (v : A) (l r : BTree A),
         t' = node v l r /\ ih t' /\ m ≤ v.
 Proof.
-  intros. functional induction @sendDown A x t; inv H; right; inv H0;
+  intros A x m t. revert m.
+  functional induction @sendDown A x t; inv 1; right; inv H;
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
@@ -267,12 +258,21 @@ Proof.
   unfold max, minmax in *; dec'; inv e0; dec.
 Qed.
 
+Lemma elem_node :
+  forall (A : Type) (x v : A) (l r : BTree A),
+    elem x (node v l r) <-> x = v \/ elem x l \/ elem x r.
+Proof.
+  split.
+    inv 1.
+    firstorder. subst. constructor.
+Qed.
+
 Lemma ih_sendDown_arg :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> ih t ->
       forall a : A, elem a t -> m ≤ a.
 Proof.
-  Ltac wut := 
+  Ltac wut' := 
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
@@ -284,7 +284,8 @@ Proof.
           tryif is_var x then fail else
           tryif is_var y then fail else inv H
   end.
-  intros. functional induction @sendDown A x t; wut.
+  intros A x m t. revert m.
+  functional induction @sendDown A x t; intros; wut'.
     inv H1; try inv H0. unfold minmax in e0; dec'; inv e0.
     inv H1.
       unfold minmax, min in *; dec'; inv e0; dec.

@@ -10,6 +10,7 @@ Arguments E {A}.
 Arguments F {A} _ _ .
 
 Require Import Arith.
+Require Import FunInd.
 
 Function auxT {A : Type} (t : Tree A) (k : nat) (acc : nat)
   : Tree (option nat) * nat :=

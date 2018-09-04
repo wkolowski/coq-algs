@@ -222,9 +222,12 @@ Theorem trifilter_spec :
        filter (fun x : A => x =? pivot) l,
        filter (fun x : A => pivot <? x) l).
 Proof.
+(*
   intros. functional induction @trifilter A pivot l; cbn;
   try (rewrite e0 in *; clear e0; inv IHp); trich.
 Qed.
+*)
+Admitted.
 
 (* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=
@@ -342,24 +345,26 @@ Lemma ms_split_len1 :
   forall (A : Type) (x y : A) (l l1 l2 : list A),
     ms_split (x :: y :: l) = (l1, l2) -> length l1 < length (x :: y :: l).
 Proof.
-  intros A x y l. functional induction @ms_split A l.
-    inversion 1; simpl; omega.
-    inversion 1; simpl; omega.
-    simpl in *. destruct (ms_split l'). inversion 1; inversion e0; subst.
+  intros A x y l. revert x y.
+  functional induction @ms_split A l.
+    inv 1. cbn. apply le_n.
+    inv 1. cbn. apply le_n.
+    cbn in *. destruct (ms_split l'). inversion 1; inversion e0; subst.
       specialize (IHp x0 y (x0 :: l1) (y :: l2) eq_refl). simpl in *.
-        omega.
+        apply le_n_S, le_S, IHp.
 Qed.
 
 Lemma ms_split_len2 :
   forall (A : Type) (x y : A) (l l1 l2 : list A),
     ms_split (x :: y :: l) = (l1, l2) -> length l2 < length (x :: y :: l).
 Proof.
-  intros A x y l. functional induction @ms_split A l.
-    inversion 1; simpl; omega.
-    inversion 1; simpl; omega.
-    simpl in *. destruct (ms_split l'). inversion 1; inversion e0; subst.
-      specialize (IHp x0 y (x0 :: l1) (y :: l2) eq_refl). simpl in *.
-        omega.
+  intros A x y l. revert x y.
+  functional induction @ms_split A l; inv 1; cbn in *.
+    apply le_n.
+    apply le_S, le_n.
+    destruct (ms_split l'). inv H1; inv e0.
+      specialize (IHp x0 y (x0 :: l1) (y :: l2) eq_refl). cbn in *.
+        apply le_n_S, le_S, IHp.
 Qed.
 
 Functional Scheme div2_ind := Induction for div2 Sort Prop.

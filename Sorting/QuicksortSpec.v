@@ -27,6 +27,29 @@ Proof.
               rewrite partition_perm, !count_app. reflexivity.
 Qed.
 
+Theorem Permutation_uqs :
+  forall
+    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
+    (choosePivot : Pivot A) (partition : Partition A) (l : list A),
+      Permutation (uqs adhoc choosePivot partition l) l.
+Proof.
+  intros.
+  functional induction @uqs A small adhoc choosePivot partition l.
+    pose (e' := e). apply small_inl in e'; subst.
+      apply adhoc_perm in e. admit.
+    assert (Permutation l (pivot :: rest)).
+      apply small_inr in e. apply pivot_spec in e0.
+        rewrite e, e0. reflexivity.
+      rewrite H. eapply Permutation_trans.
+        rewrite <- Permutation_middle. reflexivity.
+        constructor. apply Permutation_partition in e1. rewrite <- e1.
+          apply Permutation_app.
+            assumption.
+            apply Permutation_app.
+              reflexivity.
+              assumption.
+Admitted.
+
 Theorem uqs_In :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)

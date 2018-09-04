@@ -85,19 +85,19 @@ Lemma split_inv_r :
   forall {A : Type} {n : nat} {l f : list A},
     split n l = (f, []) -> length l <= n \/ l = [] /\ f = [].
 Proof.
-  intros. functional induction @split A n l; cbn; inv H.
-    left. apply le_n_S. destruct (IHp _ e1).
-      assumption.
-      inv H. cbn. apply le_0_n.
+  intros A n l. functional induction @split A n l; cbn; inv 1.
+  left. apply le_n_S. destruct (IHp _ e1).
+    assumption.
+    inv H. cbn. apply le_0_n.
 Qed.
 
 Lemma map_split :
   forall (A B : Type) (f : A -> B) (n : nat) (l l1 l2 : list A),
     split n l = (l1, l2) -> split n (map f l) = (map f l1, map f l2).
 Proof.
-  intros. functional induction @split A n l; cbn; inv H.
+  intros A B f n l. functional induction @split A n l; cbn; inv 1.
     destruct n; reflexivity.
-    rewrite (IHp _ _ _ e1). cbn. reflexivity.
+    rewrite (IHp _ _ e1). cbn. reflexivity.
 Qed.
 
 Lemma map_split' :
@@ -113,7 +113,7 @@ Lemma split_spec :
   forall (A : Type) (n : nat) (l l1 l2 : list A),
     split n l = (l1, l2) -> l = l1 ++ l2.
 Proof.
-  intros. functional induction @split A n l; inv H.
+  intros A n l. functional induction @split A n l; inv 1.
     cbn. f_equal. apply IHp. assumption.
 Qed.
 
@@ -387,9 +387,8 @@ Lemma split_length :
   forall (A : Type) (n : nat) (l l1 l2 : list A),
     split n l = (l1, l2) -> length l = length l1 + length l2.
 Proof.
-  intros. remember (l1, l2) as p.
-  functional induction @split A n l; inv H; inv H0.
-  cbn. erewrite IHp0; eauto.
+  intros A n l. functional induction @split A n l; inv 1.
+  cbn. f_equal. apply IHp. assumption.
 Qed.
 
 Lemma size_deque :

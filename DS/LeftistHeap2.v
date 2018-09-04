@@ -209,8 +209,8 @@ Lemma elem_merge' :
   forall (A : LinDec) (x : A) (t1 t2 : RSTree A),
     elem x (merge' (t1, t2)) -> elem x t1 \/ elem x t2.
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp.
+  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
+  functional induction @merge' A p; inv 1; intros.
     rewrite balance_elem in H. inv H. edestruct IHr; eauto.
     rewrite balance_elem in H. inv H. edestruct IHr; eauto.
     Unshelve. all: auto.
@@ -220,8 +220,8 @@ Lemma elem_merge'_v2 :
   forall (A : LinDec) (x : A) (t1 t2 : RSTree A),
     elem x t1 \/ elem x t2 -> elem x (merge' (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp;
+  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
+  functional induction @merge' A p; inv 1;
   elem; rewrite balance_elem.
     inv H. apply elem_right.
       eapply IHr; try ((left + right); eauto); reflexivity.
@@ -249,8 +249,8 @@ Theorem merge'_size:
   forall (A : LinDec) (t1 t2 : RSTree A),
     size (merge' (t1, t2)) = size t1 + size t2.
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp.
+  functional induction @merge' A p; inv 1.
     erewrite balance_size. cbn. rewrite (IHr r (node _ v' l' r') eq_refl).
       cbn. omega.
     erewrite balance_size. cbn. rewrite (IHr (node _ v l r) r' eq_refl).
@@ -262,28 +262,23 @@ Theorem merge'_isHeap :
   forall (A : LinDec) (t1 t2 : RSTree A),
     isHeap t1 -> isHeap t2 -> isHeap (merge' (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp;
-  inv H; inv H0; apply balance_isHeap; elem.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction @merge' A p; do 3 inv 1; apply balance_isHeap; elem.
     destruct (leqb_spec v v'); inv e0. destruct (elem_merge' H); auto.
       eapply leq_trans with v'. auto. inv H0.
-    eapply (IHr _ _ _ _ eq_refl).
+    eapply (IHr _ _ eq_refl); auto.
     destruct (leqb_spec v v'), (elem_merge' H); inv e0.
       eapply leq_trans with v. dec. inv H0.
-    eapply (IHr _ _ _ _ eq_refl).
-Unshelve.
-  all: auto.
+    eapply (IHr _ _ eq_refl); auto.
 Qed.
 
 Theorem merge'_left_biased :
   forall (A : LinDec) (t1 t2 : RSTree A),
     left_biased t1 -> left_biased t2 -> left_biased (merge' (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge' A p; inv Heqp;
-  inv H; inv H0; cbn in *; apply balance_left_biased; auto.
-    eapply IHr; only 3: eauto; eauto.
-    eapply IHr; only 3: eauto; eauto.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction @merge' A p; do 3 inv 1; cbn in *;
+  apply balance_left_biased; try eapply IHr; auto.
 Qed.
 
 (*Definition merge {A : LinDec} (h1 h2 : LeftistHeap A)

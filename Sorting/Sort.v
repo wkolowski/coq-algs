@@ -22,6 +22,12 @@ Class Sort (A : LinDec) : Type :=
       forall l : list A, perm A l (sort l);
 }.
 
+Lemma Permutation_sort :
+  forall (A : LinDec) (s : Sort A) (l : list A), Permutation (sort l) l.
+Proof.
+  intros. apply perm_Permutation. rewrite <- sort_perm. reflexivity.
+Qed.
+
 Coercion sort : Sort >-> Funclass.
 
 (* Lemmas about [sorted]. *)

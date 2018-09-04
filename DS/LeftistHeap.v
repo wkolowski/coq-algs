@@ -265,8 +265,8 @@ Lemma merge_elem_lr :
   forall (A : LinDec) (x : A) (t1 t2 : Tree A),
     elem x (merge (t1, t2)) -> elem x t1 \/ elem x t2.
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; try clear Heqp; auto.
+  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
+  functional induction @merge A p; inv 1; intros.
     rewrite balance_elem in H. inv H. edestruct IHt; eauto.
     rewrite balance_elem in H. inv H. edestruct IHt; eauto.
 Qed.
@@ -275,9 +275,8 @@ Lemma merge_elem_rl :
   forall (A : LinDec) (x : A) (t1 t2 : Tree A),
     elem x t1 \/ elem x t2 -> elem x (merge (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; try clear Heqp;
-  elem; rewrite balance_elem.
+  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
+  functional induction @merge A p; inv 1; elem; rewrite balance_elem.
     inv H. apply elem_r.
       eapply IHt; try ((left + right); eauto); reflexivity.
     apply elem_r.
@@ -292,8 +291,8 @@ Lemma merge_elem :
   forall (A : LinDec) (x : A) (t1 t2 : Tree A),
     elem x (merge (t1, t2)) <-> elem x t1 \/ elem x t2.
 Proof.
-  split; intros; remember (t1, t2) as p;
-    functional induction @merge A p; inv Heqp; elem;
+  split; intros; remember (t1, t2) as p; revert x t1 t2 Heqp H;
+    functional induction @merge A p; inv 1; elem;
       rewrite balance_elem in *; inv H; eauto; edestruct IHt; eauto.
 Qed.
 
@@ -303,35 +302,31 @@ Lemma merge_isHeap :
   forall (A : LinDec) (t1 t2 : Tree A),
     isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; inv H; inv H0;
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction @merge A p; do 3 inv 1;
   apply balance_isHeap; intros; try rewrite merge_elem in H; elem.
-    2, 4: eapply (IHt _ _ _ _ eq_refl).
+    2, 4: eapply (IHt _ _ eq_refl).
     all: destruct (leqb_spec v v'); inv e0.
       eapply leq_trans with v'; inv H.
       eapply leq_trans with v; inv H.
-Unshelve.
-  all: auto.
 Qed.
 
 Lemma merge_leftBiased :
   forall (A : LinDec) (t1 t2 : Tree A),
     leftBiased t1 -> leftBiased t2 -> leftBiased (merge (t1, t2)).
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; inv H; inv H0;
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction @merge A p; inv 1; inv 1; inv 1;
   cbn in *; apply balance_leftBiased; auto.
-    all: eapply (IHt _ _ _ _ eq_refl).
-Unshelve.
-  all: eauto.
+    all: eapply (IHt _ _ eq_refl); eauto.
 Qed.
 
 Lemma merge_size :
   forall (A : LinDec) (t1 t2 : Tree A),
     size (merge (t1, t2)) = size t1 + size t2.
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp; try clear Heqp.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp.
+  functional induction @merge A p; inv 1.
     erewrite balance_size. cbn. rewrite (IHt r (N _ v' l' r') eq_refl).
       cbn. omega.
     erewrite balance_size. cbn. rewrite (IHt (N _ v l r) r' eq_refl).
@@ -344,11 +339,11 @@ Lemma merge_count_Tree :
   forall (A : LinDec) (x : A) (t1 t2 : Tree A),
     count_Tree x (merge (t1, t2)) = count_Tree x t1 + count_Tree x t2.
 Proof.
-  intros. remember (t1, t2) as p.
-  functional induction @merge A p; inv Heqp.
-    erewrite balance_count_Tree. specialize (IHt x _ _ eq_refl).
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp.
+  functional induction @merge A p; inv 1.
+    erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
       cbn in *. dec; unfold id in *; omega.
-    erewrite balance_count_Tree. specialize (IHt x _ _ eq_refl).
+    erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
       cbn in *. dec; unfold id in *; omega.
 Unshelve.
   1-2: exact 0.

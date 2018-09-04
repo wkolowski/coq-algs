@@ -49,12 +49,33 @@ Proof.
         apply perm_app_comm.
 Qed.
 
+Theorem Permutation_merge :
+  forall (A : LinDec) (l : list A * list A),
+    Permutation (fst l ++ snd l) (merge A l).
+Proof.
+  intros. functional induction merge A l; cbn in *.
+    reflexivity.
+    rewrite app_nil_r. auto.
+    constructor. assumption.
+    rewrite Permutation_app_comm. cbn. rewrite Permutation.perm_swap.
+      constructor. rewrite Permutation_app_comm. assumption.
+Qed.
+
 Theorem merge_pres_perm :
   forall (A : LinDec) (l1 l1' l2 l2' : list A),
     perm A l1 l1' -> perm A l2 l2' ->
       perm A (merge A (l1, l2)) (merge A (l1', l2')).
 Proof.
   intros. rewrite <- !merge_perm. cbn. apply perm_app; assumption.
+Qed.
+
+Theorem Permutation_merge' :
+  forall (A : LinDec) (l1 l1' l2 l2' : list A),
+    Permutation l1 l1' -> Permutation l2 l2' ->
+      Permutation (merge A (l1, l2)) (merge A (l1', l2')).
+Proof.
+  intros. rewrite <- !Permutation_merge. cbn. 
+  apply Permutation_app; assumption.
 Qed.
 
 Class Split (A : LinDec) : Type :=
@@ -70,6 +91,13 @@ Class Split (A : LinDec) : Type :=
       forall (l : list A),
         perm A l (fst (split' l) ++ snd (split' l))
 }.
+
+Lemma Permutation_app_split :
+  forall (A : LinDec) (s : Split A) (l : list A),
+    Permutation (fst (split' l) ++ snd (split' l)) l.
+Proof.
+  intros. apply perm_Permutation. rewrite <- perm_split_app. reflexivity.
+Qed.
 
 Coercion split' : Split >-> Funclass.
 

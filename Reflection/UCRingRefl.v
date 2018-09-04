@@ -78,13 +78,14 @@ Theorem simplifyExp_correct :
   forall (X : UCRing) (env : nat -> X) (e : exp X),
     expDenote env (simplifyExp e) = expDenote env e.
 Proof.
-  intros. Time functional induction simplifyExp e; cbn; trivial;
+  intros X env e. revert env.
+  Time functional induction simplifyExp e; cbn; trivial;
   repeat multimatch goal with
       | IH : forall _, _ |- _ => rewrite <- ?IH
       | H : ?a = ?b |- _ => rewrite ?H in *
       | _ => cbn; rng; autorewrite with lemmas
-  end.
-    clear y. rewrite <- neg_mul, (mul_comm _ (- expDenote env e2')).
+  end; clear y.
+    rewrite <- neg_mul, (mul_comm _ (- expDenote env e2')).
     rewrite <- neg_mul. rewrite mul_comm. reflexivity.
 Qed.
 

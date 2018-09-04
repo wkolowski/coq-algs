@@ -184,6 +184,7 @@ match ts with
         end
 end.
 
+(* TODO
 Fixpoint schedule_aux
   (time : nat) (ts : list Task) : option Schedule :=
 match min time ts with
@@ -225,3 +226,4 @@ Theorem schedule_correct :
   forall (A : Type) (ts : list Task) (s : Schedule),
     @schedule A ts = Some s -> CorrectSchedule s.
 Abort.
+*)

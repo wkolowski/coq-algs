@@ -1,4 +1,4 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
+(*Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export RCCBase.
 
@@ -128,7 +128,8 @@ Lemma find_elem :
   forall (A : TrichDec) (B : Type) (k : A) (v : B) (t : BTree (KVP A B)),
     find k t = Some v -> elem (k, v) t.
 Proof.
-  intros. functional induction @find A B k t; intros; try congruence.
+  intros. revert v H.
+  functional induction @find A B k t; intros; try congruence.
     eauto.
     destruct p; cbn in *. trich. inv H.
     eauto.
@@ -290,3 +291,4 @@ Time Compute wutzor 29.
 Time Compute
   wutzor' 29
     (@fromList FibAcc [(0, 0); (1, 0); (2, 0); (3, 0)]).
+*)

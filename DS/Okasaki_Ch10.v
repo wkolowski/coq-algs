@@ -3,6 +3,8 @@
 Require Import List.
 Import ListNotations.
 
+Require Import FunInd.
+
 (** ** 10.1 Structural Decomposition *)
 
 (** *** 10.1.2 Binary Random-Access Lists Revisited *)

@@ -56,7 +56,7 @@ Qed.
 
 Lemma count_BTree_fromList :
   forall (A : LinDec) (x : A) (l : list A),
-    count_BTree x (fromList l) = count A x l.
+    count_BTree x (fromList l) = Perm.count A x l.
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
@@ -69,4 +69,54 @@ Theorem splaySort_perm :
 Proof.
   unfold splaySort, perm. intros.
   rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
+Qed.
+
+Print insert.
+
+Print partition.
+Print SplayHeap.
+
+Lemma Permutation_partition :
+  forall (A : LinDec) (pivot : A) (h h1 h2 : SplayHeap A),
+    partition pivot h = (h1, h2) ->
+      Permutation (BTree_toList h) (BTree_toList h1 ++ BTree_toList h2).
+Proof.
+  intros A pivot h.
+  functional induction @partition A pivot h; cbn in *; intros.
+    inv H.
+    inv H. cbn. rewrite app_nil_r. reflexivity.
+    inv H. cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
+      reflexivity.
+      constructor. apply Permutation_app.
+        reflexivity.
+        constructor. apply IHp. assumption.
+    inv H. cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
+      reflexivity.
+      constructor. rewrite (IHp _ _ e3). rewrite <- !app_assoc. reflexivity.
+    inv H.
+    inv H. cbn. rewrite (IHp _ _ e3). rewrite <- !app_assoc. cbn.
+      rewrite <- app_assoc. reflexivity.
+    inv H. rewrite (IHp _ _ e3). cbn. rewrite <- !app_assoc. reflexivity.
+Qed.
+
+Lemma Permutation_BTree_toList_insert :
+  forall (A : LinDec) (x : A) (t : BTree A),
+    Permutation (BTree_toList (insert x t)) (x :: BTree_toList t).
+Proof.
+  induction t as [| v l r]; cbn.
+    reflexivity.
+    unfold insert. destruct (partition x (node v l t1)) eqn: Heq.
+      cbn. rewrite Permutation_app_comm. cbn. constructor.
+        rewrite (@Permutation_partition _ _ _ _ _ Heq).
+          apply Permutation_app_comm.
+Qed.
+
+Lemma Permutation_splaySort :
+  forall (A : LinDec) (l : list A),
+    Permutation (splaySort A l) l.
+Proof.
+  intros. unfold splaySort.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    rewrite Permutation_BTree_toList_insert. constructor. assumption.
 Qed.
