@@ -4,6 +4,80 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
+Function min {A : LinDec} (l : list A) : option (A * list A) :=
+match l with
+    | [] => None
+    | h :: t =>
+        match min t with
+            | None => Some (h, [])
+            | Some (m, l') =>
+                if h <=? m then Some (h, m :: l') else Some (m, h :: l')
+        end
+end.
+
+Function ss {A : LinDec} (l : list A) {measure length l} : list A :=
+match min l with
+    | None => []
+    | Some (m, l') => m :: ss l'
+end.
+Proof.
+  induction l as [| h t]; cbn; intros.
+    inv teq.
+    destruct (min t) eqn: Heq.
+      destruct p0. dec; inv teq; cbn; apply lt_n_S; eapply IHt; eauto.
+      inv teq. cbn. apply le_n_S, le_0_n.
+Defined.
+
+Lemma Permutation_min :
+  forall (A : LinDec) (l l' : list A) (m : A),
+    min l = Some (m, l') -> Permutation (m :: l') l.
+Proof.
+  intros A l. functional induction @min A l; cbn; inv 1.
+    destruct t; cbn in e0.
+      reflexivity.
+      destruct (min t).
+        destruct p. 1-2: dec.
+    rewrite Permutation.perm_swap. auto.
+Qed.
+
+Lemma Permutation_ss :
+  forall (A : LinDec) (l : list A),
+    Permutation (ss A l) l.
+Proof.
+  intros. functional induction @ss A l.
+    destruct l; cbn in e.
+      reflexivity.
+      destruct (min l); try destruct p; dec.
+    apply Permutation_min in e. rewrite <- e, IHl0. reflexivity.
+Qed.
+
+Lemma min_spec :
+  forall (A : LinDec) (l l' : list A) (m : A),
+    min l = Some (m, l') -> forall x : A, In x l' -> leq m x.
+Proof.
+  intros A l.
+  functional induction @min A l; inv 1; cbn; intros; destruct H; subst; dec.
+Qed.
+
+Lemma Sorted_ss :
+  forall (A : LinDec) (l : list A),
+    sorted A (ss A l).
+Proof.
+  intros. functional induction @ss A l.
+    destruct l; dec.
+    apply sorted_cons.
+      intros. assert (In x l').
+        apply Permutation_in with (ss A l').
+          apply Permutation_ss.
+          assumption.
+        eapply min_spec; eauto.
+      assumption.
+Qed.
+
+
+
+
+(*
 Function min {A : LinDec} (l : list A) : option A :=
 match l with
     | [] => None
@@ -115,9 +189,11 @@ Instance Sort_ss (A : LinDec) : Sort A :=
     sort_sorted := ss_sorted A;
     sort_perm := ss_perm A
 }.
+*)
 
 (** Selection sort on steroids *)
 
+(*
 Function mins {A : LinDec} (l : list A) : list A :=
 match l with
     | [] => []
@@ -170,7 +246,7 @@ Function ss''
   {A : LinDec} (l : list A) {measure length l} : list A :=
 match min l with
     | None => []
-    | Some m =>
+    | Some (m, _) =>
         filter (fun x => x =? m) l ++
         ss'' (filter (fun x => negb (x =? m)) l)
 end.
@@ -408,6 +484,7 @@ Proof.
     all: apply mins'_length in e0; cbn in e0;
       rewrite e0, ?app_length; omega.
 Defined.
+*)
 
 (** Time to prove something *)
 
@@ -522,7 +599,7 @@ Lemma select_mins_sorted :
   forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) -> sorted A mins.
 Proof.
-  destruct mins0; intros.
+  destruct mins; intros.
     constructor.
     apply same_sorted with c. intros. eapply select_mins_same.
       exact H.
@@ -586,6 +663,7 @@ Defined.
 
 (*Require Import SortSpec.*)
 
+(*
 Lemma min_In :
   forall (A : LinDec) (m : A) (l : list A),
     min l = Some m -> In m l.
@@ -619,3 +697,4 @@ Proof.
       destruct (min l); inv Hc.
     right. apply lengthOrder_removeFirst_min. assumption.
 Defined.
+*)
