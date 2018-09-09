@@ -151,8 +151,8 @@ Parameter unMin_elem :
 
 Require Import Sorting.Sort.
 
-Lemma toList_sorted :
-  forall (A : LinDec) (q : PQ A), sorted A (toList q).
+Lemma Sorted_toList :
+  forall (A : LinDec) (q : PQ A), Sorted A (toList q).
 Proof.
   intros. functional induction @toList A q.
     constructor.
@@ -167,11 +167,11 @@ Proof.
           assumption.
 Qed.
 
-Lemma priorityQueueSort_sorted :
+Lemma Sorted_priorityQueueSort :
   forall (A : LinDec) (l : list A),
-    sorted A (priorityQueueSort A l).
+    Sorted A (priorityQueueSort A l).
 Proof.
-  intros. unfold priorityQueueSort. apply toList_sorted.
+  intros. unfold priorityQueueSort. apply Sorted_toList.
 Qed.
 
 (*Parameter count_toList_insert :
@@ -194,14 +194,24 @@ Proof.
     rewrite count_toList_insert. dec.
 Qed.
 
+Lemma Permutation_priorityQueueSort :
+  forall (A : LinDec) (l : list A),
+    Permutation (priorityQueueSort A l) l.
+Proof.
+  unfold priorityQueueSort.
+  induction l as [| h t]; cbn.
+    rewrite toList_equation, unMin_empty. reflexivity.
+    Search insert.
+Admitted.
+
 Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=
 {
     sort := @priorityQueueSort A;
 }.
 Proof.
   all: intros.
-    apply priorityQueueSort_sorted.
-    apply priorityQueueSort_perm.
+    apply Sorted_priorityQueueSort.
+    apply Permutation_priorityQueueSort.
 Defined.
 
 End PriorityQueue.

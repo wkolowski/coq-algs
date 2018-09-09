@@ -31,18 +31,18 @@ Proof.
     rewrite IHPermutation1, IHPermutation2. reflexivity.
 Qed.
 
-Lemma min'_Sorted :
+Lemma Sorted_min' :
   forall (A : LinDec) (l : list A),
-    sorted A l -> min' l = head l.
+    Sorted A l -> min' l = head l.
 Proof.
   induction 1; cbn.
     1-2: reflexivity.
     cbn in *. destruct (min' l); dec.
 Qed.
 
-Lemma Permutation_sorted_aux :
+Lemma Permutation_Sorted_aux :
   forall (A : LinDec) (l1 l2 : list A),
-    Permutation l1 l2 -> sorted A l1 -> sorted A l2 -> l1 = l2.
+    Permutation l1 l2 -> Sorted A l1 -> Sorted A l2 -> l1 = l2.
 Proof.
   intros until 2. revert l2 H.
   induction H0; intros.
@@ -52,10 +52,10 @@ Proof.
       apply Permutation_length in H1. inv H1.
       apply Permutation_length in H1. inv H1.
       assert (x = x0).
-        apply Permutation_min' in H1. rewrite 2!min'_Sorted in H1.
+        apply Permutation_min' in H1. rewrite 2!Sorted_min' in H1.
           cbn in H1. inv H1.
           1-2:auto.
-        subst. f_equal. apply IHsorted.
+        subst. f_equal. apply IHSorted.
           apply Permutation_cons_inv in H1. assumption.
           assumption.
 Qed.
@@ -64,18 +64,18 @@ Lemma sort_unique :
   forall (A : LinDec) (s1 s2 : Sort A) (l : list A),
     s1 l = s2 l.
 Proof.
-  intros. apply Permutation_sorted_aux.
+  intros. apply Permutation_Sorted_aux.
     rewrite 2!Permutation_sort. reflexivity.
-    1-2: apply sort_sorted.
+    1-2: apply Sorted_sort.
 Qed.
 
 Lemma sort_idempotent :
   forall (A : LinDec) (s : Sort A) (l : list A),
     sort (sort l) = sort l.
 Proof.
-  intros. apply Permutation_sorted_aux.
+  intros. apply Permutation_Sorted_aux.
     rewrite Permutation_sort. reflexivity.
-    1-2: apply sort_sorted.
+    1-2: apply Sorted_sort.
 Qed.
 
 (** [Permutation] can be decided by sorting. *)
@@ -85,8 +85,8 @@ Lemma iff_Permutation_eq_sort :
     Permutation l1 l2 <-> sort l1 = sort l2.
 Proof.
   split.
-    intro. apply Permutation_sorted_aux.
+    intro. apply Permutation_Sorted_aux.
       rewrite 2!Permutation_sort. assumption.
-      1-2: apply sort_sorted.
+      1-2: apply Sorted_sort.
     intro. rewrite <- Permutation_sort, H, Permutation_sort. reflexivity.
 Qed.

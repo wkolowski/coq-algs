@@ -61,11 +61,11 @@ Qed.
 
 Lemma Sorted_ss :
   forall (A : LinDec) (l : list A),
-    sorted A (ss A l).
+    Sorted A (ss A l).
 Proof.
   intros. functional induction @ss A l.
     destruct l; dec.
-    apply sorted_cons.
+    apply Sorted_cons.
       intros. assert (In x l').
         apply Permutation_in with (ss A l').
           apply Permutation_ss.
@@ -171,8 +171,8 @@ Proof.
     dec. inv H.
 Qed.
 
-Theorem ss_sorted :
-  forall (A : LinDec) (l : list A), sorted A (ss A l).
+Theorem Sorted_ss :
+  forall (A : LinDec) (l : list A), Sorted A (ss A l).
 Proof.
   intros. functional induction ss A l.
     constructor.
@@ -186,7 +186,7 @@ Qed.
 Instance Sort_ss (A : LinDec) : Sort A :=
 {
     sort := @ss A;
-    sort_sorted := ss_sorted A;
+    Sorted_sort := Sorted_ss A;
     sort_perm := ss_perm A
 }.
 *)
@@ -356,17 +356,17 @@ Proof.
         cbn in Hc. destruct (min t); inv Hc.
 Qed.
 
-Lemma sorted_filter_eq :
+Lemma Sorted_filter_eq :
   forall (A : LinDec) (m : A) (l : list A),
-    sorted A (filter (fun x : A => x =? m) l).
+    Sorted A (filter (fun x : A => x =? m) l).
 Proof.
   induction l; cbn.
     constructor.
     dec.
       match goal with
-          | |- sorted ?A (?h :: ?t) => change (sorted A ([h] ++ t))
+          | |- Sorted ?A (?h :: ?t) => change (Sorted A ([h] ++ t))
       end.
-      apply sorted_app.
+      apply Sorted_app.
         constructor.
         assumption.
         inv 1. clear IHl. induction l as [| h t]; cbn; intros.
@@ -374,9 +374,9 @@ Proof.
           dec. inv H.
 Qed.
 
-Theorem ss''_sorted :
+Theorem Sorted_ss'' :
   forall (A : LinDec) (l : list A),
-    sorted A (ss'' A l).
+    Sorted A (ss'' A l).
 Proof.
   intros A.
   apply well_founded_ind with lengthOrder.
@@ -385,8 +385,8 @@ Proof.
       cbn. constructor.
       rewrite ss''_equation. destruct (min (h :: t)) eqn: Hc.
         2: constructor.
-        apply sorted_app.
-          apply sorted_filter_eq.
+        apply Sorted_app.
+          apply Sorted_filter_eq.
           apply H. apply lengthOrder_filter_min. assumption.
           intros. rewrite filter_In in H0. destruct H0. dec.
             pose ss''_perm. symmetry in p.
@@ -529,11 +529,11 @@ Defined.
 
 Lemma Permutation_gss :
   forall (A : LinDec) (s : Select A) (l : list A),
-    Permutation l (gss s l).
+    Permutation (gss s l) l.
 Proof.
   intros. functional induction @gss A s l.
-    apply select_Permutation in e. cbn in e. assumption.
-    rewrite <- IHl0. apply select_Permutation. assumption.
+    apply select_Permutation in e. cbn in e. symmetry. assumption.
+    rewrite IHl0. symmetry. apply select_Permutation. assumption.
 Qed.
 
 Lemma select_In :
@@ -578,16 +578,16 @@ Proof.
     eapply select_maxes; eauto. eapply select_In; eauto.
 Qed.
 
-Lemma same_sorted :
+Lemma same_Sorted :
   forall (A : LinDec) (x : A) (l : list A),
     (forall y : A, In y l -> x = y) ->
-      sorted A l.
+      Sorted A l.
 Proof.
   intros A x.
   induction l as [| h t]; cbn; intros.
     constructor.
-    specialize (IHt ltac:(auto)). change (sorted A ([h] ++ t)).
-      apply sorted_app.
+    specialize (IHt ltac:(auto)). change (Sorted A ([h] ++ t)).
+      apply Sorted_app.
         constructor.
         assumption.
         assert (x = h) by auto. inv 1. intro. rewrite (H y).
@@ -595,25 +595,25 @@ Proof.
           right. assumption.
 Qed.
 
-Lemma select_mins_sorted :
+Lemma Sorted_select_mins :
   forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
-    select l = (mins, rest, maxes) -> sorted A mins.
+    select l = (mins, rest, maxes) -> Sorted A mins.
 Proof.
   destruct mins; intros.
     constructor.
-    apply same_sorted with c. intros. eapply select_mins_same.
+    apply same_Sorted with c. intros. eapply select_mins_same.
       exact H.
       left. reflexivity.
       assumption.
 Qed.
 
-Lemma select_maxes_sorted :
+Lemma Sorted_select_maxes :
   forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
-    select l = (mins, rest, maxes) -> sorted A maxes.
+    select l = (mins, rest, maxes) -> Sorted A maxes.
 Proof.
   destruct maxes; intros.
     constructor.
-    apply same_sorted with c. intros. eapply select_maxes_same.
+    apply same_Sorted with c. intros. eapply select_maxes_same.
       exact H.
       left. reflexivity.
       assumption.
@@ -625,24 +625,24 @@ Lemma gss_In :
 Proof.
   intros. split; intros.
     eapply Permutation_in.
-      symmetry. apply Permutation_gss.
+      apply Permutation_gss.
       assumption.
     eapply Permutation_in.
-      apply Permutation_gss.
+      symmetry. apply Permutation_gss.
       assumption.
 Qed.
 
-Lemma gss_sorted :
+Lemma gSorted_ss :
   forall (A : LinDec) (s : Select A) (l : list A),
-    sorted A (gss s l).
+    Sorted A (gss s l).
 Proof.
   intros. functional induction @gss A s l; try clear y.
     constructor.
-    apply sorted_app.
-      eapply select_mins_sorted. eassumption.
-      apply sorted_app.
+    apply Sorted_app.
+      eapply Sorted_select_mins. eassumption.
+      apply Sorted_app.
         assumption.
-        eapply select_maxes_sorted. eassumption.
+        eapply Sorted_select_maxes. eassumption.
         intros. rewrite gss_In in H. eapply select_maxes; eauto.
           eapply select_In; eauto.
       intros. apply in_app_or in H0. destruct H0.
@@ -654,11 +654,11 @@ Qed.
 Instance Sort_gss (A : LinDec) (s : Select A) : Sort A :=
 {
     sort := gss s;
-    sort_sorted := gss_sorted s;
+    Sorted_sort := gSorted_ss s;
 (*    sort_perm := gss_perm s;*)
 }.
 Proof.
-  intros. apply Permutation_perm. apply Permutation_gss.
+  intros. apply Permutation_gss.
 Defined.
 
 (*Require Import SortSpec.*)

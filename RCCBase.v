@@ -8,9 +8,6 @@ Require Export FunctionalExtensionality.
 
 Require Export Bool.
 
-Require Export List.
-Export ListNotations.
-
 Require Export Arith.
 Require Export Omega.
 Require Export Nat.
@@ -19,6 +16,9 @@ Require Export Equality.
 Require Export Eqdep.
 
 Require Export Permutation.
+
+Require Export List.
+Export ListNotations.
 
 Set Implicit Arguments.
 

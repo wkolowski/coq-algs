@@ -5,14 +5,14 @@ Require Import MergeSort.
 
 Set Implicit Arguments.
 
-Theorem ghms_sorted :
+Theorem Sorted_ghms :
   forall (n : nat) (A : LinDec)
     (s : Sort A) (split : Split A)
-      (l : list A), sorted A (@ghms n A (@sort A s) split l).
+      (l : list A), Sorted A (@ghms n A (@sort A s) split l).
 Proof.
   intros. functional induction @ghms n A (@sort A s) split l.
-    destruct s; cbn in *. apply sort_sorted.
-    apply merge_sorted; cbn; assumption.
+    destruct s; cbn in *. apply Sorted_sort.
+    apply Sorted_merge; cbn; assumption.
 Qed.
 
 Theorem ghms_perm :
@@ -21,7 +21,7 @@ Theorem ghms_perm :
       (l : list A), perm A l (@ghms n A (@sort A s) split l).
 Proof.
   intros. functional induction @ghms n A (@sort A s) split l.
-    destruct s; cbn in *. apply sort_perm.
+    apply sort_perm.
     rewrite perm_split_app. rewrite e0; cbn.
       rewrite <- merge_perm; cbn. apply perm_app; assumption.
 Qed.
@@ -42,6 +42,6 @@ Instance Sort_ghms
     sort := @ghms n A sort split
 }.
 Proof.
-  apply ghms_sorted.
-  apply ghms_perm.
+  apply Sorted_ghms.
+  intros. apply perm_Permutation. rewrite <- ghms_perm. reflexivity.
 Defined.

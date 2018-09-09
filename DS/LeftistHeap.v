@@ -526,9 +526,9 @@ Arguments toList {x} _.
 Definition leftistHeapsort (A : LinDec) (l : list A) : list A :=
   toList (fromList l).
 
-Lemma toList_sorted :
+Lemma Sorted_toList :
   forall (A : LinDec) (t : Tree A),
-    isHeap t -> sorted A (toList t).
+    isHeap t -> Sorted A (toList t).
 Proof.
   intros. functional induction @toList A t.
     constructor.
@@ -546,11 +546,11 @@ Proof.
     apply insert_isHeap. assumption.
 Qed.
 
-Lemma leftistHeapsort_sorted :
+Lemma Sorted_leftistHeapsort :
   forall (A : LinDec) (l : list A),
-    sorted A (leftistHeapsort A l).
+    Sorted A (leftistHeapsort A l).
 Proof.
-  intros. unfold leftistHeapsort. apply toList_sorted, fromList_isHeap.
+  intros. unfold leftistHeapsort. apply Sorted_toList, fromList_isHeap.
 Qed.
 
 Lemma fromList_count_Tree :
@@ -579,14 +579,22 @@ Proof.
   rewrite toList_count_Tree, fromList_count_Tree. reflexivity.
 Qed.
 
+Lemma Permutation_leftistHeapsort :
+  forall (A : LinDec) (l : list A),
+    Permutation (leftistHeapsort A l) l.
+Proof.
+  intros. apply perm_Permutation. rewrite <- leftistHeapsort_perm.
+  reflexivity.
+Qed.
+
 Instance Sort_leftistHeapsort (A : LinDec) : Sort A :=
 {
     sort := @leftistHeapsort A;
 }.
 Proof.
   all: intros.
-    apply leftistHeapsort_sorted.
-    apply leftistHeapsort_perm.
+    apply Sorted_leftistHeapsort.
+    apply Permutation_leftistHeapsort.
 Defined.
 
 Definition leftistHeapsort3 (A : LinDec) (l : list A) : list A :=

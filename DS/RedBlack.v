@@ -356,13 +356,13 @@ Proof.
     rewrite count_app. cbn. rewrite IHt1, IHt2. dec.
 Qed.
 
-Lemma toList_sorted :
+Lemma Sorted_toList :
   forall (A : LinDec) (t : RBTree A),
-    isBST t -> sorted A (toList t).
+    isBST t -> Sorted A (toList t).
 Proof.
   induction t as [| c l Hl v r Hr]; cbn; intros.
     constructor.
-    inv H. apply sorted_app_all; auto.
+    inv H. apply Sorted_app_all; auto.
       case_eq (toList r); intros; subst; auto. constructor.
         apply H6. rewrite <- toList_elem. rewrite H. cbn. auto.
         rewrite <- H. auto.
@@ -403,11 +403,11 @@ Qed.
 
 (** Properties of [redblackSort]. *)
 
-Lemma redblackSort_sorted :
+Lemma Sorted_redblackSort :
   forall (A : LinDec) (l : list A),
-    sorted A (redblackSort A l).
+    Sorted A (redblackSort A l).
 Proof.
-  intros. unfold redblackSort. apply toList_sorted, fromList_isBST.
+  intros. unfold redblackSort. apply Sorted_toList, fromList_isBST.
 Qed.
 
 Lemma redblackSort_perm :

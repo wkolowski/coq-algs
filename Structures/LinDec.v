@@ -18,6 +18,7 @@ Class LinDec : Type :=
 }.
 
 Coercion carrier : LinDec >-> Sortclass.
+Coercion leq : LinDec >-> Funclass.
 
 Infix "≤" := leq (at level 70).
 Infix "<=?" := leqb (at level 70).

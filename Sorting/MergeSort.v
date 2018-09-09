@@ -27,9 +27,9 @@ Proof.
   intros. unfold lenSum. simpl. omega.
 Defined.
 
-Theorem merge_sorted :
+Theorem Sorted_merge :
   forall (A : LinDec) (l : list A * list A),
-    sorted A (fst l) -> sorted A (snd l) -> sorted A (merge A l).
+    Sorted A (fst l) -> Sorted A (snd l) -> Sorted A (merge A l).
 Proof.
   intros. functional induction merge A l; simpl in *; auto;
   rewrite merge_equation in *.

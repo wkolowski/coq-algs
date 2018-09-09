@@ -47,11 +47,11 @@ Proof.
     apply insert_is_bst. assumption.
 Qed.
 
-Theorem splaySort_sorted :
+Theorem Sorted_splaySort :
   forall (A : LinDec) (l : list A),
-    sorted A (splaySort A l).
+    Sorted A (splaySort A l).
 Proof.
-  intros. unfold splaySort. apply BTree_toList_sorted, fromList_is_bst.
+  intros. unfold splaySort. apply Sorted_BTree_toList, fromList_is_bst.
 Qed.
 
 Lemma count_BTree_fromList :

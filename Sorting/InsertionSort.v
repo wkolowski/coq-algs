@@ -36,9 +36,9 @@ Proof.
       rewrite IHt. constructor.
 Qed.
 
-Lemma sorted_ins :
+Lemma Sorted_ins :
   forall (A : LinDec) (x : A) (l : list A),
-    sorted A l -> sorted A (ins A x l).
+    Sorted A l -> Sorted A (ins A x l).
 Proof.
   induction l as [| h t]; intros; cbn.
     constructor.
@@ -51,9 +51,10 @@ Instance Sort_insertionSort (A : LinDec) : Sort A :=
 }.
 Proof.
   induction l as [| h t]; cbn; auto.
-    apply sorted_ins. assumption.
+    apply Sorted_ins. assumption.
   induction l as [| h t]; simpl; auto.
-    apply perm_trans with (h :: insertionSort A t); auto. apply perm_ins.
+    apply Permutation.perm_trans with (h :: insertionSort A t); auto.
+      apply Permutation_ins.
 Defined.
 
 (** Better insertion sort. *)
@@ -69,11 +70,9 @@ Definition insertionSort'
   {A : Type} (cmp : A -> A -> bool) (l : list A) : list A :=
     fold_right (ins' cmp) [] l.
 
-Coercion leqb : LinDec >-> Funclass.
-
 Lemma perm_ins' :
   forall (A : LinDec) (x : A) (l : list A),
-    perm A (x :: l) (ins' A x l).
+    perm A (x :: l) (ins' (@leqb A) x l).
 Proof.
   unfold perm. induction l; cbn; intros.
     reflexivity.
@@ -82,9 +81,20 @@ Proof.
       dec; rewrite <- IHl; cbn; dec.
 Qed.
 
-Lemma sorted_ins' :
+Lemma Permutation_ins' :
   forall (A : LinDec) (x : A) (l : list A),
-    sorted A l -> sorted A (ins' A x l).
+    Permutation (ins' (@leqb A) x l) (x :: l).
+Proof.
+  unfold perm. induction l; cbn; intros.
+    reflexivity.
+    unfold ins'; destruct (leqb x a); fold (@ins' A).
+      reflexivity.
+      rewrite Permutation.perm_swap. constructor. assumption.
+Qed.
+
+Lemma Sorted_ins' :
+  forall (A : LinDec) (x : A) (l : list A),
+    Sorted A l -> Sorted A (ins' (@leqb A) x l).
 Proof.
   induction l as [| h t]; cbn; intros.
     constructor.
@@ -93,11 +103,11 @@ Qed.
 
 Instance Sort_insertionSort' (A : LinDec) : Sort A :=
 {
-    sort := insertionSort' A
+    sort := insertionSort' (@leqb A)
 }.
 Proof.
   induction l as [| h t]; cbn; auto.
-    apply sorted_ins'. assumption.
+    apply Sorted_ins'. assumption.
   induction l as [| h t]; simpl; auto.
-    apply perm_trans with (h :: insertionSort' A t), perm_ins'; auto.
+  rewrite Permutation_ins'. constructor. assumption.
 Defined.

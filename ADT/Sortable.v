@@ -21,9 +21,9 @@ Parameter add :
 Parameter sort :
   forall {A : LinDec}, Sortable A -> list A.
 
-Parameter sort_sorted :
+Parameter Sorted_sort :
   forall {A : LinDec} (s : Sortable A),
-    sorted A (sort s).
+    Sorted A (sort s).
 
 End Sortable.
 
@@ -33,7 +33,7 @@ Definition Sortable (A : LinDec) : Type :=
   nat * Lazy (list (list A)).
 
 Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
-  Forall (sorted A) (force (snd s)).
+  Forall (Sorted A) (force (snd s)).
 
 Definition empty {A : LinDec} : Sortable A :=
   (0, delay []).
@@ -126,7 +126,7 @@ Qed.
 
 Lemma addSeg_isValid :
   forall (A : LinDec) (seg : list A) (s : Sortable A),
-    sorted A seg -> isValid s -> isValid (addSeg seg s).
+    Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. functional induction @addSeg A seg s.
     compute. auto.
@@ -134,7 +134,7 @@ Proof.
       unfold force in H2. rewrite e0 in H2. inv H2.
       unfold force in H1. rewrite e0 in H1. inv H1.
     apply IHs0.
-      apply merge_sorted; cbn; inv H0.
+      apply Sorted_merge; cbn; inv H0.
       inv H0. compute. rewrite e0 in H1. inv H1.
 Qed.
 
@@ -146,26 +146,26 @@ Proof.
   apply addSeg_isValid; auto.
 Qed.
 
-Lemma sort_aux_sorted :
+Lemma Sorted_sort_aux :
   forall (A : LinDec) (seg : list A) (segs : list (list A)),
-    sorted A seg -> Forall (sorted A) segs ->
-      sorted A (sort_aux seg segs).
+    Sorted A seg -> Forall (Sorted A) segs ->
+      Sorted A (sort_aux seg segs).
 Proof.
   intros. gen seg.
   induction segs as [| seg' segs']; cbn; intros.
     assumption.
     apply IHsegs'.
       inv H0.
-      apply merge_sorted; cbn.
+      apply Sorted_merge; cbn.
         assumption.
         inv H0.
 Qed.
 
-Theorem sort_sorted :
+Theorem Sorted_sort :
   forall (A : LinDec) (s : Sortable A),
-    isValid s -> sorted A (sort s).
+    isValid s -> Sorted A (sort s).
 Proof.
-  destruct s. cbn. apply sort_aux_sorted.
+  destruct s. cbn. apply Sorted_sort_aux.
     constructor.
 Qed.
 
@@ -177,7 +177,7 @@ Definition Sortable (A : LinDec) : Type :=
   nat * list (list A).
 
 Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
-  Forall (sorted A) (snd s).
+  Forall (Sorted A) (snd s).
 
 Definition empty {A : LinDec} : Sortable A := (0, []).
 
@@ -258,13 +258,13 @@ Qed.
 
 Lemma addSeg_isValid :
   forall (A : LinDec) (seg : list A) (s : Sortable A),
-    sorted A seg -> isValid s -> isValid (addSeg seg s).
+    Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. functional induction @addSeg A seg s.
     compute. auto.
     compute. inv H0.
     apply IHs0.
-      apply merge_sorted; cbn; inv H0.
+      apply Sorted_merge; cbn; inv H0.
       inv H0.
 Qed.
 
@@ -276,26 +276,26 @@ Proof.
   apply addSeg_isValid; auto.
 Qed.
 
-Lemma sort_aux_sorted :
+Lemma Sorted_sort_aux :
   forall (A : LinDec) (seg : list A) (segs : list (list A)),
-    sorted A seg -> Forall (sorted A) segs ->
-      sorted A (sort_aux seg segs).
+    Sorted A seg -> Forall (Sorted A) segs ->
+      Sorted A (sort_aux seg segs).
 Proof.
   intros. gen seg.
   induction segs as [| seg' segs']; cbn; intros.
     assumption.
     apply IHsegs'.
       inv H0.
-      apply merge_sorted; cbn.
+      apply Sorted_merge; cbn.
         assumption.
         inv H0.
 Qed.
 
-Theorem sort_sorted :
+Theorem Sorted_sort :
   forall (A : LinDec) (s : Sortable A),
-    isValid s -> sorted A (sort s).
+    isValid s -> Sorted A (sort s).
 Proof.
-  destruct s. cbn. apply sort_aux_sorted.
+  destruct s. cbn. apply Sorted_sort_aux.
     constructor.
 Qed.
 

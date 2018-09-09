@@ -275,24 +275,24 @@ Proof.
     rewrite IHb; auto.
 Qed.
 
-Theorem BTree_toList_sorted :
+Theorem Sorted_BTree_toList :
   forall (A : LinDec) (t : BTree A),
-    is_bst t -> sorted A (@BTree_toList (@carrier A) t).
+    is_bst t -> Sorted A (@BTree_toList (@carrier A) t).
 Proof.
   induction t as [| v l Hl r Hr]; cbn; intros.
     constructor.
-    inv H. apply sorted_app_all; auto.
+    inv H. apply Sorted_app_all; auto.
       case_eq (BTree_toList r); intros; subst; auto. constructor.
         apply H5. rewrite <- toList_In_elem. rewrite H. cbn. auto.
         rewrite <- H. auto.
       intros. apply toList_In_elem in H. auto.
 Qed.
 
-Theorem BTree_toList'_sorted :
+Theorem Sorted_BTree_toList' :
   forall (A : LinDec) (t : BTree A),
-    is_bst t -> sorted A (BTree_toList' t).
+    is_bst t -> Sorted A (BTree_toList' t).
 Proof.
-  rewrite BTree_toList'_spec. apply BTree_toList_sorted.
+  rewrite BTree_toList'_spec. apply Sorted_BTree_toList.
 Qed.
 
 Lemma fromList_is_bst :

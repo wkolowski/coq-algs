@@ -2,10 +2,10 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import TreeSort.
 
-Theorem treeSort_sorted :
-  forall (A : LinDec) (l : list A), sorted A (treeSort A l).
+Theorem Sorted_treeSort :
+  forall (A : LinDec) (l : list A), Sorted A (treeSort A l).
 Proof.
-  unfold treeSort. intros. apply BTree_toList_sorted. apply fromList_is_bst.
+  unfold treeSort. intros. apply Sorted_BTree_toList. apply fromList_is_bst.
 Qed.
 
 Theorem treeSort_perm :
@@ -42,9 +42,11 @@ Qed.
 Instance Sort_treeSort (A : LinDec) : Sort A :=
 {
     sort := @treeSort A;
-    sort_sorted := treeSort_sorted A;
-    sort_perm := treeSort_perm A
+    Sorted_sort := Sorted_treeSort A;
 }.
+Proof.
+  intros. apply perm_Permutation. rewrite <- treeSort_perm. reflexivity.
+Defined.
 
 Lemma treeSort'_spec :
   @treeSort' = @treeSort.
@@ -60,6 +62,6 @@ Instance Sort_treeSort' (A : LinDec) : Sort A :=
 }.
 Proof.
   all: intros; rewrite treeSort'_spec.
-    apply treeSort_sorted.
-    apply treeSort_perm.
+    apply Sorted_treeSort.
+    apply perm_Permutation. rewrite <- treeSort_perm. reflexivity.
 Defined.

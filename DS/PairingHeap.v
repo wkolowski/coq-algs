@@ -324,9 +324,9 @@ Qed.*)
 
 Require Export Sorting.Sort.
 
-Theorem toList_sorted :
+Theorem Sorted_toList :
   forall (A : LinDec) (h : PairingHeap A),
-    isHeap h -> sorted A (toList h).
+    isHeap h -> Sorted A (toList h).
 Proof.
   intros. functional induction @toList A h.
     constructor.
@@ -419,7 +419,7 @@ Definition pairingSort (A : LinDec) (l : list A) : list A :=
 
 Theorem pairingSort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (pairingSort A l).
+    perm A (pairingSort A l) l.
 Proof.
   unfold perm, pairingSort. intros.
   rewrite <- countTree_toList, countTree_fromList.
@@ -433,6 +433,6 @@ Instance Sort_pairingSort (A : LinDec) : Sort A :=
 }.
 Proof.
   all: intros.
-    unfold pairingSort. apply toList_sorted, fromList_isHeap.
-    apply pairingSort_perm.
+    unfold pairingSort. apply Sorted_toList, fromList_isHeap.
+    apply perm_Permutation. rewrite pairingSort_perm. reflexivity.
 Defined.

@@ -36,6 +36,8 @@ Require Import ListLemmas.
 Instance Sort_redblackSort (A : LinDec) : Sort A :=
 {
     sort := @redblackSort A;
-    sort_sorted := @redblackSort_sorted A;
-    sort_perm := @redblackSort_perm A;
+    Sorted_sort := @Sorted_redblackSort A;
 }.
+Proof.
+  intros. apply perm_Permutation. rewrite <- redblackSort_perm. reflexivity.
+Defined.

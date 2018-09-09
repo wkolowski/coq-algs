@@ -74,8 +74,8 @@ Theorem sort_correct :
   forall (X : CMon) (env : Env X) (l : list nat) (s : Sort natle),
     expDenoteL env (s l) = expDenoteL env l.
 Proof.
-  intros. apply expDenoteL_Permutation. apply (perm_Permutation natle).
-  destruct s; cbn. rewrite <- sort_perm. reflexivity.
+  intros. apply expDenoteL_Permutation. rewrite Permutation_sort.
+  reflexivity.
 Qed.
 
 Function list_to_exp {X : CMon} (l : list nat) : exp elem :=

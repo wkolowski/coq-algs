@@ -42,9 +42,9 @@ Coercion small : Small >-> Funclass.
 Class AdHocSort {A : LinDec} (small : Small A) : Type :=
 {
     adhoc :> list A -> list A;
-    adhoc_sorted :
+    Sorted_adhoc :
       forall l l' : list A,
-        small l = inl l' -> sorted A (adhoc l');
+        small l = inl l' -> Sorted A (adhoc l');
     adhoc_perm :
       forall l l' : list A,
         small l = inl l' -> perm A l' (adhoc l');
@@ -226,7 +226,7 @@ Instance AdHocSort_Sort
     adhoc := sort
 }.
 Proof.
-  intros. apply sort_sorted.
+  intros. apply Sorted_sort.
   intros. apply sort_perm.
 Defined.
 

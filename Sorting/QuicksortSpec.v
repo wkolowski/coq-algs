@@ -61,23 +61,23 @@ Proof.
   intros. rewrite !count_In, <- uqs_perm; auto. reflexivity.
 Qed.
 
-Theorem uqs_sorted :
+Theorem Sorted_uqs :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
-      sorted A (uqs adhoc choosePivot partition l).
+      Sorted A (uqs adhoc choosePivot partition l).
 Proof.
   intros.
   functional induction @uqs A small adhoc choosePivot partition l.
     pose (e' := e). apply small_inl in e'; subst.
-      apply adhoc_sorted in e. assumption.
+      apply Sorted_adhoc in e. assumption.
     apply small_inr in e. apply pivot_spec in e0.
-      apply sorted_app_all; auto.
-        apply sorted_cons.
+      apply Sorted_app_all; auto.
+        apply Sorted_cons.
           intros. apply in_app_or in H. destruct H.
             erewrite spec_eq; eauto.
             eapply spec_hi; eauto. eapply uqs_In; eauto.
-          apply sorted_app; auto.
+          apply Sorted_app; auto.
             assert (forall x : A, In x eq -> x = pivot).
               eapply spec_eq; eauto.
               clear e1. induction eq; auto. destruct eq; auto. constructor.
@@ -96,8 +96,8 @@ Instance Sort_uqs
     sort := uqs adhoc choosePivot partition
 }.
 Proof.
-  intros. apply uqs_sorted.
-  intros. apply uqs_perm.
+  intros. apply Sorted_uqs.
+  intros. apply perm_Permutation. rewrite <- uqs_perm. reflexivity.
 Defined.
 
 Instance Sort_qs (A : LinDec) : Sort A :=
@@ -105,8 +105,9 @@ Instance Sort_qs (A : LinDec) : Sort A :=
     sort := qs A
 }.
 Proof.
-  intros. apply uqs_sorted.
-  intros. apply uqs_perm.
+  intros. apply Sorted_uqs.
+  unfold qs. intros. apply perm_Permutation. rewrite <- uqs_perm.
+    reflexivity.
 Defined.
 
 Instance Sort_qs2 (A : LinDec) : Sort A :=
@@ -114,8 +115,9 @@ Instance Sort_qs2 (A : LinDec) : Sort A :=
     sort := qs2 A
 }.
 Proof.
-  intros. apply uqs_sorted.
-  intros. apply uqs_perm.
+  intros. apply Sorted_uqs.
+  unfold qs2. intros. apply perm_Permutation. rewrite <- uqs_perm.
+    reflexivity.
 Defined.
 
 Instance Sort_hqs (A : LinDec) (n : nat) (s : Sort A) : Sort A :=
@@ -123,6 +125,7 @@ Instance Sort_hqs (A : LinDec) (n : nat) (s : Sort A) : Sort A :=
     sort := hqs n s
 }.
 Proof.
-  apply uqs_sorted.
-  apply uqs_perm.
+  apply Sorted_uqs.
+  unfold hqs. intros. apply perm_Permutation. rewrite <- uqs_perm.
+    reflexivity.
 Defined.
