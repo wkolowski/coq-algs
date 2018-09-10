@@ -40,7 +40,7 @@ Parameter isEmpty_cons :
 
 Parameter isEmpty_head_true :
   forall (A : Type) (d : Deque A),
-    isEmpty d = true (*TODO: <*)-> head d = None.
+    isEmpty d = true <-> head d = None.
 
 Parameter isEmpty_head_false :
   forall (A : Type) (d : Deque A),
@@ -60,7 +60,7 @@ Parameter isEmpty_snoc :
 
 Parameter isEmpty_last_true :
   forall (A : Type) (d : Deque A),
-    isEmpty d = true (*TODO: <*)-> last d = None.
+    isEmpty d = true <-> last d = None.
 
 Parameter isEmpty_last_false :
   forall (A : Type) (d : Deque A),

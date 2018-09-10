@@ -1,4 +1,4 @@
-(*Add Rec LoadPath "/home/zeimer/Code/Coq".
+Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export RCCBase.
 
@@ -7,6 +7,8 @@ Require Import BST.
 Require Import TrichDec.
 
 Set Implicit Arguments.
+
+(* TODO: PartialFinMap *)
 
 Lemma prod_eq :
   forall (A B : Type) (a a' : A) (b b' : B),
@@ -22,8 +24,6 @@ match b with
     | S b' => fromTo a b' ++ [b]
 end.
 
-Axiom wut : False. (* TODO *)
-
 Instance KVP (A : LinDec) (B : Type) : LinDec :=
 {
     carrier := A * B;
@@ -35,10 +35,11 @@ Proof.
   match goal with
       | p : _ * _ |- _ => destruct p
   end; cbn in *; dec.
-  cut False.
-    inversion 1.
-    apply wut. (* TODO *)
-Defined.
+  f_equal.
+    dec.
+    admit.
+Admitted.
+(*
 
 Function find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
   : option B :=

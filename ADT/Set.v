@@ -14,15 +14,12 @@ Parameter empty :
 Parameter isEmpty :
   forall {A : LinDec}, S A -> bool.
 
-(** TODO: rename [put]. *)
 Parameter insert :
   forall {A : LinDec}, A -> S A -> S A.
 
-(** TODO: rename [del]. *)
 Parameter remove :
   forall {A : LinDec}, A -> S A -> S A.
 
-(** TODO: rename [has]. *)
 Parameter member :
   forall {A : LinDec}, A -> S A -> bool.
 

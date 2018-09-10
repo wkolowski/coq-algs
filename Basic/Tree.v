@@ -50,8 +50,6 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-
-
 Hint Constructors elem elem' isHeap.
 
 Hint Extern 0 =>
@@ -351,7 +349,6 @@ Proof.
     reflexivity.
     reflexivity.
 Qed.
-  
 
 Lemma count_mirror :
   forall (A : Type) (p : A -> bool) (t : Tree A),

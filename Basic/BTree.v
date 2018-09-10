@@ -603,15 +603,29 @@ Proof.
     omega.
 Qed.
 
-(* TODO *) Lemma size_intersperse_complete :
+Lemma S_pow_minus_1 :
+  forall n : nat,
+    S (2 ^ n - 1) = 2 ^ n.
+Proof.
+  induction n as [| n']; cbn.
+    reflexivity.
+    rewrite plus_0_r, Nat.add_sub_swap.
+      rewrite <- Nat.add_succ_l, IHn'. reflexivity.
+      omega.
+Qed.
+
+Lemma size_intersperse_complete :
   forall (A : Type) (x y : A) (n : nat),
     size (intersperse x (complete n y)) = pow 2 (2 * n) - 1.
 Proof.
   induction n as [| n']; cbn.
     reflexivity.
     rewrite IHn'. cbn. rewrite !(plus_comm _ (S _)). cbn.
-      rewrite !plus_0_r.
-Abort.
+      rewrite !plus_0_r, <- 4!Nat.add_succ_l.
+      rewrite S_pow_minus_1, plus_n_Sm, S_pow_minus_1.
+      rewrite Nat.add_succ_l, plus_n_Sm, <- Nat.add_succ_l, S_pow_minus_1.
+        omega.
+Qed.
 
 Lemma mirror_intersperse :
   forall (A : Type) (x : A) (t : BTree A),

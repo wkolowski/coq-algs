@@ -31,7 +31,7 @@ Parameter isEmpty_snoc :
 
 Parameter isEmpty_head_true :
   forall (A : Type) (q : Queue A),
-    isEmpty q = true (*TODO: <*)-> head q = None.
+    isEmpty q = true <-> head q = None.
 
 Parameter isEmpty_head_false :
   forall (A : Type) (q : Queue A),
@@ -171,8 +171,10 @@ Lemma isEmpty_snoc :
 Proof. sized. Qed.
 
 Lemma isEmpty_head_true :
-  forall (A : Type) (q : Queue A), isEmpty q = true (*<*)-> head q = None.
-Proof. sized. Admitted.
+  forall (A : Type) (q : Queue A), isEmpty q = true <-> head q = None.
+Proof.
+  sized. rewrite Q.isEmpty_head_true. split; trivial.
+Qed.
 
 (*  Hint Resolve Q.isEmpty_head_true : wut.
   Check Q.isEmpty_head_true. auto with wut. auto with wut.*)
@@ -180,16 +182,30 @@ Proof. sized. Admitted.
 Lemma isEmpty_head_false :
   forall (A : Type) (q : Queue A),
     isEmpty q = false <-> exists h : A, head q = Some h.
-Proof. sized. Admitted.
+Proof.
+  sized. rewrite Q.isEmpty_head_false. split; trivial.
+Qed.
 
 Lemma isEmpty_tail_false :
   forall (A : Type) (q : Queue A),
     isEmpty q = false <-> (exists q' : Queue A, tail q = Some q').
-Proof. sized. Admitted.
+Proof.
+  sized. rewrite Q.isEmpty_tail_false. firstorder.
+    rewrite H. eexists. reflexivity.
+    destruct (Q.tail q) eqn: Heq.
+      eexists. reflexivity.
+      inv H.
+Qed.
 
 Lemma isEmpty_tail_true :
   forall (A : Type) (q : Queue A), isEmpty q = true <-> tail q = None.
-Proof. sized. Admitted.
+Proof.
+  sized. rewrite Q.isEmpty_tail_true. firstorder.
+    rewrite H. reflexivity.
+    destruct (Q.tail q) eqn: Heq.
+      inv H.
+      reflexivity.
+Qed.
 
 Lemma head_empty :
   forall A : Type, head (@empty A) = None.
@@ -202,12 +218,20 @@ Proof. sized. Qed.
 Lemma head_snoc_false :
   forall (A : Type) (x : A) (q : Queue A),
     isEmpty q = false -> head (snoc x q) = head q.
-Proof. sized. Admitted.
+Proof.
+  sized. rewrite Q.head_snoc_false.
+    reflexivity.
+    compute in H. assumption.
+Qed.
 
 Lemma head_snoc_true :
   forall (A : Type) (x : A) (q : Queue A),
     isEmpty q = true -> head (snoc x q) = Some x.
-Proof. sized. Admitted.
+Proof.
+  sized. rewrite Q.head_snoc_true.
+    reflexivity.
+    compute in H. assumption.
+Qed.
 
 Lemma tail_empty :
   forall A : Type, tail (@empty A) = None.
