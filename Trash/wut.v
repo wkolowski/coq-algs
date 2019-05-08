@@ -12,7 +12,7 @@ Proof.
       assumption.
 Defined.
 
-Compute div 5 2.
+Compute div 5 2 ltac:(omega).
 
 Lemma div_lt_n_k :
   forall (n k : nat) (H : 0 < k),

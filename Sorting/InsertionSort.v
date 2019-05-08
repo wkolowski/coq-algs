@@ -43,6 +43,8 @@ Proof.
   induction l as [| h t]; intros; cbn.
     constructor.
     dec. induction t as [| h' t']; cbn in *; dec.
+Restart.
+  induction 1; cbn in *; dec.
 Qed.
 
 Instance Sort_insertionSort (A : LinDec) : Sort A :=
@@ -99,6 +101,8 @@ Proof.
   induction l as [| h t]; cbn; intros.
     constructor.
     dec. induction t as [| h' t']; cbn in *; dec.
+Restart.
+  induction 1; cbn in *; dec.
 Qed.
 
 Instance Sort_insertionSort' (A : LinDec) : Sort A :=

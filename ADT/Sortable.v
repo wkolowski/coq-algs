@@ -4,7 +4,7 @@ Require Import RCCBase.
 Require Import Structures.LinDec.
 Require Import Sorting.Sort.
 
-Require Import HSLib.Instances.Lazy.
+Require Import HSLib.Control.Monad.Lazy.
 
 (** Sortable collections as in chapter 6.4.3 of Okasaki. *)
 
