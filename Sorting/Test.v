@@ -1,7 +1,9 @@
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
+(*
 Require Import InsertionSort.
 Require Import SelectionSort.
+*)
 
 Require Import MergeSort.
 Require Import QuickSort.
