@@ -56,7 +56,7 @@ Instance Functor_Coproduct
     end
 }.
 Proof.
-  all: intros; ext x; destruct x; functor.
+  all: intros; ext x; destruct x; hs.
 Defined.
 
 Class Denote (F : Type -> Type) : Type :=

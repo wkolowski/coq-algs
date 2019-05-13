@@ -1,5 +1,3 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Import RCCBase.
 
 (** A LIFO sequence. The most obvious implementation is intended to be a

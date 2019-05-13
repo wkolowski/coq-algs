@@ -30,15 +30,4 @@ Proof.
   assert (~ exists (P : Prop) (x y : P), x <> y).
     admit.
   apply H2. exists (transport (@id _) H bool).
-  Check fun X : Type => e
-
-  Check transport (@id _) H true.
-  Check transport
-  apply f. 
-  apply eq_sym in H. destruct H.
-  assert (forall (A : Type) (x y : A), x = y).
-    rewrite <- H.
-
- pose (x := I).
-  assert (f : buul -> bool).
-    apply eq_sym in H. destruct H.
+Abort.

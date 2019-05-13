@@ -350,5 +350,3 @@ Proof.
       eapply ih_sendDown_arg; eauto.
       dec.
 Qed.
-
-Print Assumptions makeHeap_ih.

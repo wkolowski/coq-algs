@@ -37,67 +37,14 @@ Definition div (n k : nat) (H : 0 < k) : nat :=
 
 Theorem div_fix : div = divF div.
 Proof.
-  ext n; ext k; ext H.
-  unfold div at 1. destruct (divF_terminates n k H). cbn.
-  destruct e as [p Hp]. assert (p < S p) by omega.
-  rewrite <- (Hp _ H0 div). cbn. clear Hp. gen H; gen k; gen n.
-  induction p as [| p'].
-    trivial.
-    f_equal.
-Restart.
-  ext n. gen n. apply (@well_founded_induction _ _ lt_wf).
-  intros n IH. ext k; ext H. unfold divF.
-  case_eq (le_lt_dec k n); intros.
-    Focus 2. unfold div. destruct (divF_terminates _ _ _). cbn.
-      destruct e as [p Hp]. erewrite <- (Hp (S p)).
-        cbn. unfold divF. rewrite H0. trivial.
-        omega.
-    assert (n - k < n) by omega. specialize (IH _ H1).
-      assert (div (n - k) k H = divF div (n - k) k H). congruence. clear IH.
-      unfold divF in H2. case_eq (le_lt_dec k (n - k)); intros.
-        unfold div in *.
-        destruct (divF_terminates (n - k) k H),
-                 (divF_terminates n k H).
-Abort.
+Admitted.
 
 Lemma div_equation :
   forall (n k : nat) (H : 0 < k),
     div n k H =
     if le_lt_dec k n then S (div (n - k) k H) else 0.
 Proof.
-  intros. generalize dependent n.
-  apply (@well_founded_induction_type _ _ lt_wf); intros. unfold div.
-  destruct (divF_terminates x k H), (divF_terminates (x -k) k H); cbn.
-  destruct e as [p Hp], e0 as [p' Hp'].
-  case_eq (le_lt_dec k x); intros.
-    Focus 2. erewrite <- (Hp (S p)).
-      cbn. unfold divF. rewrite H1. trivial.
-      omega.
-    erewrite <- (Hp (S p)), <- (Hp' (S p')). case_eq (le_lt_dec k (x - k)); intros.
-      cbn. unfold divF. rewrite ?H1, ?H2. fold divF.
-      assert (x - k < x) by omega. specialize (H0 _ H3).
-      rewrite H2 in H0. unfold div in H0.
-Restart.
-  intros. unfold div.
-  destruct (divF_terminates n k H),
-           (divF_terminates (n - k) k H); intros. cbn.
-  destruct e as [p Hp], e0 as [p' Hp'].
-  case_eq (le_lt_dec k n); intros; cbn.
-    Focus 2. erewrite <- (Hp (S p)).
-      cbn. unfold divF. rewrite H0. trivial.
-      omega.
-    case_eq (le_lt_dec p p'); intros.
-      assert (p < S (p + p')) by omega.
-        erewrite <- (Hp (S p')), <- (Hp' p'). cbn. unfold divF.
-        rewrite H0. fold divF. reflexivity.
-Restart.
-  intros. unfold div at 1. destruct (divF_terminates n k H). cbn.
-  case_eq (le_lt_dec k n); intros.
-    destruct e as [p Hp]. erewrite <- (Hp (S p)). cbn. unfold divF.
-      rewrite H0. fold divF. unfold div.
-      destruct (divF_terminates (n - k) k H). cbn. destruct e as [p' Hp'].
-        rewrite Hp'. all: auto. 
-Abort.
+Admitted.
 
 (* TODO: pursue general recursion. *)
 
@@ -132,18 +79,9 @@ Lemma f91_graph_f91_dom_1 :
   forall n r : nat,
     f91_graph n r -> f91_dom n.
 Proof.
-  induction 1.
-    Focus 2. apply f91_dom_gt100. assumption.
-    inv H.
-      Focus 2.
 Abort.
 
 Lemma f91_dom_all :
   forall n : nat, f91_dom n.
 Proof.
-  Search well_founded.
-  apply well_founded_induction_type with (R := lt).
-    apply lt_wf.
-    destruct x as [| n].
-      intro. do 1 (constructor; try omega).
 Abort.

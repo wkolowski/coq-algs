@@ -83,7 +83,7 @@ Proof.
         apply le_trans with (max (S (height' a)) (S (height' b))).
           apply Nat.max_le_compat_r. apply le_S. apply le_n.
           cbn. reflexivity.
-      apply le_n_S. Search (max _ _ <= _ <-> _). rewrite ?Nat.max_lub_iff. rewrite Nat.max_le_iff. destruct (height' b); cbn.
+      apply le_n_S. rewrite ?Nat.max_lub_iff. rewrite Nat.max_le_iff. destruct (height' b); cbn.
         rewrite Max.max_0_r. apply le_n_S.
 
 *)

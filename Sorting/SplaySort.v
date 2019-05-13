@@ -71,11 +71,6 @@ Proof.
   rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
 Qed.
 
-Print insert.
-
-Print partition.
-Print SplayHeap.
-
 Lemma Permutation_partition :
   forall (A : LinDec) (pivot : A) (h h1 h2 : SplayHeap A),
     partition pivot h = (h1, h2) ->

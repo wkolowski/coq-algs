@@ -1,3 +1,4 @@
+(* TODO: fix
 Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Export LinDec.
@@ -436,3 +437,4 @@ Proof.
     unfold pairingSort. apply Sorted_toList, fromList_isHeap.
     apply perm_Permutation. rewrite pairingSort_perm. reflexivity.
 Defined.
+*)

@@ -3,7 +3,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 Require Export RCCBase.
 
 Require Export HSLib.Control.Applicative.
-Require Export HSLib.Instances.Lazy.
+Require Export HSLib.Control.Monad.Lazy.
 
 Inductive Stream (A : Type) : Type :=
     | mkStream : Lazy (StreamCell A) -> Stream A

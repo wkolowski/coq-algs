@@ -584,9 +584,6 @@ Restart.
               rewrite H. apply Max.le_max_r.
 Qed.
 
-Search (max _ _ <= _).
-Search (_ <= max _ _).
-
 Lemma height_intersperse :
   forall (A : Type) (x : A) (t : BTree A),
     height (intersperse x t) = 2 * height t.
@@ -951,4 +948,3 @@ Proof.
     apply le_n_S, Max.le_max_r.
     apply lt_trans with (height t2); assumption.
 Qed.
-

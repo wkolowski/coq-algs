@@ -4,7 +4,7 @@ Require Import BTree.
 Require Export LinDec.
 Require Import Sorting.Sort.
 
-From mathcomp Require Import ssreflect.
+Require Import ssreflect.
 
 (* TODO: fix the definition of [is_bst]. *)
 Inductive is_bst {A : LinDec} : BTree A -> Prop :=

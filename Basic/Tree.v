@@ -6,6 +6,7 @@ Require Export RCCBase.
 
 Require Import HSLib.Control.Functor.
 Require Import HSLib.Control.Foldable.
+Require Import HSLib.Misc.Monoid.
 
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
@@ -221,8 +222,6 @@ Definition sizef' {A : Type} (t : Tree A) : nat :=
 
 Compute sizef (T 5 [T 0 []; T 1 []]).
 Compute sizef' (T 5 [T 0 []; T 1 []]).
-
-Check @foldr (list (Tree nat)) nat. (fun ts t => T 0 (t :: ts)) E.
 
  (T 5 [T 0 []; T 1 []]).
 Compute sizef' (T 5 [T 0 []; T 1 []]). *)

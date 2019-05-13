@@ -201,7 +201,6 @@ Proof.
   unfold priorityQueueSort.
   induction l as [| h t]; cbn.
     rewrite toList_equation, unMin_empty. reflexivity.
-    Search insert.
 Admitted.
 
 Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=

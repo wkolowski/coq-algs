@@ -1,4 +1,5 @@
-Theorem diagonal : forall (X T : Set) (f : T -> T -> X),
+Theorem diagonal :
+  forall (X T : Set) (f : T -> T -> X),
     (forall g : T -> X, exists t : T, forall x : T, g x = f x t) ->
     forall α : X -> X, exists x : X, α x = x.
 Proof.
@@ -31,14 +32,14 @@ Proof.
 Qed.
 
 Definition infinite (A : Type) : Prop :=
-    exists f : nat -> A, injective f.
+  exists f : nat -> A, injective f.
 
 Definition dedekind_inf (A : Type) : Prop :=
-    exists (P : A -> Prop) (a : A), ~ P a /\
-    exists f : A -> A,
-      (forall a : A, P (f a)) /\
-      (forall x y : A, f x = f y -> x = y) /\
-      (forall y : A, P y -> exists x : A, y = f x).
+  exists (P : A -> Prop) (a : A), ~ P a /\
+  exists f : A -> A,
+    (forall a : A, P (f a)) /\
+    (forall x y : A, f x = f y -> x = y) /\
+    (forall y : A, P y -> exists x : A, y = f x).
 
 Theorem infinite_dedekind_if : forall (A : Type),
   infinite A -> dedekind_inf A.

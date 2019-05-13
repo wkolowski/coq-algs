@@ -2,7 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RCCBase.
 
-Require Import HSLib.Instances.Lazy.
+Require Import HSLib.Control.Monad.Lazy.
 
 Require Import Structures.LinDec.
 
@@ -35,8 +35,6 @@ Definition queue {A : Type} (q : Queue A) : Queue A :=
       f' := force f
     in
       checkw (f', lenf + lenr, delay (force f ++ rev r), 0, []).
-
-Print queue.
 
 Definition snoc {A : Type} (x : A) (q : Queue A) : Queue A :=
   let '(w, lenf, f, lenr, r) := q in

@@ -90,8 +90,6 @@ Qed.
 Definition BinomialHeap (A : Type) : Type :=
   list {r : nat & BinomialTree A r}.
 
-Print BinomialTree.
-
 Definition link {A : LinDec} {r : nat} (t1 t2 : BinomialTree A r)
   : BinomialTree A (S r).
 Proof.

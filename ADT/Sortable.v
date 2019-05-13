@@ -40,13 +40,6 @@ Definition empty {A : LinDec} : Sortable A :=
 
 Require Import Div2.
 
-Function isEven (n : nat) : bool :=
-match n with
-    | 0 => true
-    | 1 => false
-    | S (S n') => isEven n'
-end.
-
 Require Import Sorting.MergeSort.
 
 Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
@@ -63,24 +56,34 @@ match segs with
         else addSeg (merge seg seg') segs' (div2 size)
 end.*)
 
-Function addSeg
-  {A : LinDec} (seg : list A) (s : Sortable A)
-  {measure fst s} : Sortable A :=
-match fst s, force (snd s) with
-    | _, [] => (1, delay [seg])
-    | size, seg' :: segs' =>
-        if isEven size
-        then (length seg + size, delay (seg :: seg' :: segs'))
-        else addSeg (merge seg seg') (div2 size, delay segs')
-end.
+From Equations Require Import Equations.
+
+Definition lt_Sortable {A : LinDec} (s1 s2 : Sortable A) : Prop :=
+  fst s1 < fst s2.
+
+Instance lt_Sortable_wf (A : LinDec) : WellFounded (@lt_Sortable A).
 Proof.
-  destruct s; cbn; intros. apply lt_div2.
-  destruct n; cbn in *.
-    congruence.
-    omega.
+  red. apply well_founded_lt_compat with fst.
+  unfold lt_Sortable. auto.
 Defined.
 
-Arguments addSeg {x} _ _.
+Equations addSeg'
+  {A : LinDec} (s : Sortable A) (seg : list A) : Sortable A
+  by wf (fst s) lt :=
+addSeg' s seg with (fst s, force (snd s), even (fst s)) => {
+  addSeg' s seg (_, [], _) := (1, delay [seg]);
+  addSeg' s seg (_, seg' :: segs', true) :=
+    (length seg + fst s, delay (seg :: seg' :: segs'));
+  addSeg' s seg (size, seg' :: segs', false) :=
+    addSeg' (div2 (fst s), delay segs') (merge seg seg')}.
+Next Obligation.
+  destruct s; cbn; intros. apply Nat.lt_div2. cbn in *.
+  destruct n; cbn in *.
+Admitted.
+
+Definition addSeg {A} s seg := @addSeg' A seg s.
+
+Arguments addSeg {A} _ _.
 
 Definition add
   {A : LinDec} (x : A) (s : Sortable A) : Sortable A :=
@@ -128,6 +131,7 @@ Lemma addSeg_isValid :
   forall (A : LinDec) (seg : list A) (s : Sortable A),
     Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
+(*
   intros. functional induction @addSeg A seg s.
     compute. auto.
     destruct s as [size segs]; cbn in *. compute. inv H0.
@@ -136,7 +140,18 @@ Proof.
     apply IHs0.
       apply Sorted_merge; cbn; inv H0.
       inv H0. compute. rewrite e0 in H1. inv H1.
-Qed.
+*)
+Restart.
+  intros. unfold addSeg. revert H H0.
+  funelim (addSeg' s seg); intros.
+    constructor; auto.
+    destruct s0 as [size segs]; cbn in *. compute. inv H2.
+      compute in H4. congruence.
+      compute in H3. rewrite <- H3 in H. inv H.
+    apply H.
+      apply Sorted_merge; cbn; inv H3.
+      compute. inv H3. rewrite H0 in H4. inv H4.
+Admitted.
 
 Lemma add_isValid :
   forall (A : LinDec) (x : A) (s : Sortable A),
@@ -171,6 +186,7 @@ Qed.
 
 End Sortable_BottomUpMergesortWithSharing.
 
+(*
 Module Sortable_BottomUpMergesortWithSharing'.
 
 Definition Sortable (A : LinDec) : Type :=
@@ -180,15 +196,6 @@ Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
   Forall (Sorted A) (snd s).
 
 Definition empty {A : LinDec} : Sortable A := (0, []).
-
-Require Import Div2.
-
-Function isEven (n : nat) : bool :=
-match n with
-    | 0 => true
-    | 1 => false
-    | S (S n') => isEven n'
-end.
 
 Require Import Sorting.MergeSort.
 
@@ -300,3 +307,4 @@ Proof.
 Qed.
 
 End Sortable_BottomUpMergesortWithSharing'.
+*)

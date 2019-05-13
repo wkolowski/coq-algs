@@ -27,8 +27,6 @@ end.
 Definition accepts {Σ : Type} (A : DFA Σ) (w : list Σ) : bool :=
   accepts' A (start A) w.
 
-Check concat.
-
 Require Import Bool.
 
 Instance product {Σ : Type} (A B : DFA Σ) : DFA Σ :=
