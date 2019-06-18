@@ -48,6 +48,8 @@ Proof.
             apply Permutation_app.
               reflexivity.
               assumption.
+Restart.
+  (* TODO *) 
 Admitted.
 
 Theorem uqs_In :

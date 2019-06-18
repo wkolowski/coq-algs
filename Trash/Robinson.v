@@ -35,7 +35,7 @@ Variable P : T -> Type.
 Inductive ForallT : list T -> Type :=
     | ForallT_nil : ForallT nil
     | ForallT_cons : forall (x : T) (l : list T),
-        P x -> ForallT l -> ForallT (x::l).
+        P x -> ForallT l -> ForallT (x :: l).
 
 End All.
 
@@ -109,7 +109,8 @@ Inductive HasVar (x:VarId) : Tm -> Prop :=
 
 Hint Constructors HasVar.
 
-Fixpoint applySubstToVar (x : VarId) (sb : Subst) :=
+(* Fixpoint *)
+Definition applySubstToVar (x : VarId) (sb : Subst) :=
 match sb with
     | (y, t) => if Nat.eq_dec x y then t else Var x
 end.
@@ -120,22 +121,22 @@ match term with
 | App f xs => 
   let applySubst' := fix applySubst' ts :=
     match ts with
-    | nil => nil
-    | t :: ts => applySubst subst t :: applySubst' ts
+        | nil => nil
+        | t :: ts => applySubst subst t :: applySubst' ts
     end
   in 
   App f (applySubst' xs)
-end
-.
+end.
 
 Fixpoint applySubstTms (subst:Subst) (ts: list Tm) := 
-    match ts with
+match ts with
     | nil => nil
     | t :: ts => applySubst subst t :: applySubstTms subst ts
-    end.
+end.
 
-Lemma applySubst_app: forall f ts subst,
-  applySubst subst (App f ts) = App f (applySubstTms subst ts).
+Lemma applySubst_app :
+  forall f ts subst,
+    applySubst subst (App f ts) = App f (applySubstTms subst ts).
 Proof.
   intros; destruct ts.
   + trivial.
@@ -146,21 +147,23 @@ Proof.
       - simpl. f_equal. apply IHts.
 Qed.
 
-Fixpoint applySubstToStack subst stack :=
+Fixpoint applySubstToStack (subst : Subst) (stack : Stack) : Stack :=
 match stack with
-| nil => nil
-| (t0, t1) :: stack => 
-  (applySubst subst t0, applySubst subst t1) :: applySubstToStack subst stack
+    | nil => nil
+    | (t0, t1) :: stack => 
+      (applySubst subst t0, applySubst subst t1) ::
+        applySubstToStack subst stack
 end.
 
-Fixpoint applySubstToVarMap subst sb : VarMap :=
+Fixpoint applySubstToVarMap (subst : Subst) (sb : VarMap) : VarMap :=
 match sb with
-| nil => nil 
-| (x,t) :: sb => 
-  (x, applySubst subst t) :: applySubstToVarMap subst sb
+    | nil => nil 
+    | (x, t) :: sb => 
+      (x, applySubst subst t) :: applySubstToVarMap subst sb
 end.
 
-Definition hasVar (x:VarId) (term:Tm) : {HasVar x term} + {~ HasVar x term}.
+Definition hasVar (x : VarId) (term : Tm)
+  : {HasVar x term} + {~ HasVar x term}.
 Proof.
   induction term using Tm_list_rect.
   + destruct Nat.eq_dec with x x0; subst.
@@ -182,28 +185,28 @@ Proof.
             *** apply n0; eauto.
 Defined.
 
-Fixpoint zip (xs:list Tm) (ys:list Tm) stack {struct xs} : option Stack :=
+Fixpoint zip (xs ys : list Tm) (stack : Stack) {struct xs} : option Stack :=
 match xs, ys with
-| nil, nil => Some stack
-| x :: xs, y :: ys => 
-  zip xs ys (pair x y :: stack)
-| _, _ =>
-  None
+    | nil, nil => Some stack
+    | x :: xs, y :: ys => 
+      zip xs ys (pair x y :: stack)
+    | _, _ =>
+      None
 end.
 
 Fixpoint size (t : Tm) : nat :=
 match t with 
-| Var _ => 1 
-| App f xs => 
-  let onList := fix onList (ts:list Tm) :=
-  match ts with
-  | nil => 1
-  | t :: ts => size t + onList ts
-  end
-  in onList xs
+    | Var _ => 1 
+    | App f xs => 
+        let onList := fix onList (ts : list Tm) :=
+          match ts with
+              | nil => 1
+              | t :: ts => size t + onList ts
+          end
+        in onList xs
 end.
 
-Fixpoint fvTm (t:Tm) : VarSet :=
+Fixpoint fvTm (t : Tm) : VarSet :=
 match t with
     | Var x => MVarSet.singleton x
     | App f ts => 
@@ -212,7 +215,7 @@ match t with
               | nil => MVarSet.empty
               | t :: ts => MVarSet.union (fvTm t) (onList ts)
           end
-        in onList ts 
+        in onList ts
 end.
 
 Fixpoint fvTms (ts : list Tm) :=
@@ -221,34 +224,37 @@ match ts with
     | t :: ts => MVarSet.union (fvTm t) (fvTms ts)
 end.
 
-Lemma fvTm_app: forall f xs,
-  fvTm (App f xs) = fvTms xs.
+Lemma fvTm_app :
+  forall f xs,
+    fvTm (App f xs) = fvTms xs.
 Proof.
   induction xs; auto.
 Qed.
 
-Lemma fvTms_cons: forall t ts,
-  fvTms (t :: ts) = MVarSet.union (fvTm t) (fvTms ts).
+Lemma fvTms_cons :
+  forall t ts,
+    fvTms (t :: ts) = MVarSet.union (fvTm t) (fvTms ts).
 Proof.
-  intros. simpl. reflexivity. 
+  intros. cbn. reflexivity. 
 Qed.
 
 Fixpoint stackSize (stack : Stack) : nat := 
 match stack with
-| (t0, t1) :: stack => size t0 + size t1 + stackSize stack 
-| nil => 0
+    | nil => 0
+    | (t0, t1) :: stack => size t0 + size t1 + stackSize stack
 end.
 
 Fixpoint fvStack (stack : Stack) : VarSet := 
 match stack with
-| nil => MVarSet.empty
-| (t0, t1) :: stack =>
-    MVarSet.union (fvTm t0) (MVarSet.union (fvTm t1) (fvStack stack))
+    | nil => MVarSet.empty
+    | (t0, t1) :: stack =>
+        MVarSet.union (fvTm t0) (MVarSet.union (fvTm t1) (fvStack stack))
 end.
 
-Definition fvStackCard stack := MVarSet.cardinal (fvStack stack).
+Definition fvStackCard (stack : Stack) : nat :=
+  MVarSet.cardinal (fvStack stack).
 
-Definition stackMeasure (stack: Stack) : nat * nat :=
+Definition stackMeasure (stack : Stack) : nat * nat :=
   (fvStackCard stack, stackSize stack).
 
 Definition natnatlt (a0: nat * nat) (a1: nat * nat) : Prop := 
@@ -271,7 +277,8 @@ Definition stacklt stack0 stack1 :=
 Definition stacklt_wf : well_founded stacklt :=
   wf_inverse_image Stack (nat*nat) natnatlt stackMeasure natnatlt_wf.
 
-Lemma size_gt0: forall t, size t > 0.
+Lemma size_gt0 :
+  forall t, size t > 0.
 Proof.
   induction t using Tm_list_rect; simpl.
   + auto.
@@ -280,8 +287,9 @@ Proof.
     - inversion H. eauto with arith.
 Qed.
 
-Lemma fvStackCard_monotone1: forall t0 t1 stack,
-  fvStackCard stack <= fvStackCard ((t0, t1) :: stack).
+Lemma fvStackCard_monotone1 :
+  forall t0 t1 stack,
+    fvStackCard stack <= fvStackCard ((t0, t1) :: stack).
 Proof.
   intros.
   unfold fvStackCard. simpl.
@@ -318,8 +326,9 @@ Qed.
 
 Require Import Recdef.
 
-Program Fixpoint robinsonUnif (stack: Stack) (mgu:VarMap) {wf stacklt stack}
-   : option VarMap :=
+(*Program Fixpoint*)
+Function robinsonUnif
+  (stack : Stack) (mgu : VarMap) {wf stacklt stack} : option VarMap :=
 match stack with
 | nil => Some mgu
 | (t0, t1) :: stack => 
@@ -330,7 +339,7 @@ match stack with
       if hasVar x t then
         None
       else
-        let sb := (x,t) in 
+        let sb := (x, t) in 
         let stack := applySubstToStack sb stack in
         let mgu := applySubstToVarMap sb mgu in 
         let mgu := cons sb mgu in 
@@ -351,6 +360,8 @@ match stack with
         None
     end
 end.
+Proof.
+  intros. Search stacklt.
 Next Obligation. Admitted.
 Next Obligation. Admitted.
 Next Obligation. Admitted.
