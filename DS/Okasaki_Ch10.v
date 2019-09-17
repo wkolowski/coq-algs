@@ -52,12 +52,10 @@ match s with
 end.
 
 (*
-Add Rec LoadPath "/home/Zeimer/Code/Coq".
+Require Import CoqMTL.Base.
+Require Import CoqMTL.Control.Functor.
+Require Import CoqMTL.Control.Monad.All.
 *)
-
-Require Import HSLib.Base.
-Require Import HSLib.Control.Functor.
-Require Import HSLib.Control.Monad.All.
 
 Require Import RCCBase.
 

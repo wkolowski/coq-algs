@@ -15,7 +15,7 @@ Arguments Id [X].
 Arguments Var [X] _.
 Arguments Op [X] _ _.
 
-Require Import HSLib.Base.
+Require Import CoqMTL.Base.
 
 Fixpoint expDenote {X : CMon} (envX : Env X) (e : exp X) : X -> X :=
 match e with

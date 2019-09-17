@@ -2,7 +2,7 @@ Add Rec LoadPath "/home/zeimer/Code/Coq".
 
 Require Import RCCBase.
 
-Require Import HSLib.Control.Monad.Lazy.
+Require Import CoqMTL.Control.Monad.Lazy.
 
 Require Import Structures.LinDec.
 

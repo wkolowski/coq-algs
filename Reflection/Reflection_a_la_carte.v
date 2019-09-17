@@ -1,8 +1,5 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Export RCCBase.
-Require Import HSLib.Base.
-Require Import HSLib.Control.Functor.
+Require Import Control.Functor.
 
 Set Implicit Arguments.
 

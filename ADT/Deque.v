@@ -114,7 +114,7 @@ Parameter tail_cons :
   forall (A : Type) (x : A) (d : Deque A),
     tail (cons x d) = Some d.
 
-(*Require Import HSLib.Instances.Option.
+(*Require Import CoqMTL.Instances.Option.
 
 Parameter tail_snoc :
   forall (A : Type) (x : A) (d : Deque A),

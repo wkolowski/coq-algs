@@ -4,9 +4,9 @@ Require Export LinDec.
 
 Require Export RCCBase.
 
-Require Import HSLib.Control.Functor.
-Require Import HSLib.Control.Foldable.
-Require Import HSLib.Misc.Monoid.
+Require Import CoqMTL.Control.Functor.
+Require Import CoqMTL.Control.Foldable.
+Require Import CoqMTL.Misc.Monoid.
 
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
