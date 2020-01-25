@@ -1,12 +1,12 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Export LinDec.
 
 Require Export RCCBase.
 
+(*
 Require Import CoqMTL.Control.Functor.
 Require Import CoqMTL.Control.Foldable.
 Require Import CoqMTL.Misc.Monoid.
+*)
 
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
@@ -128,7 +128,7 @@ repeat match goal with
         let IHts := fresh "IHts" in
           induction t' as [| x | x t ts IHt IHts] using Tree_ind_proper2;
           cbn in *; intros; try reflexivity; f_equal; rewrite ?IHt;
-          rewrite ?id_eq; try (inv IHts; fail); auto; try congruence
+          (*rewrite ?id_eq;*) try (inv IHts; fail); auto; try congruence
     | |- forall _, _ => intro
 end.
 
@@ -139,6 +139,7 @@ match t with
     | T x l => T (f x) (map (fmap_Tree f) l)
 end.
 
+(*
 Instance Functor_Tree : Functor Tree :=
 {
     fmap := @fmap_Tree
@@ -146,7 +147,9 @@ Instance Functor_Tree : Functor Tree :=
 Proof.
   all: intros; ext t; gen t; Tree_ind.
 Defined.
+*)
 
+(*
 Fixpoint foldMap_Tree
   {A : Type} {M : Monoid} (f : A -> M) (t : Tree A) : M :=
 match t with
@@ -173,6 +176,7 @@ Proof.
         rewrite H0.
         rewrite IHt. reflexivity.
 Defined.
+*)
 
 (** * Utility functions *)
 
@@ -291,10 +295,12 @@ Qed.
 
 (** Properties of [height]. *)
 
+(*
 Lemma height_fmap :
   forall (A B : Type) (f : A -> B) (t : Tree A),
     height (fmap f t) = height t.
 Proof. Tree_ind. Qed.
+*)
 
 Lemma height_isEmpty_true :
   forall (A : Type) (t : Tree A),

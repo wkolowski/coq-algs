@@ -1,5 +1,4 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
+(*
 Require Export RCCBase.
 
 Require Export CoqMTL.Control.Applicative.
@@ -100,6 +99,7 @@ Proof.
 Qed.
 
 Infix "+++" := lapp (at level 50).
+*)
 
 (*Fixpoint ltake {A : Type} (n : nat) (l : Stream A) : Stream A :=
 match n, l with

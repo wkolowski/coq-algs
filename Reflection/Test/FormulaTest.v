@@ -1,4 +1,4 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
+
 
 Require Export Formula.
 (* Require Import Formula2. TODO *)

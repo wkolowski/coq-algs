@@ -1,4 +1,4 @@
-Theorem diagonal :
+Lemma diagonal :
   forall (X T : Set) (f : T -> T -> X),
     (forall g : T -> X, exists t : T, forall x : T, g x = f x t) ->
     forall α : X -> X, exists x : X, α x = x.
@@ -11,16 +11,23 @@ Qed.
 Definition injective {A B : Type} (f : A -> B) : Prop :=
   forall x x' : A, f x = f x' -> x = x'.
 
-Theorem nat_natnat :
+Lemma nat_natnat :
   ~ exists f : (nat -> nat) -> nat, injective f.
 Proof.
   intro. destruct H as [f inj]. red in inj.
+  assert (forall n m : nat, n <> m -> f (fun _ => n) <> f (fun _ => m)).
+    intros n m Hneq Heq.
+    specialize (inj _ _ Heq).
+    apply (f_equal (fun f => f 0)) in inj.
+    contradiction.
+  
+    
 Abort.
 
 Definition surjective {A B : Type} (f : A -> B) : Prop :=
   forall b : B, exists a : A, f a = b.
 
-Theorem natnat_nat :
+Lemma natnat_nat :
   ~ exists f : nat -> (nat -> nat), surjective f.
 Proof.
   destruct 1 as [f sur]. red in sur.
@@ -41,7 +48,7 @@ Definition dedekind_inf (A : Type) : Prop :=
     (forall x y : A, f x = f y -> x = y) /\
     (forall y : A, P y -> exists x : A, y = f x).
 
-Theorem infinite_dedekind_if : forall (A : Type),
+Lemma infinite_dedekind_if : forall (A : Type),
   infinite A -> dedekind_inf A.
 Proof.
   unfold infinite, injective, dedekind_inf. intros.

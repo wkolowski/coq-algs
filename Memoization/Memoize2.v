@@ -1,39 +1,58 @@
-Require Import Control.
+Require Import CoqMTL.Control.
 
 Set Universe Polymorphism.
 
-
 Inductive Memoize (A : Type) : Type :=
     | Pure : A -> Memoize A
-    | Call : forall B : Type, (B -> Memoize A) -> B -> Memoize A
+(*    | Call : forall B : Type, (B -> Memoize A) -> B -> Memoize A*)
     | Bind : forall B : Type, Memoize B -> (B -> Memoize A) -> Memoize A.
 
 Arguments Pure {A}.
-Arguments Call {A B}.
+(*Arguments Call {A B}.*)
 Arguments Bind {A B}.
 
 Notation "x '<-' e1 ; e2" := (bind e1 (fun x => e2))
   (right associativity, at level 42, only parsing).
 Notation "'do' e" := e.
 
-Fixpoint fib (n : nat) : Memoize nat :=
+Fixpoint slowfib (n : nat) : nat :=
+match n with
+    | 0 => 0
+    | 1 => 1
+    | S (S n2 as n1) => slowfib n2 + slowfib n1
+end.
+
+Fixpoint fibMemo (n : nat) : Memoize nat :=
 match n with
     | 0 => Pure 0
     | 1 => Pure 1
     | S (S n2 as n1) =>
-        Bind (fib n2) (fun r2 : nat =>
-        Bind (fib n1) (fun r1 : nat => Pure (r2 + r1)))
+        Bind (fibMemo n2) (fun r2 : nat =>
+        Bind (fibMemo n1) (fun r1 : nat => Pure (r2 + r1)))
 end.
+
+(*
+Fixpoint extract_aux {A : Type} (memo : BST ((x : Memoize A) : A :=
+match x with
+    | Pure a => a
+(*    | Call f x => extract (f x)*)
+    | Bind x f => extract (f (extract x))
+end.
+*)
 
 Fixpoint extract {A : Type} (x : Memoize A) : A :=
 match x with
     | Pure a => a
-    | Call f x => extract (f x)
+(*    | Call f x => extract (f x)*)
     | Bind x f => extract (f (extract x))
 end.
 
-Compute extract (fib 20).
+Definition fib (n : nat) : nat := extract (fibMemo n).
 
+Time Compute fib 23.
+Time Compute slowfib 23.
+
+(*
 Definition fibF (self : nat -> Memoize nat) (n : nat) : Memoize nat :=
 match n with
     | 0 => Pure 0
@@ -73,3 +92,14 @@ Definition pure_Memoize {A : Type} (x : A) : Memoize A := Pure x.
 Definition ap_Memoize
   {A B : Type} (f : Memoize (A -> B)) (x : Memoize A) : Memoize B :=
     Bind f (fun f : A -> B => Bind x (fun x : A => Call (f .> Pure) x)).
+
+Fixpoint benchmark (n : nat) : nat :=
+match n with
+    | 0 => 0
+    | 1 => 0
+    | 2 => 0
+    | S (S (S n3 as n2) as n1) => benchmark n1 + benchmark n2 + benchmark n3
+end.
+
+Time Compute benchmark 35.
+*)

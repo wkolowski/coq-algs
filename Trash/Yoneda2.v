@@ -1,5 +1,5 @@
-Require Import Functor.
-Require Import Control.Monad.Reader.
+Require Import CoqMTL.Control.Functor.
+Require Import CoqMTL.Control.Monad.Reader.
 
 Variables
   (F : Type -> Type)

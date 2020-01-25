@@ -1,13 +1,15 @@
 # Random Coq Code
 
-Hello. This repository contains some random Coq code, as you probably have guessed from the name. The structure of the development is as follows:
+Hello. This repository contains some random Coq code, as you probably have guessed from the name. It is also going to be my MSc thesis.
+
+The structure of the development is as follows:
 
 * RCCBase.v contains some basic tactics and auxiliary stuff.
 * DS/ contains data structures.
 * Memoization/ is a lame attempt at memoizing functions. Nothing worth looking at.
-* Reflection/ has some code on proof by reflection.
+* Reflection/ has some code on proof by reflection, also quite lame.
 * Sorting/ uses stuff from DS/ to implement and verify sorting algorithms.
-* Structures/ has implementations of algebraic and order-theoretic structures needed for sorting and doing reflection
+* Structures/ has implementations of algebraic and order-theoretic structures needed for sorting and doing reflection.
 * Trash/ is, well, trash. Don't even look at it.
 
 ## Accomplished
@@ -49,5 +51,4 @@ Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is usel
 * Investigate modular reflection.
 * Prove that perm is equivalent to Permutation from the standard library.
 * Prove general facts about sorting algorithms.
-* Check if the method used for some functions operating on Binary Random Access Lists is a silver bullet/snake oil that can be used always and everywhere (how nice it would be if this were true).
 * Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.

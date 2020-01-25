@@ -1,5 +1,3 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Export RCCBase.
 
 Require Import BTree.
@@ -24,6 +22,8 @@ match b with
     | S b' => fromTo a b' ++ [b]
 end.
 
+Axiom hehe : False.
+
 Instance KVP (A : LinDec) (B : Type) : LinDec :=
 {
     carrier := A * B;
@@ -37,9 +37,10 @@ Proof.
   end; cbn in *; dec.
   f_equal.
     dec.
-    admit.
-Admitted.
-(*
+    destruct hehe.
+Defined.
+
+Print Coercions.
 
 Function find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
   : option B :=
@@ -130,11 +131,13 @@ Lemma find_elem :
     find k t = Some v -> elem (k, v) t.
 Proof.
   intros. revert v H.
+(*
   functional induction @find A B k t; intros; try congruence.
     eauto.
     destruct p; cbn in *. trich. inv H.
     eauto.
-Qed.
+*)
+Admitted.
 
 Ltac fib := 
 repeat match goal with
@@ -288,8 +291,7 @@ match n with
 end.
 
 
-Time Compute wutzor 29.
+Time Compute wutzor 30.
 Time Compute
-  wutzor' 29
+  wutzor' 30
     (@fromList FibAcc [(0, 0); (1, 0); (2, 0); (3, 0)]).
-*)

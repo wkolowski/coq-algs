@@ -59,6 +59,7 @@ Require Import CoqMTL.Control.Monad.All.
 
 Require Import RCCBase.
 
+(*
 Definition head {A : Type} (s : Seq A) : option A :=
   fmap fst (uncons s).
 
@@ -644,3 +645,4 @@ Module Ex_10_2.
 End Ex_10_2.
 
 (** *** 10.1.3 Bootstrapped Queues *)
+*)

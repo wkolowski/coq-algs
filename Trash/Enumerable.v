@@ -1,6 +1,6 @@
-Require Import Control.Applicative.
-Require Import Control.Monad.ListInst.
-Require Import Control.Monad.
+Require Import CoqMTL.Control.Applicative.
+Require Import CoqMTL.Control.Monad.ListInst.
+Require Import CoqMTL.Control.Monad.
 
 (* Just for teh lulz. *)
 Class Enumerable (A : Type) : Type :=

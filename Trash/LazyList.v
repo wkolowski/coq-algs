@@ -1,4 +1,4 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
+
 
 Require Import List.
 Import ListNotations.

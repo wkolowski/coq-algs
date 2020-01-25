@@ -1,10 +1,6 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Import RCCBase.
 Require Import Structures.LinDec.
 Require Import Sorting.Sort.
-
-Require Import CoqMTL.Control.Monad.Lazy.
 
 (** Sortable collections as in chapter 6.4.3 of Okasaki. *)
 
@@ -27,6 +23,7 @@ Parameter Sorted_sort :
 
 End Sortable.
 
+(*
 Module Sortable_BottomUpMergesortWithSharing.
 
 Definition Sortable (A : LinDec) : Type :=
@@ -185,6 +182,7 @@ Proof.
 Qed.
 
 End Sortable_BottomUpMergesortWithSharing.
+*)
 
 (*
 Module Sortable_BottomUpMergesortWithSharing'.

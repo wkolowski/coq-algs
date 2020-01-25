@@ -1,13 +1,14 @@
-Add Rec LoadPath "/home/zeimer/Code/Coq".
-
 Require Export RCCBase.
 
+(*
 Require Export CoqMTL.Control.Applicative.
 Require Export CoqMTL.Control.Monad.Lazy.
+*)
 
 Notation "'delay' x" := (fun _ : unit => x) (at level 50, only parsing).
 Notation "'delay' $ x" := (fun _ : unit => x) (at level 50, only parsing).
 
+(*
 Inductive llist (A : Type) : Type :=
     | lnil : llist A
     | lcons : A -> Lazy (llist A) -> llist A.
@@ -111,6 +112,7 @@ match n, l with
     | _, [] => []
     | S n', h :: t => h :: take n' t
 end.
+*)
 
 Fixpoint to0 (n : nat) : list nat :=
 match n with
@@ -119,11 +121,14 @@ match n with
 end.
 
 Definition sl := to0 30000.
-Definition ll := lazy_to0 30000.
 
-(*Fail
+(*Definition ll := lazy_to0 30000.*)
+
+(*
+Fail
 Time Eval cbv in head
   ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl).
+Compute sl.
 Time Eval cbv in head
   (sl ++ sl ++ sl ++ sl ++ sl ++ sl ++ sl).
 Time Eval cbv in lhead
@@ -146,6 +151,7 @@ Time Eval lazy in take 10 (insertionSort natle (to0 300)).
 Time Eval lazy in ltake 10 (lazyInsertionSort (lazy_to0 300)).
 *)
 
+(*
 Fixpoint lfilter {A : Type} (p : A -> bool) (l : llist A) : llist A :=
 match l with
     | lnil => lnil
@@ -154,3 +160,4 @@ match l with
         then lcons h $ delay $ lfilter p (force t)
         else lfilter p (force t)
 end.
+*)
