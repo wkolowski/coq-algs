@@ -255,13 +255,15 @@ Definition fromList' {A : LinDec} (l : list A) : BTree A :=
   fold_right (fun h t => BTree_ins h t) empty l.
 
 Lemma count_ins :
-  forall (A : LinDec) (x h : A) (t : BTree A),
-    count_BTree x (BTree_ins h t) =
-      if x =? h
-      then S (count_BTree x t)
-      else count_BTree x t.
+  forall (A : LinDec) (p : A -> bool) (x : A) (t : BTree A),
+    count_BTree p (BTree_ins x t) =
+      if p x
+      then S (count_BTree p t)
+      else count_BTree p t.
 Proof.
-  intros. elim: t => [| v l Hl r Hr] //=; repeat dec.
+  intros. elim: t => [| v l Hl r Hr] //=; dec.
+    rewrite ?Hl ?Hr. destruct (p v), (p x); reflexivity.
+    rewrite ?Hl ?Hr. destruct (p v), (p x); omega.
 Qed.
 
 Theorem fromList'_spec : @fromList' = @fromList.

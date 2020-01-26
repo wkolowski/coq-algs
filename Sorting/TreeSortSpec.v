@@ -1,5 +1,3 @@
-
-
 Require Import TreeSort.
 
 Theorem Sorted_treeSort :
@@ -10,7 +8,7 @@ Qed.
 
 Theorem treeSort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (treeSort A l).
+    perm l (treeSort A l).
 Proof.
   unfold perm. induction l as [| h t]; cbn; intro.
     reflexivity.

@@ -45,7 +45,7 @@ Class AdHocSort {A : LinDec} (small : Small A) : Type :=
         small l = inl l' -> Sorted A (adhoc l');
     adhoc_perm :
       forall l l' : list A,
-        small l = inl l' -> perm A l' (adhoc l');
+        small l = inl l' -> perm l' (adhoc l');
 }.
 
 Coercion adhoc : AdHocSort >-> Funclass.
@@ -90,7 +90,7 @@ Class Partition (A : LinDec) : Type :=
     partition_perm :
       forall (pivot : A) (l lo eq hi : list A),
         partition pivot l = (lo, eq, hi) ->
-          perm A l (lo ++ eq ++ hi);
+          perm l (lo ++ eq ++ hi);
 }.
 
 Lemma Permutation_partition :

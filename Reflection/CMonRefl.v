@@ -1,5 +1,3 @@
-
-
 Require Export CMon.
 Require Export Sorting.InsertionSort.
 Require Export Sorting.SortSpec.

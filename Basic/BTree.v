@@ -78,13 +78,13 @@ match bt with
     | node _ l r => S (size l + size r)
 end.
 
-Fixpoint count_BTree {A : LinDec} (x : A) (t : BTree A) : nat :=
+Fixpoint count_BTree {A : Type} (p : A -> bool) (t : BTree A) : nat :=
 match t with
     | empty => 0
     | node v l r =>
-        let n := count_BTree x l in
-        let m := count_BTree x r in
-        if x =? v then S (n + m) else n + m
+        let n := count_BTree p l in
+        let m := count_BTree p r in
+        if p v then S (n + m) else n + m
 end.
 
 (** * Tactics *)
@@ -157,10 +157,14 @@ Proof.
 Qed.
 
 Lemma count_toList :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    count A x (BTree_toList t) = count_BTree x t.
+  forall (A : Type) (p : A -> bool) (t : BTree A),
+    count p (BTree_toList t) = count_BTree p t.
 Proof.
-  induction t; cbn; rewrite ?count_app; dec.
+  induction t; cbn; rewrite ?count_app.
+    reflexivity.
+    cbn. rewrite IHt1, IHt2. destruct (p a); cbn.
+      rewrite plus_n_Sm. reflexivity.
+      reflexivity.
 Qed.
 
 (** Properties of [empty]. *)
@@ -177,8 +181,8 @@ Lemma empty_size :
 Proof. reflexivity. Qed.
 
 Lemma empty_count_BTree :
-  forall (A : LinDec) (x : A),
-    count_BTree x empty = 0.
+  forall (A : Type) (p : A -> bool),
+    count_BTree p empty = 0.
 Proof. reflexivity. Qed.
 
 (** Properties of [singleton]. *)
@@ -203,9 +207,9 @@ Lemma singleton_size :
 Proof. reflexivity. Qed.
 
 Lemma singleton_count_BTree :
-  forall (A : LinDec) (x y : A),
-    count_BTree x (singleton y) = if x =? y then 1 else 0.
-Proof. dec. Qed.
+  forall (A : Type) (p : A -> bool) (x : A),
+    count_BTree p (singleton x) = if p x then 1 else 0.
+Proof. reflexivity. Qed.
 
 (** Properties of [isEmpty]. *)
 
@@ -261,11 +265,11 @@ Proof.
 Qed.
 
 Lemma isEmpty_count_BT :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = true <-> forall x : A, count_BTree x t = 0.
+  forall (A : Type) (t : BTree A),
+    isEmpty t = true <-> forall p : A -> bool, count_BTree p t = 0.
 Proof.
   split; destruct t; cbn; try congruence.
-    intro. specialize (H c). dec.
+    intro. specialize (H (fun _ => true)). cbn in H. inversion H.
 Qed.
 
 (** [mirror] *)

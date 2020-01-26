@@ -13,7 +13,7 @@ Definition insertionSort (A : LinDec) (l : list A)
 
 Lemma perm_ins :
   forall (A : LinDec) (x : A) (l : list A),
-    perm A (x :: l) (ins A x l).
+    perm (x :: l) (ins A x l).
 Proof.
   unfold perm; intros. induction l.
     reflexivity.
@@ -72,13 +72,13 @@ Definition insertionSort'
 
 Lemma perm_ins' :
   forall (A : LinDec) (x : A) (l : list A),
-    perm A (x :: l) (ins' (@leqb A) x l).
+    perm (x :: l) (ins' (@leqb A) x l).
 Proof.
   unfold perm. induction l; cbn; intros.
     reflexivity.
     unfold ins'; destruct (leqb x a); fold (@ins' A).
       reflexivity.
-      dec; rewrite <- IHl; cbn; dec.
+      dec; rewrite <- IHl; cbn. destruct (p a), (p x); reflexivity.
 Qed.
 
 Lemma Permutation_ins' :

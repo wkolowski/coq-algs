@@ -1,5 +1,3 @@
-
-
 Require Export RCCBase.
 
 Require Export BTree.
@@ -78,11 +76,11 @@ end.
 Definition insert {A : LinDec} (x : A) (t : RBTree A) : RBTree A :=
   makeBlack (ins x t).
 
-Fixpoint count_RBT {A : LinDec} (x : A) (t : RBTree A) : nat :=
+Fixpoint count_RBT {A : Type} (p : A -> bool) (t : RBTree A) : nat :=
 match t with
     | E => 0
     | T _ l v r =>
-        (if x =? v then S else id) (count_RBT x l + count_RBT x r)
+        (if p v then S else id) (count_RBT p l + count_RBT p r)
 end.
 
 Function toList {A : Type} (t : RBTree A) : list A :=
@@ -208,12 +206,18 @@ Proof.
   Time intros; functional induction @balance (@carrier A) c l v r; aux.
 Qed.
 
+Ltac destruct_if := repeat
+match goal with
+    | |- context [if ?p then _ else _] => destruct p
+end.
+
 Lemma balance_count_RBT :
-  forall (A : LinDec) (c : color) (x v : A) (l r : RBTree A),
-    count_RBT x (balance c l v r) = count_RBT x (T c l v r).
+  forall (A : Type) (p : A -> bool) (c : color) (v : A) (l r : RBTree A),
+    count_RBT p (balance c l v r) = count_RBT p (T c l v r).
 Proof.
-  intros. functional induction @balance (@carrier A) c l v r;
-  cbn; dec; unfold id; omega.
+  intros. functional induction @balance A c l v r;
+  cbn; destruct_if;
+  unfold id; try omega.
 Qed.
 
 (** Properties of [makeBlack]. *)
@@ -233,10 +237,10 @@ Proof.
 Qed.
 
 Lemma makeBlack_count_RBT :
-  forall (A : LinDec) (x : A) (t : RBTree A),
-    count_RBT x (makeBlack t) = count_RBT x t.
+  forall (A : Type) (p : A -> bool) (t : RBTree A),
+    count_RBT p (makeBlack t) = count_RBT p t.
 Proof.
-  destruct t; auto.
+  destruct t; reflexivity.
 Qed.
 
 (** Properties of [ins]. *)
@@ -267,12 +271,12 @@ Proof.
 Qed.
 
 Lemma ins_count_RBT :
-  forall (A : LinDec) (x y : A) (t : RBTree A),
-    count_RBT x (ins y t) = (if x =? y then S else id) (count_RBT x t).
+  forall (A : LinDec) (p : A -> bool) (x : A) (t : RBTree A),
+    count_RBT p (ins x t) = (if p x then S else id) (count_RBT p t).
 Proof.
   induction t; cbn; dec;
-  rewrite balance_count_RBT; cbn; rewrite ?IHt1, ?IHt2; dec.
-    unfold id. rewrite plus_n_Sm. reflexivity.
+  rewrite balance_count_RBT; cbn; rewrite ?IHt1, ?IHt2;
+  destruct_if; unfold id; omega.
 Qed.
 
 (** Properties of [insert]. *)
@@ -292,8 +296,8 @@ Proof.
 Qed.
 
 Lemma insert_count_RBT :
-  forall (A : LinDec) (x y : A) (t : RBTree A),
-    count_RBT x (insert y t) = (if x =? y then S else id) (count_RBT x t).
+  forall (A : LinDec) (p : A -> bool) (x : A) (t : RBTree A),
+    count_RBT p (insert x t) = (if p x then S else id) (count_RBT p t).
 Proof.
   intros. unfold insert.
   rewrite makeBlack_count_RBT, ins_count_RBT. reflexivity.
@@ -348,12 +352,13 @@ Proof.
 Qed.
 
 Lemma toList_count_RBT :
-  forall (A : LinDec) (x : A) (t : RBTree A),
-    count_RBT x t = count A x (toList t).
+  forall (A : Type) (p : A -> bool) (t : RBTree A),
+    count_RBT p t = count p (toList t).
 Proof.
-  induction t; cbn; dec.
-    rewrite count_app. cbn. rewrite IHt1, IHt2. dec.
-    rewrite count_app. cbn. rewrite IHt1, IHt2. dec.
+  induction t; cbn.
+    reflexivity.
+    rewrite count_app, IHt1, IHt2.
+      cbn. destruct (p a); auto.
 Qed.
 
 Lemma Sorted_toList :
@@ -394,11 +399,12 @@ Proof.
 Qed.
 
 Lemma fromList_count_RBT :
-  forall (A : LinDec) (x : A) (l : list A),
-    count_RBT x (fromList l) = count A x l.
+  forall (A : LinDec) (p : A -> bool) (l : list A),
+    count_RBT p (fromList l) = count p l.
 Proof.
   induction l as [| h t]; cbn; dec;
-  rewrite insert_count_RBT, IHt; dec.
+  rewrite insert_count_RBT, IHt.
+  destruct (p h); reflexivity.
 Qed.
 
 (** Properties of [redblackSort]. *)
@@ -412,7 +418,7 @@ Qed.
 
 Lemma redblackSort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (redblackSort A l).
+    perm l (redblackSort A l).
 Proof.
   unfold perm, redblackSort. intros.
   rewrite <- toList_count_RBT, fromList_count_RBT. reflexivity.

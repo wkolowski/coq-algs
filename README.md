@@ -1,10 +1,12 @@
 # Random Coq Code
 
-Hello. This repository contains some random Coq code, as you probably have guessed from the name. It is also going to be my MSc thesis.
+Hello. This repository contains some random Coq code which is going to be the basis of my Master's Thesis.
 
 The structure of the development is as follows:
 
 * RCCBase.v contains some basic tactics and auxiliary stuff.
+* ADT/ contains definitions of abstract data types.
+* Basic/ contains implementations of basic data types (various trees etc.) which can then be reused for the purposes of different data structures.
 * DS/ contains data structures.
 * Memoization/ is a lame attempt at memoizing functions. Nothing worth looking at.
 * Reflection/ has some code on proof by reflection, also quite lame.
@@ -14,11 +16,11 @@ The structure of the development is as follows:
 
 ## Accomplished
 
-Structures/ contains LinDec, an implementation of decidable linear orders, used in most of the sorting algorithms, along with some lemmas and quite powerful automation tactic called dec.
+Structures/ contains ``LinDec``, an implementation of decidable linear orders, used in most of the sorting algorithms, along with some lemmas and quite powerful automation tactic called dec.
 
-There's also TrichDec, which stands for "decidable trichotomous order". The idea is that such a structure should provide a function  which can decide x < y, x = y or x > y all in one step. It is used in a variant of quicksort. It also comes with appropriate lemmas and automation.
+There's also ``TrichDec``, which stands for "decidable trichotomous order". The idea is that such a structure should provide a function  which can decide ``x < y``, ``x = y`` or ``x > y`` all in one step. It is used in a variant of quicksort. It also comes with appropriate lemmas and automation.
 
-CMon is an implementation of commutative monoids along with a few lemmas used in further developments of reflective tactics. UCRing is an implementation of unitary commutative rings. It comes equipped with most of the basic identities.
+``CMon`` is an implementation of commutative monoids along with a few lemmas used in further developments of reflective tactics. ``UCRing`` is an implementation of unitary commutative rings. It comes equipped with most of the basic identities.
 
 Among the basic data structures in DS, there are binary trees, binary search trees and general trees. They are all quite undeveloped and contain only things needed to implement and verify more advanced data structures coming from the book "Purely Functional Data Structures" by Chris Okasaki.
 
@@ -28,27 +30,24 @@ It's worth nothing that Binary Random Access List witness a wonderful use of the
 
 Sorting/ contains sorting algorithms of two proveniences: classic algorithms like insertion sort, selection sort, merge sort and quicksort, and sorting algorithms based on  the data structures from DS/ — typically variants of tree sort or heapsort. Most of these algorithms are formally verified, but some are not (redblack sort).
 
-The whole development of sorting is based on permutations defined by counting elements in a list. A sort is defined as a function whose input is a sorted permutation of the input. Ther's also a file with various list lemmas which I couldn't find in the standard library.
+The whole development of sorting is based on permutations defined by counting elements in a list. A sort is defined as a function whose input is a sorted permutation of the input. There's also a file with various list lemmas which I couldn't find in the standard library.
 
-In Reflection/ you can find simple developments showing how to do reficiation using Ltac and the typeclass mechanism, examples of using reflection to decide propsitions and simplify expressions in commutative monoids (including the use of sorting to reorder terms). In the most advanced development I try to employ reflection to simplify expressions in unitary commutative rings.
+In Reflection/ you can find simple developments showing how to do reification using Ltac and the typeclass mechanism, examples of using reflection to decide propositions and simplify expressions in commutative monoids (including the use of sorting to reorder terms). In the most advanced development I try to employ reflection to simplify expressions in unitary commutative rings.
 
 There's also an unfinished attempt at doing modular reflection using the "Datatypes à la carte" approach from Wouter Swierstra's paper of the same title.
 
 Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is useless.
 
-## Changelog
-* Somewhere before 12.02.18: solved problems with unvierse inconsistencies.
-* Simplified Deques.
-
 ## TODO
 
-* Develop basic, concrete data structures like vectors, various trees etc.
 * Develop a hierarchy of typeclasses/modules for abstract data types like Queues, Heaps, etc.
+* Develop basic, concrete data structures like vectors, various trees etc.
 * Refactor leftist heaps.
-* Refactor everything else.
-* Remove axioms from Memoization/.
 * Finish/remove normalizaion by evaluation example for monoids.
 * Investigate modular reflection.
 * Prove that perm is equivalent to Permutation from the standard library.
 * Prove general facts about sorting algorithms.
 * Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.
+* Find a way to do modular memoization.
+* Drop the dependency on SSReflect.
+* Generalize list and permutation lemmas.

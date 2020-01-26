@@ -19,6 +19,7 @@ Require Export List.
 Export ListNotations.
 
 Set Implicit Arguments.
+Set Universe Polymorphism.
 
 Hint Constructors reflect.
 

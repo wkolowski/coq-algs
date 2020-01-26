@@ -2,6 +2,8 @@ Require Import RCCBase.
 
 Require Import LinDec.
 
+Require Import Sorting.Sort.
+
 (* TODO *) Module Type PriorityQueue.
 
 Parameter PQ : LinDec -> Type.
@@ -147,8 +149,6 @@ Parameter unMin_elem :
   forall (A : LinDec) (x m : A) (q q' : PQ A),
     unMin q = Some (m, q') -> elem x q <-> x = m \/ elem x q'.
 
-Require Import Sorting.Sort.
-
 Lemma Sorted_toList :
   forall (A : LinDec) (q : PQ A), Sorted A (toList q).
 Proof.
@@ -178,28 +178,28 @@ Qed.
     (if x =? h then S else id) (count (fun y => y =? x) l).*)
 
 Parameter count_toList_insert :
-  forall (A : LinDec) (x h : A) (l : list A),
-    count A x (toList (insert h (fromList l))) =
-    (if x =? h then S else id) (count A x l).
+  forall (A : LinDec) (p : A -> bool) (h : A) (l : list A),
+    count p (toList (insert h (fromList l))) =
+    (if p h then S else id) (count p l).
 
 Lemma priorityQueueSort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (priorityQueueSort A l).
+    perm l (priorityQueueSort A l).
 Proof.
   unfold perm, priorityQueueSort. intros.
   induction l as [| h t]; cbn.
     rewrite toList_equation, unMin_empty. cbn. reflexivity.
-    rewrite count_toList_insert. dec.
+    rewrite count_toList_insert. destruct (p h); reflexivity.
 Qed.
 
 Lemma Permutation_priorityQueueSort :
   forall (A : LinDec) (l : list A),
     Permutation (priorityQueueSort A l) l.
 Proof.
-  unfold priorityQueueSort.
-  induction l as [| h t]; cbn.
-    rewrite toList_equation, unMin_empty. reflexivity.
-Admitted.
+  intros. apply perm_Permutation.
+  rewrite <- priorityQueueSort_perm.
+  reflexivity.
+Qed.
 
 Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=
 {

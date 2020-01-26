@@ -31,13 +31,13 @@ Theorem Sorted_merge :
 Proof.
   intros. functional induction merge A l; simpl in *; auto;
   rewrite merge_equation in *.
-    destruct t; simpl in *; dec.
-    destruct t'; simpl in *; dec.
+    destruct t; cbn in *; dec. inv H.
+    destruct t'; cbn in *; dec. inv H0.
 Qed.
 
 Theorem merge_perm :
   forall (A : LinDec) (l : list A * list A),
-    perm A (fst l ++ snd l) (merge A l).
+    perm (fst l ++ snd l) (merge A l).
 Proof.
   intros. functional induction merge A l; simpl; auto; try clear y.
     rewrite app_nil_r. auto.
@@ -61,8 +61,8 @@ Qed.
 
 Theorem merge_pres_perm :
   forall (A : LinDec) (l1 l1' l2 l2' : list A),
-    perm A l1 l1' -> perm A l2 l2' ->
-      perm A (merge A (l1, l2)) (merge A (l1', l2')).
+    perm l1 l1' -> perm l2 l2' ->
+      perm (merge A (l1, l2)) (merge A (l1', l2')).
 Proof.
   intros. rewrite <- !merge_perm. cbn. apply perm_app; assumption.
 Qed.
@@ -87,7 +87,7 @@ Class Split (A : LinDec) : Type :=
         split' l = (l1, l2) -> 2 <= length l -> length l2 < length l;
     perm_split_app :
       forall (l : list A),
-        perm A l (fst (split' l) ++ snd (split' l))
+        perm l (fst (split' l) ++ snd (split' l))
 }.
 
 Lemma Permutation_app_split :
@@ -156,26 +156,26 @@ Proof.
 Qed.
 
 Lemma count_interleave :
-  forall (A : LinDec) (x : A) (l1 l2 : list A),
-    count A x (interleave l1 l2) = count A x l1 + count A x l2.
+  forall (A : Type) (p : A -> bool) (l1 l2 : list A),
+    count p (interleave l1 l2) = count p l1 + count p l2.
 Proof.
   induction l1 as [| h1 t1]; cbn; auto.
     destruct l2 as [| h2 t2]; cbn.
       apply plus_n_O.
-      dec; rewrite IHt1; omega.
+      rewrite IHt1. destruct (p h1), (p h2); omega.
 Qed.
 
 Lemma perm_interleave :
   forall (A : LinDec) (l1 l1' l2 l2' : list A),
-    perm A l1 l1' -> perm A l2 l2' ->
-      perm A (interleave l1 l2) (interleave l1' l2').
+    perm l1 l1' -> perm l2 l2' ->
+      perm (interleave l1 l2) (interleave l1' l2').
 Proof.
   unfold perm. intros. rewrite !count_interleave. auto.
 Qed.
 
 Lemma merge_perm_interleave :
   forall (A : LinDec) (l : list A * list A),
-    perm A (merge A l) (interleave (fst l) (snd l)).
+    perm (merge A l) (interleave (fst l) (snd l)).
 Proof.
   unfold perm; intros. rewrite count_interleave.
   rewrite <- merge_perm. rewrite count_app. auto.

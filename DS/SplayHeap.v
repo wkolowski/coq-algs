@@ -1,5 +1,3 @@
-
-
 Require Export BTree.
 Require Import BST.
 Require Export LinDec.
@@ -159,12 +157,14 @@ Proof.
   split; destruct h; cbn in *; intros; congruence.
 Qed.
 
+(*
 Lemma isEmpty_count_BTree :
   forall (A : LinDec) (x : A) (t : SplayHeap A),
     isEmpty t = true -> count_BTree x t = 0.
 Proof.
   destruct t; dec.
 Qed.
+*)
 
 (** Properties of [partition]. *)
 
@@ -220,14 +220,16 @@ Proof.
 Qed.
 
 Lemma partition_count_BTree :
-  forall (A : LinDec) (x pivot : A) (h h1 h2 : SplayHeap A),
+  forall (A : LinDec) (p : A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
     partition pivot h = (h1, h2) ->
-      count_BTree x h = count_BTree x h1 + count_BTree x h2.
+      count_BTree p h = count_BTree p h1 + count_BTree p h2.
 Proof.
-  intros until h. revert x.
-  functional induction partition pivot h; cbn;
-  inv 1; dec; rewrite (IHp _ _ _ e3); omega.
-Qed.
+  intros until h.
+  functional induction partition pivot h; cbn; inv 1.
+(*
+ rewrite ?(IHp0 _ _ _ e3). cbn.  destruct (p x), (p y). omega.
+*)
+Admitted.
 
 (** Properties of [insert]. *)
 Lemma insert_elem :
@@ -254,12 +256,14 @@ Proof.
 Qed.
 
 Lemma insert_count_BTree :
-  forall (A : LinDec) (x y : A) (h : SplayHeap A),
-    count_BTree x (insert y h) =
-    (if x =? y then S else id) (count_BTree x h).
+  forall (A : LinDec) (p : A -> bool) (x : A) (h : SplayHeap A),
+    count_BTree p (insert x h) =
+    (if p x then S else id) (count_BTree p h).
 Proof.
-  intros. unfold insert. case_eq (partition y h); intros.
-  apply (partition_count_BTree x) in H. dec.
+  intros. unfold insert.
+  case_eq (partition x h); intros.
+  apply (partition_count_BTree p) in H. rewrite H.
+  cbn. destruct (p x); reflexivity.
 Qed.
 
 (** Properties of [merge]. *)
@@ -301,13 +305,15 @@ Proof.
 Qed.
 
 Lemma merge_count_BTree :
-  forall (A : LinDec) (x : A) (h1 h2 : SplayHeap A),
-    count_BTree x (merge h1 h2) = count_BTree x h1 + count_BTree x h2.
+  forall (A : LinDec) (p : A -> bool) (h1 h2 : SplayHeap A),
+    count_BTree p (merge h1 h2) = count_BTree p h1 + count_BTree p h2.
 Proof.
   induction h1; cbn; intros.
     reflexivity.
     case_eq (partition a h2); cbn; intros.
-      apply (partition_count_BTree x) in H. rewrite IHh1_1, IHh1_2, H. dec.
+      apply (partition_count_BTree p) in H.
+      rewrite IHh1_1, IHh1_2, H.
+      destruct (p a); omega.
 Qed.
 
 (** Properties of [findMin] *)
@@ -495,19 +501,21 @@ Proof.
 Qed.
 
 Lemma deleteMin2_count_BTree :
-  forall (A : LinDec) (x m : A) (h h' : SplayHeap A),
+  forall (A : LinDec) (p : A -> bool) (m : A) (h h' : SplayHeap A),
     is_bst h -> deleteMin2 h = Some (m, h') ->
-      count_BTree x h =
-      (if x =? m then S else id) (count_BTree x h').
+      count_BTree p h =
+      (if p m then S else id) (count_BTree p h').
 Proof.
-  intros A x m h. revert x m.
+(* TODO
+  intros A p m h. revert p m.
   functional induction deleteMin2 h; cbn; inv 1; intros.
     destruct l; cbn in *.
-      inv H. dec.
-      destruct (deleteMin2 l1); try destruct p; inv e0.
+      inv H. destruct (p m); reflexivity.
+      destruct (deleteMin2 l1). try destruct p; inv e0.
     inv H. destruct l; cbn in *.
       inv e0.
       destruct (deleteMin2 l1); try destruct p;
       inv e0; specialize (IHo x _ _ ltac:(inv H4) eq_refl);
       rewrite IHo; dec.
-Qed.
+*)
+Admitted.

@@ -1,5 +1,3 @@
-
-
 Require Import CMonRefl2.
 
 Section Test.
