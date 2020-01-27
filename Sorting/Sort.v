@@ -169,16 +169,16 @@ Qed.
 
 (** An alternative characterization of Sortedness *)
 
-Fixpoint nth {A : Type} (n : nat) (l : list A) {struct l} : option A :=
+Fixpoint nth' {A : Type} (n : nat) (l : list A) {struct l} : option A :=
 match l, n with
     | [], _ => None
     | h :: t, 0 => Some h
-    | _ :: t, S n' => nth n' t
+    | _ :: t, S n' => nth' n' t
 end.
 
 Definition Sorted' {A : Type} (R : A -> A -> Prop) (l : list A) : Prop :=
   forall (n1 n2 : nat) (x y : A),
-    nth n1 l = Some x -> nth n2 l = Some y -> n1 <= n2 -> R x y.
+    nth' n1 l = Some x -> nth' n2 l = Some y -> n1 <= n2 -> R x y.
 
 Lemma Sorted'_Sorted_aux :
   forall (A : Type) (R : A -> A -> Prop) (l : list A),

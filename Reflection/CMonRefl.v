@@ -97,7 +97,7 @@ Theorem simplify_idempotent :
     simplify (simplify e) = simplify e.
 Proof.
   intros. unfold simplify.
-  rewrite ?flatten_lte.
+  rewrite ?flatten_lte. Check sort_idempotent.
   pose (sort_idempotent (Sort_insertionSort natle)). simpl in e0.
   rewrite e0. reflexivity.
 Qed.

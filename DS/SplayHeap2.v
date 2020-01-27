@@ -1,5 +1,3 @@
-
-
 Require Export BTree.
 Require Import BST.
 Require Export LinDec.
@@ -211,8 +209,8 @@ Proof.
 Qed.
 
 Lemma isEmpty_count_BTree :
-  forall (A : LinDec) (x : A) (h : SplayHeap A),
-    isEmpty h = true -> count_BTree x h = 0.
+  forall (A : LinDec) (p : A -> bool) (h : SplayHeap A),
+    isEmpty h = true -> count_BTree p h = 0.
 Proof.
   destruct h; cbn; congruence.
 Qed.
@@ -255,18 +253,17 @@ Proof.
       inv H. eauto.
 Qed.
 
-
-
 (* wut *)
 
-
+(*
 Lemma not_elem_count_BTree :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    ~ elem x t -> count_BTree x t = 0.
+  forall (A : Type) (p : A -> bool) (t : BTree A),
+    ~ elem x t -> count_BTree p t = 0.
 Proof.
   induction t; cbn; intros; rewrite ?IHt1, ?IHt2; dec.
   contradiction H. constructor.
 Qed.
+*)
 
 Lemma elem_lt_not_r :
   forall (A : LinDec) (x v : A) (l r : BTree A),
@@ -280,10 +277,11 @@ match goal with
     | H : elem _ empty |- _ => inv H
 end.
 
+(*
 Lemma count_BTree_node :
-  forall (A : LinDec) (x v : A) (l r : BTree A),
+  forall (A : LinDec) (p : A -> bool) (x v : A) (l r : BTree A),
     is_bst (node v l r) -> x ≤ v -> x <> v ->
-      count_BTree x (node v l r) = count_BTree x (node v l empty).
+      count_BTree p (node v l r) = count_BTree p (node v l empty).
 Proof.
   intros. destruct (elem_decb_reflect A x (node v l r)).
     Focus 2. rewrite !not_elem_count_BTree; auto.
@@ -292,7 +290,9 @@ Proof.
       reflexivity.
       intro. inv H.
 Qed.
+*)
 
+(*
 Lemma bigger_count_BTree :
   forall (A : LinDec) (x pivot : A) (h : SplayHeap A),
     is_bst h -> pivot ≤ x -> x <> pivot ->
@@ -325,6 +325,7 @@ Restart.
           eapply leq_trans; eauto.
     dec.
 Abort.
+*)
 
 (** Properties of [smaller]. *)
 Lemma smaller_spec :

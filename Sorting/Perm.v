@@ -2,7 +2,7 @@ Require Export RCCBase.
 
 (*Require Export LinDec.*)
 
-Require Export Sorting.ListLemmas_generalized.
+Require Export Sorting.ListLemmas.
 Require Import TrichDec.
 
 Require Import Classes.RelationClasses.

@@ -1,5 +1,3 @@
-
-
 Require Export RCCBase.
 
 Require Export Sorting.Sort.
@@ -70,7 +68,7 @@ Proof.
 Qed.
 
 Lemma sort_idempotent :
-  forall (A : LinDec) (s : Sort A) (l : list A),
+  forall {A : LinDec} (s : Sort A) (l : list A),
     sort (sort l) = sort l.
 Proof.
   intros. apply Permutation_Sorted_aux.

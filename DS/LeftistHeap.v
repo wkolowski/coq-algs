@@ -1,5 +1,3 @@
-
-
 Require Export LinDec.
 Require Import Sorting.Sort.
 
@@ -245,16 +243,16 @@ Proof.
   intros. balance. rewrite plus_comm. reflexivity.
 Qed.
 
-Fixpoint count_Tree {A : LinDec} (x : A) (t : Tree A) : nat :=
+Fixpoint count_Tree {A : Type} (p : A -> bool) (t : Tree A) : nat :=
 match t with
     | E => 0
     | N _ v l r =>
-        (if x =? v then S else id) (count_Tree x l + count_Tree x r)
+        (if p v then S else id) (count_Tree p l + count_Tree p r)
 end.
 
 Lemma balance_count_Tree :
-  forall (A : LinDec) (k : nat) (x v : A) (l r : Tree A),
-    count_Tree x (balance v l r) = count_Tree x (N k v l r).
+  forall (A : Type) (p : A -> bool) (k : nat) (v : A) (l r : Tree A),
+    count_Tree p (balance v l r) = count_Tree p (N k v l r).
 Proof.
   intros. balance; dec. rewrite plus_comm. reflexivity.
 Qed.
@@ -336,15 +334,15 @@ Unshelve.
 Qed.
 
 Lemma merge_count_Tree :
-  forall (A : LinDec) (x : A) (t1 t2 : Tree A),
-    count_Tree x (merge (t1, t2)) = count_Tree x t1 + count_Tree x t2.
+  forall (A : LinDec) (f : A -> bool) (t1 t2 : Tree A),
+    count_Tree f (merge (t1, t2)) = count_Tree f t1 + count_Tree f t2.
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
   functional induction @merge A p; inv 1.
     erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
-      cbn in *. dec; unfold id in *; omega.
+      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); omega.
     erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
-      cbn in *. dec; unfold id in *; omega.
+      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); omega.
 Unshelve.
   1-2: exact 0.
 Qed.
@@ -392,11 +390,12 @@ Proof.
 Qed.
 
 Lemma insert_count_Tree :
-  forall (A : LinDec) (x y : A) (t : Tree A),
-    count_Tree x (insert y t) =
-    (if x =? y then S else id) (count_Tree x t).
+  forall (A : LinDec) (p : A -> bool) (x : A) (t : Tree A),
+    count_Tree p (insert x t) =
+    (if p x then S else id) (count_Tree p t).
 Proof.
-  intros. unfold insert. rewrite merge_count_Tree. dec.
+  intros. unfold insert. rewrite merge_count_Tree. cbn.
+  destruct (p x); reflexivity.
 Qed.
 
 (** Properties of [findMin], [deleteMin] and [unNode]. *)
@@ -434,9 +433,9 @@ Proof.
 Qed.
 
 Lemma deleteMin_count_Tree :
-  forall (A : LinDec) (x m : A) (t t' : Tree A),
+  forall (A : LinDec) (p : A -> bool) (m : A) (t t' : Tree A),
     deleteMin t = (Some m, t') ->
-      count_Tree x t = (if x =? m then S else id) (count_Tree x t').
+      count_Tree p t = (if p m then S else id) (count_Tree p t').
 Proof.
   destruct t; cbn; intros; inv H.
   dec; rewrite merge_count_Tree; reflexivity.
@@ -486,9 +485,9 @@ Proof.
 Qed.
 
 Lemma unNode_count_Tree :
-  forall (A : LinDec) (x m : A) (t t' : Tree A),
+  forall (A : LinDec) (p : A -> bool) (m : A) (t t' : Tree A),
     unNode t = Some (m, t') ->
-      count_Tree x t = (if x =? m then S else id) (count_Tree x t').
+      count_Tree p t = (if p m then S else id) (count_Tree p t').
 Proof.
   destruct t; cbn; intros; inv H.
   dec; rewrite merge_count_Tree; reflexivity.
@@ -554,26 +553,27 @@ Proof.
 Qed.
 
 Lemma fromList_count_Tree :
-  forall (A : LinDec) (x : A) (l : list A),
-    count_Tree x (fromList l) = count A x l.
+  forall (A : LinDec) (p : A -> bool) (l : list A),
+    count_Tree p (fromList l) = count p l.
 Proof.
   induction l as [| h t]; cbn; dec;
-  rewrite insert_count_Tree; dec.
+  rewrite insert_count_Tree, IHt.
+  destruct (p h); reflexivity.
 Qed.
 
 Lemma toList_count_Tree :
-  forall (A : LinDec) (x : A) (t : Tree A),
-    count A x (toList t) = count_Tree x t.
+  forall (A : LinDec) (p : A -> bool) (t : Tree A),
+    count p (toList t) = count_Tree p t.
 Proof.
   intros. functional induction @toList A t.
     destruct t; inv e.
-    destruct t; inv e. cbn. dec;
-      rewrite IHl, merge_count_Tree; reflexivity.
+    destruct t; inv e. cbn.
+      rewrite IHl, merge_count_Tree. destruct (p m); reflexivity.
 Qed.
 
 Lemma leftistHeapsort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (leftistHeapsort A l).
+    perm l (leftistHeapsort A l).
 Proof.
   unfold perm, leftistHeapsort. intros.
   rewrite toList_count_Tree, fromList_count_Tree. reflexivity.

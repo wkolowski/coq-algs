@@ -1,5 +1,3 @@
-
-
 Require Import QuickSort.
 
 Set Implicit Arguments.
@@ -10,13 +8,13 @@ Theorem uqs_perm :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
-      perm A l (uqs adhoc choosePivot partition l).
+      perm l (uqs adhoc choosePivot partition l).
 Proof.
   intros.
   functional induction @uqs A small adhoc choosePivot partition l.
     pose (e' := e). apply small_inl in e'; subst.
       apply adhoc_perm in e. assumption.
-    assert (perm A l (pivot :: rest)).
+    assert (perm l (pivot :: rest)).
       apply small_inr in e. apply pivot_spec in e0.
         apply Permutation_perm. rewrite e, e0. reflexivity.
       rewrite H. apply perm_symm. eapply perm_trans.
@@ -36,7 +34,8 @@ Proof.
   intros.
   functional induction @uqs A small adhoc choosePivot partition l.
     pose (e' := e). apply small_inl in e'; subst.
-      apply adhoc_perm in e. admit.
+      apply adhoc_perm in e. apply perm_Permutation.
+        rewrite <- e. reflexivity.
     assert (Permutation l (pivot :: rest)).
       apply small_inr in e. apply pivot_spec in e0.
         rewrite e, e0. reflexivity.
@@ -48,9 +47,7 @@ Proof.
             apply Permutation_app.
               reflexivity.
               assumption.
-Restart.
-  (* TODO *) 
-Admitted.
+Qed.
 
 Theorem uqs_In :
   forall
@@ -60,7 +57,10 @@ Theorem uqs_In :
       In x (uqs adhoc choosePivot partition l) <->
       In x l.
 Proof.
-  intros. rewrite !count_In, <- uqs_perm; auto. reflexivity.
+  intros. Search Permutation In.
+  split; apply Permutation_in.
+    apply Permutation_uqs.
+    symmetry. apply Permutation_uqs.
 Qed.
 
 Theorem Sorted_uqs :
@@ -124,7 +124,7 @@ Defined.
 
 Instance Sort_hqs (A : LinDec) (n : nat) (s : Sort A) : Sort A :=
 {
-    sort := hqs n s
+    sort := hqs n A s
 }.
 Proof.
   apply Sorted_uqs.

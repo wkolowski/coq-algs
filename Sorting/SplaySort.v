@@ -1,5 +1,3 @@
-
-
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
@@ -55,17 +53,18 @@ Proof.
 Qed.
 
 Lemma count_BTree_fromList :
-  forall (A : LinDec) (x : A) (l : list A),
-    count_BTree x (fromList l) = Perm.count A x l.
+  forall (A : LinDec) (p : A -> bool) (l : list A),
+    count_BTree p (fromList l) = Perm.count p l.
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
-    rewrite insert_count_BTree. dec.
+    rewrite insert_count_BTree. rewrite IHt.
+      destruct (p h); reflexivity.
 Qed.
 
 Theorem splaySort_perm :
   forall (A : LinDec) (l : list A),
-    perm A l (splaySort A l).
+    perm l (splaySort A l).
 Proof.
   unfold splaySort, perm. intros.
   rewrite count_toList. rewrite count_BTree_fromList. reflexivity.

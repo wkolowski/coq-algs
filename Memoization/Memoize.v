@@ -290,8 +290,9 @@ match n with
         let (x4, acc4) := bind n1 wutzor' acc3 in x1 + x2 + x3 + x4
 end.
 
-
+(*
 Time Compute wutzor 30.
 Time Compute
   wutzor' 30
     (@fromList FibAcc [(0, 0); (1, 0); (2, 0); (3, 0)]).
+*)

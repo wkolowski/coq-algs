@@ -53,34 +53,35 @@ Proof.
     apply Sorted_braunMerge.
 Qed.
 
-Fixpoint braunCount {A : LinDec} (x : A) (b : Braun A) : nat :=
+Fixpoint braunCount {A : Type} (p : A -> bool) (b : Braun A) : nat :=
 match b with
-    | Leaf a => if x =? a then 1 else 0
-    | Node l r => braunCount x l + braunCount x r
+    | Leaf a => if p a then 1 else 0
+    | Node l r => braunCount p l + braunCount p r
 end.
 
 Lemma braunCount_braunInsert :
-  forall (A : LinDec) (x y : A) (b : Braun A),
-    braunCount x (braunInsert y b) =
-      (if x =? y then S else id) (braunCount x b).
+  forall (A : Type) (p : A -> bool) (x : A) (b : Braun A),
+    braunCount p (braunInsert x b) =
+      (if p x then S else id) (braunCount p b).
 Proof.
   induction b as [a | l IHl r IHr]; cbn.
-    dec.
-    dec. rewrite IHr, Nat.add_comm. reflexivity.
+    destruct (p x); reflexivity.
+    rewrite IHr. destruct (p x); unfold id; omega.
 Qed.
 
 Lemma braunCount_fromList :
-  forall (A : LinDec) (t : list A) (x h : A),
-    braunCount x (fromList h t) = count A x (h :: t).
+  forall (A : Type) (p : A -> bool) (t : list A) (h : A),
+    braunCount p (fromList h t) = count p (h :: t).
 Proof.
   induction t as [| h' t']; cbn; intros.
     reflexivity.
-    rewrite braunCount_braunInsert, IHt'. cbn. dec.
+    rewrite braunCount_braunInsert, IHt'. cbn.
+      destruct (p h), (p h'); reflexivity.
 Qed.
 
 Lemma count_braunMerge :
-  forall (A : LinDec) (b : Braun A) (x : A),
-    count A x (braunMerge b) = braunCount x b.
+  forall (A : LinDec) (p : A -> bool) (b : Braun A),
+    count p (braunMerge b) = braunCount p b.
 Proof.
   induction b as [a | l IHl r IHr]; cbn; intros.
     dec.
@@ -89,7 +90,7 @@ Defined.
 
 Lemma perm_braunSort :
   forall (A : LinDec) (l : list A),
-    perm A l (braunSort l).
+    perm l (braunSort l).
 Proof.
   destruct l as [| h t]; intro; cbn.
     reflexivity.
