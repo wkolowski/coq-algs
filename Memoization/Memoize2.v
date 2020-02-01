@@ -72,6 +72,7 @@ match x with
     | @Bind _ X y g => Bind y (fun x : X => fmap_Memoize f (g x))
 end.
 
+#[refine]
 Instance Functor_Memoize : Functor Memoize :=
 {
     fmap := @fmap_Memoize;

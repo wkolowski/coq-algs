@@ -587,6 +587,7 @@ Proof.
   reflexivity.
 Qed.
 
+#[refine]
 Instance Sort_leftistHeapsort (A : LinDec) : Sort A :=
 {
     sort := @leftistHeapsort A;

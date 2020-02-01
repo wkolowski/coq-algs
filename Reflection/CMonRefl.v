@@ -562,6 +562,7 @@ match goal with
           try apply (unwrap (solveFormula envX envP (simplifyFormula f)))
 end.
 
+#[refine]
 Instance CMon_unit : CMon :=
 {
     carrier := unit;

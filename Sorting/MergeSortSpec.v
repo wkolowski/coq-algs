@@ -33,6 +33,7 @@ Proof.
       rewrite <- Permutation_merge. cbn. apply Permutation_app; assumption.
 Qed.
 
+#[refine]
 Instance Sort_ghms
   (n : nat) (A : LinDec) (sort : Sort A) (split : Split A) : Sort A :=
 {

@@ -39,7 +39,7 @@ Coercion small : Small >-> Funclass.
 
 Class AdHocSort {A : LinDec} (small : Small A) : Type :=
 {
-    adhoc :> list A -> list A;
+    adhoc : list A -> list A;
     Sorted_adhoc :
       forall l l' : list A,
         small l = inl l' -> Sorted A (adhoc l');
@@ -62,7 +62,7 @@ Coercion pivot : Pivot >-> Funclass.
 
 Class Partition (A : LinDec) : Type :=
 {
-    partition :> A -> list A -> list A * list A * list A;
+    partition : A -> list A -> list A * list A * list A;
     spec_lo :
       forall (pivot : A) (l lo eq hi : list A),
         partition pivot l = (lo, eq, hi) ->
@@ -135,6 +135,7 @@ Defined.
 
 (** Ordinary quicksort using [uqs] *)
 
+#[refine]
 Instance Small_head (A : LinDec) : Small A :=
 {
     small :=
@@ -148,6 +149,7 @@ Proof.
   all: destruct l; cbn; inv 1.
 Defined.
 
+#[refine]
 Instance AdHocSort_id (A : LinDec) : AdHocSort (Small_head A) :=
 {
     adhoc := id;
@@ -156,6 +158,7 @@ Proof.
   all: destruct l; inv 1; constructor.
 Defined.
 
+#[refine]
 Instance Pivot_head (A : LinDec) : Pivot A :=
 {
     pivot :=
@@ -163,6 +166,7 @@ Instance Pivot_head (A : LinDec) : Pivot A :=
 }.
 Proof. inv 1. Defined.
 
+#[refine]
 Instance Partition_filter (A : LinDec) : Partition A :=
 {
     partition x l :=
@@ -182,6 +186,7 @@ Defined.
 Definition qs A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_filter A).
 
+#[refine]
 Instance Partition_bifilter (A : LinDec) : Partition A :=
 {
     partition x l :=
@@ -200,6 +205,7 @@ Defined.
 Definition qs2 A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_bifilter A).
 
+#[refine]
 Instance Small_length (A : LinDec) (n : nat) : Small A :=
 {
     small l :=
@@ -218,6 +224,7 @@ Proof.
     destruct (Nat.leb (length l) n); inv H1.
 Defined.
 
+#[refine]
 Instance AdHocSort_Sort
   {A : LinDec} (small : Small A) (sort : Sort A) : AdHocSort small :=
 {
@@ -237,7 +244,8 @@ Definition hqs
 
 Require Import TrichDec.
 
-(* TODO *) Instance Partition_trifilter (A : TrichDec) : Partition A :=
+(* TODO *) #[refine]
+Instance Partition_trifilter (A : TrichDec) : Partition A :=
 {
     partition := @trifilter A
 }.

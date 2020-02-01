@@ -87,6 +87,7 @@ Definition leqb_Task : Task -> Task -> bool :=
       | Gt => false
   end.
 
+#[refine]
 Instance LinDec_Task : LinDec :=
 {
     carrier := Task;

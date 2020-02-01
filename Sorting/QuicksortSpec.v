@@ -57,7 +57,7 @@ Theorem uqs_In :
       In x (uqs adhoc choosePivot partition l) <->
       In x l.
 Proof.
-  intros. Search Permutation In.
+  intros.
   split; apply Permutation_in.
     apply Permutation_uqs.
     symmetry. apply Permutation_uqs.
@@ -91,6 +91,7 @@ Proof.
           intros. apply uqs_In in H. eapply spec_lo; eauto.
 Qed.
 
+#[refine]
 Instance Sort_uqs
   (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
   (choosePivot : Pivot A) (partition : Partition A) : Sort A :=
@@ -102,6 +103,7 @@ Proof.
   intros. apply perm_Permutation. rewrite <- uqs_perm. reflexivity.
 Defined.
 
+#[refine]
 Instance Sort_qs (A : LinDec) : Sort A :=
 {
     sort := qs A
@@ -112,6 +114,7 @@ Proof.
     reflexivity.
 Defined.
 
+#[refine]
 Instance Sort_qs2 (A : LinDec) : Sort A :=
 {
     sort := qs2 A
@@ -122,6 +125,7 @@ Proof.
     reflexivity.
 Defined.
 
+#[refine]
 Instance Sort_hqs (A : LinDec) (n : nat) (s : Sort A) : Sort A :=
 {
     sort := hqs n A s

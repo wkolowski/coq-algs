@@ -9,7 +9,7 @@ Variables
 Definition Yoneda : Type :=
   {y : forall B : Type, (A -> B) -> F B |
     forall (B C : Type) (f : A -> B) (g : A -> A),
-      fmap f (y A g) = y B (g .> f)}.
+      @fmap _ inst _ _ f (y A g) = y B (g .> f)}.
 
 Definition abstract (x : F A) : Yoneda.
 Proof.

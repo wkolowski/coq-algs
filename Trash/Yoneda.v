@@ -9,7 +9,7 @@ Variables
 Definition Yoneda : Type := forall B : Type, (A -> B) -> F B.
 
 Definition abstract (x : F A) : Yoneda :=
-  fun (B : Type) (f : A -> B) => fmap f x.
+  fun (B : Type) (f : A -> B) => @fmap _ inst _ _ f x.
 
 Definition concretize (y : Yoneda) : F A :=
   y A id.

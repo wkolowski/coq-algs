@@ -140,6 +140,7 @@ match t with
 end.
 
 (*
+#[refine]
 Instance Functor_Tree : Functor Tree :=
 {
     fmap := @fmap_Tree
@@ -158,6 +159,7 @@ match t with
                   (fold_right (fun h t => op (foldMap_Tree f h) t) neutr l)
 end.
 
+#[refine]
 Instance Foldable_Tree : Foldable Tree :=
 {
     foldMap := @foldMap_Tree;

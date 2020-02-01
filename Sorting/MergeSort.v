@@ -41,7 +41,7 @@ Theorem merge_perm :
 Proof.
   intros. functional induction merge A l; simpl; auto; try clear y.
     rewrite app_nil_r. auto.
-    eapply perm_trans.
+    eapply Perm.perm_trans.
       rewrite app_comm_cons. apply perm_app_comm.
       simpl. apply perm_cons. simpl in IHl0. rewrite <- IHl0.
         apply perm_app_comm.
@@ -121,6 +121,7 @@ Proof.
   intros. functional induction @div2 n; omega.
 Qed.
 
+#[refine]
 Instance HalfSplit (A : LinDec) : Split A :=
 {
     split' l :=
@@ -181,6 +182,7 @@ Proof.
   rewrite <- merge_perm. rewrite count_app. auto.
 Qed.
 
+#[refine]
 Instance MsSplit (A : LinDec) : Split A :=
 {
     split' := ms_split;
@@ -269,6 +271,7 @@ Defined.
 
 Definition ums_wut A := @ums' A 0.
 
+#[refine]
 Instance Small_recdepth (A : LinDec) (max : nat) : Small A :=
 {
     small recdepth l :=

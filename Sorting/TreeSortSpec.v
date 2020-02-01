@@ -37,6 +37,7 @@ Proof.
     rewrite Permutation_treeSort_aux. constructor. assumption.
 Qed.
 
+#[refine]
 Instance Sort_treeSort (A : LinDec) : Sort A :=
 {
     sort := @treeSort A;
@@ -54,6 +55,7 @@ Proof.
   unfold treeSort. reflexivity.
 Qed.
 
+#[refine]
 Instance Sort_treeSort' (A : LinDec) : Sort A :=
 {
     sort := @treeSort' A;

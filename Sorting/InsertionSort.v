@@ -45,6 +45,7 @@ Restart.
   induction 1; cbn in *; dec.
 Qed.
 
+#[refine]
 Instance Sort_insertionSort (A : LinDec) : Sort A :=
 {
     sort := insertionSort A
@@ -103,6 +104,7 @@ Restart.
   induction 1; cbn in *; dec.
 Qed.
 
+#[refine]
 Instance Sort_insertionSort' (A : LinDec) : Sort A :=
 {
     sort := insertionSort' (@leqb A)

@@ -201,6 +201,7 @@ Proof.
   reflexivity.
 Qed.
 
+#[refine]
 Instance Sort_priorityQueueSort (A : LinDec) : Sort A :=
 {
     sort := @priorityQueueSort A;

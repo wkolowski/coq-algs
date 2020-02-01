@@ -33,6 +33,7 @@ Qed.
 
 Require Import ListLemmas.
 
+#[refine]
 Instance Sort_redblackSort (A : LinDec) : Sort A :=
 {
     sort := @redblackSort A;

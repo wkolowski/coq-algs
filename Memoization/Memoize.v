@@ -24,6 +24,7 @@ end.
 
 Axiom hehe : False.
 
+#[refine]
 Instance KVP (A : LinDec) (B : Type) : LinDec :=
 {
     carrier := A * B;

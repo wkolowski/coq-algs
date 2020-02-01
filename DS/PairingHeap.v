@@ -428,6 +428,7 @@ Proof.
     apply fromList_isHeap.
 Qed.
 
+#[refine]
 Instance Sort_pairingSort (A : LinDec) : Sort A :=
 {
     sort := @pairingSort A;

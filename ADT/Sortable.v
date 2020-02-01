@@ -58,6 +58,7 @@ From Equations Require Import Equations.
 Definition lt_Sortable {A : LinDec} (s1 s2 : Sortable A) : Prop :=
   fst s1 < fst s2.
 
+#[refine]
 Instance lt_Sortable_wf (A : LinDec) : WellFounded (@lt_Sortable A).
 Proof.
   red. apply well_founded_lt_compat with fst.

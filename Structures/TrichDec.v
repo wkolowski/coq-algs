@@ -1,5 +1,3 @@
-
-
 Require Export RCCBase.
 
 Require Export LinDec.
@@ -68,6 +66,7 @@ match goal with
     | H : ?x < ?x |- _ => pose (trich_lt_irrefl x); contradiction
 end; dec.
 
+#[refine]
 Instance TrichDec_to_LinDec (A : TrichDec) : LinDec :=
 {
     carrier := @carrier A;
@@ -96,6 +95,7 @@ match n, m with
     | S n', S m' => trichb_nat n' m'
 end.
 
+#[refine]
 Instance natlt : TrichDec :=
 {
     carrier := nat;

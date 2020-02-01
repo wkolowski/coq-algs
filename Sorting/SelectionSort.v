@@ -183,6 +183,7 @@ Proof.
       assumption.
 Qed.
 
+#[refine]
 Instance Sort_ss (A : LinDec) : Sort A :=
 {
     sort := @ss A;
@@ -651,6 +652,7 @@ Proof.
         eapply select_mins_maxes; eauto.
 Qed.
 
+#[refine]
 Instance Sort_gss (A : LinDec) (s : Select A) : Sort A :=
 {
     sort := gss s;
@@ -679,6 +681,7 @@ Proof.
     apply lt_n_S. apply IHo. assumption.
 Qed.
 
+#[refine]
 Instance Select_min (A : LinDec) : Select A :=
 {
     select l :=

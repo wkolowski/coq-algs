@@ -1,8 +1,11 @@
 *vo
 *vo.aux
+*vos
+*vok
 *aux
 *glob
 *v.d
 *~
 makefile
 .coqdeps.d
+.makefile.d

@@ -32,18 +32,21 @@ Class Reify (P : Prop) : Type :=
 
 Arguments reify _ [Reify].
 
+#[refine]
 Instance ReifyFalse : Reify False :=
 {
     reify := FConst false
 }.
 Proof. auto. Defined.
 
+#[refine]
 Instance ReifyTrue : Reify True :=
 {
     reify := FConst true
 }.
 Proof. simpl; auto. Defined.
 
+#[refine]
 Instance ReifyAnd (P Q : Prop) (RP : Reify P) (RQ : Reify Q)
     : Reify (P /\ Q) :=
 {
@@ -54,6 +57,7 @@ Proof.
     destruct HP, HQ; auto; constructor; tauto.
 Defined.
 
+#[refine]
 Instance ReifyOr (P Q : Prop) (RP : Reify P) (RQ : Reify Q)
     : Reify (P \/ Q) :=
 {
@@ -64,6 +68,7 @@ Proof.
     destruct HP, HQ; auto; constructor; tauto.
 Defined.
 
+#[refine]
 Instance ReifyImp (P Q : Prop) (RP : Reify P) (RQ : Reify Q)
     : Reify (P -> Q) :=
 {

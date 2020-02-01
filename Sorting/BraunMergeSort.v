@@ -97,6 +97,7 @@ Proof.
     rewrite count_braunMerge, braunCount_fromList. cbn. reflexivity.
 Qed.
 
+#[refine]
 Instance Sort_braunSort (A : LinDec) : Sort A :=
 {|
     sort := @braunSort A;

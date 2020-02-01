@@ -8,6 +8,7 @@ end.
 
 Hint Unfold fmap_Prod : CoqMTL.
 
+#[refine]
 Instance FunctorProd (A : Type) : Functor (prod A) :=
 {
     fmap := @fmap_Prod A

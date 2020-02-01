@@ -58,6 +58,7 @@ Proof.
       destruct (leqb_spec y x); simpl; auto.
 Defined.
 
+#[refine]
 Instance natle : LinDec :=
 {
     carrier := nat;

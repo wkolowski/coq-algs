@@ -114,7 +114,8 @@ Parameter tail_cons :
   forall (A : Type) (x : A) (d : Deque A),
     tail (cons x d) = Some d.
 
-(*Require Import CoqMTL.Instances.Option.
+(*Require Import CoqMTL.#[refine]
+Instances.Option.
 
 Parameter tail_snoc :
   forall (A : Type) (x : A) (d : Deque A),
