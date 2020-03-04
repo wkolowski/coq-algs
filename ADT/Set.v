@@ -1,10 +1,8 @@
-
-
 Require Import RCCBase.
 
 Require Import LinDec.
 
-(* TODO *) Module Type SET.
+(* TODO *) Module Type FinSet.
 
 Parameter S : LinDec -> Type.
 
@@ -52,4 +50,4 @@ Parameter remove_insert_equiv :
   forall (A : LinDec) (x : A) (s : S A),
     equiv (remove x (insert x s)) s.
 
-End SET.
+End FinSet.
