@@ -14,32 +14,32 @@ Inductive BTree (A : Type) : Type :=
 Arguments empty {A}.
 Arguments node {A} _ _ _.
 
-Inductive elem {A : Type} (a : A) : BTree A -> Prop :=
-    | elem_root : forall l r : BTree A, elem a (node a l r)
-    | elem_left : forall (v : A) (l r : BTree A),
-        elem a l -> elem a (node v l r)
-    | elem_right : forall (v : A) (l r : BTree A),
-        elem a r -> elem a (node v l r).
+Inductive Elem {A : Type} (a : A) : BTree A -> Prop :=
+    | Elem_root : forall l r : BTree A, Elem a (node a l r)
+    | Elem_left : forall (v : A) (l r : BTree A),
+        Elem a l -> Elem a (node v l r)
+    | Elem_right : forall (v : A) (l r : BTree A),
+        Elem a r -> Elem a (node v l r).
 
 Inductive isHeap {A : LinDec} : BTree A -> Prop :=
     | isHeap_empty : isHeap empty
     | isHeap_node :
         forall (v : A) (l r : BTree A),
-          (forall x : A, elem x l -> v ≤ x) -> isHeap l ->
-          (forall x : A, elem x r -> v ≤ x) -> isHeap r ->
+          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
+          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (node v l r).
 
-Hint Constructors elem isHeap.
+Hint Constructors Elem isHeap.
 
 Definition singleton {A : Type} (x : A) : BTree A :=
   node x empty empty.
 
-Fixpoint elem_decb
+Fixpoint Elem_decb
   {A : LinDec} (x : A) (t : BTree A) : bool :=
 match t with
     | empty => false
     | node v l r =>
-        (x =? v) || elem_decb x l || elem_decb x r
+        (x =? v) || Elem_decb x l || Elem_decb x r
 end.
 
 Definition root {A : Type} (bt : BTree A) : option A :=
@@ -88,22 +88,22 @@ match t with
 end.
 
 (** * Tactics *)
-Ltac elem :=
+Ltac Elem :=
   intros; unfold singleton in *; cbn in *; subst; repeat
 match goal with
-    | |- elem ?x (node ?x _ _) => constructor
-    | H : elem _ empty |- _ => inv H
-    | H : elem _ (node _ empty empty) |- _ => inv H
-    | H : elem _ _ /\ elem _ _ |- _ => destruct H
-    | H : elem _ _ \/ elem _ _ |- _ => destruct H
+    | |- Elem ?x (node ?x _ _) => constructor
+    | H : Elem _ empty |- _ => inv H
+    | H : Elem _ (node _ empty empty) |- _ => inv H
+    | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
+    | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
 end; auto.
 
 (** * Theorems *)
 
-(** Properties of [elem] and [elem_decb]. *)
-Lemma elem_decb_reflect :
+(** Properties of [Elem] and [Elem_decb]. *)
+Lemma Elem_decb_reflect :
   forall (A : LinDec) (x : A) (t : BTree A),
-    reflect (elem x t) (elem_decb x t).
+    reflect (Elem x t) (Elem_decb x t).
 Proof.
   induction t as [| v l IHl r IHr]; cbn.
     constructor. inv 1.
@@ -128,9 +128,9 @@ Proof.
   rewrite BTree_toList'_aux_spec, app_nil_r. trivial.
 Qed.
 
-Lemma toList_In_elem :
+Lemma toList_In_Elem :
   forall (A : Type) (x : A) (t : BTree A),
-    In x (BTree_toList t) <-> elem x t.
+    In x (BTree_toList t) <-> Elem x t.
 Proof.
   split.
     induction t; cbn; intros; try apply in_app_or in H; firstorder.
@@ -168,8 +168,8 @@ Proof.
 Qed.
 
 (** Properties of [empty]. *)
-Lemma empty_elem :
-  forall (A : LinDec) (x : A), ~ elem x empty.
+Lemma empty_Elem :
+  forall (A : LinDec) (x : A), ~ Elem x empty.
 Proof. inv 1. Qed.
 
 Lemma empty_isHeap :
@@ -187,11 +187,11 @@ Proof. reflexivity. Qed.
 
 (** Properties of [singleton]. *)
 
-Lemma singleton_elem :
+Lemma singleton_Elem :
   forall (A : LinDec) (x y : A),
-    elem x (singleton y) <-> x = y.
+    Elem x (singleton y) <-> x = y.
 Proof.
-  split; elem.
+  split; Elem.
 Qed.
 
 Lemma singleton_isHeap :
@@ -213,18 +213,18 @@ Proof. reflexivity. Qed.
 
 (** Properties of [isEmpty]. *)
 
-Lemma isEmpty_elem_false :
+Lemma isEmpty_Elem_false :
   forall (A : LinDec) (t : BTree A),
-    isEmpty t = false <-> exists x : A, elem x t.
+    isEmpty t = false <-> exists x : A, Elem x t.
 Proof.
   split; destruct t; cbn; firstorder.
     eauto.
     inv H.
 Qed.
 
-Lemma isEmpty_elem_true :
+Lemma isEmpty_Elem_true :
   forall (A : LinDec) (t : BTree A),
-    isEmpty t = true <-> forall x : A, ~ elem x t.
+    isEmpty t = true <-> forall x : A, ~ Elem x t.
 Proof.
   split; destruct t; cbn; firstorder.
     inv 1.
@@ -287,12 +287,12 @@ Proof.
   induction t; cbn; rewrite ?IHt1, ?IHt2; reflexivity.
 Qed.
 
-Lemma elem_mirror :
+Lemma Elem_mirror :
   forall (A : Type) (x : A) (t : BTree A),
-    elem x (mirror t) <-> elem x t.
+    Elem x (mirror t) <-> Elem x t.
 Proof.
   assert (forall (A : Type) (x : A) (t : BTree A),
-            elem x t -> elem x (mirror t)).
+            Elem x t -> Elem x (mirror t)).
     induction 1; cbn; auto.
     split; intro.
       rewrite <- mirror_inv. apply H, H0.
@@ -788,10 +788,10 @@ Qed.
 Inductive Dup {A : Type} : BTree A -> Prop :=
     | Dup_root_l :
         forall (v : A) (l r : BTree A),
-          elem v l -> Dup (node v l r)
+          Elem v l -> Dup (node v l r)
     | Dup_root_r :
         forall (v : A) (l r : BTree A),
-          elem v r -> Dup (node v l r)
+          Elem v r -> Dup (node v l r)
     | Dup_l :
         forall (v : A) (l r : BTree A),
           Dup l -> Dup (node v l r)

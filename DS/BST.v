@@ -2,209 +2,238 @@ Require Import BTree.
 Require Export LinDec.
 Require Import Sorting.Sort.
 
-Require Import ssreflect.
-
-(* TODO: fix the definition of [is_bst]. *)
-Inductive is_bst {A : LinDec} : BTree A -> Prop :=
-    | is_bst_empty : is_bst empty
-    | is_bst_node : forall (v : A) (l r : BTree A),
-        (forall x : A, elem x l -> leq x v) -> is_bst l ->
-        (forall x : A, elem x r -> leq v x) -> is_bst r ->
-        is_bst (node v l r).
-
-Hint Constructors elem is_bst.
-
-Lemma is_bst_inv_l : forall (A : LinDec) (v : A) (l r : BTree A),
-    is_bst (node v l r) -> is_bst l.
-Proof. inv 1. Qed.
-
-Lemma is_bst_inv_r : forall (A : LinDec) (v : A) (l r : BTree A),
-    is_bst (node v l r) -> is_bst r.
-Proof. inv 1. Qed.
-
-Lemma is_bst_inv_leq_l : forall (A : LinDec) (a v : A) (l r : BTree A),
-    is_bst (node v l r) -> elem a l -> leq a v.
-Proof. inv 1. Qed.
-
-Lemma is_bst_inv_leq_r : forall (A : LinDec) (a v : A) (l r : BTree A),
-    is_bst (node v l r) -> elem a r -> leq v a.
-Proof. inv 1. Qed.
-
-Lemma is_bst_inv_elem_l :
-  forall (A : LinDec) (x v : A) (l r : BTree A),
-    is_bst (node v l r) -> elem x (node v l r) ->
-      leq x v -> x <> v -> elem x l.
-Proof.
-  do 2 inv 1; intros. specialize (H5 _ H1). contradiction H0. dec.
-Qed.
-
-Lemma is_bst_inv_elem_r :
-  forall (A : LinDec) (x v : A) (l r : BTree A),
-    is_bst (node v l r) -> elem x (node v l r) ->
-      leq v x -> x <> v -> elem x r.
-Proof.
-  do 2 inv 1; intros. specialize (H3 _ H1). contradiction H0. dec.
-Qed.
-
-Hint Resolve is_bst_inv_l is_bst_inv_r.
-
-Record BST (A : LinDec) : Type :=
-{
-    tree :> BTree A;
-    prop : is_bst tree
-}.
-
-Theorem BST_elem_dec :
-  forall {A : LinDec} (a : A) (t : BTree A),
-    is_bst t -> {elem a t} + {~ elem a t}.
-Proof.
-  intros. elim: t H => [| v l Hl r Hr] H.
-    right. inv 1.
-    case (LinDec_eqb_spec _ a v) => [-> | Hneq]; first by auto.
-      case (leqb_spec a v) => [Hleq | Hnleq].
-        case: Hl => [| H' | H']; eauto. right. inv 1.
-          eapply is_bst_inv_leq_r in H2; eauto.
-        case: Hr => [| H' | H']; eauto. right. inv 1.
-          eapply is_bst_inv_leq_l in H2; eauto.
-Restart.
-  intros. elim: t H => [| v l Hl r Hr] H.
-    right. inv 1.
-    case (LinDec_eqb_spec _ a v) => [-> | Hneq]; first by auto.
-      case (leqb_spec a v) => [Hleq | Hnleq]; [case: Hl | case: Hr];
-      eauto; right; inv 1.
-        eapply is_bst_inv_leq_r in H2; eauto.
-        eapply is_bst_inv_leq_l in H2; eauto.
-Defined.
-
-Function elem_decb_BST {A : LinDec} (x : A) (t : BTree A) : bool :=
-match t with
-    | empty => false
-    | node v l r =>
-        if x <=? v
-        then
-          if v <=? x
-          then true
-          else elem_decb_BST x l
-        else
-          elem_decb_BST x r
-end.
-
-Inductive isBST {A : LinDec} : BTree A -> Prop :=
+Inductive isBST
+  {A : Type} {cmp : A -> A -> comparison}
+  : BTree A -> Prop :=
     | isBST_empty : isBST empty
     | isBST_node :
         forall (v : A) (l r : BTree A),
-          (forall x : A, elem x l -> x ≤ v) -> isBST l ->
-          (forall x : A, elem x r -> ~ x ≤ v) -> isBST r ->
+          isBST l -> (forall x : A, Elem x l -> cmp x v = Lt) ->
+          isBST r -> (forall x : A, Elem x r -> cmp x v = Gt) ->
             isBST (node v l r).
 
-Lemma elem_decb_BST_reflect :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    isBST t -> reflect (elem x t) (elem_decb_BST x t).
-Proof.
-  intros. functional induction @elem_decb_BST A x t; dec.
-    constructor. inv 1.
-    assert (x = v) by dec. subst. auto.
-    destruct (IHb ltac:(inv H)); constructor.
-      auto.
-      inv 1. inv H.
-    destruct (IHb ltac:(inv H)); constructor.
-      auto.
-      inv 1. inv H.
-Qed.
+Arguments isBST {A} _ _.
 
-Function elem_decb_aux_BST
-  {A : LinDec} (x : A) (ocandidate : option A) (t : BTree A) : bool :=
-match t with
-    | empty =>
-        match ocandidate with
-            | None => false
-            | Some x' => x =? x'
-        end
-    | node v l r =>
-        if x <=? v
-        then elem_decb_aux_BST x (Some v) l
-        else elem_decb_aux_BST x ocandidate r
-end.
+Hint Constructors Elem isBST.
 
-Definition elem_decb'_BST
-  {A : LinDec} (x : A) (t : BTree A) : bool :=
-    elem_decb_aux_BST x None t.
+Record BST {A : Type} (cmp : A -> A -> comparison) : Type :=
+{
+    tree :> BTree A;
+    prop : isBST cmp tree
+}.
 
-(*Lemma elem_decb_aux_BST_spec :
-  forall (A : LinDec) (x y : A) (t : BTree A),
-    isBST t -> elem y t ->
-      elem_decb_aux_BST x (Some y) t =
-      (x =? y) || elem_decb_aux_BST x None t.
-Proof.
-  intros. gen y; gen x. induction t; cbn; intros.
-    destruct (x =? y); reflexivity.
-    inv H. inv H0.
-      Focus 2. dec. rewrite IHt1.
-Restart.
-  induction 2; cbn.
-    dec.
-Abort.*)
-
-Lemma elem_decb_aux_BST_true :
-  forall (A : LinDec) (x : A) (t : BTree A),
-    isBST t -> elem_decb_aux_BST x (Some x) t = true.
-Proof.
-  intros A x t; gen x.
-  induction t; cbn; intros; dec.
-Abort.
-
-Lemma elem_decb_aux_BST_reflect :
-  forall (A : LinDec) (x : A) (ocandidate : option A) (t : BTree A),
-    isBST t -> 
-(*    match ocandidate with
-        | None => True
-        | Some v => elem v t
-    end ->*)
-      reflect (elem x t) (elem_decb_aux_BST x ocandidate t).
-Proof.
-  intros. gen ocandidate; gen x.
-  induction t as [| v l IHl r IHr]; intros.
-    destruct ocandidate; cbn.
-      dec; constructor.
-        admit.
-        inv 1.
-      constructor. inv 1.
-    cbn. dec.
-      case_eq (x =? v); intros.
-        dec. destruct (IHl ltac:(inv H) v (Some v)).
-          auto.
-          constructor. inversion 1; subst; try contradiction.
-Abort.
-
-Fixpoint BTree_ins {A : LinDec} (x : A) (t : BTree A) : BTree A :=
+Function insert
+  {A : Type} (cmp : A -> A -> comparison)
+  (x : A) (t : BTree A) : BTree A :=
 match t with
     | empty => node x empty empty
     | node v l r =>
-        if x <=? v
-        then node v (BTree_ins x l) r
-        else node v l (BTree_ins x r)
+        match cmp x v with
+            | Lt => node v (insert cmp x l) r
+            | Eq => node x l r
+            | Gt => node v l (insert cmp x r)
+        end
 end.
 
-Lemma elem_ins : forall (A : LinDec) (x a : A) (t : BTree A),
-    elem x (BTree_ins a t) -> x = a \/ elem x t.
-Proof.
-  move=> A x a t. elim: t => [| v l Hl r Hr] //=.
-    inv 1.
-    dec; inv H.
-      case: Hl; auto.
-      case: Hr; auto.
-Qed.
+Function removeMin
+  {A : Type} (cmp : A -> A -> comparison)
+  (t : BTree A) : option (A * BTree A) :=
+match t with
+    | empty => None
+    | node x l r =>
+        match removeMin cmp l with
+            | None => Some (x, r)
+            | Some (m, l') => Some (m, node x l' r)
+        end
+end.
 
-Theorem BTree_ins_is_bst : forall (A : LinDec) (a : A) (bt : BTree A),
-    is_bst bt -> is_bst (BTree_ins a bt).
-Proof.
-  move=> A a bt. elim: bt a => [| v l Hl r Hr] a //=.
-    constructor; eauto; inv 1.
-    dec; inv H.
-      1-2: constructor; auto; move=> x Helt;
-      case: (elem_ins _ _ _ _ Helt) => [-> |]; eauto.
-Qed.
+Function remove
+  {A : Type} (cmp : A -> A -> comparison)
+  (x : A) (t : BTree A) : BTree A :=
+match t with
+    | empty => empty
+    | node v l r =>
+        match cmp x v with
+            | Lt => node v (remove cmp x l) r
+            | Gt => node v l (remove cmp x r)
+            | Eq =>
+                match removeMin cmp l with
+                    | None => r
+                    | Some (m, l') => node m l' r
+                end
+        end
+end.
 
+Function elem
+  {A : Type} (cmp : A -> A -> comparison) (x : A) (t : BTree A) : bool :=
+match t with
+    | empty => false
+    | node v l r =>
+        match cmp x v with
+            | Lt => elem cmp x l
+            | Eq => true
+            | Gt => elem cmp x r
+        end
+end.
+
+Lemma elem_spec :
+  forall {A : Type} (cmp : A -> A -> comparison) (x : A) (t : BTree A),
+    (forall x y : A, CompareSpec (x = y) (cmp x y = Lt) (cmp x y = Gt) (cmp x y)) ->
+      isBST cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
+Proof.
+  intros A cmp x t spec H.
+  functional induction (elem cmp x t).
+    constructor. inversion 1.
+    inversion H; subst. specialize (IHb H3). destruct IHb.
+      constructor. constructor 2. assumption.
+      constructor. inversion 1; subst.
+        admit.
+        contradiction.
+        specialize (H6 _ H7). congruence.
+    constructor. destruct (spec x v); try congruence; subst. constructor.
+    inversion H; subst. specialize (IHb H5). destruct IHb.
+      constructor. constructor 3. assumption.
+      constructor. inversion 1; subst.
+        admit.
+        specialize (H4 _ H7). congruence.
+        contradiction.
+Admitted.
+
+Lemma elem_insert :
+  forall {A : Type} (cmp : A -> A -> comparison) (x : A) (t : BTree A),
+    isBST cmp t -> elem cmp x (insert cmp x t) = true.
+Proof.
+  intros.
+  functional induction (insert cmp x t); cbn.
+    admit.
+    rewrite e0, IHb.
+      reflexivity.
+      inversion H; assumption.
+    admit.
+    rewrite e0, IHb.
+      reflexivity.
+      inversion H; assumption.
+Admitted.
+
+Lemma elem_remove :
+  forall (A : Type) (cmp : A -> A -> comparison) (x : A) (t : BTree A),
+    isBST cmp t -> elem cmp x (remove cmp x t) = false.
+Proof.
+  intros.
+  functional induction (remove cmp x t); cbn.
+    reflexivity.
+    rewrite e0, IHb.
+      reflexivity.
+      inversion H; assumption.
+    rewrite e0, IHb.
+      reflexivity.
+      inversion H; assumption.
+    inversion H; subst.
+      admit.
+Abort.
+
+Lemma elem_insert' :
+  forall {A : Type} (cmp : A -> A -> comparison) (x y : A) (t : BTree A),
+    x <> y -> elem cmp x (insert cmp y t) = elem cmp x t.
+Proof.
+  intros.
+  functional induction (insert cmp y t); cbn.
+    admit.
+    destruct (cmp x v); rewrite ?IHb; reflexivity.
+    destruct (cmp x y) eqn: Hxy, (cmp x v) eqn: Hxv.
+      all: try reflexivity.
+      admit.
+      admit.
+      admit.
+      admit.
+      admit.
+      admit.
+    destruct (cmp x v); rewrite ?IHb; reflexivity.
+Admitted.
+
+Lemma elem_remove' :
+  forall {A : Type} (cmp : A -> A -> comparison) (x y : A) (t : BTree A),
+    x <> y -> elem cmp x (remove cmp y t) = elem cmp x t.
+Proof.
+  intros.
+  functional induction (remove cmp y t); cbn.
+    reflexivity.
+    destruct (cmp x v); rewrite ?IHb; reflexivity.
+    destruct (cmp x v); rewrite ?IHb; reflexivity.
+    destruct (cmp x v) eqn: Hxv.
+      admit.
+      admit.
+      reflexivity.
+    destruct (cmp x m) eqn: Hxm, (cmp x v) eqn: Hxv.
+      all: try reflexivity.
+Admitted.
+
+Hint Extern 0 =>
+  intros;
+match goal with
+    | H : Elem _ empty |- _ => inversion H
+    | H : isBST _ (node _ ?l _) |- isBST _ ?l => inversion H; auto
+    | H : isBST _ (node _ _ ?r) |- isBST _ ?r => inversion H; auto
+end.
+
+Lemma isBST_insert :
+  forall (A : Type) (cmp : A -> A -> comparison) (x : A) (t : BTree A),
+    isBST cmp t -> isBST cmp (insert cmp x t).
+Proof.
+  intros.
+  functional induction (insert cmp x t).
+    auto.
+    constructor; auto; intros.
+      admit.
+      inversion H; subst. apply H7. assumption.
+    admit.
+    constructor; auto; intros.
+      inversion H; subst. apply H5. assumption.
+      inversion H; subst. admit.
+Admitted.
+
+Lemma isBST_remove :
+  forall (A : Type) (cmp : A -> A -> comparison) (x : A) (t : BTree A),
+    isBST cmp t -> isBST cmp (remove cmp x t).
+Proof.
+  intros.
+  functional induction (remove cmp x t); auto.
+    constructor; auto; intros.
+      admit.
+      inversion H; subst. apply H7. assumption.
+    constructor; auto; intros.
+      inversion H; subst. apply H5. assumption.
+      admit.
+    constructor; auto; intros.
+      admit.
+Abort.
+
+Lemma isBST_removeMin :
+  forall (A : Type) (cmp : A -> A -> comparison) (t t' : BTree A) (x : A),
+    isBST cmp t -> removeMin cmp t = Some (x, t') -> isBST cmp t'.
+Proof.
+  intros. revert t' x H0.
+  functional induction (removeMin cmp t); intros.
+    inversion H0.
+    inversion H0; subst. inversion H; subst. assumption.
+    inversion H0; subst. inversion H; subst.
+      specialize (IHo H4 l' x0 e0). constructor; auto.
+        intros. apply H5. admit.
+Admitted.
+
+(* TODO theorems:
+
+    min_spec
+    forall (A : LinDec) (m : A) (bst : BTree A),
+      is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
+
+    count
+    count_ins
+
+    Sortedness for TreeSort
+*)
+
+(** [fromList] and its variants. *)
 Fixpoint min {A : Type} (t : BTree A) : option A :=
 match t with
     | empty => None
@@ -212,98 +241,9 @@ match t with
     | node _ l _ => min l
 end.
 
-Lemma min_elem_l :
-    forall (A : LinDec) (t : BTree A) (m v v' : A) (ll lr r : BTree A),
-    min t = Some m -> t = node v (node v' ll lr) r -> elem m (node v' ll lr).
-Proof.
-  destruct t.
-    inv 1.
-    induction t1; intros; inv H0. destruct ll; simpl in *.
-      inv H. auto.
-      apply elem_left. eapply IHt1_1; eauto.
-Restart.
-  inv 2. clear H1. elim: ll lr v' H.
-    inv 1.
-    auto.
-Qed.
-
-Theorem bst_min_spec : forall (A : LinDec) (m : A) (bst : BTree A),
-    is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
-Proof.
-  induction 3.
-    destruct l.
-      simpl in *. inv H0.
-      eapply is_bst_inv_leq_l. eauto. eapply min_elem_l; eauto.
-    destruct l.
-      inv H1.
-      apply IHelem; try eapply is_bst_inv_l; eauto.
-    inv H. destruct l.
-      inv H0.
-      apply leq_trans with v.
-        eapply is_bst_inv_leq_l; eauto. eapply min_elem_l; eauto.
-        apply H7. assumption.
-Qed.
-
-(** [fromList] and its variants. *)
-Function fromList (A : LinDec) (l : list A) : BTree A :=
+Fixpoint fromList
+  {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
 match l with
     | [] => empty
-    | h :: t => BTree_ins h (fromList A t)
+    | h :: t => insert cmp h (fromList cmp t)
 end.
-
-Definition fromList' {A : LinDec} (l : list A) : BTree A :=
-  fold_right (fun h t => BTree_ins h t) empty l.
-
-Lemma count_ins :
-  forall (A : LinDec) (p : A -> bool) (x : A) (t : BTree A),
-    count_BTree p (BTree_ins x t) =
-      if p x
-      then S (count_BTree p t)
-      else count_BTree p t.
-Proof.
-  intros. elim: t => [| v l Hl r Hr] //=; dec.
-    rewrite ?Hl ?Hr. destruct (p v), (p x); reflexivity.
-    rewrite ?Hl ?Hr. destruct (p v), (p x); omega.
-Qed.
-
-Theorem fromList'_spec : @fromList' = @fromList.
-Proof.
-  ext A. ext l. unfold fromList'.
-  remember empty as t. generalize dependent t.
-  functional induction @fromList A l; cbn; intros.
-    trivial.
-    rewrite IHb; auto.
-Qed.
-
-Theorem Sorted_BTree_toList :
-  forall (A : LinDec) (t : BTree A),
-    is_bst t -> Sorted A (@BTree_toList (@carrier A) t).
-Proof.
-  induction t as [| v l Hl r Hr]; cbn; intros.
-    constructor.
-    inv H. apply Sorted_app_all; auto.
-      case_eq (BTree_toList r); intros; subst; auto. constructor.
-        apply H5. rewrite <- toList_In_elem. rewrite H. cbn. auto.
-        rewrite <- H. auto.
-      intros. apply toList_In_elem in H. auto.
-Qed.
-
-Theorem Sorted_BTree_toList' :
-  forall (A : LinDec) (t : BTree A),
-    is_bst t -> Sorted A (BTree_toList' t).
-Proof.
-  rewrite BTree_toList'_spec. apply Sorted_BTree_toList.
-Qed.
-
-Lemma fromList_is_bst :
-  forall (A : LinDec) (l : list A), is_bst (fromList A l).
-Proof.
-  intros. elim: l => [| h t IH] //=.
-    by apply BTree_ins_is_bst.
-Qed.
-
-Lemma fromList'_is_bst :
-  forall (A : LinDec) (l : list A), is_bst (fromList' l).
-Proof.
-  intros. rewrite fromList'_spec. apply fromList_is_bst.
-Qed.

@@ -1,5 +1,3 @@
-
-
 Require Export LinDec.
 Require Export RCCBase.
 
@@ -98,23 +96,6 @@ Proof.
       exact (node x (bfcons (node x' ts') ts)).
       exact (node x' (bfcons (node x ts) ts')). Show Proof.
 Defined.
-(*Restart.
-  refine (
-match t1 in (BinomialTree _ r)
-         return (BinomialTree A r -> BinomialTree A (S r))
-with
-    | @node _ x r ts =>
-        fun t2 =>
-        match t2 in (BinomialTree _ r)
-                 return (BinomialForest A r -> BinomialTree A (S r))
-        with
-            | @node _ x' r ts' =>
-                fun ts : BinomialForest A r =>
-                if x <=? x'
-                then node x (bfcons (node x' ts') ts)
-                else node x' (bfcons (node x ts) ts')
-        end ts
-end t2).*)
 
 Lemma link_comm :
   forall (A : LinDec) (r : nat) (t1 t2 : BinomialTree A r),

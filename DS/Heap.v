@@ -1,5 +1,3 @@
-
-
 Require Import BTree.
 Require Export LinDec.
 Require Import Sorting.Sort.
