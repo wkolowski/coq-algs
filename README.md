@@ -49,15 +49,3 @@ Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is usel
 * Prove general facts about sorting algorithms.
 * Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.
 * Find a way to do modular memoization.
-
-## Thesis plan
-
-Things to write about:
-- Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
-- Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
-- We shouldn't require proofs in order to run programs.
-- Binary search trees: it's not that obvious how to get basic data structures right.
-- Ternary search trees, finger trees: interesting data structures.
-- Functional induction as the way-to-go proof technique.
-- Ways of doing general recursion and turning off termination checker.
-- Literature review, Okasaki is old and bad for Coq, SF3 is shallow.

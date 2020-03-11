@@ -1,0 +1,67 @@
+% Opcje klasy 'iithesis' opisane sa w komentarzach w pliku klasy. Za ich pomoca
+% ustawia sie przede wszystkim jezyk i rodzaj (lic/inz/mgr) pracy, oraz czy na
+% drugiej stronie pracy ma byc skladany wzor oswiadczenia o autorskim wykonaniu.
+\documentclass[declaration,mgr,english,shortabstract]{iithesis}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+%%%%% DANE DO STRONY TYTULOWEJ
+% Niezaleznie od jezyka pracy wybranego w opcjach klasy, tytul i streszczenie
+% pracy nalezy podac zarowno w jezyku polskim, jak i angielskim.
+% Pamietaj o madrym (zgodnym z logicznym rozbiorem zdania oraz estetyka) recznym
+% zlamaniu wierszy w temacie pracy, zwlaszcza tego w jezyku pracy. Uzyj do tego
+% polecenia \fmlinebreak.
+\englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
+\polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepty i techniki}
+\polishabstract {Okasaki tylko lepiej}
+\englishabstract{Okasaki but better}
+% w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
+\author         {Wojciech Kołowski}
+% w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
+% w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
+\advisor        {narazienikt}
+\date           {Czerwiec '20 chyba że koronawirus}                     % Data zlozenia pracy
+% Dane do oswiadczenia o autorskim wykonaniu
+%\transcriptnum {}                     % Numer indeksu
+%\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
+%%%%%
+
+%%%%% WLASNE DODATKOWE PAKIETY
+%
+%\usepackage{graphicx,listings,amsmath,amssymb,amsthm,amsfonts,tikz}
+%\usepackage{minted}
+%
+%%%%% WLASNE DEFINICJE I POLECENIA
+%
+%\theoremstyle{definition} \newtheorem{definition}{Definition}[chapter]
+%\theoremstyle{remark} \newtheorem{remark}[definition]{Observation}
+%\theoremstyle{plain} \newtheorem{theorem}[definition]{Theorem}
+%\theoremstyle{plain} \newtheorem{lemma}[definition]{Lemma}
+%\renewcommand \qedsymbol {\ensuremath{\square}}
+
+%%%%%
+
+\begin{document}
+
+%%%%% POCZATEK ZASADNICZEGO TEKSTU PRACY
+
+\chapter{A man, a plan, a canal - thesis} \label{ch1}
+
+\section{Things to write about}
+\begin{itemize}
+    \item Introduction: differences between imperative and functional algorithms, differences between performance-oriented design and formal-correctness-oriented design.
+    \item Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
+    \item Binary search trees: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
+    \item Design: we shouldn't require proofs in order to run programs. Ways of doing general recursion and, connected with it, functional induction as the way-to-go proof technique. Maybe something about the equations plugin. A word about classes, records and modules.
+    \item Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
+    \item  Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
+    \item Cool data structures: ternary search trees, finger trees.
+\end{itemize}
+
+%%%%% BIBLIOGRAFIA
+
+\begin{thebibliography}{1}
+\end{thebibliography}
+
+\end{document}
