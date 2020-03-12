@@ -14,8 +14,8 @@
 % polecenia \fmlinebreak.
 \englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
 \polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepty i techniki}
-\polishabstract {Okasaki tylko lepiej}
-\englishabstract{Okasaki but better}
+\polishabstract {Omawiamy sposoby projektowania, implementowania, specyfikowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepty i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
+\englishabstract{We discuss how to design, implement, specify and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
@@ -46,13 +46,28 @@
 
 %%%%% POCZATEK ZASADNICZEGO TEKSTU PRACY
 
-\chapter{A man, a plan, a canal - thesis} \label{ch1}
+\chapter{Introduction} \label{ch1}
+
+\section{Imperative and functional algorithms}
+
+Differences between imperative and functional algorithms.
+
+\section{Complexity, performance and correctness}
+
+Differences between performance-oriented design and formal-correctness-oriented design.
+
+\section{An overview of available literature}
+
+Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
+
+\chapter{Binary search trees -- an extended case study} \label{ch2}
+
+Binary search trees: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
+
+\chapter{A man, a plan, a canal -- MSc thesis}
 
 \section{Things to write about}
 \begin{itemize}
-    \item Introduction: differences between imperative and functional algorithms, differences between performance-oriented design and formal-correctness-oriented design.
-    \item Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
-    \item Binary search trees: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
     \item Design: we shouldn't require proofs in order to run programs. Ways of doing general recursion and, connected with it, functional induction as the way-to-go proof technique. Maybe something about the equations plugin. A word about classes, records and modules.
     \item Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
     \item  Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
