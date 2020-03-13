@@ -1,5 +1,5 @@
 (** This algorithm is taken from the paper
-    "Efficiency of Lambda-Encodings in Total TypeTheory"
+    "Efficiency of Lambda-Encodings in Total Type Theory"
     by Stump and Fu. *)
 
 Require Export Sorting.Sort.

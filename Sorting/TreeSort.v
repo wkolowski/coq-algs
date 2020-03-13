@@ -1,5 +1,3 @@
-
-
 Require Export LinDec.
 Require Export Sorting.Sort.
 
@@ -8,8 +6,6 @@ Require Export BST.
 
 Require Export ListLemmas.
 
-Definition treeSort (A : LinDec) (l : list A) : list A :=
-  BTree_toList (fromList A l).
-
-Definition treeSort' (A : LinDec) (l : list A) : list A :=
-  BTree_toList' (fromList' l).
+Definition treeSort
+  {A : Type} (cmp : A -> A -> comparison) (l : list A) : list A :=
+    BTree_toList (fromList cmp l).
