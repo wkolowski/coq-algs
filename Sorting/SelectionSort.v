@@ -1,5 +1,3 @@
-
-
 Require Export Sorting.Sort.
 
 Set Implicit Arguments.
