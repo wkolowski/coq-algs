@@ -48,19 +48,18 @@
 
 \chapter{Introduction} \label{ch1}
 
-The concern of this thesis are functional algorithms and data structures. The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
+The topic of this thesis are functional algorithms and data structures \footnote{In order not to be too repetitive, in this thesis the word ``algorithms'' means ``algorithms and data structures''}. The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
 
 \begin{quote}
     A finite set of unambiguous instructions that, given some set of initial conditions, can be performed in a prescribed sequence to achieve a certain goal and that has a recognizable set of end conditions.
 \end{quote}
 
-The purpose of this entry is to explain the concept to a lay person, but it likely sounds just about right to the imperative programmer's ear too. To a functional ear, however, talking about sequences of instructions most certainly sounds as un-functional as it possibly could. It is no wonder then that some people wonder if it is even possible for algorithms to ``exist'' in a functional programming language, as exemplified by this StackOverflow question \cite{SO}. The poor soul asking this question strongly associated algorithms with imperative languages, even though functional languages are based on lambda calculus, which was invented precisely to formalize what an algorithm is.
-
-This situation is not uncommon and rather easy to explain.
+The purpose of this entry is to explain the concept to a lay person, but it likely sounds just about right to the imperative programmer's ear too. To a functional ear, however, talking about sequences of instructions most certainly sounds as un-functional as it possibly could. It is no wonder then that some people wonder if it is even possible for algorithms to ``exist'' in a functional programming language, as exemplified by this StackOverflow question \cite{SO}. The poor soul asking this question had strongly associated algorithms with imperative languages in his head, even though functional languages are based on lambda calculus, which was invented precisely to formalize what an algorithm is.
 
 \section{Imperative and functional algorithms}
 
-Differences between imperative and functional algorithms.
+This situation is not uncommon and rather easy to explain. Imperative algorithms and data structures form one of the oldest, biggest, most widespread and prestigious fields of computer science. They are taught to every student in every computer science programme at every university. There's a huge amount of textbooks, with classics such as \cite{CLRS} \cite{TAOCP} known to pretty much everybody, at least by title. There's an even huger and still growing mass of research articles and conferences and I'm pretty sure there are at least some (imperative) algorithm researchers at every computer science department in existence. Imperative algorithms and data structures and pretty much synonymous with ``competitive programming'' 
+
 
 \section{Complexity, performance and correctness}
 
@@ -89,12 +88,19 @@ Binary search trees: a case study to show the basic workflow and that it's not t
 \begin{thebibliography}{1}
 
 \bibitem{TheFreeDictionary}
-    \textit{Algorithm}, 2020, \\
     \url{https://www.thefreedictionary.com/algorithm}
 
 \bibitem{SO}
     \textit{Do ``algorithms'' exist in Functional Programming?}, \\
     \url{https://stackoverflow.com/questions/25940327/do-algorithms-exist-in-functional-programming}
+
+\bibitem{CLRS}
+    Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, Clifford Stein, \\
+    \textit{Introduction to Algorithms}, \\
+    \url{http://ressources.unisciel.fr/algoprog/s00aaroot/aa00module1/res/%5BCormen-AL2011%5DIntroduction_To_Algorithms-A3.pdf}
+
+\bibitem{TAOCP}
+    Donald Knuth, \textit{The Art of Computer Programming}
 
 \end{thebibliography}
 
