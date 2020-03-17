@@ -48,17 +48,25 @@
 
 \chapter{Introduction} \label{ch1}
 
-The topic of this thesis are functional algorithms and data structures \footnote{In order not to be too repetitive, in this thesis the word ``algorithms'' means ``algorithms and data structures''}. The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
+TODO: after completing the thesis, write a short overview of what each chapter is about.
+
+\section{The overarching paradigm}
+
+The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
 
 \begin{quote}
     A finite set of unambiguous instructions that, given some set of initial conditions, can be performed in a prescribed sequence to achieve a certain goal and that has a recognizable set of end conditions.
 \end{quote}
 
-The purpose of this entry is to explain the concept to a lay person, but it likely sounds just about right to the imperative programmer's ear too. To a functional ear, however, talking about sequences of instructions most certainly sounds as un-functional as it possibly could. It is no wonder then that some people wonder if it is even possible for algorithms to ``exist'' in a functional programming language, as exemplified by this StackOverflow question \cite{SO}. The poor soul asking this question had strongly associated algorithms with imperative languages in his head, even though functional languages are based on lambda calculus, which was invented precisely to formalize what an algorithm is.
+The purpose of this entry is to explain the concept to a lay person, but it likely sounds just about right to the imperative programmer's ear too. To a functional ear, however, talking about sequences of instructions most certainly sounds as un-functional as it possibly could. It is no surprise then that some people wonder if it is even possible for algorithms to ``exist'' in a functional programming language, as exemplified by this StackOverflow question \cite{SO}. The poor soul asking this question had strongly associated algorithms with imperative languages in his head, even though functional languages are based on lambda calculus, which was invented precisely to formalize what an algorithm is.
+
+This situation is not uncommon and rather easy to explain. Imperative algorithms and data structures form one of the oldest, biggest, most widespread and prestigious fields of computer science. They are taught to every student in every computer science programme at every university. There's a huge amount of books and textbooks, with classics such as \cite{CLRS} \cite{TAOCP} known to pretty much everybody, at least by title. There's an even huger and still growing mass of research articles and conferences and I'm pretty sure there are at least some (imperative) algorithm researchers at every computer science department in existence.
+
+Imperative algorithms and data structures are pretty much synonymous with competitive programming, dominating most in-person and online computer science competitions like ICPC and HackerRank, respectively. They are seen as the thing that gifted high school students interested in computer science should pursue -- each time said students don't win medals in the International Olympiad in Informatics, there will be some journalists and politcians complaining about the state of the country's education system.
+
+Imperative algorithms and data structures don't form a mere field of study -- they are more of a mindset and a culture than a field; in short, they form a paradigm. Because this paradigm is so overarching, so powerful and so entrenched, we feel free to completely disregard it and instead devote ourselves and this thesis to something completely unlike it -- the formal verification of functional algorithms and data structures.
 
 \section{Imperative and functional algorithms}
-
-This situation is not uncommon and rather easy to explain. Imperative algorithms and data structures form one of the oldest, biggest, most widespread and prestigious fields of computer science. They are taught to every student in every computer science programme at every university. There's a huge amount of textbooks, with classics such as \cite{CLRS} \cite{TAOCP} known to pretty much everybody, at least by title. There's an even huger and still growing mass of research articles and conferences and I'm pretty sure there are at least some (imperative) algorithm researchers at every computer science department in existence. Imperative algorithms and data structures and pretty much synonymous with ``competitive programming'' 
 
 
 \section{Complexity, performance and correctness}
