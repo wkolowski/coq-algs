@@ -30,7 +30,7 @@
 %%%%% WLASNE DODATKOWE PAKIETY
 %
 %\usepackage{graphicx,listings,amsmath,amssymb,amsthm,amsfonts,tikz}
-%\usepackage{minted}
+\usepackage{minted}
 %
 %%%%% WLASNE DEFINICJE I POLECENIA
 %
@@ -52,7 +52,7 @@
 
 TODO: after completing the thesis, write a short overview of what each chapter is about.
 
-\section{The overarching paradigm}
+\section{An overarching paradigm}
 
 The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
 
@@ -70,13 +70,43 @@ Imperative algorithms don't form a mere field of study -- they are more of a min
 
 But before we do that, we spend the rest of this chapter on comparing the imperative and functional approaches to algorithms and briefly reviewing available literature on functional algorithms.
 
-\section{Imperative and functional algorithms}
+\section{Two flavours of algorithms}
 
-The toolboxes available to imperative and functional programmers are usually very different, even though there exist languages which quite successfully fuse them, like Rust.
+The differences between imperative and functional algorithms are mostly a reflection of the differences between imperative and functional programming languages and only in a small part a matter of differences in focus. For example, it's rare but possible to implement persistent data structures in imperative languages, whereas it's the default for functional data structures \cite{PersistentDataStructures}, all caused by built-in language features. An example of the second kind of difference may be the bigger focus on lazy evaluation for functional algorithms.
 
-The basic data structure in imperative languages is the array, which abstracts a contiguous block of memory holding values of a particular type. More advanced data structures are usually records that hold values and pointers/references to other (or even the same) kinds of data structures. The basic control flow primitives for traversing these structures are various loops (\m{while}, \m{for}, \m{do} ... \m{while}) and branch statements (\m{if}, \m{switch}, \m{goto}). The most important operation is assignment, which changes the state held in a variable. Computation is modeled by a series of operations which change the global state.
+The basic data structure in imperative languages is the array, which abstracts a contiguous block of memory holding values of a particular type. More advanced data structures are usually records that hold values and pointers/references to other (or even the same) kinds of data structures. The basic control flow primitives for traversing these structures are various loops (\m{while}, \m{for}, \m{do} ... \m{while}) and branch/jump statements (\m{if}, \m{switch}, \m{goto}). The most important operation is assignment, which changes the state held in a variable. Computation is modeled by a series of operations which change the global state.
 
 In functional languages both basic and advanced data structures amount to algebraic data types (whose values are various kinds of trees with labeled nodes that can hold values of specified types). The basic control flow primitives are pattern matching (checking the label and values of the tree's root) and recursion. The most important operation is function composition, which allows building complex functions from simpler ones. Computation is modeled by substitution of values for the formal parameters of a function.
+
+\begin{listing}[H]
+    \begin{minted}{Java}
+        int sum(int[] a)
+        {
+            int result = 0;
+            for(int i = 0; i < a.length; ++i)
+            {
+                result += a[i];
+            }
+            return result;
+        }
+    \end{minted}
+    \caption{A simple program for summing all integers stored in an array, written in an imperative pseudocode that resembles Java.}
+\end{listing}
+
+\begin{listing}[H]
+    \begin{minted}{Haskell}
+        data List a = Nil | Cons a (List a)
+
+        sum : List Int -> Int
+        sum Nil = 0
+        sum (Cons x xs) = x + sum xs
+    \end{minted}
+    \begin{center}
+        \caption{A simple program for summing all integers stored in a (singly-linked) list, written in a functional pseudocode that resembles Haskell.}
+    \end{center}
+\end{listing}
+
+The two above listings showcase the relevant differences in practice. In both cases we want a function that sums integers stored in the most basic data structure. In the case of our pseudo-Java, this is a built-in array, whereas in our pseudo-Haskell, this is a list defined, using the mechanism of algebraic data types, as sometihng which is either empty (\m{Nil}) or something that contains a value of type \m{a} and then another list.
 
 
 \section{Complexity, performance and correctness}
@@ -122,6 +152,10 @@ Binary search trees: a case study to show the basic workflow and that it's not t
 
 \bibitem{Kuhn}
     Thomas S. Kuhn, \textit{The Structure of Scientific Revolutions}
+
+\bibitem{PersistentDataStructures}
+    Driscoll JR, Sarnak N, Sleator DD, Tarjan RE, 1986 \\
+    \textit{Making data structures persistent}
 
 \end{thebibliography}
 
