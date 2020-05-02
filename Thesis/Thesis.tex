@@ -64,19 +64,19 @@ The purpose of this entry is to explain the concept to a lay person, but it like
 
 This situation is not uncommon and rather easy to explain. \textit{Imperative} algorithms and data structures \footnote{From now on when we write ``algorithms'' we will mean ``algorithms and data structures''} form one of the oldest, biggest, most widespread and prestigious fields of theoretical computer science. They are taught to every student in every computer science programme at every university. There's a huge amount of books and textbooks, with classics such as \cite{CLRS} \cite{TAOCP} known to pretty much everybody, at least by title. There's an even huger and still growing mass of research articles published in journals and conferences and I'm pretty sure there are at least some (imperative) algorithm researchers at every computer science department in existence.
 
-But theoretical research and higher education are not the only strongholds of imperative algorithms. They are pretty much synonymous with competitive programming, dominating most in-person and online computer science competitions like ICPC and HackerRank, respectively. They are also seen as the thing that gifted high school students interested in computer science should pursue -- each time said students don't win medals in the International Olympiad in Informatics or the like, there will be some journalists complaining that their country's education system is ``falling behind''. In many countries, like Poland,\footnote{I believe the same is true for the rest of the former Eastern Bloc countries too and probably not much better in the West either.} if there's any high school level computer science education besides basic programming, it will be in imperative algorithms.
+But theoretical research and higher education are not the only strongholds of imperative algorithms. They are also pretty much synonymous with competitive programming, dominating most in-person and online computer science competitions like ICPC and HackerRank, respectively. They are seen as the thing that gifted high school students interested in computer science should pursue -- each time said students don't win medals in the International Olympiad in Informatics or the like, there will be some journalists complaining that their country's education system is ``falling behind''. In many countries, like Poland,\footnote{I believe the same is true for the rest of the former Eastern Bloc countries too and probably not much better in the West either.} if there's any high school level computer science education besides basic programming, it will be in imperative algorithms.
 
 Imperative algorithms aren't just a mere field of study -- they are more of a mindset and a culture; following Kuhn's \cite{Kuhn} terminology, they can be said to form a paradigm. Because this paradigm is so vast, so powerful and so entrenched, we feel free to completely disregard it and devote ourselves and this thesis to studying a related field which did not yet reach the status of a paradigm -- functional algorithms -- focusing on proving their formal correctness.
 
-But before we do that, we spend the rest of this chapter on comparing the imperative and functional approaches to algorithms and briefly reviewing available literature on functional algorithms.
+But before we do that, we spend the rest of this chapter comparing the imperative and functional approaches to algorithms and briefly reviewing available literature on functional algorithms.
 
 \section{Two flavours of algorithms}
 
-The differences between imperative and functional algorithms are mostly a reflection of the differences between imperative and functional programming languages and only in a small part a matter of differences in research focus.
+The differences between the fields imperative and functional algorithms are mostly a reflection of the differences between imperative and functional programming languages and only in a small part a matter of differences in research focus.
 
-The basic data structure in imperative languages is the array, which abstracts a contiguous block of memory holding values of a particular type. More advanced data structures are usually records that hold values and pointers/references to other (or even the same) kinds of data structures. The basic control flow primitives for traversing these structures are various loops (\m{while}, \m{for}, \m{do} ... \m{while}) and branch/jump statements (\m{if}, \m{switch}, \m{goto}). The most important operation is assignment, which changes the value of a variable (and thus variables do actually vary, like the name suggests). Computation is modeled by a series of operations which change the global state.
+The basic data structure in imperative languages is the array, which abstracts a contiguous block of memory holding values of a particular type. More advanced data structures are usually records that hold values and pointers/references to other (or even the same) kinds of data structures. The basic control flow primitives for traversing these structures are various loops (\m{while}, \m{for}, \m{do} ... \m{while}) and branch/jump statements (\m{if}, \m{switch}, \m{goto}). The most important operation is assignment, which changes the value of a variable (and thus variables do actually vary, like the name suggests \cite{WordsMatter}). Computation is modeled by a series of operations which change the global state.
 
-In functional languages the basic data structures are created using the mechanism of algebraic data types -- elements of each type so defined are trees whose node labels, branching and types of values held are specified by the user. The basic control flow primitives are pattern matching (checking the label and values of the tree's root) and recursion. The most important operation is function composition, which allows building complex functions from simpler ones. Computation is modeled by substitution of arguments for the formal parameters of a function. Variables don't actually vary -- they are just names for expressions.
+In functional languages the basic data structures are created using the mechanism of algebraic data types -- elements of each type so defined are trees whose node labels, branching and types of values held are specified by the user. The basic control flow primitives are pattern matching (checking the label and values of the tree's root) and recursion. The most important operation is function composition, which allows building complex functions from simpler ones. Computation is modeled by substitution of arguments for the formal parameters of a function. Variables don't actually vary -- they are just names for expressions. \cite{WordsMatter}
 
 \begin{listing}[H]
     \begin{minted}{Java}
@@ -114,11 +114,11 @@ In the functional program, we pattern match on the argument of the function. In 
 
 Even though these programs are very simple, they depict the basic differences between imperative and functional algorithms quite well. Some less obvious differences are as follows.
 
-First, functional data structures are by default immutable and thus persistent \cite{PersistentDataStructures}, whereas this is not so for imperative data structures -- they have to be explicitly designed to support persistence. This means implementing some techniques, like backtracking, is very easy in functional languages whereas it often requires much more effort in imperative languages. The price of persistence often is, however, increased memory usage.
+First, functional data structures are by default immutable and thus persistent \cite{PersistentDataStructures}, whereas this is not the case for imperative data structures -- they have to be explicitly designed to support persistence. This means implementing some techniques, like backtracking, is very easy in functional languages, but it often requires much more effort in imperative languages. The price of persistence often is, however, increased memory usage.
 
-Second, pointer juggling in imperative languages allows more efficient implementation of some operations on tree-like structures than using algebraic data types, because nodes in such trees can have pointers not only to their children, but also to parents/grandparents/siblings etc. The most famous data structure whose purely functional, asymptotically optimal implementation is not known is union-find \cite{FunctionalUnionFind}.
+Second, pointer juggling in imperative languages allows a more efficient implementation of some operations on tree-like structures than using algebraic data types, because nodes in such trees can have pointers not only to their children, but also to parents, siblings, etc. The most famous data structure whose purely functional, asymptotically optimal implementation is not known is union-find. \cite{FunctionalUnionFind}
 
-A related point is that arrays, the bread-and-butter of imperative programming, provide random access read and write in $O(1)$ time, whereas equivalent random access functional structures work in $O(\log n)$ where $n$ is the array size (or, at best, $O(\log i)$ where $i$ is the accessed index). This means that algorithms relying on constant time random access will suffer an asymptotic performance penalty when implemented in a functional language. Not all hope is lost however, because arrays are not necessarily forbidden in purely functional languages -- if the destructuve updates are packed up in a function so that they can't be seen from the outside, then basically this counts as purely functional.
+A related point is that arrays, the bread-and-butter of imperative programming, provide random access read and write in $O(1)$ time, whereas equivalent random access functional structures work in $O(\log n)$ time where $n$ is the array size (or, at best, $O(\log i)$ where $i$ is the accessed index). This means that algorithms relying on constant time random access will suffer an asymptotic performance penalty when implemented in a purely functional language. Not all hope is lost however -- mutable arrays can still be used in the these languages if the mutability is hidden behind a purely functional interface. An example of this is Haskell's ST monad. \cite{STMonad}
 
 \section{Complexity, performance and correctness}
 
@@ -128,19 +128,31 @@ Differences between performance-oriented design and formal-correctness-oriented 
 
 Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
 
-\chapter{Binary search trees -- an extended case study} \label{ch2}
-
-Binary search trees: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
+\chapter{Quicksort} \label{ch2}
 
 \chapter{A man, a plan, a canal -- MSc thesis}
 
-\section{Things to write about}
+\section{Design}
 \begin{itemize}
-    \item Design: we shouldn't require proofs in order to run programs. Ways of doing general recursion and, connected with it, functional induction as the way-to-go proof technique. Maybe something about the equations plugin. A word about classes, records and modules.
+    \item First step: specification (describe the path from intuition to formal spec).
+    \item Second step: design (describe the path from the concrete to the abstract by tracing a stub proof of correctness).
+    \item We shouldn't require proofs in order to run programs. Clou: packed vs unpacked classes/records/modules.
+\end{itemize}
+
+\section{Techniques}
+\begin{itemize}
+    \item General recursion: Bove-Capretta method as the way to go.
+    \item Functional induction as the way-to-go proof technique. Mention the Equations plugin.
+\end{itemize}
+
+\section{Topics}
+\begin{itemize}
     \item Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
     \item  Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
+    \item Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
     \item Cool data structures: ternary search trees, finger trees.
 \end{itemize}
+
 
 %%%%% BIBLIOGRAFIA
 
@@ -164,6 +176,10 @@ Binary search trees: a case study to show the basic workflow and that it's not t
 \bibitem{Kuhn}
     Thomas S. Kuhn, \textit{The Structure of Scientific Revolutions}
 
+\bibitem{WordsMatter}
+    Robert Harper, \textit{Words Matter}, \\
+    \url{https://existentialtype.wordpress.com/2012/02/01/words-matter/}
+
 \bibitem{PersistentDataStructures}
     Driscoll JR, Sarnak N, Sleator DD, Tarjan RE \\
     \textit{Making data structures persistent}, 1986
@@ -172,6 +188,11 @@ Binary search trees: a case study to show the basic workflow and that it's not t
     Sylvain Conchon, Jean-Christophe Fillâtre, \\
     \textit{A Persistent Union-Find Data Structure}, 2007 \\
     \url{https://www.lri.fr/~filliatr/ftp/publis/puf-wml07.pdf}
+
+\bibitem{STMonad}
+    John Launchbury, Simon Peyton Jones, \\
+    \textit{Lazy Functional State Threads}, 1994 \\
+    \url{https://www.microsoft.com/en-us/research/wp-content/uploads/1994/06/lazy-functional-state-threads.pdf}
 
 \end{thebibliography}
 
