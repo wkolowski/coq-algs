@@ -116,13 +116,29 @@ Even though these programs are very simple, they depict the basic differences be
 
 First, functional data structures are by default immutable and thus persistent \cite{PersistentDataStructures}, whereas this is not the case for imperative data structures -- they have to be explicitly designed to support persistence. This means implementing some techniques, like backtracking, is very easy in functional languages, but it often requires much more effort in imperative languages. The price of persistence often is, however, increased memory usage.
 
-Second, pointer juggling in imperative languages allows a more efficient implementation of some operations on tree-like structures than using algebraic data types, because nodes in such trees can have pointers not only to their children, but also to parents, siblings, etc. The most famous data structure whose purely functional, asymptotically optimal implementation is not known is union-find. \cite{FunctionalUnionFind}
+Second, pointer juggling in imperative languages allows a more efficient implementation of some operations on tree-like structures than using algebraic data types, because nodes in such trees can have pointers not only to their children, but also to parents, siblings, etc. The most famous data structure whose functional, asymptotically optimal implementation is not known is union-find. \cite{FunctionalUnionFind}
 
-A related point is that arrays, the bread-and-butter of imperative programming, provide random access read and write in $O(1)$ time, whereas equivalent random access functional structures work in $O(\log n)$ time where $n$ is the array size (or, at best, $O(\log i)$ where $i$ is the accessed index). This means that algorithms relying on constant time random access will suffer an asymptotic performance penalty when implemented in a purely functional language. Not all hope is lost however -- mutable arrays can still be used in the these languages if the mutability is hidden behind a purely functional interface. An example of this is Haskell's ST monad. \cite{STMonad}
+The third point is that arrays, the bread-and-butter of imperative programming, provide random access read and write in $O(1)$ time, whereas equivalent functional random access structures work in $O(\log n)$ time where $n$ is the array size (or, at best, $O(\log i)$ where $i$ is the accessed index). This means that algorithms relying on constant time random access will suffer an asymptotic performance penalty when implemented in functional languages. \cite{Pippenger}
+
+Even though this asymptotic penalty sounds gloomy, not all hope is lost, because of two reasons. First, mutable arrays can still be used in purely\footnote{``Pure'' and ``impure'' are loose terms used to classify functional languages. ``Pure'' roughly means that a language makes organized effort to separate programs that do ordinary number crunching or data processing from those that have side effects, like throwing exceptions or connecting to a database. An ``impure'' languages doesn't attempt at such a separation.} functional languages if the mutability is hidden behind a pure interface. An example of this is Haskell's ST monad. \cite{STMonad} Second, functional languages that are impure, like Standard ML or OCaml, allow using mutable arrays without much hassle, which often saves the day.
 
 \section{Complexity, performance and correctness}
 
-Differences between performance-oriented design and formal-correctness-oriented design.
+We stated earlier that we intend to concentrate on formally proving correctness of purely functional algorithms. Before doing that, we shortly peek at how it differs from the activities and workflows of the usual algorithmic business and what we're leaving out.
+
+In the following paragraphs, we take the perspective of a person we will call, for the lack of a better English word, an \textit{algorithmist}, by which we mean someone who specifies, designs and analyzes (and also maybe implements, tests, profiles, etc.) algorithms.
+
+``Necessity is the mother of invention'', goes the proverb, and indeed most algorithms arise as answers to questions like ``How do I make a computer sort a list of book titles?'' or ``How do I arrange my files on the hard disk so that I can easily find them later?''. The path toward this answer looks somewhat like this:
+
+\begin{itemize}
+    \item Provide a more precise specification of the problem. For example: ``Given an array $A$ of length $n$ which contains integers, rearrange them so that for every index $i < n$ we have $A[i] \leq A[i + 1]$''
+    \item Design an algorithm that solves the problem.
+    \item Prove that the algorithm is correct. If a proof is hard to find, this may be the sign that the algorithm is incorrect.
+    \item Analyze complexity of the algorithm, i.e. how much resources (number of steps, bits memory, bits of randomness, etc.) does the algorithm need to solve the problem of a given size. If the algorithm needs too much resources, go back and try to design another one that needs less.
+    \item Implement the algorithm and test whether the implementation is correct.
+    \item Run some experiments to assess the actual performance of the implementation in a few scenarios: random data, data that often occurs in the real world, etc. If the performance is bad, try to find a better implementation or go back and design another algorithm.
+\end{itemize}
+
 
 \section{An overview of available literature}
 
@@ -188,6 +204,11 @@ Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
     Sylvain Conchon, Jean-Christophe Fillâtre, \\
     \textit{A Persistent Union-Find Data Structure}, 2007 \\
     \url{https://www.lri.fr/~filliatr/ftp/publis/puf-wml07.pdf}
+
+\bibitem{Pippenger}
+    Nicholas Pippenger, \\
+    \textit{PURE VERSUS IMPURE LISP}, 1996 \\
+    \url{https://www.cs.princeton.edu/courses/archive/fall03/cs528/handouts/Pure%20Versus%20Impure%20LISP.pdf}
 
 \bibitem{STMonad}
     John Launchbury, Simon Peyton Jones, \\
