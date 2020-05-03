@@ -122,7 +122,7 @@ The third point is that arrays, the bread-and-butter of imperative programming, 
 
 Even though this asymptotic penalty sounds gloomy, not all hope is lost, because of two reasons. First, mutable arrays can still be used in purely\footnote{``Pure'' and ``impure'' are loose terms used to classify functional languages. ``Pure'' roughly means that a language makes organized effort to separate programs that do ordinary number crunching or data processing from those that have side effects, like throwing exceptions or connecting to a database. An ``impure'' languages doesn't attempt at such a separation.} functional languages if the mutability is hidden behind a pure interface. An example of this is Haskell's ST monad. \cite{STMonad} Second, functional languages that are impure, like Standard ML or OCaml, allow using mutable arrays without much hassle, which often saves the day.
 
-\section{Complexity, performance and correctness}
+\section{The algorithmic business}
 
 We stated earlier that we intend to concentrate on formally proving correctness of purely functional algorithms. Before doing that, we shortly peek at how it differs from the activities and workflows of the usual algorithmic business and what we're leaving out.
 
@@ -138,6 +138,22 @@ In the following paragraphs, we take the perspective of a person we will call, f
     \item Implement the algorithm and test whether the implementation is correct.
     \item Run some experiments to assess the actual performance of the implementation in a few scenarios: random data, data that often occurs in the real world, etc. If the performance is bad, try to find a better implementation or go back and design another algorithm.
 \end{itemize}
+
+An enlightening thing to do at this point is notice all the different worlds in which these activites take place. The specification is usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols like quantifiers. The algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail.
+
+The proof is again written in a mixture of English and mathematical symbols, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical logic (which admits reasoning principles like proof by contradiction \cite{ProofByContradiction} - this can be often seen in proofs of optimality) and some kind of naive set theory, but if pressed, the algorithmist would readily assert that the set theory could be axiomatized using, for example, the Zermelo-Fraenkel axioms.
+
+The next hidden world, in which the complexity analysis takes its place, is the model of computation. Most likely it won't be mentioned explicitly, just like the logic and set theory thing in the previous paragraph, but we can easily guess it from the fact that the algorithm is intended to be implemented on a real computer and the model of computation most similar to the workings of real hardware is the RAM machine. Last but not least, the implementation, in contrast to the algorithm's pseudocode, will be in some concrete programming language.
+
+As we see, typically the algorithmic solution of a problem is a product of many activities which live in quite different worlds. A person concerned with the formal correctness of such a solution could have many doubts related to how to worlds fit together:
+
+\begin{itemize}
+    \item Does the pseudocode really describe an algorithm that meets the informally written specification? Is the pen-and-paper proof correct?
+    \item Does the implementation match the pseudocode? Do tests match the specification?
+    \item Does the assumed model of computation match the capabilities of the programming language used for implementation? Is the analysis correct? Do its results match the assessed performance?
+    \item 
+\end{itemize}
+
 
 
 \section{An overview of available literature}
@@ -193,7 +209,7 @@ Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
     Thomas S. Kuhn, \textit{The Structure of Scientific Revolutions}
 
 \bibitem{WordsMatter}
-    Robert Harper, \textit{Words Matter}, \\
+    Robert Harper, \textit{Words Matter}, 2012 \\
     \url{https://existentialtype.wordpress.com/2012/02/01/words-matter/}
 
 \bibitem{PersistentDataStructures}
@@ -206,8 +222,7 @@ Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
     \url{https://www.lri.fr/~filliatr/ftp/publis/puf-wml07.pdf}
 
 \bibitem{Pippenger}
-    Nicholas Pippenger, \\
-    \textit{PURE VERSUS IMPURE LISP}, 1996 \\
+    Nicholas Pippenger, \textit{Pure versus impure Lisp}, 1996 \\
     \url{https://www.cs.princeton.edu/courses/archive/fall03/cs528/handouts/Pure%20Versus%20Impure%20LISP.pdf}
 
 \bibitem{STMonad}
@@ -215,6 +230,9 @@ Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
     \textit{Lazy Functional State Threads}, 1994 \\
     \url{https://www.microsoft.com/en-us/research/wp-content/uploads/1994/06/lazy-functional-state-threads.pdf}
 
+\bibitem{ProofByContradiction}
+    Andrej Bauer, \textit{Proof of negation and proof by contradiction}, 2010 \\
+    \url{http://math.andrej.com/2010/03/29/proof-of-negation-and-proof-by-contradiction/}
 \end{thebibliography}
 
 \end{document}
