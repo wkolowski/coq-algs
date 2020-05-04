@@ -50,9 +50,23 @@
 
 \chapter{Introduction} \label{ch1}
 
-TODO: after completing the thesis, write a short overview of what each chapter is about.
+The title of this thesis is ``Formally verified functional algorithms and data structures in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these words:
 
-\section{An overarching paradigm}
+\begin{itemize}
+    \item In section \ref{ch1s1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
+    \item In section \ref{ch1s2} we explain ``functional'' programming by contrasting it with imperative programming.
+    \item In section \ref{ch1s3} we lay out the unity of the ``formally verified'' world by comparing it with the many worlds which are the arenas of the usual algorithmic struggles.
+    \item In section \ref{ch1s4} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
+    \item In section \ref{ch1s5} we show how working ``in Coq'' looks like and describe some theory and principles Coq is based on.
+\end{itemize}
+
+In the remaining chpaters we describe the actual concepts and techniques, using well-known and well-studied examples like quicksort, merge sort or binary heaps:
+
+\begin{itemize}
+    \item TODO
+\end{itemize}
+
+\section{An overarching paradigm} \label{ch1s1}
 
 The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
 
@@ -66,11 +80,11 @@ This situation is not uncommon and rather easy to explain. \textit{Imperative} a
 
 But theoretical research and higher education are not the only strongholds of imperative algorithms. They are also pretty much synonymous with competitive programming, dominating most in-person and online computer science competitions like ICPC and HackerRank, respectively. They are seen as the thing that gifted high school students interested in computer science should pursue -- each time said students don't win medals in the International Olympiad in Informatics or the like, there will be some journalists complaining that their country's education system is ``falling behind''. In many countries, like Poland,\footnote{I believe the same is true for the rest of the former Eastern Bloc countries too and probably not much better in the West either.} if there's any high school level computer science education besides basic programming, it will be in imperative algorithms.
 
-Imperative algorithms aren't just a mere field of study -- they are more of a mindset and a culture; following Kuhn's \cite{Kuhn} terminology, they can be said to form a paradigm. Because this paradigm is so vast, so powerful and so entrenched, we feel free to completely disregard it and devote ourselves and this thesis to studying a related field which did not yet reach the status of a paradigm -- functional algorithms -- focusing on proving their formal correctness.
+Imperative algorithms aren't just a mere field of study -- they are more of a mindset and a culture; following Kuhn's \cite{Kuhn} terminology, they can be said to form a paradigm. Because this paradigm is so immense, so powerful and so entrenched, we feel free to completely disregard it and devote ourselves and this thesis to studying a related field which did not yet reach the status of a paradigm -- functional algorithms -- focusing on proving their formal correctness.
 
 But before we do that, we spend the rest of this chapter comparing the imperative and functional approaches to algorithms and briefly reviewing available literature on functional algorithms.
 
-\section{Two flavours of algorithms}
+\section{Two flavours of algorithms} \label{ch1s2}
 
 The differences between the fields imperative and functional algorithms are mostly a reflection of the differences between imperative and functional programming languages and only in a small part a matter of differences in research focus.
 
@@ -122,7 +136,7 @@ The third point is that arrays, the bread-and-butter of imperative programming, 
 
 Even though this asymptotic penalty sounds gloomy, not all hope is lost, because of two reasons. First, mutable arrays can still be used in purely\footnote{``Pure'' and ``impure'' are loose terms used to classify functional languages. ``Pure'' roughly means that a language makes organized effort to separate programs that do ordinary number crunching or data processing from those that have side effects, like throwing exceptions or connecting to a database. An ``impure'' languages doesn't attempt at such a separation.} functional languages if the mutability is hidden behind a pure interface. An example of this is Haskell's ST monad. \cite{STMonad} Second, functional languages that are impure, like Standard ML or OCaml, allow using mutable arrays without much hassle, which often saves the day.
 
-\section{The algorithmic business}
+\section{The many-worlds interpretation of the algorithmic business} \label{ch1s3}
 
 We stated earlier that we intend to concentrate on formally proving correctness of purely functional algorithms. Before doing that, we shortly peek at how it differs from the activities and workflows of the usual algorithmic business and what we're leaving out.
 
@@ -141,11 +155,11 @@ In the following paragraphs, we take the perspective of a person we will call, f
 
 An enlightening thing to do at this point is notice all the different worlds in which these activites take place. The specification is usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols like quantifiers. The algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail.
 
-The proof is again written in a mixture of English and mathematical symbols, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical logic (which admits reasoning principles like proof by contradiction \cite{ProofByContradiction} - this can be often seen in proofs of optimality) and some kind of naive set theory, but if pressed, the algorithmist would readily assert that the set theory could be axiomatized using, for example, the Zermelo-Fraenkel axioms.
+The proof is again written in a mixture of English and mathematical symbols, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical logic (which admits reasoning principles like proof by contradiction \cite{ProofByContradiction} - this can be often seen in proofs of optimality) and some kind of naive set theory, but if pressed a bit, the algorithmist would readily assert that the set theory could be axiomatized using, for example, the Zermelo-Fraenkel axioms.
 
-The next hidden world, in which the complexity analysis takes its place, is the model of computation. Most likely it won't be mentioned explicitly, just like the logic and set theory thing in the previous paragraph, but we can easily guess it from the fact that the algorithm is intended to be implemented on a real computer and the model of computation most similar to the workings of real hardware is the RAM machine. Last but not least, the implementation, in contrast to the algorithm's pseudocode, will be in some concrete programming language.
+The next hidden world, in which the complexity analysis takes its place, is the model of computation. Most likely it won't be mentioned explicitly, just like the logic and set theory thing in the previous paragraph, but we can easily guess it from the fact that the algorithm is intended to be implemented on a real computer and the model of computation most similar to the workings of real hardware is the RAM machine. Last but not least, the implementation, in contrast to the algorithm's pseudocode, will be in some concrete programming language - a very popular algorithmic language, due to its speed, is \m{C++}.
 
-As we see, typically the algorithmic solution of a problem is a product of many activities which live in quite different worlds. A person concerned with the formal correctness of such a solution could have many doubts related to how to worlds fit together:
+As we see, a typical algorithmic solution of a problem stems from a sequence (or rather, a loop) of activities which live in quite different worlds. Even though in practice the above recipe works well A person concerned with the formal correctness of such a solution could have many doubts related to how to worlds fit together:
 
 \begin{itemize}
     \item Does the pseudocode really describe an algorithm that meets the informally written specification? Is the pen-and-paper proof correct?
@@ -156,11 +170,14 @@ As we see, typically the algorithmic solution of a problem is a product of many 
 
 
 
-\section{An overview of available literature}
+\section{An overview of available literature} \label{ch1s4}
 
 Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
 
-\chapter{Quicksort} \label{ch2}
+\section{Dupa konia na wesoło} \label{ch1s5}
+
+\chapter{Quicksort - \textit{tour de force}} \label{ch2}
+
 
 \chapter{A man, a plan, a canal -- MSc thesis}
 
