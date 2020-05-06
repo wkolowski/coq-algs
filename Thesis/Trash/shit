@@ -1,0 +1,1 @@
+For example: ``Given an array $A$ of length $n$ which contains integers, rearrange them so that for every index $i < n$ we have $A[i] \leq A[i + 1]$''
