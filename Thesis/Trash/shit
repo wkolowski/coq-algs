@@ -1,1 +1,3 @@
 For example: ``Given an array $A$ of length $n$ which contains integers, rearrange them so that for every index $i < n$ we have $A[i] \leq A[i + 1]$''
+
+ ``Necessity is the mother of invention'', goes the proverb, and indeed most algorithms arise as answers to questions like ``How do I make a computer sort a list of book titles?'' or ``How do I arrange my files on the hard disk so that I can easily find them later?''. The path toward the answer usually looks somewhat like this:
