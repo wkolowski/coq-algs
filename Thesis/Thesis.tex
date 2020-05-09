@@ -145,7 +145,7 @@ When an algorithmist encounters a problem, let's say ``How do I sort a list of i
 \begin{itemize}
     \item Formulate a (more) precise specification of the problem.
     \item Design an algorithm that solves the problem and write it down using some kind of pseudocode, keeping a good balance between generality and detail.
-    \item Prove that the algorithm is correct. If a proof is hard to find, this may be the sign that the algorithm is incorrect.
+    \item Prove that the algorithm is correct. If a proof is hard to find, this may be a sign that the algorithm is incorrect.
     \item Analyze complexity of the algorithm, i.e. how much resources (number of steps, bits memory, bits of randomness, etc.) does the algorithm need to solve the problem of a given size. If the algorithm needs too much resources, go back and try to design another one that needs less.
     \item Implement the algorithm and test whether the implementation is correct.
     \item Run some experiments to assess the actual performance of the implementation, preferably considering a few common scenarios: random data, data that often occurs in the real world, data constructed by an evil adversary, etc. If the performance is unsatisfying, try to find a better implementation or go back and design a better algorithm.
@@ -158,22 +158,27 @@ Of course this recipe is not stiff and some variations are possible. The two mos
     \item The extremely theoretical, in which there is no implementation and thus no tests and no performance assessment, and the most time-consuming part becomes the complexity analysis. This approach is widespread in teaching, where the implementation part is left to students as an exercise, and in theoretical research, where real-world applicability is not always the most important goal.
 \end{itemize}
 
-No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activites take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. What's more, the actual implementation, in contrast to the pseudocode, will be in some concrete programming language - a very  popular one among algorithmists is \m{C++}.
+No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activites take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. What's more, the actual implementation, in contrast to the pseudocode, will be in some concrete programming language -- a very  popular one among algorithmists is \m{C++}.
 
-The specification and the proof are usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols for numbers, relations, sets and quantifiers, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical first-order logic\footnote{By ``classical'' we mean that the logic admits nonconstructive reasoning principles like proof by contradiction \cite{ProofByContradiction} - its use can be seen, for example, in proofs of optimality.} and some kind of naive set theory, but if pressed a bit, the algorithmist would readily assert that the set theory could be axiomatized using, let's say, the Zermelo-Fraenkel axioms.
+The specification and the proof are usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols for numbers, relations, sets and quantifiers, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical first-order logic\footnote{By ``classical'' we mean that the logic admits nonconstructive reasoning principles like proof by contradiction \cite{ProofByContradiction} -- its use can be seen, for example, in proofs of optimality.} and some kind of naive set theory, but if pressed a bit, the algorithmist would readily assert that the set theory could be axiomatized using, let's say, the Zermelo-Fraenkel axioms.
 
-The next hidden world, in which the complexity analysis takes its place, is the model of computation. In most cases it is not mentioned explicitly, just like the logic and set theory thing from the previous paragraph, but usually it's easy to guess it. Most algorithms are, after all, intended to be implemented on modern computers, and the model of computation most similar to the workings of real hardware is the RAM machine.
+The next hidden world, in which the complexity analysis takes its place, is the model of computation. In most cases it is not mentioned explicitly, just like logic and set theory in the previous paragraph, but usually it's easy to guess. Most algorithms are, after all, intended to be implemented on modern computers, and the model of computation most similar to the workings of real hardware is the RAM machine.
 
-As we see, the typical solution of an algorithmic problem stems from a sequence (or rather, a loop) of activities which live in seven different worlds: the pseudocode, the implementation language, the world of informal math, the world of formal math, the model of computation and the hardware, and these six are all joined together by the algorithmist's mind.
+As we see, the typical solution of an algorithmic problem stems from a sequence (or rather, a loop) of activities which live in seven different worlds: the pseudocode, the implementation language, the world of informal math, the world of formal math, the model of computation, the hardware, and these six are all joined together by the algorithmist's mind.
 
-Even though the above recipe and its variations work well in practice, as evidenced by the huge number of algorithms solving our everyday problems, an inquisitive person (perhaps a philosopher) could ask a plethora of questions about how all these worlds fit together:
+Even though the above many-worlds recipe and its variations work well in practice, as evidenced by the huge number of algorithms humanity put to use to keep solving its everyday problems, an inquisitive person interested in formal verification (or perhaps a philosopher) could ask a plethora of questions about how all these worlds fit together:
 
 \begin{itemize}
     \item Does the implementation correspond to the pseudocode?
     \item Could the informally stated specification and proof really be cast into the claimed formal system?
     \item Does the model of computation actually model the hardware well?
-    \item 
+    \item Could the model of computation (and the complexity analysis) be formalized?
+    \item How is the source program, written in the implementation language, related to the machine code executed by the hardware, i.e. is compilation correct?\footnote{Assuming the language is compiled, not interpreted.}
+    \item Does the analysis agree with the implementation language semantics?\footnote{If it's the implementation that is analyzed and not the pseudocode.}
 \end{itemize}
+
+Each of these questions can be seen as pointing at a link between two worlds which is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds gives rise to a potential mismatch, there's a lot to worry about.
+
 
 
 
