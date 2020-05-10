@@ -164,21 +164,23 @@ The specification and the proof are usually written in English (or whatever the 
 
 The next hidden world, in which the complexity analysis takes its place, is the model of computation. In most cases it is not mentioned explicitly, just like logic and set theory in the previous paragraph, but usually it's easy to guess. Most algorithms are, after all, intended to be implemented on modern computers, and the model of computation most similar to the workings of real hardware is the RAM machine.
 
-As we see, the typical solution of an algorithmic problem stems from a sequence (or rather, a loop) of activities which live in seven different worlds: the pseudocode, the implementation language, the world of informal math, the world of formal math, the model of computation, the hardware, and these six are all joined together by the algorithmist's mind.
+As we see, the typical solution of an algorithmic problem stems from a sequence (or rather, a loop) of activities which live in six different worlds: the world of abstract ideas, represented by the pseudocode, the world of programming, represented by the implementation language, the world of formal math, the world of informal math, the world of idealized execution, represented by the model of computation, and the world of concrete execution, represented by the hardware.
 
-Even though the above many-worlds recipe and its variations work well in practice, as evidenced by the huge number of algorithms humanity put to use to keep solving its everyday problems, an inquisitive person interested in formal verification (or perhaps a philosopher) could ask a plethora of questions about how all these worlds fit together:
+Even though the above many-worlds recipe and its variations work well in practice, as evidenced by the huge number of algorithms humanity put to use for solving its everyday problems, an inquisitive person interested in formal verification (or perhaps a philosopher) could ask a plethora of questions about how all these worlds fit together:
 
 \begin{itemize}
     \item Does the implementation correspond to the pseudocode?
     \item Could the informally stated specification and proof really be cast into the claimed formal system?
     \item Does the model of computation actually model the hardware well?
     \item Could the model of computation (and the complexity analysis) be formalized?
-    \item How is the source program, written in the implementation language, related to the machine code executed by the hardware, i.e. is compilation correct?\footnote{Assuming the language is compiled, not interpreted.}
-    \item Does the analysis agree with the implementation language semantics?\footnote{If it's the implementation that is analyzed and not the pseudocode.}
+    \item Assuming the implementation language is compiled, how is the source program related to machine code executed by the hardware, i.e. is compilation correct?\item Does the analysis agree with the implementation language semantics?\footnote{If it's the implementation that is analyzed and not the pseudocode.}
 \end{itemize}
 
-Each of these questions can be seen as pointing at a link between two worlds which is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds gives rise to a potential mismatch, there's a lot to worry about.
+Each of these questions can be seen as pointing at a link between two worlds which is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds can give rise to a potential mismatch, in theory there is a lot to worry about.
 
+We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with our approach to formal verification of algorithms, which can be seen as getting rid of potential errors due to world mismatches by transfering (nearly) all of the activities into a single, unified, formal world.
+
+This formal world is Coq, a language which can be used both for functional programming and proving theorems (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the worlds of formal and informal mathematics collapse into one. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm.\footnote{An example of this will be provided in \ref{ch2}.} This merges the worlds of ideas and programming into one.
 
 
 
@@ -187,6 +189,15 @@ Each of these questions can be seen as pointing at a link between two worlds whi
 Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
 
 \section{Way of the Coq} \label{ch1s5}
+
+
+
+
+
+a type theory-based proof assistant and a dependently typed (purely) functional programming language at the same time.
+
+Calculus of Constructions\footnote{Calculus of Constructions, in short CoC, was invented by Thierry Coquand. Another very similar system is Martin-L\"{o}f Type Theory\cite{MLTT}}
+
 
 \chapter{A quick \textit{tour de} sort} \label{ch2}
 
