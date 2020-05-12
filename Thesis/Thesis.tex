@@ -53,11 +53,11 @@
 The title of this thesis is ``Formally verified functional algorithms and data structures in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
 
 \begin{itemize}
-    \item In section \ref{ch1s1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
-    \item In section \ref{ch1s2} we explain ``functional'' programming by comparing it with imperative programming.
-    \item In section \ref{ch1s3} we lay out the unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds which are the arenas of the imperative algorithmic struggles.
-    \item In section \ref{ch1s4} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
-    \item In section \ref{ch1s5} we show how working ``in Coq'' looks like and describe some theory and principles Coq is based on.
+    \item In \hyperref[ch1s1]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
+    \item In \hyperref[ch1s2]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
+    \item In \hyperref[ch1s3]{section 3} we lay out the unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds which are the arenas of the imperative algorithmic struggles.
+    \item In \hyperref[ch1s4]{section 4} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
+    \item In \hyperref[ch1s5]{section 5} we show how working ``in Coq'' looks like and describe some theory and principles Coq is based on.
 \end{itemize}
 
 In the remaining chpaters we describe the actual concepts and techniques, using well-known and well-studied examples like quicksort, merge sort or binary heaps:
@@ -158,9 +158,9 @@ Of course this recipe is not stiff and some variations are possible. The two mos
     \item The extremely theoretical, in which there is no implementation and thus no tests and no performance assessment, and the most time-consuming part becomes the complexity analysis. This approach is widespread in teaching, where the implementation part is left to students as an exercise, and in theoretical research, where real-world applicability is not always the most important goal.
 \end{itemize}
 
-No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activites take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. What's more, the actual implementation, in contrast to the pseudocode, will be in some concrete programming language -- a very  popular one among algorithmists is \m{C++}.
+No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activites take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. The actual implementation, in contrast, will be in some concrete programming language -- a very  popular one among algorithmists is \m{C++}.
 
-The specification and the proof are usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols for numbers, relations, sets and quantifiers, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical first-order logic\footnote{By ``classical'' we mean that the logic admits nonconstructive reasoning principles like proof by contradiction \cite{ProofByContradiction} -- its use can be seen, for example, in proofs of optimality.} and some kind of naive set theory, but if pressed a bit, the algorithmist would readily assert that the set theory could be axiomatized using, let's say, the Zermelo-Fraenkel axioms.
+The specification and the proof are usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols for numbers, relations, sets and quantifiers, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical first-order logic\footnote{By ``classical'' we mean that the logic admits nonconstructive reasoning principles like proof by contradiction \cite{ProofByContradiction} -- its use can be seen, for example, in proofs of optimality.} and some kind of naive set theory. When pressed a bit, however, the algorithmist will readily assert that the set theory could be axiomatized using, let's say, the Zermelo-Fraenkel axioms.
 
 The next hidden world, in which the complexity analysis takes its place, is the model of computation. In most cases it is not mentioned explicitly, just like logic and set theory in the previous paragraph, but usually it's easy to guess. Most algorithms are, after all, intended to be implemented on modern computers, and the model of computation most similar to the workings of real hardware is the RAM machine.
 
@@ -176,11 +176,26 @@ Even though the above many-worlds recipe and its variations work well in practic
     \item Assuming the implementation language is compiled, how is the source program related to machine code executed by the hardware, i.e. is compilation correct?\item Does the analysis agree with the implementation language semantics?\footnote{If it's the implementation that is analyzed and not the pseudocode.}
 \end{itemize}
 
-Each of these questions can be seen as pointing at a link between two worlds which is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds can give rise to a potential mismatch, in theory there is a lot to worry about.
+Each of these questions can be seen as pointing at a link between two worlds and each such link is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds can give rise to a potential mismatch, in theory there is a lot to worry about.
 
-We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with our approach to formal verification of algorithms, which can be seen as getting rid of potential errors due to world mismatches by transfering (nearly) all of the activities into a single, unified, formal world.
+We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with the approach of formally verified functional algorithms, which can be seen as an attempt at getting rid of potential world mismatch errors by transfering (nearly) all of the activities into a single, unified, formal world.
 
-This formal world is Coq, a language which can be used both for functional programming and proving theorems (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the worlds of formal and informal mathematics collapse into one. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm.\footnote{An example of this will be provided in \ref{ch2}.} This merges the worlds of ideas and programming into one.
+This formal world is Coq, a language which can be used both for proving theorems and programming (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, thanks to the Curry-Howard correspondence,\cite{CurryHoward} functional programming is the same thing as constructive mathematics -- this fact further collapses the two already-collapsed worlds.
+
+What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. But as long as not all worlds were collapsed into one, there is still some room for error.
+
+First, becuase Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen in \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math still is somewhat alive.
+
+The second point, related to the first, is that there is no guarantee the semantics of code executed by the hardware is the same as the semantics of the source code. There have been some attempts at formalizing various aspects of Coq in Coq \cite{CoqInCoq} \cite{CoqCoqCorrect} to this effect, but they have the status of exploratory research or work-in-progress. A more serious barrier that prevents us from ever fully formalizing Coq in Coq is G\"{o}del's incompleteness theorem.
+
+Third, the model of computation still lives in a separate world, formally related neither to the code nor to the hardware. 
+
+
+
+
+
+
+
 
 
 
@@ -273,6 +288,39 @@ Calculus of Constructions\footnote{Calculus of Constructions, in short CoC, was 
 \bibitem{ProofByContradiction}
     Andrej Bauer, \textit{Proof of negation and proof by contradiction}, 2010 \\
     \url{http://math.andrej.com/2010/03/29/proof-of-negation-and-proof-by-contradiction/}
+
+\bibitem{CurryHoward}
+    Morten Heine Sørensen, Paweł Urzyczyn, \\
+    \textit{Lectures on the Curry-Howard Isomorphism}, 2006, \\
+    \url{http://disi.unitn.it/~bernardi/RSISE11/Papers/curry-howard.pdf}
+
+\bibitem{CoqInCoq}
+    Bruno Barras, Benjamin Werner, \textit{Coq in Coq}, 1997, \\
+    \url{http://www.lix.polytechnique.fr/Labo/Bruno.Barras/publi/coqincoq.pdf}
+
+\bibitem{CoqCoqCorrect}
+    Matthieu Sozeau, Simon Boulier, Yannick Forster, Nicolas Tabareau, Théo Winterhalter, \\
+    \textit{Coq Coq Correct! Verification of Type Checking and Erasure for Coq, in Coq}, 2020, \\
+    \url{https://www.irif.fr/~sozeau/research/publications/drafts/Coq_Coq_Correct.pdf}
+
+\bibitem{Coq}
+    \url{https://coq.inria.fr/}
+
+\bibitem{SoftwareFoundations}
+    Benjamin C. Pierce, Andrew W. Appel et al, \\
+    \textit{Software Foundations}, 2019, \\
+    \url{https://softwarefoundations.cis.upenn.edu/}
+
+\bibitem{CoqArt}
+    Yves Bertot and Pierre Castéran, \\
+    \textit{Interactive Theorem Proving and Program Development \\ Coq'Art: The Calculus of Inductive Constructions}, 2004, \\
+    \url{https://www.labri.fr/perso/casteran/CoqArt/}
+
+\bibitem{CPDT}
+    Adam Chlipala,
+    \textit{Certified Programming with Dependent Types}, \\
+    \url{http://adam.chlipala.net/cpdt/}
+
 \end{thebibliography}
 
 \end{document}
