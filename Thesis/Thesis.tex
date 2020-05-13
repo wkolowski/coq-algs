@@ -55,9 +55,10 @@ The title of this thesis is ``Formally verified functional algorithms and data s
 \begin{itemize}
     \item In \hyperref[ch1s1]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
     \item In \hyperref[ch1s2]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
-    \item In \hyperref[ch1s3]{section 3} we lay out the unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds which are the arenas of the imperative algorithmic struggles.
-    \item In \hyperref[ch1s4]{section 4} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
+    \item \hyperref[ch1s3]{Section 3} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
+    \item In \hyperref[ch1s4]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
     \item In \hyperref[ch1s5]{section 5} we show how working ``in Coq'' looks like and describe some theory and principles Coq is based on.
+    \item In \hyperref[ch1s6]{section 6} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
 \end{itemize}
 
 In the remaining chpaters we describe the actual concepts and techniques, using well-known and well-studied examples like quicksort, merge sort or binary heaps:
@@ -178,41 +179,25 @@ Even though the above many-worlds recipe and its variations work well in practic
 
 Each of these questions can be seen as pointing at a link between two worlds and each such link is a potential source of errors -- the worlds may not correspond too well. Because each pair of worlds can give rise to a potential mismatch, in theory there is a lot to worry about.
 
-We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with the approach of formally verified functional algorithms, which can be seen as an attempt at getting rid of potential world mismatch errors by transfering (nearly) all of the activities into a single, unified, formal world.
+We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with the approach of formally verified functional algorithms, which is an attempt at getting rid of potential world mismatch errors by transfering (nearly) all of the activities into a single, unified, formal world.
 
-This formal world is Coq, a language which can be used both for proving theorems and programming (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, thanks to the Curry-Howard correspondence,\cite{CurryHoward} functional programming is the same thing as constructive mathematics -- this fact further collapses the two already-collapsed worlds.
+\section{Formal verification as a world-collapser} \label{ch1s4}
+
+This formal world is Coq, a language which can be used both for proving theorems and programming (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, thanks to the Curry-Howard correspondence \cite{CurryHoward}, functional programming is the same thing as constructive mathematics -- this fact further collapses the two already-collapsed worlds.
 
 What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. But as long as not all worlds were collapsed into one, there is still some room for error.
 
-First, becuase Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen in \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math still is somewhat alive.
+First, becuase Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen from \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math is still somewhat alive.
 
 The second point, related to the first, is that there is no guarantee the semantics of code executed by the hardware is the same as the semantics of the source code. There have been some attempts at formalizing various aspects of Coq in Coq \cite{CoqInCoq} \cite{CoqCoqCorrect} to this effect, but they have the status of exploratory research or work-in-progress. A more serious barrier that prevents us from ever fully formalizing Coq in Coq is G\"{o}del's incompleteness theorem.
 
-Third, the model of computation still lives in a separate world, formally related neither to the code nor to the hardware. 
+Third, the model of computation still lives in a separate world, formally related neither to the code nor to the hardware. What's worse, there is a huge chasm between the preferred models of computation used in computational complexity (Turing machines \cite{Turing}) and algorithms (RAM machines) on the one hand, and the theory of programming languages (the lambda calculus \cite{Church}) on the other hand -- see \cite{OtherTuringMachine} for a brief overview. There has been a still-ongoing thread of research, mainly in Italy, 
 
-
-
-
-
-
-
-
-
-
-\section{An ultra short literature review} \label{ch1s4}
-
-Literature review, Okasaki is old and bad for Coq, SF3 is shallow.
+some ongoing work on  establishing the lambda calculus as a model of computation usable for practical analyses
 
 \section{Way of the Coq} \label{ch1s5}
 
-
-
-
-
-a type theory-based proof assistant and a dependently typed (purely) functional programming language at the same time.
-
-Calculus of Constructions\footnote{Calculus of Constructions, in short CoC, was invented by Thierry Coquand. Another very similar system is Martin-L\"{o}f Type Theory\cite{MLTT}}
-
+\section{An ultra short literature review} \label{ch1s6}
 
 \chapter{A quick \textit{tour de} sort} \label{ch2}
 
@@ -303,11 +288,24 @@ Calculus of Constructions\footnote{Calculus of Constructions, in short CoC, was 
     \textit{Coq Coq Correct! Verification of Type Checking and Erasure for Coq, in Coq}, 2020, \\
     \url{https://www.irif.fr/~sozeau/research/publications/drafts/Coq_Coq_Correct.pdf}
 
+\bibitem{Turing}
+    Alan Turing, \textit{On Computable Numbers, with an Application to the Entscheidungsproblem}, 1936 \\
+    \url{https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf}
+
+\bibitem{Church}
+    Alonzo Church, \textit{An Unsolvable Problem of Elementary Number Theory}, 1936 \\
+    \url{https://www.ics.uci.edu/~lopes/teaching/inf212W12/readings/church.pdf}
+
+\bibitem{OtherTuringMachine}
+    Guy Blelloch, Robert Harper, \\
+    \textit{$\lambda$-Calculus: The Other Turing Machine}, 2015 \\
+    \url{https://www.cs.cmu.edu/~rwh/papers/lctotm/cs50.pdf}
+
 \bibitem{Coq}
     \url{https://coq.inria.fr/}
 
 \bibitem{SoftwareFoundations}
-    Benjamin C. Pierce, Andrew W. Appel et al, \\
+    Benjamin C. Pierce, Andrew W. Appel et al., \\
     \textit{Software Foundations}, 2019, \\
     \url{https://softwarefoundations.cis.upenn.edu/}
 
