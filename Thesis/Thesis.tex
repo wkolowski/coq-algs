@@ -183,17 +183,19 @@ We allowed ourselves to wander into this lengthy overview of the usual algorithm
 
 \section{Formal verification as a world-collapser} \label{ch1s4}
 
-This formal world is Coq, a language which can be used both for proving theorems and programming (we will give a more extensive overview in the next section). First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, thanks to the Curry-Howard correspondence \cite{CurryHoward}, functional programming is the same thing as constructive mathematics -- this fact further collapses the two already-collapsed worlds.
+This formal world is Coq \cite{Coq}, a language which can be used both for proving theorems and programming (we will give a more extensive overview in the next section). Applied to algorithms, it gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, Coq has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, thanks to the Curry-Howard correspondence \cite{CurryHoward}, functional programming is the same thing as constructive mathematics -- this fact further collapses the two already-collapsed worlds.
 
-What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. But as long as not all worlds were collapsed into one, there is still some room for error.
+What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. To sum up, we can avoid the various mismatches of previous section using formal proofs inside our unified world.
 
-First, becuase Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen from \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math is still somewhat alive.
+But as long as not all worlds were collapsed into one, there is still some room for error. First, becuase Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen from \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math is still somewhat alive.
 
 The second point, related to the first, is that there is no guarantee the semantics of code executed by the hardware is the same as the semantics of the source code. There have been some attempts at formalizing various aspects of Coq in Coq \cite{CoqInCoq} \cite{CoqCoqCorrect} to this effect, but they have the status of exploratory research or work-in-progress. A more serious barrier that prevents us from ever fully formalizing Coq in Coq is G\"{o}del's incompleteness theorem.
 
-Third, the model of computation still lives in a separate world, formally related neither to the code nor to the hardware. What's worse, there is a huge chasm between the preferred models of computation used in computational complexity (Turing machines \cite{Turing}) and algorithms (RAM machines) on the one hand, and the theory of programming languages (the lambda calculus \cite{Church}) on the other hand -- see \cite{OtherTuringMachine} for a brief overview. There has been a still-ongoing thread of research, mainly in Italy, 
+Third, the model of computation still lives in a separate world, formally related neither to the code nor to the hardware. What's worse, there is a huge chasm between the preferred models of computation used in computational complexity (Turing machines \cite{Turing}) and algorithms (RAM machines) on the one hand, and the theory of programming languages (lambda calculi \cite{Church}) on the other hand -- see \cite{OtherTuringMachine} for a brief overview.
 
-some ongoing work on  establishing the lambda calculus as a model of computation usable for practical analyses
+Regarding the third point, there has been some ongoing research whose goal is to bring lambda calculus on par with other models of computation, with interesting results like \cite{ReasonableMachine} showing that it's not as bad as complexity theorists think, but it's still very far from entering the mainstream consciousness. Another related line of research is implicit complexity theory -- an attempt to characterize complexity classes not in terms of resources needed by a machine to compute a function, but in terms of restricted, minimalistic programming languages that can be used to implement functions from these classes. See \cite{ICC1} \cite{ICC2} for an introduction. A third related body of research concerns cost semantics, a technique for specifying the cost of a programming language's constructs together with their operational behaviour, so that one no longer needs to consider the model of computation (or rather, the programming language becomes the model of computation). This opens up some interesting directions, like automatic complexity analyses during compilation time. See \cite{CostSemanticsBlog} for arguments why this is a viable alternative to machine-based computation models and \cite{CostSemantics} for an example paper using this technique.
+
+We will not worry about the concerns raised, because a single formal world is still a huge win in terms of correctness. Regarding point 1, in practice, if Coq accepts a proof, then the proof is correct -- chances of running into a critical bug by accident are minimal. We're also not as much interested in running algorithms and analyzing their complexity, so points 2 and 3 don't matter to us at all.\footnote{This of course does not mean that we will study silly, exponentially slow algorithms...}
 
 \section{Way of the Coq} \label{ch1s5}
 
@@ -274,6 +276,9 @@ some ongoing work on  establishing the lambda calculus as a model of computation
     Andrej Bauer, \textit{Proof of negation and proof by contradiction}, 2010 \\
     \url{http://math.andrej.com/2010/03/29/proof-of-negation-and-proof-by-contradiction/}
 
+\bibitem{Coq}
+    \url{https://coq.inria.fr/}
+
 \bibitem{CurryHoward}
     Morten Heine Sørensen, Paweł Urzyczyn, \\
     \textit{Lectures on the Curry-Howard Isomorphism}, 2006, \\
@@ -301,8 +306,33 @@ some ongoing work on  establishing the lambda calculus as a model of computation
     \textit{$\lambda$-Calculus: The Other Turing Machine}, 2015 \\
     \url{https://www.cs.cmu.edu/~rwh/papers/lctotm/cs50.pdf}
 
-\bibitem{Coq}
-    \url{https://coq.inria.fr/}
+\bibitem{ReasonableMachine}
+    Ugo Dal Lago, Simone Martini, \\
+    \textit{The Weak Lambda Calculus
+    as a Reasonable Machine}, 2008 \\
+    \url{https://www.di.unito.it/~deligu/CDR60_TCS/Martini.pdf}
+
+\bibitem{ICC1}
+    Ugo Dal Lago, \\
+    \textit{A Short Introduction
+    to Implicit Computational Complexity}, 2010 \\
+    \url{http://cs.unibo.it/~dallago/FICQRA/esslli.pdf}
+
+\bibitem{ICC2}
+    Ugo Dal Lago,
+    \textit{Machine-Free Complexity},
+    2019 \\
+    \url{https://caleidoscope.sciencesconf.org/data/DalLago_caleidoscopeslides.pdf}
+
+\bibitem{CostSemanticsBlog}
+    Robert Harper, \textit{Languages and Machines}, 2015 \\
+    \url{https://existentialtype.wordpress.com/2011/03/16/languages-and-machines/}
+
+\bibitem{CostSemantics}
+    Norman Danner, Daniel R. Licata, Ramyaa Ramyaa \\
+    \textit{Denotational Cost Semantics for
+    Functional Languages with Inductive Types} \\
+    \url{https://dlicata.wescreates.wesleyan.edu/pubs/dlr15inductive/dlr15inductive.pdf}
 
 \bibitem{SoftwareFoundations}
     Benjamin C. Pierce, Andrew W. Appel et al., \\
