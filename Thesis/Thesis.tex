@@ -41,6 +41,11 @@
 %\renewcommand \qedsymbol {\ensuremath{\square}}
 
 \newcommand{\m}[1]{\texttt{#1}}
+\newcommand{\Empty}{\mathbf{0}}
+\newcommand{\Unit}{\mathbf{1}}
+\newcommand{\Bool}{\mathbf{2}}
+\newcommand{\N}{\mathbf{N}}
+\newcommand{\Nat}{\m{nat}}
 
 %%%%%
 
@@ -204,6 +209,21 @@ We will not worry about the concerns raised, because a single formal world is st
 
 \section{Way of the Coq} \label{ch1s5}
 
+In this section, we describe the basic principles on which Coq is founded and then give a short tutorial on the basics.
+
+Coq is based on a formal system called Calculus of Constructions (CoC)\cite{CoC}, which later evolved into the Calculus of Inductive Constructions (CIC) \cite{CIC} and finally into Predicative Calculus of Cumulative Inductive Constructions (pCuIC) \cite{pCuIC}. To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2}, a closely related system. From now on, when refering to MLTT, we will say just ``type theory''.
+
+In type theory, as the name suggests, the basic objects of interest are types. In order to be meaningful, a type must first be formed. For example, we can always form the type $\N$ of natural numbers, but in general this is not the case: sometimes to form a type we must make an assumption or even several assumptions. We keep track of our assumptions using contexts. For example, if in our context $\Gamma$ we can form the types $A$ and $B$, written $\Gamma \vdash A$ and $\Gamma \vdash B$, then we can form the type of functions from $A$ to $B$, written $\Gamma \vdash A \to B$. The rules that govern type formation are called, unsurprisingly, formation rules.
+
+After we have formed a type, we can manipulate its terms. For example, the type of natural numbers $\N$ has as terms, among others, $4$ and $2 + 2$, written respectively $4 : \N$ and $2 + 2 : \N$. Similarly to the case of type formation, what is a term and what is not depends on the assumptions we have made: $n + m : \N$ only under the assumptions that $n : \N$ and $m : \N$, which we can formally write as $n : \N, m : \N \vdash n + m : \N$. From now on we won't emphasize context-dependence, as everything we can do in type theory depends on context.
+
+Rules for creating terms are divided into two kinds: introduction rules and elimination rules. Introduction rules for a type $A$ tell us how to create new terms of this, given terms of other types. For example, the introduction rules for $\N$ are $\Gamma \vdash 0 : \N$, which says that $0$ is a natural number, and $\Gamma, n : \N \vdash \m{succ}\ n : \N$, which says that the successor of $n$ is a natural number given that $n$ is. Elimination rules for a type $A$, on the other hand, tell us how to use terms of type $A$ to get terms of other types. For example, the simplest elimination rule\footnote{This rule, called a recursor, allows us to define functions by recursion on a natural number if we have one, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.} for $\N$ says that if $\Gamma \vdash z : A$ and $\Gamma \vdash s : \N \to A$, then $\Gamma, n : \N \vdash \m{rec}_\N(z, s, n) : A$.
+
+
+
+
+
+
 
 
 \section{An ultra short literature review} \label{ch1s6}
@@ -340,6 +360,32 @@ We will not worry about the concerns raised, because a single formal world is st
     \textit{Denotational Cost Semantics for
     Functional Languages with Inductive Types} \\
     \url{https://dlicata.wescreates.wesleyan.edu/pubs/dlr15inductive/dlr15inductive.pdf}
+
+\bibitem{CoC}
+    Thierry Coquand, Gérard Huet, \\
+    \textit{The calculus of constructions}, 1984, \\
+    \url{https://www.sciencedirect.com/science/article/pii/0890540188900053}
+
+\bibitem{CIC}
+    Christine Paulin-Mohring, \\
+    \textit{Introduction to the Calculus of Inductive Constructions}, 2015 \\
+    \url{https://hal.inria.fr/hal-01094195/document}
+
+\bibitem{pCuIC}
+    Amin Timany, Matthieu Sozeau, \\
+    \textit{Consistency of the Predicative Calculus of Cumulative
+    Inductive Constructions (pCuIC)}, 2018 \\
+    \url{https://hal.inria.fr/hal-01615123v2/document}
+
+\bibitem{MLTT1}
+    Per Martin-L\"{o}f, \\
+    \textit{An intuitionistic theory of types}, 1972 \\
+    \url{https://archive-pml.github.io/martin-lof/pdfs/An-Intuitionistic-Theory-of-Types-1972.pdf}
+
+\bibitem{MLTT2}
+    Per Martin-L\"{o}f, \\
+    \textit{Intuitionistic Type Theory}, 1984 \\
+    \url{https://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf}
 
 \bibitem{SoftwareFoundations}
     Benjamin C. Pierce, Andrew W. Appel et al., \\
