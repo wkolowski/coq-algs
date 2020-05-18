@@ -14,7 +14,7 @@
 % polecenia \fmlinebreak.
 \englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
 \polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepcje i techniki}
-\polishabstract {Omawiamy sposoby projektowania, implementowania, specyfikowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepty i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
+\polishabstract {Omawiamy sposoby projektowania, implementowania, specyfikowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
 \englishabstract{We discuss how to design, implement, specify and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
@@ -45,7 +45,8 @@
 \newcommand{\Unit}{\mathbf{1}}
 \newcommand{\Bool}{\mathbf{2}}
 \newcommand{\N}{\mathbf{N}}
-\newcommand{\Nat}{\m{nat}}
+\newcommand{\suc}[1]{\m{succ}(#1)}
+\newcommand{\recN}[3]{\m{rec}_\N(#1, #2, #3)}
 
 %%%%%
 
@@ -217,19 +218,34 @@ In type theory, as the name suggests, the basic objects of interest are types. I
 
 After we have formed a type, we can manipulate its terms. For example, the type of natural numbers $\N$ has as terms, among others, $4$ and $2 + 2$, written respectively $4 : \N$ and $2 + 2 : \N$. Similarly to the case of type formation, what is a term and what is not depends on the assumptions we have made: $n + m : \N$ only under the assumptions that $n : \N$ and $m : \N$, which we can formally write as $n : \N, m : \N \vdash n + m : \N$. From now on we won't emphasize context-dependence, as everything we do in type theory depends on context.
 
-Rules for creating terms are divided into two genres: introduction rules and elimination rules. Introduction rules for a type tell us how to create new terms of this type. For example, the introduction rules for $\N$ are $\Gamma \vdash 0 : \N$, which says that $0$ is a natural number, and $\Gamma, n : \N \vdash \m{succ}\ n : \N$, which says that the successor of $n$ is a natural number given that $n$ is a natural number.
+Rules for creating terms are divided into two genres: introduction rules and elimination rules. Introduction rules for a type tell us how to create new terms of this type. For example, the introduction rules for $\N$ are $\Gamma \vdash 0 : \N$, which says that $0$ is a natural number, and $\Gamma, n : \N \vdash \suc{n} : \N$, which says that the successor of $n$ is a natural number given that $n$ is a natural number.
 
-Elimination rules for a type, on the other hand, tell us how to use terms of this type to get terms of other types. For example, the simplest elimination rule for $\N$ says that if $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, then $\Gamma, n : \N \vdash \m{rec}_\N(z, s, n) : X$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.
+Elimination rules for a type, on the other hand, tell us how to use terms of this type to get terms of other types. For example, the simplest elimination rule for $\N$ says that if $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, then $\Gamma, n : \N \vdash \recN{z}{s}{n} : X$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.
 
 The next thing we are interested in is convertibility, which formalizes the notion of computation. Intuitively, two terms are convertible if they evaluate to the same result. For example, we would expect that both $2 + 2$ and $4$ evaluate to $4$, and this is indeed the case, so they are convertible. To state that formally, we write $\Gamma \vdash 2 + 2 \equiv 4 : \N$. Rules that govern the behaviour of convertibility, similarly to rules for term manipulation, come in two genres: computation rules and uniqueness rules.
 
-Computation rules describe what happens when we first apply an introduction rule and then an elimination rule. For example, the first computation rule for $\N$ states that given $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, we have $\Gamma \vdash \m{rec}_\N(z, s, 0) \equiv z : \N$, and the second rule states that given $\Gamma \vdash z : X$, $\Gamma \vdash s : \N \to X$ and $\Gamma \vdash n : \N$ we have $\Gamma \vdash \m{rec}_\N(z, s, \m{succ}\ n) \equiv s (\m{rec}_\N(z, s, n)) : \N$.
+Computation rules describe what happens when we first apply an introduction rule and then an elimination rule. For example, the first computation rule for $\N$ states that given $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, we have $\Gamma \vdash \m{rec}_\N(z, s, 0) \equiv z : \N$, and the second rule states that given $\Gamma \vdash z : X$, $\Gamma \vdash s : \N \to X$ and $\Gamma \vdash n : \N$ we have $\Gamma \vdash \recN{z}{s}{\suc{n}} \equiv s(\recN{z}{s}{n}) : \N$.
 
-Uniqueness rules, on the other hand, describe what happens when we first use an elimination rule and then an introduction rule. For example, the uniqueness rule for $\N$ states that given $\Gamma \vdash n : \N$, we have $\Gamma \vdash \m{rec}_\N(0, \m{succ}, n) \equiv n$. Note, however, that this uniqueness rule for natural numbers is rarely included in most presentations of type theory.
+Uniqueness rules, on the other hand, describe what happens when we first use an elimination rule and then an introduction rule. For example, the uniqueness rule for $\N$ states that given $\Gamma \vdash n : \N$, we have $\Gamma \vdash \recN{0}{\m{succ}}{n} \equiv n$. Note, however, that this uniqueness rule for natural numbers is rarely included in most presentations of type theory.
 
 The last thing to mention is how exactly contexts work and some of its consequences. First, there is the empty context, usually denoted by leaving empty space to the left of $\vdash$, for example $\vdash \N$ means that we can form the type $\N$ in the empty context. Second, if we have a context $\Gamma$ and in this context we can derive $\Gamma \vdash A$, then we can extend the context $\Gamma$ with a variable of this type, written $\Gamma, x : A$, provided that the name $x$ doesn't already occur in $\Gamma$.
 
-The most important consequence of this is that we need a notion of convertibility for types. Because types are formed in contexts, and contexts can contain assumptions of the form $x : A$, types can depend on terms. For example, for any natural number $n$ we can form the type $\m{Fin}\ n$ that has exactly $n$ elements. Formally we can write it as $\Gamma, n : \N \vdash \m{Fin}\ n$. This raises the question: is the type $\m{Fin}\ (2 + 2)$ the same as the type $\m{Fin}\ 4$? The answer is yes -- these types are convertible, formally written $\Gamma \vdash \m{Fin}\ (2 + 2) \equiv \m{Fin}\ 4 : \N$. The rules that govern type convertibility aren't very interesting -- 
+The most important consequence of this is that we need a notion of convertibility for types. Because types are formed in contexts, and contexts can contain assumptions of the form $x : A$, types can depend on terms. For example, for any natural number $n$ we can form the type $\m{Fin}\ n$ that has exactly $n$ elements. Formally we can write it as $\Gamma, n : \N \vdash \m{Fin}\ n$. This raises the question: is the type $\m{Fin}\ (2 + 2)$ the same as the type $\m{Fin}\ 4$? The answer is yes -- because $2 + 2$ and $4$ are converible, these types are also convertible, formally written $\Gamma \vdash \m{Fin}\ (2 + 2) \equiv \m{Fin}\ 4$. The rules that govern type convertibility aren't very interesting -- they say that convertibility is an equivalence relation and that dependent types are convertible whenever the terms they depend on are convertible.
+
+That's it. The basic idea behind type theory is very simple. Of course the above presentation is far from being complete -- to be complete, we would have to list all the formation, introduction, elimination, computation and uniqueness rules for all types, and also dozens of boring technical rules whose role is to make sure everything works as expected.
+
+We have, however, sneaked into the above description a word that is familiar but was not defined, namely ``element''. The elements of a type $A$ are its closed terms that are in normal form. A term is closed if its context is empty and it is in normal form if it is the final result of evaluation,\footnote{We leave the idea of evaluation informal and won't describe it in more detail.} i.e. it can't be evaluated any further.
+
+For example, $\vdash 4 : \N$ is a closed term in normal form, $\vdash 2 + 2 : \N$ is a closed term that is not in normal form and $n : \N \vdash \suc{n} : \N$ is a term in normal form, but it is not closed because it depends on the assumption $n : \N$ (such terms are called open). It turns out that for natural numbers, the elements are precisely $0, \suc{0}, \suc{\suc{0}}, \suc{\suc{\suc{0}}} \dots$ which we can interpret as $0, 1, 2, 3 \dots$ respectively. So, the elements of the type of natural numbers are precisely the natural numbers. Who would have guessed!
+
+In type theory, types have elements. In set theory, sets have elements too. One may then wonder: what is the relation between these two theories? We list the most important differences:
+
+\begin{itemize}
+    \item Set theory has two layers: the logical layer, which consists of first order logic, and the set layer, which consists of set theory axioms. Type theory, has only one layer, the type layer, in which propositions can be interpreted as types.
+    \item In set theory, $x \in A$ is a proposition which can be proved or disproved. It is internally decidable because of the law of excluded middle. In type theory, $x : A$ is not a proposition, but a judgement. It is decidable algorithmically.
+    \item In set theory, an element can belong to many sets. In type theory, elements can belong to only one type, or, to be more precise, if an element belongs to two types, then these types are convertible.
+\end{itemize}
+
 
 
 
