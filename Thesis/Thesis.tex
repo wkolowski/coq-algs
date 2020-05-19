@@ -30,6 +30,7 @@
 %%%%% WLASNE DODATKOWE PAKIETY
 %
 %\usepackage{graphicx,listings,amsmath,amssymb,amsthm,amsfonts,tikz}
+\usepackage{amsfonts}
 \usepackage{minted}
 %
 %%%%% WLASNE DEFINICJE I POLECENIA
@@ -41,12 +42,24 @@
 %\renewcommand \qedsymbol {\ensuremath{\square}}
 
 \newcommand{\m}[1]{\texttt{#1}}
-\newcommand{\Empty}{\mathbf{0}}
-\newcommand{\Unit}{\mathbf{1}}
-\newcommand{\Bool}{\mathbf{2}}
-\newcommand{\N}{\mathbf{N}}
+
+%\newcommand{\Empty}{\mathbf{0}}
+%\newcommand{\Unit}{\mathbf{1}}
+%\newcommand{\Bool}{\mathbf{2}}
+
+% Some type theory markup.
+\newcommand{\type}[2]{#1 \vdash #2}
+\newcommand{\typeconv}[3]{#1 \vdash #2 \equiv #3}
+\newcommand{\term}[3]{#1 \vdash #2 : #3}
+\newcommand{\termconv}[4]{#1 \vdash #2 \equiv #3 : #4}
+
+% Natural numbers.
+\newcommand{\N}{\mathbb{N}}
 \newcommand{\suc}[1]{\m{succ}(#1)}
 \newcommand{\recN}[3]{\m{rec}_\N(#1, #2, #3)}
+
+% Finite types.
+\newcommand{\Fin}[1]{\m{Fin}(#1)}
 
 %%%%%
 
@@ -59,12 +72,13 @@
 The title of this thesis is ``Formally verified functional algorithms and data structures in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
 
 \begin{itemize}
-    \item In \hyperref[ch1s1]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
-    \item In \hyperref[ch1s2]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
-    \item \hyperref[ch1s3]{Section 3} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
-    \item In \hyperref[ch1s4]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
-    \item In \hyperref[ch1s5]{section 5} we show how working ``in Coq'' looks like and describe some theory and principles Coq is based on.
-    \item In \hyperref[ch1s6]{section 6} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
+    \item In \hyperref[paradigm]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
+    \item In \hyperref[impfun]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
+    \item \hyperref[worlds]{Section 3} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
+    \item In \hyperref[formal]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
+    \item In \hyperref[mltt]{section 5} we describe Martin-L\"{o}f Type Theory, a formal system very close to the theoretical underpinnings of Coq, which can be seen as our model of computation.
+    \item In \hyperref[coq]{section 6} we show how working ``in Coq'' looks like.
+    \item In \hyperref[literature]{section 7} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
 \end{itemize}
 
 In the remaining chpaters we describe the actual concepts and techniques, using well-known and well-studied examples like quicksort, merge sort or binary heaps:
@@ -73,7 +87,7 @@ In the remaining chpaters we describe the actual concepts and techniques, using 
     \item TODO
 \end{itemize}
 
-\section{The overarching paradigm} \label{ch1s1}
+\section{The overarching paradigm} \label{paradigm}
 
 The Free Dictionary says \cite{TheFreeDictionary} that an algorithm is
 
@@ -91,7 +105,7 @@ Imperative algorithms aren't just a mere field of study -- they are more of a mi
 
 But before we do that, we spend the rest of this chapter comparing the imperative and functional approaches to algorithms and briefly reviewing available literature on functional algorithms.
 
-\section{Two flavours of algorithms} \label{ch1s2}
+\section{Two flavours of algorithms} \label{impfun}
 
 The differences between the fields imperative and functional algorithms are mostly a reflection of the differences between imperative and functional programming languages and only in a small part a matter of differences in research focus.
 
@@ -143,7 +157,7 @@ The third point is that arrays, the bread-and-butter of imperative programming, 
 
 Even though this asymptotic penalty sounds gloomy, not all hope is lost, because of two reasons. First, mutable arrays can still be used in purely\footnote{``Pure'' and ``impure'' are loose terms used to classify functional languages. ``Pure'' roughly means that a language makes organized effort to separate programs that do ordinary number crunching or data processing from those that have side effects, like throwing exceptions or connecting to a database. An ``impure'' languages doesn't attempt at such a separation.} functional languages if the mutability is hidden behind a pure interface. An example of this is Haskell's ST monad. \cite{STMonad} Second, functional languages that are impure, like Standard ML or OCaml, allow using mutable arrays without much hassle, which often saves the day.
 
-\section{The many-worlds interpretation of imperative algorithms} \label{ch1s3}
+\section{The many-worlds interpretation of imperative algorithms} \label{worlds}
 
 We stated earlier that we intend to concentrate on formally proving correctness of purely functional algorithms. Before doing that, we take a short detour to look at how it differs from the activities and workflows of the usual algorithmic business,\footnote{A person engaging in the usual algorithmic business we will call an \textit{algorithmist}.} what we embrace and what we're leaving out.
 
@@ -187,7 +201,7 @@ Each of these questions can be seen as pointing at a link between two worlds and
 
 We allowed ourselves to wander into this lengthy overview of the usual algorithmic business in order to contrast it with the approach of formally verified functional algorithms, which is an attempt at getting rid of potential world mismatch errors by transfering (nearly) all of the activities into a single, unified, formal world.
 
-\section{Formal verification as a world-collapser} \label{ch1s4}
+\section{Formal verification as a world-collapser} \label{formal}
 
 This formal world is Coq \cite{Coq}. Coq is a proof assistant -- a piece of software whose goal is helping to state and prove mathematical theorems. This help consists of providing a formal language
 for doing so, called Gallina, a language for automating trivial proof steps and writing proof search procedures, called Ltac, and a languages of commands, called Vernacular, which simplifies tasks like looking up theorems from the standard library. The Coq ecosystem also has many useful tools, like CoqIDE, an IDE with good support for interactive proving.
@@ -208,35 +222,37 @@ Regarding the third point, there has been some ongoing research whose goal is to
 
 We will not worry about the concerns raised, because a single formal world is still a huge win in terms of correctness. Regarding point 1, in practice, if Coq accepts a proof, then the proof is correct -- chances of running into a critical bug by accident are minimal. We're also not as much interested in running algorithms and analyzing their complexity, so points 2 and 3 don't matter to us at all.\footnote{This of course does not mean that we will study silly, exponentially slow algorithms...}
 
-\section{Way of the Coq} \label{ch1s5}
+\section{Type theory (as a model of computation)} \label{mltt}
 
-In this section, we describe the basic principles on which Coq is founded and then give a short tutorial on the basics.
+In this section we describe the basic principles on which Coq is founded. Coq is based on a formal system called Calculus of Constructions (CoC)\cite{CoC}, which later evolved into the Calculus of Inductive Constructions (CIC) \cite{CIC} and finally into Predicative Calculus of Cumulative Inductive Constructions (pCuIC) \cite{pCuIC}.
 
-Coq is based on a formal system called Calculus of Constructions (CoC)\cite{CoC}, which later evolved into the Calculus of Inductive Constructions (CIC) \cite{CIC} and finally into Predicative Calculus of Cumulative Inductive Constructions (pCuIC) \cite{pCuIC}. To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2}, a closely related system. From now on, when refering to MLTT, we will call it simply ``type theory''.
+To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2}, a closely related system. From now on, when refering to MLTT, we will call it simply ``type theory''. The presented material is standard, but in the light of previous section's closing paragraphs we encourage people familiar with type theory to read it as a description not of a formal system, but of a model of computation.
 
-In type theory, as the name suggests, the basic objects of interest are types. In order to be meaningful, a type must first be formed. For example, we can always form the type $\N$ of natural numbers, but in general this is not the case: sometimes to form a type we must make an assumption or even several assumptions. We keep track of our assumptions using contexts. For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\Gamma \vdash A$ and $\Gamma \vdash B$ respectively, then we can form the type of functions from $A$ to $B$, written $\Gamma \vdash A \to B$. The rules that govern type formation are called, unsurprisingly, formation rules.
+In type theory, as the name suggests, the basic objects of interest are types. In order to be meaningful, a type must first be formed. For example, we can always form the type $\N$ of natural numbers, but in general this is not the case: sometimes to form a type we must make an assumption or even several assumptions. We keep track of our assumptions using contexts. For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\type{\Gamma}{A}$ and $\type{\Gamma}{B}$ respectively, then we can form the type of functions from $A$ to $B$, written $\type{\Gamma}{A \to B}$. The rules that govern type formation are called, unsurprisingly, formation rules.
 
-After we have formed a type, we can manipulate its terms. For example, the type of natural numbers $\N$ has as terms, among others, $4$ and $2 + 2$, written respectively $4 : \N$ and $2 + 2 : \N$. Similarly to the case of type formation, what is a term and what is not depends on the assumptions we have made: $n + m : \N$ only under the assumptions that $n : \N$ and $m : \N$, which we can formally write as $n : \N, m : \N \vdash n + m : \N$. From now on we won't emphasize context-dependence, as everything we do in type theory depends on context.
+After we have formed a type, we can manipulate its terms. For example, the type of natural numbers $\N$ has as terms, among others, $4$ and $2 + 2$, written $4 : \N$ and $2 + 2 : \N$, respectively. Similarly to the case of type formation, what is a term and what is not depends on the assumptions we have made: $n + m : \N$ only under the assumptions that $n : \N$ and $m : \N$, which we can formally write as $\term{n : \N, m : \N}{n + m}{\N}$. From now on we won't emphasize context-dependence, as everything we do in type theory depends on context.
 
-Rules for creating terms are divided into two genres: introduction rules and elimination rules. Introduction rules for a type tell us how to create new terms of this type. For example, the introduction rules for $\N$ are $\Gamma \vdash 0 : \N$, which says that $0$ is a natural number, and $\Gamma, n : \N \vdash \suc{n} : \N$, which says that the successor of $n$ is a natural number given that $n$ is a natural number.
+Rules for creating terms are divided into two genres: introduction rules and elimination rules. Introduction rules for a type tell us how to create new terms of this type. For example, the introduction rules for $\N$ are $\term{\Gamma}{0}{\N}$, which says that $0$ is a natural number, and $\term{\Gamma, n : \N}{\suc{n}}{\N}$, which says that the successor of $n$ is a natural number given that $n$ is a natural number.
 
-Elimination rules for a type, on the other hand, tell us how to use terms of this type to get terms of other types. For example, the simplest elimination rule for $\N$ says that if $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, then $\Gamma, n : \N \vdash \recN{z}{s}{n} : X$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.
+Elimination rules for a type, on the other hand, tell us how to use terms of this type to get terms of other types. For example, the simplest elimination rule for $\N$ says that if $\term{\Gamma}{z}{X}$ and $\term{\Gamma}{s}{\N \to X}$, then $\term{\Gamma, n : \N}{\recN{z}{s}{n}}{X}$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.
 
-The next thing we are interested in is convertibility, which formalizes the notion of computation. Intuitively, two terms are convertible if they evaluate to the same result. For example, we would expect that both $2 + 2$ and $4$ evaluate to $4$, and this is indeed the case, so they are convertible. To state that formally, we write $\Gamma \vdash 2 + 2 \equiv 4 : \N$. Rules that govern the behaviour of convertibility, similarly to rules for term manipulation, come in two genres: computation rules and uniqueness rules.
+The next thing we are interested in is convertibility, which formalizes the notion of computation. Intuitively, two terms are convertible if they evaluate to the same result. For example, we would expect that both $2 + 2$ and $4$ evaluate to $4$, and this is indeed the case, so they are convertible. To state that formally, we write $\termconv{\Gamma}{2 + 2}{4}{\N}$. Rules that govern the behaviour of convertibility, similarly to rules for term manipulation, come in two genres: computation rules and uniqueness rules.
 
-Computation rules describe what happens when we first apply an introduction rule and then an elimination rule. For example, the first computation rule for $\N$ states that given $\Gamma \vdash z : X$ and $\Gamma \vdash s : \N \to X$, we have $\Gamma \vdash \m{rec}_\N(z, s, 0) \equiv z : \N$, and the second rule states that given $\Gamma \vdash z : X$, $\Gamma \vdash s : \N \to X$ and $\Gamma \vdash n : \N$ we have $\Gamma \vdash \recN{z}{s}{\suc{n}} \equiv s(\recN{z}{s}{n}) : \N$.
+Computation rules describe what happens when we first apply an introduction rule and then an elimination rule. For example, the first computation rule for $\N$ states that given $\term{\Gamma}{z}{X}$ and $\term{\Gamma}{s}{\N \to X}$, we have $\termconv{\Gamma}{\recN{z}{s}{0}}{z}{\N}$, and the second rule states that given $\term{\Gamma}{z}{X}$, $\term{\Gamma}{s}{\N \to X}$ and $\term{\Gamma}{n}{\N}$ we have $\termconv{\Gamma}{\recN{z}{s}{\suc{n}}}{s(\recN{z}{s}{n})}{\N}$.
 
-Uniqueness rules, on the other hand, describe what happens when we first use an elimination rule and then an introduction rule. For example, the uniqueness rule for $\N$ states that given $\Gamma \vdash n : \N$, we have $\Gamma \vdash \recN{0}{\m{succ}}{n} \equiv n$. Note, however, that this uniqueness rule for natural numbers is rarely included in most presentations of type theory.
+Uniqueness rules, on the other hand, describe what happens when we first use an elimination rule and then an introduction rule. For example, the uniqueness rule for $\N$ states that given $\term{\Gamma}{n}{\N}$, we have $\termconv{\Gamma}{\recN{0}{\m{succ}}{n}}{n}{\N}$. Note, however, that this uniqueness rule for natural numbers is rarely included in most presentations of type theory.
 
-The last thing to mention is how exactly contexts work and some of its consequences. First, there is the empty context, usually denoted by leaving empty space to the left of $\vdash$, for example $\vdash \N$ means that we can form the type $\N$ in the empty context. Second, if we have a context $\Gamma$ and in this context we can derive $\Gamma \vdash A$, then we can extend the context $\Gamma$ with a variable of this type, written $\Gamma, x : A$, provided that the name $x$ doesn't already occur in $\Gamma$.
+The last thing to mention is how exactly contexts work and some of its consequences. First, there is the empty context, usually denoted by leaving empty space to the left of $\vdash$, for example $\type{}{\N}$ means that we can form the type $\N$ in the empty context. Second, if we have a context $\Gamma$ and in this context we can derive $\Gamma \vdash A$, then we can extend the context $\Gamma$ with a variable of this type, written $\Gamma, x : A$, provided that the name $x$ doesn't already occur in $\Gamma$.
 
-The most important consequence of this is that we need a notion of convertibility for types. Because types are formed in contexts, and contexts can contain assumptions of the form $x : A$, types can depend on terms. For example, for any natural number $n$ we can form the type $\m{Fin}\ n$ that has exactly $n$ elements. Formally we can write it as $\Gamma, n : \N \vdash \m{Fin}\ n$. This raises the question: is the type $\m{Fin}\ (2 + 2)$ the same as the type $\m{Fin}\ 4$? The answer is yes -- because $2 + 2$ and $4$ are converible, these types are also convertible, formally written $\Gamma \vdash \m{Fin}\ (2 + 2) \equiv \m{Fin}\ 4$. The rules that govern type convertibility aren't very interesting -- they say that convertibility is an equivalence relation and that dependent types are convertible whenever the terms they depend on are convertible.
+The most important consequence of this is that we need a notion of convertibility for types. Because types are formed in contexts, and contexts can contain assumptions of the form $x : A$, types can depend on terms. For example, for any natural number $n$ we can form the type $\Fin{n}$ that has exactly $n$ elements, formally written $\type{\Gamma, n : \N}{\Fin{n}}$. This raises the question: is the type $\Fin{2 + 2}$ the same as the type $\Fin{4}$? The answer is yes -- because $2 + 2$ and $4$ are converible, these types are also convertible, formally written $\typeconv{\Gamma}{\Fin{2 + 2}}{\Fin{4}}$. The rules that govern type convertibility aren't very interesting -- they say that convertibility is an equivalence relation and that dependent types are convertible whenever the terms they depend on are convertible.
 
 That's it. The basic idea behind type theory is very simple. Of course the above presentation is far from being complete -- to be complete, we would have to list all the formation, introduction, elimination, computation and uniqueness rules for all types, and also dozens of boring technical rules whose role is to make sure everything works as expected.
 
 We have, however, sneaked into the above description a word that is familiar but was not defined, namely ``element''. The elements of a type $A$ are its closed terms that are in normal form. A term is closed if its context is empty and it is in normal form if it is the final result of evaluation,\footnote{We leave the idea of evaluation informal and won't describe it in more detail.} i.e. it can't be evaluated any further.
 
-For example, $\vdash 4 : \N$ is a closed term in normal form, $\vdash 2 + 2 : \N$ is a closed term that is not in normal form and $n : \N \vdash \suc{n} : \N$ is a term in normal form, but it is not closed because it depends on the assumption $n : \N$ (such terms are called open). It turns out that for natural numbers, the elements are precisely $0, \suc{0}, \suc{\suc{0}}, \suc{\suc{\suc{0}}} \dots$ which we can interpret as $0, 1, 2, 3 \dots$ respectively. So, the elements of the type of natural numbers are precisely the natural numbers. Who would have guessed!
+For example, $\term{}{4}{\N}$ is a closed term in normal form, $\term{}{2 + 2}{\N}$ is a closed term that is not in normal form and $\term{n : \N}{\suc{n}}{\N}$ is a term in normal form, but it is not closed because it depends on the assumption $n : \N$ (such terms are called open). It turns out that for natural numbers, the elements are precisely $0, \suc{0}, \suc{\suc{0}}, \suc{\suc{\suc{0}}} \dots$ which we can interpret as $0, 1, 2, 3 \dots$ respectively. So, the elements of the type of natural numbers are precisely the natural numbers. Who would have guessed!
+
+% --- TODO ---
 
 In type theory, types have elements. In set theory, sets have elements too. One may then wonder: what is the relation between these two theories? We list the most important differences:
 
@@ -246,11 +262,11 @@ In type theory, types have elements. In set theory, sets have elements too. One 
     \item In set theory, an element can belong to many sets. In type theory, elements can belong to only one type, or, to be more precise, if an element belongs to two types, then these types are convertible.
 \end{itemize}
 
+\section{Way of the Coq} \label{coq}
 
 
 
-
-\section{An ultra short literature review} \label{ch1s6}
+\section{An ultra short literature review} \label{literature}
 
 \chapter{A quick \textit{tour de} sort} \label{ch2}
 
