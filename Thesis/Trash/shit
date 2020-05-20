@@ -9,3 +9,25 @@ We keep track of assumptions using contexts. There are two ways of forming conte
 For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\Gamma \vdash A$ and $\Gamma \vdash B$, then we can form the type of functions from $A$ to $B$, written $\Gamma \vdash A \to B$.
 
 The next thing we are interested in is evaluation of terms. For example, we would expect that $2 + 2 : \N$ evaluates to $4 : \N$ and this is indeed the case. However, in almost all presentations of type theory instead of evaluation we talk about convertibility -- the least equivalence relation induced by evaluation (that is, we can think of two terms as being convertible if they evaluate to the same result). To formally state that $2 + 2$ and $4$ are convertible, we write $\Gamma \vdash 2 + 2 \equiv 4 : \N$. Rules that govern the behaviour of convertibility, similarly to rules for term manipulation, come in two genres: computation rules and uniqueness rules.
+
+\begin{listing}[H]
+
+\begin{minted}
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    linenos
+]{Coq}
+    
+Class Semigroup (A : Type) : Type :=
+{
+    op : A -> A -> A;
+    assoc : forall x y z : A, op (op x y) z = op x (op y z);
+}.
+
+\end{minted}
+
+\caption{Semigroups represented with typeclasses}
+\label{SgrClass}
+
+\end{listing}
