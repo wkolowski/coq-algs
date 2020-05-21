@@ -262,6 +262,8 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
 
 \section{Way of the Coq} \label{coq}
 
+In this section we give a very short Coq tutorial. Before reading it, the unfamiliar reader should install CoqIDE\footnote{Available from \cite{Coq}.} and run the listing below\footnote{It can be found in the thesis' repository in the directory \m{Snippets/}} in interactive mode. This experience will greatly enrich the explanation.
+
 \definecolor{CoqIDE}{RGB}{255,248,220}
 
 \inputminted
@@ -271,6 +273,14 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
     linenos
 ]
 {Coq}{Snippets/SpecVerification.v}
+
+We start (lines 1-2) by importing some modules -- we will needs lists, list notations (Coq allows defining custom notations using a built-in notation mechanism) and \m{lia}, a procedure for reasoning in linear integer arithmetic (hence the name).
+
+The command \m{Print} (line 4) is part of the Vernacular -- a language of useful commands for looking up definitions and theorems, and other things usually provided at the IDE level. We use it to recall the definition of \m{list} and \m{app} (we modified the outputs of these commands to simplify our explanations).
+
+\m{list} is a parameterized family of inductive types. It means that, for each type \m{A}, there is a type list \m{list A} defined by giving the possible ways to construct its elements. An element of this type can be either \m{nil}, which represents an empty list, or \m{cons h t} for some $\m{h} : \m{A}$ and $\m{t} : \m{list A}$, which represents a list with head \m{h} and tail \m{t}. This is very similar to the definition of lists in pseudo-Haskell that we saw in \hyperref[impfun]{section 1.2}.
+
+\m{app} is a function that concatenates two lists. It takes as arguments as type \m{A} and two lists of elements of type \m{A}, named \m{l1} and \m{l2}, and it returns an element of type \m{list A} as result. It is defined by recursion, as indicated by the keyword \m{fix}, and its termination is guaranteed because this recursion is structural, as indicated by the annotation \m{struct l1}. The definition goes by pattern matching on the argument \m{l1}. if it is a \m{nil}, the result is \m{l2} and if it is $\m{h} :: \m{t}$, then the result is $\m{h} :: \m{app t l2}$. Here the double colon $\m{::}$ is a handy notation for the constructor \m{cons}.
 
 
 
@@ -300,6 +310,10 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
     \item Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
     \item Cool data structures: ternary search trees, finger trees.
 \end{itemize}
+
+\chapter{Conclusion}
+
+Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
 
 %%%%% BIBLIOGRAFIA
 
@@ -432,7 +446,7 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
     Per Martin-L\"{o}f, \\
     \textit{Intuitionistic Type Theory}, 1984 \\
     \url{https://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf}
-
+    
 \bibitem{SoftwareFoundations}
     Benjamin C. Pierce, Andrew W. Appel et al., \\
     \textit{Software Foundations}, 2019, \\
