@@ -15,7 +15,6 @@ match l1 with
   | [] => l2
   | h :: t => h :: app t l2
 end
-  : forall A : Type, list A -> list A -> list A
 *)
 
 Record rev_spec {A : Type} (f : list A -> list A) : Prop :=
@@ -24,9 +23,10 @@ Record rev_spec {A : Type} (f : list A -> list A) : Prop :=
     f_singl : forall x : A, f [x] = [x];
 }.
 
-Lemma rev_unique :
+Theorem rev_spec_unique :
   forall {A : Type} (f g : list A -> list A),
-    rev_spec f -> rev_spec g -> forall l : list A, f l = g l.
+    rev_spec f -> rev_spec g ->
+      forall l : list A, f l = g l.
 Proof.
   intros A f g [Hfc Hfs] [Hgc Hgs].
   induction l as [| h t]; cbn.

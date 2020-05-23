@@ -47,6 +47,9 @@
 %\newcommand{\Unit}{\mathbf{1}}
 %\newcommand{\Bool}{\mathbf{2}}
 
+% Thesis repository.
+\newcommand{\repo}{\url{https://github.com/wkolowski/RandomCoqCode}}
+
 % Some type theory markup.
 \newcommand{\type}[2]{#1 \vdash #2}
 \newcommand{\typeconv}[3]{#1 \vdash #2 \equiv #3}
@@ -262,7 +265,7 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
 
 \section{Way of the Coq} \label{coq}
 
-In this section we give a very short Coq tutorial. Before reading it, the unfamiliar reader should install CoqIDE\footnote{Available from \cite{Coq}.} and run the listing below\footnote{It can be found in the thesis' repository in the directory \m{Snippets/}} in interactive mode. This experience will greatly enrich the explanation.
+In this section we give a very short Coq tutorial. Before reading it, the unfamiliar reader should install CoqIDE\footnote{Available from \cite{Coq}.} and run the listing below\footnote{It can be found in the thesis' repository \repo in the directory \m{Thesis/Snippets/}} in interactive mode. This experience will greatly enrich the explanation.
 
 \definecolor{CoqIDE}{RGB}{255,248,220}
 
@@ -274,13 +277,27 @@ In this section we give a very short Coq tutorial. Before reading it, the unfami
 ]
 {Coq}{Snippets/SpecVerification.v}
 
-We start (lines 1-2) by importing some modules -- we will needs lists, list notations (Coq allows defining custom notations using a built-in notation mechanism) and \m{lia}, a procedure for reasoning in linear integer arithmetic (hence the name).
+We start by importing modules for working with lists -- we will need some list functions and notations (Coq allows defining custom notations using a built-in notation mechanism), and also \m{lia}, a procedure for reasoning in \textbf{l}inear \textbf{i}nteger \textbf{a}rithmetic (hence the name).
 
-The command \m{Print} (line 4) is part of the Vernacular -- a language of useful commands for looking up definitions and theorems, and other things usually provided at the IDE level. We use it to recall the definition of \m{list} and \m{app} (we modified the outputs of these commands to simplify our explanations).
 
-\m{list} is a parameterized family of inductive types. It means that, for each type \m{A}, there is a type list \m{list A} defined by giving the possible ways to construct its elements. An element of this type can be either \m{nil}, which represents an empty list, or \m{cons h t} for some $\m{h} : \m{A}$ and $\m{t} : \m{list A}$, which represents a list with head \m{h} and tail \m{t}. This is very similar to the definition of lists in pseudo-Haskell that we saw in \hyperref[impfun]{section 1.2}.
+The command \m{Print} is part of the Vernacular -- a language of useful commands for looking up definitions and theorems, and other things usually provided at the IDE level. We use it to recall the definition of \m{list} and \m{app} (we modified the outputs of these commands to simplify our explanations).
+
+\m{list} is a parameterized family of inductive types. It means that, for each type \m{A}, there is a type list \m{list A} defined by giving the possible ways to construct its elements. An element of this type can be either \m{nil}, which represents an empty list, or \m{cons h t} for some $\m{h} : \m{A}$ and $\m{t} : \m{list A}$, which represents a list with head \m{h} and tail \m{t}. This is very similar to the definition of lists in pseudo-Haskell that we saw in \hyperref[impfun]{section 2}.
 
 \m{app} is a function that concatenates two lists. It takes as arguments as type \m{A} and two lists of elements of type \m{A}, named \m{l1} and \m{l2}, and it returns an element of type \m{list A} as result. It is defined by recursion, as indicated by the keyword \m{fix}, and its termination is guaranteed because this recursion is structural, as indicated by the annotation \m{struct l1}. The definition goes by pattern matching on the argument \m{l1}. if it is a \m{nil}, the result is \m{l2} and if it is $\m{h} :: \m{t}$, then the result is $\m{h} :: \m{app t l2}$. Here the double colon $\m{::}$ is a handy notation for the constructor \m{cons}.
+
+In \hyperref[worlds]{section 3} we said that in a formal setting we can prove a specification correct. This is actually the first of our techniques and in the rest of the listing our task will be to demonstrate how it works.
+
+The thing we want to specify is a function that reverses a list and the specification, named \m{rev\_spec}, starts on line 20. It takes as arguments a type \m{A} and a function $\m{f} : \m{list A -> list A}$. The first argument is implicit, marked by curly braces around it instead of the usual parentheses, which means that we won't need to write it explicitly, because Coq can infer it on its own. So, to sum it up, we want \m{rev\_spec f} to mean ``\m{f} is a function that reverses lists''.
+
+The definition says that \m{rev\_spec f} is a proposition\footnote{This is actually one of the differences between type theory as presented in the last section and Coq. In type theory, we represent propositions using ordinary types. In Coq, only types of sort \m{Prop} are propositions, whereas types of sort \m{Type} are not.} and that it is defined to be a record consisting of two fields. The first one is named \m{f\_app} and intuitively means that \m{f} anticommutes with list concatenation -- if we concatenate two lists and then reverse the result using \m{f}, it's the same as if we first reversed the lists and then concatenated them in reverse order. The second field is named \m{f\_singl} and means that on lists with only one element \m{f} acts like an identity function.
+
+Now, let's take a break from Coq and make a short conceptual trip: how can we prove that a specification specifies exactly what we wanted? Of course, in general, we can't, because what we really want lives in the world of ideas, whereas the specification lives in the formal world. But if we are sure that the desired solution will meet the specification, then the best sanity check we can perform is to prove that the specification determines a unique object.
+In such a situation if we are dissatisfied with the solution, we are sure that it is not because of any kind of technical error, like a bug, but simply because we were unable to express what we wanted.
+
+
+
+
 
 
 
