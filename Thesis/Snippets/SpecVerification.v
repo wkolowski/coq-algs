@@ -30,8 +30,9 @@ Theorem rev_spec_unique :
 Proof.
   intros A f g [Hfc Hfs] [Hgc Hgs].
   induction l as [| h t]; cbn.
-    assert (Hfc' := f_equal (@length _) (Hfc [] []));
-    assert (Hgc' := f_equal (@length _) (Hgc [] [])).
+    specialize (Hfc [] []); specialize (Hgc [] []).
+      apply (f_equal (@length _)) in Hfc;
+      apply (f_equal (@length _)) in Hgc.
       cbn in *. rewrite app_length in *.
       destruct (f []), (g []).
         reflexivity.
