@@ -64,6 +64,18 @@
 % Finite types.
 \newcommand{\Fin}[1]{\m{Fin}(#1)}
 
+% A counter for concepts and techniques.
+\newcounter{cnt}
+\newcommand{\runcnt}{\#\arabic{cnt}}
+\newcommand{\concept}[1]
+{
+    \refstepcounter{cnt}
+    \begin{center}
+        \textbf{Formally verified algorithm concept/technique \runcnt} \\
+        #1
+    \end{center}
+}
+
 %%%%%
 
 \begin{document}
@@ -295,15 +307,15 @@ The definition says that \m{rev\_spec f} is a proposition\footnote{This is actua
 Now, let's take a break from Coq and make a short conceptual trip: how can we prove that a specification specifies precisely what we wanted? Of course, in general, we can't, because what we really want lives in the world of ideas, whereas the specification lives in the formal world. But if we are sure that the desired solution will meet the specification, the best sanity check we can perform is proving that the specification determines a unique object.
 In such a situation if we are dissatisfied with the solution, we are sure that it is not because of some bug or other kind of technical error, but simply because we were unable to express what we wanted.
 
-Back to Coq, the theorem \m{rev\_spec\_unique} is the fulfillment of our plan of ``proving the specification correct''. Such a theorem in Coq has the same status as an ordinary definition -- the statement of the theorem is a type and to prove it we need to construct an element of that type. However, the means of construction are different from those typically used for definitions: we don't provide the proof term explicitly, like the body of \m{app} between \m{match} and \m{end} was provided explicitly, but instead we use Coq's tactic language called Ltac.
+Back to Coq, the theorem \m{rev\_spec\_unique} is the fulfillment of our plan of ``proving the specification correct''. Such a theorem in Coq has the same status as an ordinary definition -- the statement of the theorem is a type and to prove it we need to construct an element of that type. However, the means of construction are different from those typically used for definitions: we don't provide a proof term explicitly, like the body of \m{app} between \m{match} and \m{end} was provided explicitly, but instead we use Coq's tactic language called Ltac.
 
-In Ltac, we can manipulate tactics, which can be seen as things that encapsulate a particular line of mathematical reasoning and argumentation (or, from the programmer's perspective, as techniques for synthesizing particular kinds of programs). The most basic tactics directly correspond to introduction and elimination rules of type theory as described in the previous section, and to basic features of Coq's term language, like pattern matching. More complex tactics can be created from simpler ones by using features provided by Ltac, like many kinds of tactic combinators, searching hypotheses and variables in the proof context (and more advanced features for context management), various flavours of backtracking and the ability to inspect Coq's terms as syntax.
+In Ltac, we can manipulate tactics, which can be seen as things that encapsulate a particular line of mathematical reasoning and argumentation (or, from the programmer's perspective, as techniques for synthesizing particular kinds of programs). The most basic tactics directly correspond to introduction and elimination rules of type theory as described in the previous section, and to basic features of Coq's term language, like pattern matching. More complex tactics can be created from simpler ones by using features provided by Ltac, like various tactic combinators, searching hypotheses and variables in the proof context (and more advanced features for context management), many flavours of backtracking and the ability to inspect Coq's terms as syntax.
 
-The last of these is something that is not possible using the term language, as it would allow us to distinguish between convertible terms and thus would lead to contradiction. For example, given a \m{P} : \m{Prop}, we can't use the term language to check whether it's of the form \m{Q /\char`\\\ R}, but we can do that using Ltac. We can use this in conjunction with other Ltac features to, for example, implement a tactic that can decide whether a proposition is an intuitionistic tautology or not.
+The last of these is something that is not possible using the term language, as it would allow distinguishing between convertible terms and thus lead to contradiction. For example, given a \m{P} : \m{Prop}, we can't use the term language to check whether it's of the form \m{Q /\char`\\\ R}, but we can do that using Ltac. We can use this together with other Ltac features to, for example, implement a tactic that can decide whether a proposition is an intuitionistic tautology or not.
 
 Back to the proof of our theorem, the idea is as follows. The proof is by induction on \m{l}. This splits the proof into two cases: in the first one \m{l} is \m{[]} and in the second one \m{l} is $\m{h} :: \m{t}$ for some head \m{h} and tail \m{t}. In the first case, we exploit the fact that \m{f [] = f [] ++ f []} (which stems from specializing one of the specification's clauses with \m{[]}) to argue that the length of \m{f []} must be zero, and thus that \m{f []} must equal \m{[]} (and analogously for \m{g}). In the second case, we make heavy use of equations coming from the specification and the induction hypotheses.
 
-We won't explain how this proof idea is actually carried out, because any such an explanation would be far less enlightening than just going over the proof script in CoqIDE. We will only gloss over the meaning of tactics that were used:
+We won't explain how this proof idea is actually carried out, because such an explanation would be far less enlightening than just going over the proof script in CoqIDE. We will only gloss over the meaning of tactics that were used:
 
 \begin{itemize}
     \item \m{intros} lets us assume hypotheses and move universally quantified variables from the goal into the context.
@@ -311,22 +323,26 @@ We won't explain how this proof idea is actually carried out, because any such a
     \item \m{cbn} performs computations, like simplifying \m{2 + 2} to \m{4}.
     \item \m{specialize} instantiates universally quantified hypotheses with particular objects.
     \item \m{apply} implements modus ponens, allowing us to transform \m{P} into \m{Q} in the context, given a proof of \m{P -> Q}.
-    \item \m{rewrite}, given a hypothesis that is an equation, replaces the occurrences of its left-hand side its right-hand side in the goal or another hypothesis.
+    \item \m{rewrite}, given a hypothesis that is an equation, replaces the occurrences of its left-hand side with its right-hand side in the goal or another hypothesis.
     \item \m{destruct} implements reasoning by cases.
     \item \m{reflexivity} allows us to conclude that \m{x = x}.
     \item \m{lia} is the powerful tactic for dealing with arithmetic mentioned earlier. In our case we use it to prove that from \m{n + n = n} it follows that \m{n = 0}.
     \item \m{change} allows us to replace a term or its part with a convertible term. For example, having computed \m{2 + 2} to \m{4}, we could use \m{change} to ``reverse'' this computation, changing \m{4} back into \m{2 + 2}.
 \end{itemize}
 
-Our short tutorial on Coq has come to an end. From now on, we assume the reader is familiar with the technical workings of Coq -- while discussing further code listings, we will only explain the concepts and techniques. If this is not the case, we refer the reader to the standard books on the topic:
+Our short tutorial on Coq has come to an end. From now on, we assume the reader is familiar with the technical workings of Coq -- while discussing further code listings, we will only explain the concepts and techniques.\footnote{When numbering concepts and techniques, we won't distinguish between them, as any concept, to be useful, has to be concretely realized by some technique and behind any technique there is some concept.} The moral of our example can be summarized as follows.
 
-\begin{itemize}
-    \item Software Foundations \cite{SoftwareFoundations} is a very beginner-friendly textbook, aimed at teaching Coq fundamentals to 
-\end{itemize}
-
-
+\concept{Prove that the specification determines a unique object.}
 
 \section{An ultra short literature review} \label{literature}
+
+In this section we briefly discuss the not so large body of literature relevant to our work. In case the reader still doesn't feel comfortable with Coq after last section's tutorial, we start by listing some standard learning materials on the topic:
+
+\begin{itemize}
+    \item The first volume of Software Foundations \cite{SoftwareFoundations} is a textbook aimed at teaching Coq fundamentals to students familiar with neither functional programming nor formal proof. It is very beginner-friendly and well-suited for self study, but it doesn't cover all Coq-related topics exhaustively.
+    \item Coq'Art \cite{CoqArt} is more of a reference work than a textbook -- it tries to be comprehensive, covering topics like proof by reflection which are missing from Software Foundations, but it is also a bit old, having been published in 2004. Watch out for the outdated treatment of coinduction!
+    \item Certified Programming with Dependent Types \cite{CPDT} is a book aimed at more advanced Coq users. It focuses on programming with dependent types and automating proofs with powerful hand-crafted tactics, but also covers topics like general recursion and dealing with axioms.
+\end{itemize}
 
 \chapter{A quick \textit{tour de} sort} \label{ch2}
 
