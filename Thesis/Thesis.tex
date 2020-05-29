@@ -344,7 +344,15 @@ In this section we briefly discuss the not so large body of literature relevant 
     \item Certified Programming with Dependent Types \cite{CPDT} is a book aimed at more advanced Coq users. It focuses on programming with dependent types and automating proofs with powerful hand-crafted tactics, but also covers topics like general recursion and dealing with axioms.
 \end{itemize}
 
-As we can see, the book-length literature on Coq is quite scarce and sometimes dated. The situation in the field of functional algorithms and data structures is even worse. In fact, there is only one significant book in the whole field, namely Purely Functional Data Structures \cite{Okasaki}, which is an extended version of Chris Okasaki's PhD thesis \cite{OkasakiPhD}. This book is basically a turning point which demarcates two periods in the field's history: pre-Okasaki and post-Okasaki. We won't describe these periods and their literature in detail, as a very good summary is available in this StackOverflow thread \cite{SinceOkasaki}.
+As we can see, the book-length literature on Coq is quite scarce and sometimes dated. The situation in the field of functional algorithms and data structures is even worse. In fact, there is only one significant book in the whole field, namely Purely Functional Data Structures (PFDS for short) \cite{Okasaki}, which is an extended version of Chris Okasaki's PhD thesis \cite{OkasakiPhD} (see \cite{Okasaki10YearsLater} for the story behind the book). This book is basically a turning point which demarcates two periods in the field's history: pre-Okasaki and post-Okasaki. We won't describe these periods and their literature in detail, as a very good summary is available in this StackOverflow thread \cite{SinceOkasaki}.
+
+Even though the book is great, it won't be of much inspiration for us. The reasons stem directly from the book's main themes. The first one is exploring the various algorithmic uses of lazy evaluation. Even though Coq makes lazy evaluation readily available, it does so using the tactic \m{cbn} and command \m{Eval cbn in t}, whereas the term language has barely any control over the evaluation order. This means that large swaths of the book are at odds with Coq.
+
+The second theme in the book, somewhat related to the first, are techniques for analysis of amortized complexity of lazy data structures. Okasaki was actually the first person to realize that in the purely functional world, amortization is possible (before it was though that it is contradicted by persistence) and that it is inseparably tied to lazy evaluation. This aspect of PFSD won't be important for us because, as we have already underlined many times, we are not interested in complexity, but in formal correctness.
+
+The third big theme of the book are numerical representations. It is the idea that functional data structures are analogous to various obscure positional number systems that aren't at all used for other purposes. In this view, inserting an element into a data structure is analogous to incrementing a number, deleting an element is analogous to decrementing a number, merging two data structures is analogous to adding numbers and so on. While it is a very interesting and worthwhile idea, its purpose is coming up with new data structures -- something we won't do here.
+
+The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do.
 
 
 
@@ -533,9 +541,19 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Purely Functional Data Structures} (PhD thesis), 1996 \\
     \url{https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf}
 
+\bibitem{Okasaki10YearsLater}
+    Chris Okasaki,
+    \textit{Ten Years of Purely Functional Data Structures}, 2008 \\
+    \url{https://okasaki.blogspot.com/2008/02/ten-years-of-purely-functional-data.html}
+
 \bibitem{SinceOkasaki}
     \textit{What's new in purely functional data structures since Okasaki?}, \\
     \url{https://cstheory.stackexchange.com/questions/1539/whats-new-in-purely-functional-data-structures-since-okasaki}
+
+\bibitem{VFA}
+    Andrew W. Appel, \\
+    \textit{Verified Functional Algorithms}, 2018 \\
+    \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
 \end{thebibliography}
 
 \end{document}
