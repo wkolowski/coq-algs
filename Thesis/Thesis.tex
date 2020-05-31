@@ -352,7 +352,16 @@ The second theme in the book, somewhat related to the first, are techniques for 
 
 The third big theme of the book are numerical representations. It is the idea that functional data structures are analogous to various obscure positional number systems that aren't at all used for other purposes. In this view, inserting an element into a data structure is analogous to incrementing a number, deleting an element is analogous to decrementing a number, merging two data structures is analogous to adding numbers and so on. While it is a very interesting and worthwhile idea, its purpose is coming up with new data structures -- something we won't do here.
 
-The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do.
+The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do. However, the approach presented in VFA is different from ours in many respects:
+
+\begin{itemize}
+    \item It presents the discussed algorithms (and theorems about them) in their final form without showing how to design them.
+    \item It is not abstract enough. Very often it considers only the case where the keys/values of a data structure are natural numbers.
+    \item It does not deal with techniques for defining general recursive functions properly, often using the so called ``fuel recursion'' which is not very hygienic.
+\end{itemize}
+
+modules instead of records, extraction, short
+
 
 
 
