@@ -18,10 +18,11 @@
 \englishabstract{We discuss how to design, implement, specify and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
+\usepackage{ulem} % TODO
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {Czerwiec '20 chyba że koronawirus}                     % Data zlozenia pracy
+\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ Jednak raczej wrzesień}                     % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -93,13 +94,8 @@ The title of this thesis is ``Formally verified functional algorithms and data s
     \item In \hyperref[formal]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
     \item In \hyperref[mltt]{section 5} we describe Martin-L\"{o}f Type Theory, a formal system very close to the theoretical underpinnings of Coq, which can be seen as our model of computation.
     \item In \hyperref[coq]{section 6} we show how working ``in Coq'' looks like.
-    \item In \hyperref[literature]{section 7} we do an ultra short literature review and discuss how our ``concepts and techniques'' differ from these that can be found there.
-\end{itemize}
-
-In the remaining chpaters we describe the actual concepts and techniques, using well-known and well-studied examples like quicksort, merge sort or binary heaps:
-
-\begin{itemize}
-    \item TODO
+    \item In \hyperref[literature]{section 7} we do an ultra short literature review and discuss how our ``concepts and techniques'' relate to what can be found there.
+    \item In \hyperref[outline]{section 8} we outline the thesis structure.
 \end{itemize}
 
 \section{The overarching paradigm} \label{paradigm}
@@ -352,43 +348,29 @@ The second theme in the book, somewhat related to the first, are techniques for 
 
 The third big theme of the book are numerical representations. It is the idea that functional data structures are analogous to various obscure positional number systems that aren't at all used for other purposes. In this view, inserting an element into a data structure is analogous to incrementing a number, deleting an element is analogous to decrementing a number, merging two data structures is analogous to adding numbers and so on. While it is a very interesting and worthwhile idea, its purpose is coming up with new data structures -- something we won't do here.
 
-The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do. However, the approach presented in VFA is different from ours in many respects:
+The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do. In our opinion however, the approach presented in VFA has many shortcomings:
 
 \begin{itemize}
-    \item It presents the discussed algorithms (and theorems about them) in their final form without showing how to design them.
-    \item It is not abstract enough. Very often it considers only the case where the keys/values of a data structure are natural numbers.
-    \item It does not deal with techniques for defining general recursive functions properly, often using the so called ``fuel recursion'' which is not very hygienic.
+    \item It presents the discussed algorithms in their final form without discussing how they were designed in the first place (or how they were translated from their imperative progenitors).
+    \item It is not abstract enough -- all too often it considers only the case where the keys/values of a data structure are natural numbers and skips the general case, where they are of any type with decidable equality/partial order etc.
+    \item It does not deal with techniques for defining general recursive functions properly. Even though it presents a method of defining general recursive functions, it doesn't discuss its principles or what to do if it fails. Often it skips the matter completely and just uses the so called ``fuel recursion'' which is not very hygienic.
 \end{itemize}
 
-modules instead of records, extraction, short
+Besides these shortcomings, there are also some other differences, which are more cosmetic in nature. First, VFA uses Coq's module system, whereas we will use the typeclass system. Second, even though just like us it is not that much concerned with performance, VFA sees the performance of an algorithm implemented in Coq as a property of the OCaml program extracted\footnote{Coq has a mechanism called extraction, which is a form of code generation that transforms Coq code into computationally equivalent code in OCaml, Haskell or Scheme.} from the Coq code, rather than of the Coq program itself, like we do.
 
+\section{Outline of the thesis} \label{outline}
 
+Having given a thorough introduction, it should now be clear what we mean by ``formally verified functional algorithms and data structures in Coq''. In the remaining chpaters of the thesis we describe the actual concepts and techniques'', using well-known and well-studied examples like quicksort, merge sort or binary heaps. The rest of the thesis is structued as follows:
 
-
-\chapter{A quick \textit{tour de} sort} \label{ch2}
-
-\chapter{A man, a plan, a canal -- MSc thesis}
-
-\section{Design}
 \begin{itemize}
-    \item First step: specification (describe the path from intuition to formal spec).
-    \item Second step: design (describe the path from the concrete to the abstract by tracing a stub proof of correctness).
-    \item We shouldn't require proofs in order to run programs. Clou: packed vs unpacked classes/records/modules.
+    \item In \hyperref{quicksort}{Chapter 2} we look at quicksort inside and out, describing the bulk of our approach.
+    \item In chapter 3, ...
+    \item TODO: put here the remaining chapters after they're written.
 \end{itemize}
 
-\section{Techniques}
-\begin{itemize}
-    \item General recursion: Bove-Capretta method as the way to go.
-    \item Functional induction as the way-to-go proof technique. Mention the Equations plugin.
-\end{itemize}
+\chapter{A quick \textit{tour de} sort} \label{quicksort}
 
-\section{Topics}
-\begin{itemize}
-    \item Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
-    \item  Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
-    \item Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
-    \item Cool data structures: ternary search trees, finger trees.
-\end{itemize}
+Quicksort goes here...
 
 \chapter{Conclusion}
 
@@ -560,7 +542,7 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \url{https://cstheory.stackexchange.com/questions/1539/whats-new-in-purely-functional-data-structures-since-okasaki}
 
 \bibitem{VFA}
-    Andrew W. Appel, \\
+    Andrew W. Appel,
     \textit{Verified Functional Algorithms}, 2018 \\
     \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
 \end{thebibliography}

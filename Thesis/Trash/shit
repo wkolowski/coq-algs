@@ -31,3 +31,26 @@ Class Semigroup (A : Type) : Type :=
 \label{SgrClass}
 
 \end{listing}
+
+\chapter{A man, a plan, a canal -- MSc thesis}
+
+\section{Design}
+\begin{itemize}
+    \item First step: specification (describe the path from intuition to formal spec).
+    \item Second step: design (describe the path from the concrete to the abstract by tracing a stub proof of correctness).
+    \item We shouldn't require proofs in order to run programs. Clou: packed vs unpacked classes/records/modules.
+\end{itemize}
+
+\section{Techniques}
+\begin{itemize}
+    \item General recursion: Bove-Capretta method as the way to go.
+    \item Functional induction as the way-to-go proof technique. Mention the Equations plugin.
+\end{itemize}
+
+\section{Topics}
+\begin{itemize}
+    \item Quicksort: in functional languages we have so powerful abstractions that we can actually implement \*algorithms\* and not just programs.
+    \item  Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
+    \item Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
+    \item Cool data structures: ternary search trees, finger trees.
+\end{itemize}
