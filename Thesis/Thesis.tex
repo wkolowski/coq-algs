@@ -22,7 +22,7 @@
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ Jednak raczej wrzesień}                     % Data zlozenia pracy
+\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ Z września też nici, ale spoko} % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -190,7 +190,7 @@ Of course this recipe is not stiff and some variations are possible. The two mos
     \item The extremely theoretical, in which there is no implementation and thus no tests and no performance assessment, and the most time-consuming part becomes the complexity analysis. This approach is widespread in teaching, where the implementation part is left to students as an exercise, and in theoretical research, where real-world applicability is not always the most important goal.
 \end{itemize}
 
-No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activities take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. The actual implementation, in contrast, will be in some concrete programming language -- a very  popular one among algorithmists is \m{C++}.
+No matter the exact recipe, there is a very enlightening thing to be noticed, namely all the different worlds in which these activities take place. For example, the algorithm design process takes place in the algorithmist's mind, but after he's done, it is usually written down in some kind of comfortable pseudocode that allows skipping inessential detail. The actual implementation, in contrast, will be in some concrete programming language -- a very popular one among algorithmists is \m{C++}.
 
 The specification and the proof are usually written in English (or whatever the language of the algorithmist), intermingled with some mathematical symbols for numbers, relations, sets and quantifiers, but that's only the surface view. If we take a closer look, it will most likely turn out that the mathematical part is based on classical first-order logic\footnote{By ``classical'' we mean that the logic admits nonconstructive reasoning principles like proof by contradiction \cite{ProofByContradiction} -- its use can be seen, for example, in proofs of optimality.} and some kind of naive set theory. When pressed a bit, however, the algorithmist will readily assert that the set theory could be axiomatized using, let's say, the Zermelo-Fraenkel axioms.
 
@@ -371,6 +371,39 @@ Having given a thorough introduction, it should now be clear what we mean by ``f
 \chapter{A quick \textit{tour de} sort} \label{quicksort}
 
 Quicksort goes here...
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#--1} \\
+    Find a specification of the problem's solution that is both abstract and easy to use.
+\end{center}
+
+\begin{itemize}
+    \item Definition of sorting for naturals using $<$ -- not easy to use.
+    \item An inductive definition for naturals -- not abstract.
+    \item Decidable linear orders -- abstract.
+\end{itemize}
+
+\concept{Implement an abstract template that captures the idea behind the algorithm. You can ignore the matter of termination at first.}
+
+Hints about turning the termination checker off. Present an imperative version of quicksort and maybe the story about people not believing Hoare the implementation could work.
+
+\concept{Implement a better template using a type that represents the shape of the algorithm's recursion. Prove termination using well-founded induction.}
+
+Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not necessarily.
+
+\concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
+
+Mention functional induction here and how to derive it.
+
+\concept{Implement concrete versions of the algorithm by filling out the template with the required subprograms.}
+
+\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
+
+Discussion about classes vs records vs modules, bundling and unbundling.
+
+\concept{Prove the concrete algorithm correct by filling out the proofs.}
+
+
 
 \chapter{Conclusion}
 
