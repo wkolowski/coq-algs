@@ -267,6 +267,8 @@ The explanation of elements prompts us to change our perspective on type theory 
 
 Set theory has two basic kinds of objects -- propositions and sets -- living in two separate layers. Propositions live in the logical layer, which consists of first order classical logic, whereas sets live in the set-theoretical layer, which consists of set theory axioms. Type theory, on the other hand, has only one basic kind of objects, namely types, and only one layer -- the type layer. Both propositions and sets can in type theory be interpreted using types.
 
+% TODO: membetship predicate is propsition
+
 In set theory, the membership predicate $x \in A$ is a proposition which can be proved or disproved. It is decidable internally, because of the law of excluded middle, but not externally, because there is no computer program that can tell us whether $x \in A$. In type theory, $x : A$ is not a proposition, but a judgment, which means one can establish that it holds, but it makes no sense to negate it. It neither makes sense to talk about it's internal decidability. However, it is externally decidable, which means there is a computer program that checks whether it holds.
 
 In set theory, sets are semantic entities that need not, in general, be disjoint, so an element can belong to many sets. In type theory, types are syntactic entities that are always disjoint. Elements can belong to only one type, or, to be more precise, if an element belongs to two types, then these types are convertible.
@@ -370,11 +372,17 @@ Having given a thorough introduction, it should now be clear what we mean by ``f
 
 \chapter{A quick \textit{tour de} sort} \label{quicksort}
 
-Quicksort goes here...
+The field of algorithms and data structures can be easily separated into two subfields: the algorithms and the data structures. These two go hand in hand: all algorithms operate on data structures, no matter how primitive, and data structures exist precisely in order for algorithms to do something with them.
+
+We have to start somewhere, however, and so we choose to break this vicious circle at algorithms. In this chapter we will look at the problem of sorting a list -- one of the most basic data structures -- and at quicksort, one of the fastest and most elegant solutions of this problem.
+
+Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques for specifying, implementing and verifying algorithms in the functional paradigm.
+
+\section{Specify the problem} \label{specify}
 
 \begin{center}
-    \textbf{Formally verified algorithm concept/technique \#--1} \\
-    Find a specification of the problem's solution that is both abstract and easy to use.
+    \textbf{Formally verified algorithm concept/technique \#0} \\
+    Find a specification of the problem that is both abstract and easy to use.
 \end{center}
 
 \begin{itemize}
@@ -383,17 +391,25 @@ Quicksort goes here...
     \item Decidable linear orders -- abstract.
 \end{itemize}
 
-\concept{Implement an abstract template that captures the idea behind the algorithm. You can ignore the matter of termination at first.}
+\section{Abstract the algorithm} \label{template}
+
+\concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
 
 Hints about turning the termination checker off. Present an imperative version of quicksort and maybe the story about people not believing Hoare the implementation could work.
+
+\section{Prove termination} \label{termination}
 
 \concept{Implement a better template using a type that represents the shape of the algorithm's recursion. Prove termination using well-founded induction.}
 
 Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not necessarily.
 
+\section{Verificatio ex nihilo} \label{exnihilo}
+
 \concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
 
 Mention functional induction here and how to derive it.
+
+\section{Fill out the template -- concrete programs} \label{fillout}
 
 \concept{Implement concrete versions of the algorithm by filling out the template with the required subprograms.}
 
@@ -401,9 +417,11 @@ Mention functional induction here and how to derive it.
 
 Discussion about classes vs records vs modules, bundling and unbundling.
 
+\section{Get your hands dirty -- concrete proofs}
+
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-
+\section{Summary}
 
 \chapter{Conclusion}
 
