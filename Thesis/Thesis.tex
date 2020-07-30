@@ -285,10 +285,9 @@ In this section we give a very short Coq tutorial. Before reading it, the unfami
     bgcolor=CoqIDE,
     linenos
 ]
-{Coq}{Snippets/SpecVerification.v}
+{Coq}{Snippets/Chapter1/SpecVerification.v}
 
 We start by importing modules for working with lists -- we will need some list functions and notations (Coq allows defining custom notations using a built-in notation mechanism), and also \m{lia}, a procedure for reasoning in \textbf{l}inear \textbf{i}nteger \textbf{a}rithmetic (hence the name).
-
 
 The command \m{Print} is part of the Vernacular -- a language of useful commands for looking up definitions and theorems, and other things usually provided at the IDE level. We use it to recall the definition of \m{list} and \m{app} (we modified the outputs of these commands to simplify our explanations).
 
@@ -372,7 +371,7 @@ Having given a thorough introduction, it should now be clear what we mean by ``f
 
 \chapter{A quick \textit{tour de} sort} \label{quicksort}
 
-The field of algorithms and data structures can be easily separated into two subfields: the algorithms and the data structures. These two go hand in hand: all algorithms operate on data structures, no matter how primitive, and data structures exist precisely in order for algorithms to do something with them.
+The field of algorithms and data structures can, in principle, be easily separated into two subfields: the algorithms and the data structures. But these two go hand in hand: all algorithms operate on data structures, no matter how primitive, and data structures exist precisely in order for algorithms to operate on them.
 
 We have to start somewhere, however, and so we choose to break this vicious circle at algorithms. In this chapter we will look at the problem of sorting a list -- one of the most basic data structures -- and at quicksort, one of the fastest and most elegant solutions of this problem.
 
@@ -380,16 +379,38 @@ Quicksort is probably also the most researched algorithm in the whole imperative
 
 \section{Specify the problem} \label{specify}
 
+In the previous chapter we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
+
+This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see later in this chapter, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
+
+Nonetheless, we present a simple heuristic for checking if a specification is good and illustrate it with two failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the previous chapter.
+
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0} \\
     Find a specification of the problem that is both abstract and easy to use.
 \end{center}
 
-\begin{itemize}
-    \item Definition of sorting for naturals using $<$ -- not easy to use.
-    \item An inductive definition for naturals -- not abstract.
-    \item Decidable linear orders -- abstract.
-\end{itemize}
+\subsection{Not that easy} \label{noteasy}
+
+So, how can we formally define the proposition ``the list of natural numbers $l$ is sorted''? One way of doing this is to formalize the intuitive definition which says that a list is sorted if earlier elements are less than (or equal) later elements.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    linenos
+]
+{Coq}{Snippets/Chapter2/NotEasy.v}
+
+This is exactly what the above definition says. We start by importing the required modules and then define an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} being sorted means that for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, when the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
+
+\subsection{Not that abstract} \label{notabstract}
+
+An inductive definition for naturals -- not abstract.
+
+\subsection{Just about right} \label{justright}
+
+Decidable linear orders -- abstract.
 
 \section{Abstract the algorithm} \label{template}
 
@@ -409,11 +430,13 @@ Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not 
 
 Mention functional induction here and how to derive it.
 
+\section{An aside on user friendliness} \label{friendliness}
+
+\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
+
 \section{Fill out the template -- concrete programs} \label{fillout}
 
 \concept{Implement concrete versions of the algorithm by filling out the template with the required subprograms.}
-
-\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
 
 Discussion about classes vs records vs modules, bundling and unbundling.
 
