@@ -398,19 +398,50 @@ So, how can we formally define the proposition ``the list of natural numbers $l$
 [
     frame=lines,
     bgcolor=CoqIDE,
-    linenos
+    linenos,
+    firstline = 1,
+    lastline = 17
 ]
 {Coq}{Snippets/Chapter2/NotEasy.v}
 
 This is exactly what the above definition says. We start by importing the required modules and then define an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} being sorted means that for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, when the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
 
+This definition looks quite correct (and it is), but it won't serve us well. This is because it defies the second part of our advice \#0 -- it is not easy to use. The reason why will be rather elusive for people who are not Coq experts\footnote{Knowing at first sight that a definition like this one will later turn out to be quite clumsy requires precisely the kind of creativity and insight mentioned before that can't be packed into a repetitive, mindless technique.}, but I will nonetheless try to give an appealing argument.
+
+The problem with this definition is that it is a \textit{patchwork} definition -- it is made up of various ingredients that don't fit together perfectly. The first ingredient is universal quantification over two natural numbers. The quantifier itself is fine, as are the numbers, but problems start with the hypothesis \m{n <= m}.
+
+Upon closer inspection, there's a mismatch between the inductive definition of natural numbers (using zero and successor) and the inductive definition of the relation \m{<=} (which is based on reflexivity and the fact that \m{n <= m} implies \m{n <= S m}) -- see the listing below for clarification. This is not a big problem all by itself, just one source of potential clumsiness.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    linenos,
+    firstline = 19
+]
+{Coq}{Snippets/Chapter2/NotEasy.v}
+
+That's not the only source of clumsiness, however. After another quantifier and two numbers, we find two equations. General equations between variables (like \m{n = m}) are not problematic at all, but equations with more specific terms on one or both sides are a bit clumsy, often requiring additional bookkeeping effort to use properly.
+
+The next source of clumsiness is the fact that on the lefts of these equations we used the auxiliary function \m{nth}, which is defined by first matching the list argument and then matching the number argument. This is a bit clumsy because even if we case split on the number, the definition of \m{nth} won't reduce unless we also case split on the list.
+
+All of these sources of clumsiness would add up if we attempted to prove that a list sorting function is correct. If we attempted an induction on the indices, dealing with the proof proof of \m{i <= j} would be a bit annoying. If we went for a induction on the proof of \m{i <= j}, then we would have to reason by cases on the list just to be able to use the equations. If we went for an induction on the list, we still have a lot of work with the indices.
+
+The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they correspond more closely to the definition of natural numbers (\m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list).
+
+However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition and try to find a better one.
+
 \subsection{Not that abstract} \label{notabstract}
 
 An inductive definition for naturals -- not abstract.
 
-\subsection{Just about right} \label{justright}
+\subsection{Just about right...} \label{justright}
 
 Decidable linear orders -- abstract.
+
+\subsection{... or is it? A reminder}
+
+Definition of sortedness vs definition of sorting function. Permutations go here.
 
 \section{Abstract the algorithm} \label{template}
 
