@@ -431,6 +431,41 @@ The problems are not insurmountable -- with some additional bookkeeping and anno
 
 However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition and try to find a better one.
 
+\subsection{Improving patchwork definitions} \label{improvingpatchwork}
+
+How do we find a better definition of sortedness? As has been said previously, in general it requires some creativity and insight. But sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#0.5} \\
+    A patchwork definition sometimes can be improved by restating it as an inductive definition.
+\end{center}
+
+Let's try to restate the intuitive definition of sortedness, which says that elements with smaller indices are less than or equal to elements with bigger indices. If we (conceptually) unfold this statement a bit, we get this: the element with the smallest index is the least element, the element with the second smallest index is the second least element, etc. Unfolding a bit more: the head of the list is less than or equal to all elements of the tail, the head of the tail is less than or equal to all elements of the tail of the tail and so on. This looks like a perfectly good inductive definition.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    linenos,
+    firstline = 6,
+    lastline = 16
+]
+{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+
+We can easily formalize the above reformulated definition. First we define a helper relation \m{LessThanAll}, so that \m{LessThanAll n l} means that the number \m{n} is less than or equal to all numbers in the list \m{l}. Then comes the main definition: an empty list is sorted\footnote{We can't forget this base case, even though it's quite implicit in the patchwork definition.}, and a list \m{h\ ::\ t} is sorted as soon as \m{h} is less than all elements of \m{t} and \m{t} itself is also sorted.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    linenos,
+    firstline = 22,
+    lastline = 27
+]
+{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+
+This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that directly follows it. This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+
 \subsection{Not that abstract} \label{notabstract}
 
 An inductive definition for naturals -- not abstract.

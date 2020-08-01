@@ -1,5 +1,6 @@
 Require Import TreeSort.
 
+(* TODO
 Theorem Sorted_treeSort :
   forall (A : LinDec) (l : list A), Sorted A (treeSort A l).
 Proof.
@@ -65,3 +66,4 @@ Proof.
     apply Sorted_treeSort.
     apply perm_Permutation. rewrite <- treeSort_perm. reflexivity.
 Defined.
+*)

@@ -62,7 +62,52 @@ Proof.
   all: cbn in *; omega. Show Proof.
 Defined.
 
+Class VerifiedQSArgs (A : Type) : Type :=
+{
+    args :> QSArgs A;
+    rel : A -> A -> Prop;
+    Sorted_adhoc :
+      forall l1 l2 : list A,
+        small l1 = inl l2 -> Sorted rel (adhoc l2);
+(*    adhoc_perm :
+      forall l l' : list A,
+        small l = inl l' -> perm l' (adhoc l');*)
+}.
+
+Arguments rel {A} _.
+
+Coercion args : VerifiedQSArgs >-> QSArgs.
+
+Theorem Sorted_uqs :
+  forall
+    {A : Type} (vqsa : VerifiedQSArgs A) (l : list A),
+      @Sorted A (rel vqsa) (uqs vqsa l).
+Proof.
+  intros.
+  functional induction (uqs vqsa l).
+    apply (Sorted_adhoc l). assumption.
+    (*apply small_inr in e. apply pivot_spec in e0.*)
+    apply Sorted_app_all; try assumption.
+      apply Sorted_cons.
+        intros. apply in_app_or in H. destruct H.
+          admit. (*erewrite spec_eq; eauto.*)
+          admit. (*eapply spec_hi; eauto. eapply uqs_In; eauto.*)
+        apply Sorted_app; auto.
+          assert (forall x : A, In x eq -> x = pivot).
+            admit. (*eapply spec_eq; eauto.*)
+            clear e1. induction eq; auto. destruct eq; auto. constructor.
+              rewrite (H a), (H a0); cbn; auto. admit.
+              apply IHeq. intro. inv 1; apply H; cbn; auto.
+          intros. apply uqs_In in H0.
+            erewrite (spec_eq pivot) at 1; eauto.
+              eapply spec_hi; eauto.
+        intros. apply uqs_In in H. eapply spec_lo; eauto.
+Qed.
+
+
 (** Ordinary quicksort using [uqs] *)
+
+(*
 
 #[refine]
 Instance Small_head (A : LinDec) : Small A :=
@@ -168,3 +213,5 @@ Definition hqs
   (n : nat) (A : LinDec) (sort : Sort A) (l : list A) : list A :=
     uqs (AdHocSort_Sort (Small_length A n) sort)
         (Pivot_head A) (Partition_bifilter A) l.
+
+*)
