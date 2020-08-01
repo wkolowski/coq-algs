@@ -398,7 +398,6 @@ So, how can we formally define the proposition ``the list of natural numbers $l$
 [
     frame=lines,
     bgcolor=CoqIDE,
-    linenos,
     firstline = 1,
     lastline = 17
 ]
@@ -416,59 +415,62 @@ Upon closer inspection, there's a mismatch between the inductive definition of n
 [
     frame=lines,
     bgcolor=CoqIDE,
-    linenos,
     firstline = 19
 ]
 {Coq}{Snippets/Chapter2/NotEasy.v}
 
 That's not the only source of clumsiness, however. After another quantifier and two numbers, we find two equations. General equations between variables (like \m{n = m}) are not problematic at all, but equations with more specific terms on one or both sides are a bit clumsy, often requiring additional bookkeeping effort to use properly.
 
-The next source of clumsiness is the fact that on the lefts of these equations we used the auxiliary function \m{nth}, which is defined by first matching the list argument and then matching the number argument. This is a bit clumsy because even if we case split on the number, the definition of \m{nth} won't reduce unless we also case split on the list.
+The next source of clumsiness is the fact that on the lefts of these equations we used the auxiliary function \m{nth}, which is defined by first matching the list argument and then matching the number argument. This is a bit clumsy because even if we reason by cases on the number, the definition of \m{nth} won't reduce unless we also reason by cases on the list.
 
 All of these sources of clumsiness would add up if we attempted to prove that a list sorting function is correct. If we attempted an induction on the indices, dealing with the proof proof of \m{i <= j} would be a bit annoying. If we went for a induction on the proof of \m{i <= j}, then we would have to reason by cases on the list just to be able to use the equations. If we went for an induction on the list, we still have a lot of work with the indices.
 
-The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they correspond more closely to the definition of natural numbers (\m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list).
-
-However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition and try to find a better one.
-
 \subsection{Improving patchwork definitions} \label{improvingpatchwork}
 
-How do we find a better definition of sortedness? As has been said previously, in general it requires some creativity and insight. But sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.
+The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they correspond more closely to the definition of natural numbers: \m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list.
+
+However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition of sortedness and try to find a better one.
+
+How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0.5} \\
-    A patchwork definition sometimes can be improved by restating it as an inductive definition.
+    Sometimes a patchwork definition can be improved by restating it as an inductive definition.
 \end{center}
 
-Let's try to restate the intuitive definition of sortedness, which says that elements with smaller indices are less than or equal to elements with bigger indices. If we (conceptually) unfold this statement a bit, we get this: the element with the smallest index is the least element, the element with the second smallest index is the second least element, etc. Unfolding a bit more: the head of the list is less than or equal to all elements of the tail, the head of the tail is less than or equal to all elements of the tail of the tail and so on. This looks like a perfectly good inductive definition.
+Let's try to restate the intuitive definition of sortedness, which says that elements with smaller indices are less than or equal to elements with bigger indices. If we (conceptually) unfold this statement a bit, we get this: the element with the smallest index is the least element, the element with the second smallest index is the second least element, etc. Unfolding a bit more: the first element is less than everything that follows it, the second element is less than everything that follows it, etc.
+
+% the head of the list is less than or equal to all elements of the tail, the head of the tail is less than or equal to all elements of the tail of the tail and so on. This looks like a perfectly good inductive definition.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    linenos,
     firstline = 6,
     lastline = 16
 ]
 {Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
 
-We can easily formalize the above reformulated definition. First we define a helper relation \m{LessThanAll}, so that \m{LessThanAll n l} means that the number \m{n} is less than or equal to all numbers in the list \m{l}. Then comes the main definition: an empty list is sorted\footnote{We can't forget this base case, even though it's quite implicit in the patchwork definition.}, and a list \m{h\ ::\ t} is sorted as soon as \m{h} is less than all elements of \m{t} and \m{t} itself is also sorted.
+We can easily formalize the above reformulated definition. First we define a helper relation \m{LessThanAll}, so that \m{LessThanAll n l} means that the number \m{n} is less than or equal to all numbers in the list \m{l}. Then comes the main definition: an empty list is sorted\footnote{We must remember this base case, even though it's quite implicit in the patchwork definition.}, and a list \m{h\ ::\ t} is sorted as soon as \m{h} is less than all elements of \m{t} and \m{t} itself is also sorted.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    linenos,
     firstline = 22,
     lastline = 27
 ]
 {Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
 
-This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that directly follows it. This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it. This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+
+Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted list by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs on index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
 \subsection{Not that abstract} \label{notabstract}
 
-An inductive definition for naturals -- not abstract.
+Does this mean we now have a good specification? Not quite, because our improved definition still defies the first prescription of concept/technique \#0: it is not abstract enough.
+
+There are two main reasons for seeking abstraction when solving a problem. The first one is pragmatic: a more abstract solution is more widely applicable. The second one is harder to pin down, but is sometimes known as \textit{Inventor's paradox}
 
 \subsection{Just about right...} \label{justright}
 
