@@ -495,13 +495,35 @@ How do we put this into practice? It's quite simple: in our definition, we repla
 
 Note that we don't assume anything about the relation -- \m{R} can be any relation whatsoever, not necessarily a total order relation. This is the first glimpse of a concept we will meet later: don't assume what is not needed. To state the definition we don't need \m{R} to have any properties, so we don't assume any.
 
-\subsection{Just about right...} \label{justright}
+\subsection{Just about right... or is it? Staying on the right track} \label{justright}
 
-Decidable linear orders -- abstract.
+So, we're done, right? Not quite. If you're an attentive reader, you should remember that we set out to give a specification of a sorting function, whereas it's easy to notice that so far we have only given a definition of what it means for a list to be sorted.
 
-\subsection{... or is it? A reminder}
+That's a significant mismatch, because a sorting function is not one that just returns a sorted list as a result. Consider the function that always returns an empty list. It certainly returns a list that is sorted, but it isn't a sorting function -- the process of sorting shouldn't remove (or add) any elements, only shuffle the existing ones. What we are missing is a condition saying that the output of the function is a permutation of the input.
 
-Definition of sortedness vs definition of sorting function. Permutations go here.
+This is a minor but important lesson for us: while devising a specification, we must not get drown in minute details of improving patchwork definitions with inductive types, but we have to always bear in mind our final goal.
+
+Having said that, how do we define what it means for two lists to be permutations of each other? The definition that can be found in Coq's standard library looks as follows.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline = 4,
+    lastline = 15
+]
+{Coq}{Snippets/Chapter2/JustRight.v}
+
+% We can think about the proposition \m{Permutation l1 l2} as a collection of all ways to turn \m{l1} into \m{l2} by moving elements around: if \m{l1} is empty, there is nothing to move, so the result must also be empty; we can skip the head and go permuting in the tail or we can swap the two initial elements; we can also use transitivity.
+
+After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove anything nontrivial about quicksort. A little better-sounding reason is that quicksort moves list elements in very different ways than the ways of moving allowed by the definition of \m{Permutation}.
+
+
+
+
+
+This time, a more patchwork-y definion is preferred.
+
 
 \section{Abstract the algorithm} \label{template}
 
