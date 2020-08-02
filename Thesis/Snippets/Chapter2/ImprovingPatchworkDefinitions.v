@@ -27,3 +27,14 @@ Inductive Sorted : list nat -> Prop :=
           n <= m -> Sorted (m :: l) -> Sorted (n :: m :: l).
 
 End M2.
+
+Module M3.
+
+Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
+    | Sorted_nil : Sorted R []
+    | Sorted_singl : forall x : A, Sorted R [x]
+    | Sorted_cons :
+        forall (x y : A) (l : list A),
+          R x y -> Sorted R (y :: l) -> Sorted R (x :: y :: l).
+
+End M3.

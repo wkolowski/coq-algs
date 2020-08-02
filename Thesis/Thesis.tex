@@ -468,9 +468,32 @@ Our final definition of sortedness is, in terms of usability, much better than t
 
 \subsection{Not that abstract} \label{notabstract}
 
-Does this mean we now have a good specification? Not quite, because our improved definition still defies the first prescription of concept/technique \#0: it is not abstract enough.
+Does this mean we now have a good specification? Not quite, because our improved definition still defies the first prescription of concept/technique \#0: it is not abstract enough. This boils down to the fact that we defined sortedness for a list of natural numbers instead of a list of elements of a general type \m{A}.
 
-There are two main reasons for seeking abstraction when solving a problem. The first one is pragmatic: a more abstract solution is more widely applicable. The second one is harder to pin down, but is sometimes known as \textit{Inventor's paradox}
+There are two main reasons for seeking abstraction when solving a problem. The first one is pragmatic: a more abstract solution is more widely applicable. The second one is harder to pin down, but is sometimes known as \textit{Inventor's paradox}. George Pólya describes it this way:
+
+\begin{quote}
+    The more ambitious plan may have more chances of success (...) provided it is not based on a mere pretension but on some vision of the things beyond those immediately present.\cite{Polya}
+\end{quote}
+
+Our initial choice has far-reaching implications, because the type of natural numbers is an object very rich in structure. Naturals form a semiring under addition and multiplication and a totally ordered set under the standard ordering, they support proof by induction, are countably infinite, embed in the reals, etc. On the other hand, a general type \m{A} doesn't have any of this structure -- we know almost nothing about it.
+
+At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At a second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong. After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting.
+
+How do we put this into practice? It's quite simple: in our definition, we replace \m{nat} with \m{A} and the order \m{<=} with a general relation \m{R}.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline = 33,
+    lastline = 38
+]
+{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+
+% This is the paradoxical benefit of generality, embodied by the Inventor's paradox: what at first looks like a constraint, is in fact freedom from certain kinds of errors.
+
+Note that we don't assume anything about the relation -- \m{R} can be any relation whatsoever, not necessarily a total order relation. This is the first glimpse of a concept we will meet later: don't assume what is not needed. To state the definition we don't need \m{R} to have any properties, so we don't assume any.
 
 \subsection{Just about right...} \label{justright}
 
@@ -687,6 +710,10 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     Andrew W. Appel,
     \textit{Verified Functional Algorithms}, 2018 \\
     \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
+
+\bibitem{Polya}
+    George Pólya, \textit{How to Solve It}, 1945
+
 \end{thebibliography}
 
 \end{document}
