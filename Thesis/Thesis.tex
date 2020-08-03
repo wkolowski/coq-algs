@@ -509,21 +509,46 @@ Having said that, how do we define what it means for two lists to be permutation
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 4,
-    lastline = 15
+    firstline = 6,
+    lastline = 17
 ]
 {Coq}{Snippets/Chapter2/JustRight.v}
 
 % We can think about the proposition \m{Permutation l1 l2} as a collection of all ways to turn \m{l1} into \m{l2} by moving elements around: if \m{l1} is empty, there is nothing to move, so the result must also be empty; we can skip the head and go permuting in the tail or we can swap the two initial elements; we can also use transitivity.
 
-After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove anything nontrivial about quicksort. A little better-sounding reason is that quicksort moves list elements in very different ways than the ways of moving allowed by the definition of \m{Permutation}.
+After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove anything nontrivial about quicksort. The reason is that quicksort moves list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
 
+How to find a better definition of \m{Permutation}? Let's try the following advice.
 
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#0.75} \\
+    Sometimes we can find an alternative specification by changing the focus from one aspect to another.
+\end{center}
 
+This one is admittedly quite murky. What is meant by ``aspect'' here? The best way to understand it is to immediately apply it to our case. In the inductive definition of \m{Permutation}, the main idea is that of rearranging list elements. What this concept/technique is trying to tell us is to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
 
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline = 23,
+    lastline = 30
+]
+{Coq}{Snippets/Chapter2/JustRight.v}
 
-This time, a more patchwork-y definion is preferred.
+Such an idea is \textit{counting decidable properties}: two lists are permutations of one another just when, for all decidable properties \m{p}, they have the same number of elements satisfying \m{p}.\footnote{The proof of equivalence of these two definitions of \m{Permutation} can be found in the thesis' repository. I won't give a precise location here, because it's likely to be out of date soon.} This definition may seem surprising at first, but it can be derived from the one we started with: instead of rearranging elements in a list, we can just as well count the number of occurrences of every element. If we get the same result for all \m{x\ :\ A}, then the two lists are permutations -- we don't need to worry about moving the elements around.
 
+The definition we get as a result is not abstract enough, because not all types support decidable equality, so the the last step is to generalize from counting occurrences of elements to counting occurrences any elements satisfying a general decidable property. This is what was meant by ``changing the focus from one aspect to another''. This time a more patchwork-y definition turned out to be better.
+
+The final specification of a sorting function that we have arrived at through our considerations looks as follows.
+
+%\inputminted
+%[
+%    frame=lines,
+%    bgcolor=CoqIDE,
+%    firstline = 35,
+%]
+%{Coq}{Snippets/Chapter2/JustRight.v}
 
 \section{Abstract the algorithm} \label{template}
 

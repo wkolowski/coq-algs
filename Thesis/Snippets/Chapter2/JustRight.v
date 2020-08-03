@@ -1,6 +1,8 @@
 Require Import List.
 Import ListNotations.
 
+Module Moving.
+
 Inductive Permutation {A : Type} : list A -> list A -> Prop :=
   | perm_nil1 :
       Permutation [] []
@@ -13,3 +15,18 @@ Inductive Permutation {A : Type} : list A -> list A -> Prop :=
   | perm_trans :
       forall l1 l2 l3 : list A,
         Permutation l1 l2 -> Permutation l2 l3 -> Permutation l1 l3.
+
+End Moving.
+
+Module Counting.
+
+Fixpoint count {A : Type} (p : A -> bool) (l : list A) : nat :=
+match l with
+    | [] => 0
+    | h :: t => (if p h then 1 else 0) + count p t
+end.
+
+Definition Permutation {A : Type} (l1 l2 : list A) : Prop :=
+  forall p : A -> bool, count p l1 = count p l2.
+
+End Counting.
