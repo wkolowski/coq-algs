@@ -29,4 +29,14 @@ end.
 Definition Permutation {A : Type} (l1 l2 : list A) : Prop :=
   forall p : A -> bool, count p l1 = count p l2.
 
+Require Import ImprovingPatchworkDefinitions.
+Import M3.
+
+Class Sort
+  {A : Type} (R : A -> A -> Prop) (f : list A -> list A) : Prop :=
+{
+    isSorted : forall l : list A, Sorted R (f l);
+    isPermutation : forall l : list A, Permutation l (f l)
+}.
+
 End Counting.

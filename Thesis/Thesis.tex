@@ -392,7 +392,7 @@ Nonetheless, we present a simple heuristic for checking if a specification is go
 
 \subsection{Not that easy} \label{noteasy}
 
-So, how can we formally define the proposition ``the list of natural numbers $l$ is sorted''? One way of doing this is to formalize the intuitive definition which says that a list is sorted if earlier elements are less than (or equal) later elements.
+So, how can we formally define the proposition ``the list of natural numbers $l$ is sorted''? One way of doing this is to formalize the intuitive definition which says that a list is sorted if earlier elements are less than (or equal to) later elements.
 
 \inputminted
 [
@@ -538,19 +538,40 @@ This one is admittedly quite murky. What is meant by ``aspect'' here? The best w
 
 Such an idea is \textit{counting decidable properties}: two lists are permutations of one another just when, for all decidable properties \m{p}, they have the same number of elements satisfying \m{p}.\footnote{The proof of equivalence of these two definitions of \m{Permutation} can be found in the thesis' repository. I won't give a precise location here, because it's likely to be out of date soon.} This definition may seem surprising at first, but it can be derived from the one we started with: instead of rearranging elements in a list, we can just as well count the number of occurrences of every element. If we get the same result for all \m{x\ :\ A}, then the two lists are permutations -- we don't need to worry about moving the elements around.
 
-The definition we get as a result is not abstract enough, because not all types support decidable equality, so the the last step is to generalize from counting occurrences of elements to counting occurrences any elements satisfying a general decidable property. This is what was meant by ``changing the focus from one aspect to another''. This time a more patchwork-y definition turned out to be better.
+The definition we get as a result is not abstract enough, because not all types support decidable equality, so the the last step is to generalize from counting occurrences of elements to counting elements satisfying a general decidable property. This is what was meant by ``changing the focus from one aspect to another''. 
 
-The final specification of a sorting function that we have arrived at through our considerations looks as follows.
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline = 35,
+    lastline = 40
+]
+{Coq}{Snippets/Chapter2/JustRight.v}
 
-%\inputminted
-%[
-%    frame=lines,
-%    bgcolor=CoqIDE,
-%    firstline = 35,
-%]
-%{Coq}{Snippets/Chapter2/JustRight.v}
+The final specification of a sorting function that we have arrived at through our considerations is shown in the listing. A function \m{f} is a sorting function (according to some relation \m{R}, of which we think as the order) if the output is a sorted permutation of the input. We pack these notions into a class named \m{Sort} using a combination of parameters and fields - a distinction we will revisit later. % TODO: parametry kontra pola rekordu/klasy 
+
+To sum up our struggles, we once more stress the fact that inventing specifications is an art that one gets better at with experience. We learned a useful criterion for telling when a specification is bad, but to apply it we must first have something to apply it to. We also saw two hints that can help us improve a bad specification, but they don't always work: sometimes by ``inductivizing'' a definition we can gain a lot, but sometimes inductive definitions are a path to oblivion and more patchwork-y definitions reign supreme.
 
 \section{Abstract the algorithm} \label{template}
+
+Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem was novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms.} If you have ever seen the famous two-line implementation of quicksort in Haskell, you may might be starting to feel joy. If you have ever seen an implementation in an imperative language like C, you might be starting to feel uneasy. Our formally correct implementation will look much scarier and be much longer than the typical imperative implementation, but in the end it will be just as simple and beautiful as the Haskell implementation.
+
+% TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
+
+\begin{minted}{Haskell}
+    qs :: (Ord a) => [a] -> [a]
+    qs [] = []
+    qs (h:t) = qs (filter (h <=) t) ++ h : qs (filter (h >) t)
+\end{minted}
+
+The usual way quicksort is present looks somewhat like this:
+
+\begin{itemize}
+    \item If the list is empty, we're done.
+    \item Otherwise, choose a pivot, which can be any element from the list.
+    \item 
+
 
 \concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
 
