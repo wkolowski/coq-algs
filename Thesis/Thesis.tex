@@ -282,8 +282,7 @@ In this section we give a very short Coq tutorial. Before reading it, the unfami
 \inputminted
 [
     frame=lines,
-    bgcolor=CoqIDE,
-    linenos
+    bgcolor=CoqIDE
 ]
 {Coq}{Snippets/Chapter1/SpecVerification.v}
 
@@ -409,15 +408,15 @@ This definition looks quite correct (and it is), but it won't serve us well. Thi
 
 The problem with this definition is that it is a \textit{patchwork} definition -- it is made up of various ingredients that don't fit together perfectly. The first ingredient is universal quantification over two natural numbers. The quantifier itself is fine, as are the numbers, but problems start with the hypothesis \m{n <= m}.
 
-Upon closer inspection, there's a mismatch between the inductive definition of natural numbers (using zero and successor) and the inductive definition of the relation \m{<=} (which is based on reflexivity and the fact that \m{n <= m} implies \m{n <= S m}) -- see the listing below for clarification. This is not a big problem all by itself, just one source of potential clumsiness.
+Upon closer inspection, there's a mismatch between the inductive definition of natural numbers (using zero and successor) and the inductive definition of the relation \m{<=} (which is based on reflexivity and the fact that \m{n <= m} implies \m{n <= S m}). This is not a big problem all by itself, just one source of potential clumsiness.
 
-\inputminted
-[
-    frame=lines,
-    bgcolor=CoqIDE,
-    firstline = 19
-]
-{Coq}{Snippets/Chapter2/NotEasy.v}
+%\inputminted
+%[
+%    frame=lines,
+%    bgcolor=CoqIDE,
+%    firstline = 19
+%]
+%{Coq}{Snippets/Chapter2/NotEasy.v}
 
 That's not the only source of clumsiness, however. After another quantifier and two numbers, we find two equations. General equations between variables (like \m{n = m}) are not problematic at all, but equations with more specific terms on one or both sides are a bit clumsy, often requiring additional bookkeeping effort to use properly.
 
@@ -480,7 +479,7 @@ Our initial choice has far-reaching implications, because the type of natural nu
 
 At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At a second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong. After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting.
 
-How do we put this into practice? It's quite simple: in our definition, we replace \m{nat} with \m{A} and the order \m{<=} with a general relation \m{R}.
+How do we put this into practice? It's quite simple: in our definition, we replace \m{nat} with \m{A} and the order \m{<=} with a general relation \m{R}. Both \m{A} and \m{R} become parameters.
 
 \inputminted
 [
@@ -555,27 +554,66 @@ To sum up our struggles, we once more stress the fact that inventing specificati
 
 \section{Abstract the algorithm} \label{template}
 
-Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem was novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms.} If you have ever seen the famous two-line implementation of quicksort in Haskell, you may might be starting to feel joy. If you have ever seen an implementation in an imperative language like C, you might be starting to feel uneasy. Our formally correct implementation will look much scarier and be much longer than the typical imperative implementation, but in the end it will be just as simple and beautiful as the Haskell implementation.
+Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem was novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms.} The usual high-level idea behind quicksort (agnostic as to whether the thing being sorted is a list or an array) is usually presented somewhat like this:
+
+\begin{itemize}
+    \item If the list/array is empty, we're done.
+    \item Otherwise, choose a pivot, which can be any element from the list/array.
+    \item Split the list/array (with pivot removed) into two lists/arrays, one of which contains elements less than the pivot, while the other contains elements greater than or equal to the pivot.
+    \item Sort both lists/array recursively and put them together with pivot in the middle.
+\end{itemize}
+
+\begin{listing}[H]
+    \label{HaskellQuicksort}
+    \begin{minted}{Haskell}
+        qs :: (Ord a) => [a] -> [a]
+        qs [] = []
+        qs (h:t) = qs (filter (< h) t) ++ [h] ++ qs (filter (>= h) t)
+    \end{minted}
+    \caption{The famous two-line (three if we count the type signature) quicksort implementation for lists, written in Haskell.}
+\end{listing}
+
+\begin{listing}[H]
+    \label{CQuicksort}
+    \begin{minted}{C}
+    // To sort array a[] of size n: qsort(a, 0, n - 1)
+    void qsort(int a[], int lo, int hi) 
+    {
+    if (lo < hi) {
+        int l = lo;
+        int h = hi;
+        int p = a[hi];
+
+        do {
+        while (l < h && a[l] <= p) 
+            l = l + 1;
+        while (h > l && a[h] >= p)
+            h = h - 1;
+        if (l < h) {
+            int t = a[l];
+            a[l] = a[h];
+            a[h] = t;
+          }
+        } while (l < h);
+
+        a[hi] = a[l];
+        a[l] = p;
+
+        qsort(a, lo, l - 1);
+        qsort(a, l + 1, hi);
+      }
+    }
+    \end{minted}
+    \caption{A typical quicksort implementation for sorting arrays, wrriten in C. This one is adapted from \url{https://wiki.haskell.org/Introduction}}
+\end{listing}
+
+If you have ever seen the famous two-line implementation of quicksort in Haskell (shown in listing \ref{HaskellQuicksort}), you know that it may be very easy to implement at least the list version of quicksort. If you have ever seen an implementation in an imperative language (a typical implementation in C is shown in listing \ref{CQuicksort}), you might be starting to feel uneasy. Our formally correct implementation will look much scarier and be much longer than the typical imperative implementation, but in the end it will be just as simple and beautiful as the Haskell implementation.
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
 
-\begin{minted}{Haskell}
-    qs :: (Ord a) => [a] -> [a]
-    qs [] = []
-    qs (h:t) = qs (filter (h <=) t) ++ h : qs (filter (h >) t)
-\end{minted}
-
-The usual way quicksort is present looks somewhat like this:
-
-\begin{itemize}
-    \item If the list is empty, we're done.
-    \item Otherwise, choose a pivot, which can be any element from the list.
-    \item 
-
-
 \concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
 
-Hints about turning the termination checker off. Present an imperative version of quicksort and maybe the story about people not believing Hoare the implementation could work.
+% Hints about turning the termination checker off. Present an imperative version of quicksort and maybe the story about people not believing Hoare the implementation could work.
 
 \section{Prove termination} \label{termination}
 
