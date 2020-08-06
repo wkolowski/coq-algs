@@ -559,59 +559,73 @@ Having found a good specification of the problem, the next step in the process i
 \begin{itemize}
     \item If the list/array is empty, we're done.
     \item Otherwise, choose a pivot, which can be any element from the list/array.
-    \item Split the list/array (with pivot removed) into two lists/arrays, one of which contains elements less than the pivot, while the other contains elements greater than or equal to the pivot.
+    \item Partition the list/array (with pivot removed) into two lists/arrays, one of which contains elements less than the pivot, while the other contains elements greater than or equal to the pivot.
     \item Sort both lists/array recursively and put them together with pivot in the middle.
 \end{itemize}
 
+When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check!}
+
+The main difference between these two implementations is a discrepancy in their levels of abstraction. The first\footnote{\m{qs\ []\ =\ []} in Haskell, \m{if\ (lo\ <\ hi)} in C} and second\footnote{\m{int\ p\ =\ a[hi];} in C. In Haskell, the pivot is implicitly chosen to be \m{h}.} bullet points are realized at roughly the same level. The crux of the matter is the partitioning. In the Haskell version, it is expressed as \m{filter (< h) t} and \m{filter (>= h) t}, which can be directly read as ``all elements of \m{t} which are less than \m{h}'' and ``all elements of \m{t} which are greater than or equal to \m{h}'', respectively. In the C version, things are much more non-obvious, but if we squint hard enough, we can see that the first \m{while} loop says ``let \m{a[l]} be the first element on the left of the pivot that is greater than the pivot'', the second one says ''let \m{a[h]} be the first element on the right (counting from the end) that is less than the pivot'' and the \m{if} clause means ``swap \m{a[l]} and \m{a[h]}'', and the \m{do...while} loop carries this on until the array is fully partitioned.
+
+We have to admit that the presentation is a bit skewed in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is skewed in favor of C, because we it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
+
+The above details aren't that important, however. What matters is the conclusion we wanted to illustrate: the Haskell version looks much simpler (and it's way easier to judge its correctness) because it's much more abstract, in some sense. The C version, being much more concrete, isn't as friendly-looking.\footnote{I don't mean to imply that all imperative implementations of quicksort must be somehow inferior to all function implementations. I think that given language features such as higher-order functions and interfaces, which are missing from C, the imperative implementation could match the simplicity and elegance of the functional one.}
+
+Our formally correct implementation in Coq will necessarily look much scarier and be several times longer than the typical imperative implementation (because of all the correctness proofs being much longer than the algorithm itself), but will in the end be just as simple and beautiful as the Haskell implementation. The key to achieving this is a technique derived from the above observations on abstractness and concreteness.
+
+\concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
+
+
+
 \begin{listing}[H]
-    \label{HaskellQuicksort}
     \begin{minted}{Haskell}
         qs :: (Ord a) => [a] -> [a]
         qs [] = []
         qs (h:t) = qs (filter (< h) t) ++ [h] ++ qs (filter (>= h) t)
     \end{minted}
     \caption{The famous two-line (three if we count the type signature) quicksort implementation for lists, written in Haskell.}
+    \label{HaskellQuicksort}
 \end{listing}
 
 \begin{listing}[H]
-    \label{CQuicksort}
     \begin{minted}{C}
     // To sort array a[] of size n: qsort(a, 0, n - 1)
     void qsort(int a[], int lo, int hi) 
     {
-    if (lo < hi) {
-        int l = lo;
-        int h = hi;
-        int p = a[hi];
+        if (lo < hi)
+        {
+            int l = lo;
+            int h = hi;
+            int p = a[hi];
 
-        do {
-        while (l < h && a[l] <= p) 
-            l = l + 1;
-        while (h > l && a[h] >= p)
-            h = h - 1;
-        if (l < h) {
-            int t = a[l];
-            a[l] = a[h];
-            a[h] = t;
-          }
-        } while (l < h);
+            do
+            {
+                while (l < h && a[l] <= p) 
+                    l = l + 1;
+                while (h > l && a[h] >= p)
+                    h = h - 1;
+                
+                if (l < h)
+                {
+                    int t = a[l];
+                    a[l] = a[h];
+                    a[h] = t;
+                }
+            } while (l < h);
 
-        a[hi] = a[l];
-        a[l] = p;
+            a[hi] = a[l];
+            a[l] = p;
 
-        qsort(a, lo, l - 1);
-        qsort(a, l + 1, hi);
-      }
+            qsort(a, lo, l - 1);
+            qsort(a, l + 1, hi);
+        }
     }
     \end{minted}
     \caption{A typical quicksort implementation for sorting arrays, wrriten in C. This one is adapted from \url{https://wiki.haskell.org/Introduction}}
+    \label{CQuicksort}
 \end{listing}
 
-If you have ever seen the famous two-line implementation of quicksort in Haskell (shown in listing \ref{HaskellQuicksort}), you know that it may be very easy to implement at least the list version of quicksort. If you have ever seen an implementation in an imperative language (a typical implementation in C is shown in listing \ref{CQuicksort}), you might be starting to feel uneasy. Our formally correct implementation will look much scarier and be much longer than the typical imperative implementation, but in the end it will be just as simple and beautiful as the Haskell implementation.
-
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
-
-\concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
 
 % Hints about turning the termination checker off. Present an imperative version of quicksort and maybe the story about people not believing Hoare the implementation could work.
 
