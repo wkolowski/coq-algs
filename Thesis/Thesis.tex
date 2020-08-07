@@ -554,28 +554,18 @@ To sum up our struggles, we once more stress the fact that inventing specificati
 
 \section{Abstract the algorithm} \label{template}
 
-Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem was novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms.} The usual high-level idea behind quicksort (agnostic as to whether the thing being sorted is a list or an array) is usually presented somewhat like this:
+Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem were novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms.} The usual high-level idea behind quicksort (agnostic as to whether the thing being sorted is a list or an array) is usually presented somewhat like this:
 
 \begin{itemize}
     \item If the list/array is empty, we're done.
     \item Otherwise, choose a pivot, which can be any element from the list/array.
     \item Partition the list/array (with pivot removed) into two lists/arrays, one of which contains elements less than the pivot, while the other contains elements greater than or equal to the pivot.
-    \item Sort both lists/array recursively and put them together with pivot in the middle.
+    \item Sort both lists/arrays recursively and put them together with pivot in the middle.
 \end{itemize}
 
-When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check!}
+When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is shown in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check!}
 
 The main difference between these two implementations is a discrepancy in their levels of abstraction. The first\footnote{\m{qs\ []\ =\ []} in Haskell, \m{if\ (lo\ <\ hi)} in C} and second\footnote{\m{int\ p\ =\ a[hi];} in C. In Haskell, the pivot is implicitly chosen to be \m{h}.} bullet points are realized at roughly the same level. The crux of the matter is the partitioning. In the Haskell version, it is expressed as \m{filter (< h) t} and \m{filter (>= h) t}, which can be directly read as ``all elements of \m{t} which are less than \m{h}'' and ``all elements of \m{t} which are greater than or equal to \m{h}'', respectively. In the C version, things are much more non-obvious, but if we squint hard enough, we can see that the first \m{while} loop says ``let \m{a[l]} be the first element on the left of the pivot that is greater than the pivot'', the second one says ''let \m{a[h]} be the first element on the right (counting from the end) that is less than the pivot'' and the \m{if} clause means ``swap \m{a[l]} and \m{a[h]}'', and the \m{do...while} loop carries this on until the array is fully partitioned.
-
-We have to admit that the presentation is a bit skewed in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is skewed in favor of C, because we it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
-
-The above details aren't that important, however. What matters is the conclusion we wanted to illustrate: the Haskell version looks much simpler (and it's way easier to judge its correctness) because it's much more abstract, in some sense. The C version, being much more concrete, isn't as friendly-looking.\footnote{I don't mean to imply that all imperative implementations of quicksort must be somehow inferior to all function implementations. I think that given language features such as higher-order functions and interfaces, which are missing from C, the imperative implementation could match the simplicity and elegance of the functional one.}
-
-Our formally correct implementation in Coq will necessarily look much scarier and be several times longer than the typical imperative implementation (because of all the correctness proofs being much longer than the algorithm itself), but will in the end be just as simple and beautiful as the Haskell implementation. The key to achieving this is a technique derived from the above observations on abstractness and concreteness.
-
-\concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
-
-
 
 \begin{listing}[H]
     \begin{minted}{Haskell}
@@ -611,7 +601,8 @@ Our formally correct implementation in Coq will necessarily look much scarier an
                     a[l] = a[h];
                     a[h] = t;
                 }
-            } while (l < h);
+            }
+            while (l < h);
 
             a[hi] = a[l];
             a[l] = p;
@@ -624,6 +615,25 @@ Our formally correct implementation in Coq will necessarily look much scarier an
     \caption{A typical quicksort implementation for sorting arrays, wrriten in C. This one is adapted from \url{https://wiki.haskell.org/Introduction}}
     \label{CQuicksort}
 \end{listing}
+
+We have to admit that the presentation is a bit skewed in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is skewed in favor of C, because it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
+
+The above details aren't that important, however. What matters is the conclusion we wanted to illustrate: the Haskell version looks much simpler (and it's way easier to judge its correctness) because it's much more abstract, in some sense. The C version, being much more concrete, isn't as friendly-looking.\footnote{I don't mean to imply that all imperative implementations of quicksort must be somehow inferior to all function implementations. I think that given language features such as higher-order functions and interfaces, which are missing from C, the imperative implementation could match the simplicity and elegance of the functional one.}
+
+Our formally correct implementation in Coq will necessarily look much scarier and be several times longer than the typical imperative implementation (because of all the correctness proofs being much longer than the algorithm itself), but will in the end be just as simple and beautiful as the Haskell implementation. The key to achieving this is a technique derived from the above observations on abstractness and concreteness.
+
+\concept{Implement an abstract template that captures the idea of the algorithm. You can ignore the matter of termination at first.}
+
+In our case, the ``idea of the algorithm'' corresponds to the four-point description of quicksort given at the beginning of the current section, but we will modify it a bit. We change the first bullet point to ``if the input list is short, sort it using some ad hoc method'' and in the third bullet point, we will partition the list into three sublists whose elements are less than, equal and greater than the pivot.
+
+In the two-line Haskell implementation of quicksort, the head of the list is chosen as pivot and partitioning is done using \m{filter}. In our case, we will implement an ``abstract template'' in which pivot choice, partitioning and the ad hoc sorting of short lists, are relegated to being arguments provided by the user. In this way, the user can craft a version of quicksort tailed precisely to his needs.
+
+The second part of the concept/technique tells us that we can ``ignore the matter of termination at first''. At first sight this looks rather unrelated to the first party about ``abstract template'', but after closer inspection it's an important special case. Coq is a total language, which means that all recursive functions necessarily terminate. This raises the problem of termination checking: how does Coq know whether a function we're implementing is terminating? In most cases a simple syntactical check is enough, but in the general case the problem is undecidable and we have to prove termination manually.
+
+This usually means that a general recursive function is weaved of two closely knit parts: the algorithmic part (the algorithm) and the logical part (the termination proof).
+
+
+
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
 
