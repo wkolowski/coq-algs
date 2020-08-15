@@ -646,9 +646,40 @@ In the next section we will see a technique that allows us to deal with these tw
 
 Here's our first attempt at the abstract template. We begin by defining a class\footnote{Coq's classes are like a cross of Haskell's typeclasses and records, but much more powerful because of dependent types.} whose fields are the user-provided subroutines that we will use in our template. Then comes the template itself. It is a direct translation of the (modified) four-point description of quicksort from the beginning of this section: if the list is short, sort it using some ad hoc sorting procedure; otherwise choose a pivot, partition the rest of the list into three parts, sort the parts containing smaller and greater elements recursively and join all the parts together with the pivot in the middle.
 
-Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \m{\{struct l\}}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
+Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Foreseeing the proof}
+\subsection{Foreseeing the UX}
+
+Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but that's only one part of the story.
+
+Another part is user experience (often shortened to UX). It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. A quite obvious thing to do at this point is to enter the user's mind (and keyboard) and see what happens.
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#2.5} \\
+    Instantiate your template in the most naive way. See what happens and use that observation to improve the template.
+\end{center}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=23,
+    lastline=44
+]
+{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+
+\subsection{Foretelling the proof}
+
+
+The other part will be the proof of correctness and chances are huge that it won't go through for the first version of the template because of some design flaws. For inexperienced Coq users it will often require some back-and-forth between the template design phase and the proving phase to get things right, 
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#2.5} \\
+    Make sure that types of various components of your template won't obstruct the flow of information when proving correctness.
+\end{center}
+
+
+
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
 

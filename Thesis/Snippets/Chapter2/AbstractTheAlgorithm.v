@@ -17,6 +17,31 @@ Fixpoint qs
         qs args lt ++ pivot :: eq ++ qs args gt.
 Set Guard Checking.
 
+Require Import List Arith.
+Import ListNotations.
+
+Instance QS_nat : QSArgs nat :=
+{
+    short l :=
+      match l with
+          | [] => true
+          | _ => false
+      end;
+    adhoc _ := [];
+    choosePivot l :=
+      match l with
+          | [] => (42, []) (* What the heck? *)
+          | h :: t => (h, t)
+      end;
+    partition p l :=
+      (filter (fun x => leb x p) l,
+       [],
+       filter (fun x => negb (leb x p)) l)
+}.
+
+Compute qs QS_nat [5; 4; 3; 2; 1; 0].
+(* ===> = [0; 1; 2; 3; 4; 5]
+        : list nat *)
 
 
 Function uqs
