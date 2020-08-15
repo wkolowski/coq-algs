@@ -632,15 +632,25 @@ The second part of the concept/technique tells us that we can ``ignore the matte
 
 Coq is a total language, which means that all recursive functions necessarily terminate. This raises the problem of termination checking: how does Coq know whether a function we're implementing is terminating? In most cases a simple syntactical check is enough, but in the general case the problem is undecidable and we have to prove termination manually.
 
-Therefore an implementation of a general recursive function is usually weaved of two closely knit parts: the algorithmic part (the algorithm) and the logical part (the termination proof). These parts are inseparable: the algorithmic part is littered with proofs and the termination proof of course strongly depends on the algorithm's properties.
+Because of this fact, an implementation of a general recursive function is usually weaved of two closely knit parts: the algorithmic part (what to do and how) and the logical part (why doing it terminates). These parts are intertwined: the algorithmic part is littered with proofs and the termination proof of course strongly depends on the algorithm's properties.
 
-In the next section we will see a technique that allows us to deal with these two parts separately and a Coq language feature that can automate this technique, but at present, in accordance with concept/technique \#2, we will ignore the matter of termination. A nice way to do this, recently introduced into Coq, is the option \m{Unset Guard Checking}, which can temporarily turn the termination checker off.
+In the next section we will see a technique that allows us to deal with these two parts separately and a Coq language feature that can automate this technique, but at present, in accordance with concept/technique \#2, we will ignore the matter of termination. A nice way to do this, recently introduced into Coq, is the command \m{Unset Guard Checking}, which can temporarily turn the termination checker off.
 
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    lastline=18
+]
+{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
+Here's our first attempt at the abstract template. We begin by defining a class\footnote{Coq's classes are like a cross of Haskell's typeclasses and records, but much more powerful because of dependent types.} whose fields are the user-provided subroutines that we will use in our template. Then comes the template itself. It is a direct translation of the (modified) four-point description of quicksort from the beginning of this section: if the list is short, sort it using some ad hoc sorting procedure; otherwise choose a pivot, partition the rest of the list into three parts, sort the parts containing smaller and greater elements recursively and join all the parts together with the pivot in the middle.
+
+Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \m{\{struct l\}}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
+
+\subsection{Foreseeing the proof}
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
-
-% Hints about turning the termination checker off. 
 
 \section{Prove termination} \label{termination}
 
