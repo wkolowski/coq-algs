@@ -43,7 +43,7 @@ Compute qs QS_nat [5; 4; 3; 2; 1; 0].
 (* ===> = [0; 1; 2; 3; 4; 5]
         : list nat *)
 
-
+(*
 Function uqs
   (A : Type)
   (args : QSArgs A)
@@ -68,6 +68,20 @@ Proof.
   2: apply len_lo in teq2.
   all: cbn in *; omega. Show Proof.
 Defined.
+*)
+
+Require Import ImprovingPatchworkDefinitions.
+Import M3.
+
+Module wuud.
+
+Class QSArgs (A : Type) : Type :=
+{
+    short : list A -> list A + A * list A;
+    adhoc : list A -> list A;
+    choosePivot : A * list A -> A * list A;
+    partition : A -> list A -> list A * list A * list A;
+}.
 
 Class VerifiedQSArgs (A : Type) : Type :=
 {
@@ -75,10 +89,37 @@ Class VerifiedQSArgs (A : Type) : Type :=
     rel : A -> A -> Prop;
     Sorted_adhoc :
       forall l1 l2 : list A,
-        small l1 = inl l2 -> Sorted rel (adhoc l2);
+        short l1 = inl l2 -> Sorted rel (adhoc l2);
 (*    adhoc_perm :
       forall l l' : list A,
         small l = inl l' -> perm l' (adhoc l');*)
 }.
+
+End wuud.
+
+Module wuud2.
+
+Class QSArgs : Type :=
+{
+    A : Type;
+    short : list A -> list A + A * list A;
+    adhoc : list A -> list A;
+    choosePivot : A * list A -> A * list A;
+    partition : A -> list A -> list A * list A * list A;
+}.
+
+Class VerifiedQSArgs : Type :=
+{
+    args :> QSArgs;
+    rel : A -> A -> Prop;
+    Sorted_adhoc :
+      forall l1 l2 : list A,
+        short l1 = inl l2 -> Sorted rel (adhoc l2);
+(*    adhoc_perm :
+      forall l l' : list A,
+        small l = inl l' -> perm l' (adhoc l');*)
+}.
+
+Print VerifiedQSArgs.
 
 Arguments rel {A} _.

@@ -654,9 +654,7 @@ Are we done with the template? Not quite -- how do we know that our template mak
 
 A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm?
 
-In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs anymore, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted.
-
-What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template.
+In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs anymore, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.5} \\
@@ -672,19 +670,12 @@ What matters to us is that the template is very abstract and, unless provided wi
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Here's what happens when we try this advice for our quicksort template. We will want to sort some natural numbers using the most basic quicksort variant, and so we define: a list is short when it's empty; we can sort an empty list ad hoc by returning an empty list; and we can partition by filtering, just like in the Haskell version. But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot but in case the list is empty we run into
+Here's what happens when we try this advice for our quicksort template. Let's say a typical user, after stumbling upon our template, will want to build the simplest quicksort variant to sort some natural numbers, and so we define: a list is short when it's empty; we can sort an empty list ad hoc by returning an empty list; and we can partition by filtering twice, just like in the Haskell version.
 
-We want to make sure it sorts correctly by looking at the output of sorting a list of numbers. 
+But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, because this number does not appear in the list (since it's empty).
 
-\subsection{Foretelling the proof}
+When we run this particular version of quicksort on a reverse-sorted list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure out of thin air an element of a general type \m{A}. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
 
-
-The other part will be the proof of correctness and chances are huge that it won't go through for the first version of the template because of some design flaws. For inexperienced Coq users it will often require some back-and-forth between the template design phase and the proving phase to get things right, 
-
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#2.5} \\
-    Make sure that types of various components of your template won't obstruct the flow of information when proving correctness.
-\end{center}
 
 
 
