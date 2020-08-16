@@ -648,15 +648,19 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Foreseeing the UX}
+\subsection{Foreseeing the user experience}
 
-Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but that's only one part of the story.
+Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's rather vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
-Another part is user experience (often shortened to UX). It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. A quite obvious thing to do at this point is to enter the user's mind (and keyboard) and see what happens.
+A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm?
+
+In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs anymore, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted.
+
+What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.5} \\
-    Instantiate your template in the most naive way. See what happens and use that observation to improve the template.
+    Instantiate your template in the most naive way. See what happens and use that observation to improve the template. Provide a default concrete algorithm so that the user doesn't need to fill the template himself.
 \end{center}
 
 \inputminted
@@ -667,6 +671,10 @@ Another part is user experience (often shortened to UX). It's not the first thin
     lastline=44
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+
+Here's what happens when we try this advice for our quicksort template. We will want to sort some natural numbers using the most basic quicksort variant, and so we define: a list is short when it's empty; we can sort an empty list ad hoc by returning an empty list; and we can partition by filtering, just like in the Haskell version. But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot but in case the list is empty we run into
+
+We want to make sure it sorts correctly by looking at the output of sorting a list of numbers. 
 
 \subsection{Foretelling the proof}
 
