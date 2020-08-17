@@ -640,7 +640,8 @@ In the next section we will see a technique that allows us to deal with these tw
 [
     frame=lines,
     bgcolor=CoqIDE,
-    lastline=18
+    firstline=6,
+    lastline=23
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
@@ -654,7 +655,7 @@ Are we done with the template? Not quite -- how do we know that our template mak
 
 A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm?
 
-In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs anymore, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template.
+In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.5} \\
@@ -665,19 +666,36 @@ In typical algorithmic settings the answer is not very enlightening: the user is
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=23,
-    lastline=44
+    firstline=25,
+    lastline=46
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Here's what happens when we try this advice for our quicksort template. Let's say a typical user, after stumbling upon our template, will want to build the simplest quicksort variant to sort some natural numbers, and so we define: a list is short when it's empty; we can sort an empty list ad hoc by returning an empty list; and we can partition by filtering twice, just like in the Haskell version.
+Here's what happens when we try this advice for our quicksort template. Let's say a typical user, after stumbling upon our template, will want to build the simplest quicksort variant to sort some natural numbers, and so we define: a list is short when it's empty; we can sort a short (i.e. empty) list ad hoc by returning an empty list; and we can partition by filtering twice, just like in the Haskell version.
 
-But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, because this number does not appear in the list (since it's empty).
+But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot, but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, as this number does not appear in the list (since it's empty).
 
-When we run this particular version of quicksort on a reverse-sorted list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure out of thin air an element of a general type \m{A}. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
+When we run this particular version of quicksort on a reverse-sorted list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{A} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=50,
+    lastline=87
+]
+{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+
+Improving our flawed template turns out to be pretty easy. We can change the type of \m{choosePivot} to \m{A -> list A -> A * list A}, whose domain we can interpret as guaranteeing that the input list is not empty. But what if the input list \textit{is} empty? This shouldn't happen: we call \m{choosePivot} only in case the input list is not short and the empty list, being the shortest of all lists, certainly should be considered short. We can therefore modify the type of \m{short} to \m{list A -> option (A * list A)}, with the possible results being either \m{None} (which means that the list is short) or \m{Some (h, t)} (which means it is not short and guarantees that it is not empty).
+
+With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version of basic quicksort.
 
 
 
+
+\subsection{Some technical details on classes}
+
+Discussion about classes vs records vs modules, bundling and unbundling.
 
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
@@ -702,7 +720,6 @@ Mention functional induction here and how to derive it.
 
 \concept{Implement concrete versions of the algorithm by filling out the template with the required subprograms.}
 
-Discussion about classes vs records vs modules, bundling and unbundling.
 
 \section{Get your hands dirty -- concrete proofs}
 
