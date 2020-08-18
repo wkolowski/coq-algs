@@ -32,7 +32,7 @@ Instance QS_nat : QSArgs nat :=
     adhoc _ := [];
     choosePivot l :=
       match l with
-          | [] => (42, []) (* What the heck? *)
+          | [] => (42, []) (* Wut? *)
           | h :: t => (h, t)
       end;
     partition p l :=

@@ -14,8 +14,8 @@
 % polecenia \fmlinebreak.
 \englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
 \polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepcje i techniki}
-\polishabstract {Omawiamy sposoby projektowania, implementowania, specyfikowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
-\englishabstract{We discuss how to design, implement, specify and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
+\polishabstract {Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
+\englishabstract{We discuss how to specify, implement and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
 \usepackage{ulem} % TODO
@@ -376,6 +376,14 @@ We have to start somewhere, however, and so we choose to break this vicious circ
 
 Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques for specifying, implementing and verifying algorithms in the functional paradigm.
 
+\begin{itemize}
+    \item In section \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications (sadly, there seems to be no easy way of coming up with a good specification).
+    \item In section \ref{template} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof. We also present techniques for assessing the quality of such a template.
+    \item In section \ref{termination} we describe a general method for carrying out termination proofs and review techniques for reasoning about functions defined in this way.
+    \item In section \ref{exnihilo} show how to formally prove the abstract algorithm template correct in a top-down fashion without writing too many proofs.
+    \item In section \ref{summary2} we go through all the concepts and techniques once more to experience a higher-level view of how they fit together.
+\end{itemize}
+
 \section{Specify the problem} \label{specify}
 
 In the previous chapter we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
@@ -651,11 +659,11 @@ Note that the definition is placed between commands \m{Unset Guard Checking} and
 
 \subsection{Foreseeing the user experience}
 
-Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's rather vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
+Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
 A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm?
 
-In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs, I only prove them correct.''. However, it is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages.} and correctness is even more taken for granted. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
+In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: even though correctness is even more taken for granted, execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs, I only prove them correct.''. It is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages, but we won't be interested in performance of the extracted code.}. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.5} \\
@@ -675,7 +683,7 @@ Here's what happens when we try this advice for our quicksort template. Let's sa
 
 But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot, but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, as this number does not appear in the list (since it's empty).
 
-When we run this particular version of quicksort on a reverse-sorted list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{A} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
+When we run this particular version of quicksort on a reverse-sorted example list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{A} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
 
 \inputminted
 [
@@ -690,7 +698,9 @@ Improving our flawed template turns out to be pretty easy. We can change the typ
 
 With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version of basic quicksort.
 
+\subsection{Evidence-based programming: overcoming boolean blindness}
 
+The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. Another one 
 
 
 \subsection{Some technical details on classes}
@@ -706,26 +716,27 @@ Discussion about classes vs records vs modules, bundling and unbundling.
 
 Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not necessarily.
 
+Mention functional induction here and how to derive it.
+
+\subsection{Foreseeing user experience 2} \label{UX2}
+
+\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
+
 \section{Verificatio ex nihilo} \label{exnihilo}
 
 \concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
 
-Mention functional induction here and how to derive it.
-
-\section{An aside on user friendliness} \label{friendliness}
-
-\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
-
-\section{Fill out the template -- concrete programs} \label{fillout}
-
-\concept{Implement concrete versions of the algorithm by filling out the template with the required subprograms.}
-
-
-\section{Get your hands dirty -- concrete proofs}
+\subsection{Get your hands dirty -- concrete proofs}
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-\section{Summary}
+\section{Summary} \label{summary2}
+
+\section{Exercise}
+
+There's a common abstraction behind both quicksort and mergesort: split the list into parts, sort them recursively, and then merge these parts. In quicksort, the real sorting is done during the ``split'' phase, i.e. during partitioning, and the ``merge'' phase is trivial list concatenation. In mergesort it's the other way around: the ``split'' phase is more or less trivial and the sorting is done during the ``merge'' phase.
+
+Design a sorting algorithm that generalizes both quicksort and mergesort. Using concepts and techniques from this chapter, give a specification of this algorithm, implement it and prove it correct.
 
 \chapter{Conclusion}
 
