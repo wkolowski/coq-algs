@@ -698,12 +698,22 @@ Improving our flawed template turns out to be pretty easy. We can change the typ
 
 With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version of basic quicksort.
 
-\subsection{Evidence-based programming: overcoming boolean blindness}
+\subsection{Overcoming boolean blindness with evidence-based programming}
 
-The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. Another one 
+The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}\footnote{This is a term coined in this thesis.}. It roughly corresponds to the part of our abstract about ``representing flow of information in a proof (or program) using types''.
+
+Before we see how to use this new concept to improve our original template, we first have to meet its relatives: \textit{boolean blindness}\footnote{This is an informal term used in the functional programming blogosphere. It was coined most likely by Dan Licata in his lecture notes for an introductory functional programming class \cite{BBLicata}. See \cite{BBHarper} for a philosophical presentation, \cite{BBHXA} for a critique of the former viewpoint and \cite{BBFairbank} for a more software-engineering-oriented discussion.}, a dangerous disease which can afflict even the best functional programmers, and \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}.
+
+Boolean blindness is a term s
 
 
-\subsection{Some technical details on classes}
+% 1. Names: isPremium = true
+% 2. Errors: unSome False None : False
+% 3. Bad: if isZero n then ... else ...
+% 4. Recoverable using SSR
+
+
+\subsection{Some technical remarks on modularity mechanisms and bundling}
 
 Discussion about classes vs records vs modules, bundling and unbundling.
 
@@ -914,6 +924,51 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
 
 \bibitem{Polya}
     George Pólya, \textit{How to Solve It}, 1945
+
+\bibitem{BBLicata}
+    \url{https://www.cs.cmu.edu/~15150/previous-semesters/2012-spring/resources/lectures/09.pdf}
+
+\bibitem{BBHarper}
+    Robert Harper,
+    \textit{Boolean Blindness},
+    2011, \\
+    \url{https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}
+
+\bibitem{BBHXA}
+    Harrison Ainsworth,
+    \textit{‘Boolean-blindness’ is about types},
+    2013, \\
+    \url{http://www.hxa.name/notes/note-hxa7241-20131124T0927Z.html}
+
+\bibitem{BBFairbank}
+    Jeremy Fairbank,
+    \textit{Solving the Boolean Identity Crisis},
+    2019, \\
+    \url{https://medium.com/swlh/solving-the-boolean-identity-crisis-33eeccde2c96}
+
+\bibitem{SSR1}
+    Georges Gonthier, Assia Mahboubi, Enrico Tassi \\
+    \textit{A Small Scale Reflection Extension for the Coq system}, 2016, \\
+    \url{https://hal.inria.fr/inria-00258384v17/document}
+
+\bibitem{SSR2}
+    \url{https://coq.inria.fr/refman/proof-engine/ssreflect-proof-language.html}
+    
+\bibitem{MCB}
+    Assia Mahboubi and Enrico Tassi with contributions by Yves Bertot and Georges Gonthier, \\
+    \textit{Mathematical Components}, 2018, \\
+    \url{https://math-comp.github.io/mcb/}
+    
+\bibitem{4CT1}
+    Georges Gonthier,
+    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
+    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
+
+\bibitem{4CT2}
+    Georges Gonthier,
+    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
+    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
+    
 
 \end{thebibliography}
 
