@@ -700,17 +700,30 @@ With these improved types our template doesn't change a lot, but the user experi
 
 \subsection{Overcoming boolean blindness with evidence-based programming}
 
-The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}\footnote{This is a term coined in this thesis.}. It roughly corresponds to the part of our abstract about ``representing flow of information in a proof (or program) using types''.
+The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}\footnote{This is a term I coined for the purpose of this thesis.}. It roughly corresponds to the part of our abstract about ``representing flow of information in a proof (or program) using types''.
 
 Before we see how to use this new concept to improve our original template, we first have to meet its relatives: \textit{boolean blindness}, a dangerous disease which often afflict programmers trasitioning from imperative to functional, and \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}.
 
-``Boolean blindness'' is an informal term used in the functional programming blogosphere to describe a few unrelated programming misconceptions and antipatterns. It was coined by Dan Licata in his lecture notes for an introductory functional programming class \cite{BBLicata}. See \cite{BBHarper} for a philosophical presentation, \cite{BBHXA} for a critique of the former viewpoint and \cite{BBFairbank} for a more software-engineering-oriented discussion. It was applied to describe, among others, the following things:
+``Boolean blindness''\footnote{The term was coined by Dan Licata in his lecture notes for an introductory functional programming class \cite{BBLicata}.} is an informal term used in the functional programming blogosphere to describe a few interrelated programming misconceptions and antipatterns. Robert Harper used it on his blog \cite{BBHarper} to name the erroneouw view, held by some imperative programmers and classical mathematicians, that booleans and propositions are the same thing. However, it is mot often applied to quite different phenomena (see \cite{BBFairbank} for a more software-engineering-oriented presentation and \cite{BBHXA} for a perspective going beyond the booleans).
 
-\begin{itemize}
-    \item The misconception, held by many (mostly imperative) programmers and (mostly classical) mathematicians, that booleans and propositions are the same thing, 
-    \item A bad programming practice, in which any concept that can take one of two values is represented using the boolean type. This decreases code readability, because in a call like \m{f\ true} it's not obvious what the \m{true} stands for, and one has to consult documentation or the function's definition to learn that, for example, the first argument of \m{f} is named \m{isAdmin}. Another consequence stemming from this practice is lowered code extensibility: when the business logic changes (e.g. users can now have one of three statuses: ``admin'', ``premium'', ``regular''; instead of the previous two: ``admin'' and ``non-admin''), it requires a huge refactoring (which can, if performed badly, lead to the third form of boolean blindness described below) instead of changing a custom type in just a few places.
-    \item A horrible antipattern in which boolean tests are used instead of pattern matching. An example in Coq would be writing \m{if isSome x then f (unwrapSome x) else y} instead of \m{match x with | Some x' => f x' | None => y end}, where \m{unwrapSome : forall A : Type, option A -> A}. If Coq accepted such code, we could easily derive a contradiction, because \m{unwrapSome False None} is a proof of \m{False}. Fortunately it is not possible to write such code in Coq, because Coq won't allow us to implement \m{unwrapSome}. A less ominous example would be writing \m{if isZero n then x else f (pred n)} instead of \m{match n with | 0 => x | S n' => f n' end}, where \m{pred : nat -> nat} is the predecessor function on naturals. It does not lead to contradiction, but doubles the amount of pattern matching needed: 
-\end{itemize}
+One of these is a bad programming practice, in which any concept that can take one of two values is represented using the boolean type. This decreases code readability, because in a call like \m{f\ true} it's not obvious what the \m{true} stands for, and one has to consult documentation or the function's definition to learn that, for example, the first argument of \m{f} is named \m{isAdmin}.
+
+Another consequence stemming from this practice is lowered code extensibility: when the business logic changes (e.g. users can now have one of three statuses: ``admin'', ``premium'', ``regular''; instead of the previous two: ``admin'' and ``non-admin''), it requires a huge refactoring (which can, if performed badly, lead to the third form of boolean blindness described below) instead of small changes to a custom data type and a few functions that use it.
+
+``Boolean blindness'' is also used to name a horrible antipattern in which boolean tests are used instead of pattern matching. An example in Coq would be writing \m{if isSome x then f (unwrapSome x) else y} instead of \m{match x with | Some x' => f x' | None => y end}, where \m{unwrapSome\ :\ forall\ A\ :\ Type, option A -> A}. If Coq accepted such code, we could easily derive a contradiction, because \m{unwrapSome False None} is a proof of \m{False}. Fortunately it is not possible to write such code in Coq, because Coq won't allow us to implement \m{unwrapSome}.
+
+A less ominous example would be writing \m{if isZero n then x else f (pred n)} instead of \m{match n with | 0 => x | S n' => f n' end}, where \m{pred\ :\ nat -> nat} is the predecessor function on naturals. This example does not lead to contradiction, but decreases performance: the former expression contains two implicit matches on \m{n} (one in definition of \m{isZero}, the other in definition of \m{pred}), whereas the latter matches \m{n} only once and explicitly.
+
+The clou of this last kind of boolean blindness is a lack of explicitly represented evidence, stemming from the use of boolean tests instead of pattern matching, which distorts, or sometimes even blocks, the flow of information in the program.
+
+In the example, in the else branch of \m{if isZero n} we know that \m{n} is not zero, but the evidence for that fact, which is the predecessor of \m{n}, is missing. Because of this the flow of information is blocked, i.e. we can't explicitly pass the predecessor to \m{f}. This forces us to call \m{pred}, which recovers the predecessor with pattern matching and thus restores the correct flow of information. When seen from this angle, using if-then-else instead of pattern matching is not only inefficient, but also extremely silly.
+
+In Coq the difference between \m{bool} and \m{Prop} is very clear and hard to miss, so the first kind of boolean blindness is unlikely to afflict Coq users. Because not much ordinary software development is carried out in Coq, the second kind is also unlikely. It is therefore the last kind of boolean blindness that can most easily sneak into our Coq code and thankfully only in the milder form (the \m{isZero} and \m{pred} example), because Coq shields us from the worst mistakes (the \m{unwrapSome} example).
+
+This is indeed what happened to our initial template
+
+
+
 
 % 4. Recoverable using SSR
 
@@ -927,6 +940,16 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
 \bibitem{Polya}
     George Pólya, \textit{How to Solve It}, 1945
 
+\bibitem{4CT1}
+    Georges Gonthier,
+    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
+    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
+
+\bibitem{4CT2}
+    Georges Gonthier,
+    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
+    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
+
 \bibitem{BBLicata}
     \url{https://www.cs.cmu.edu/~15150/previous-semesters/2012-spring/resources/lectures/09.pdf}
 
@@ -936,17 +959,17 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     2011, \\
     \url{https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}
 
-\bibitem{BBHXA}
-    Harrison Ainsworth,
-    \textit{‘Boolean-blindness’ is about types},
-    2013, \\
-    \url{http://www.hxa.name/notes/note-hxa7241-20131124T0927Z.html}
-
 \bibitem{BBFairbank}
     Jeremy Fairbank,
     \textit{Solving the Boolean Identity Crisis},
     2019, \\
     \url{https://medium.com/swlh/solving-the-boolean-identity-crisis-33eeccde2c96}
+
+\bibitem{BBHXA}
+    Harrison Ainsworth,
+    \textit{‘Boolean-blindness’ is about types},
+    2013, \\
+    \url{http://www.hxa.name/notes/note-hxa7241-20131124T0927Z.html}
 
 \bibitem{SSR1}
     Georges Gonthier, Assia Mahboubi, Enrico Tassi \\
@@ -960,17 +983,7 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     Assia Mahboubi and Enrico Tassi with contributions by Yves Bertot and Georges Gonthier, \\
     \textit{Mathematical Components}, 2018, \\
     \url{https://math-comp.github.io/mcb/}
-    
-\bibitem{4CT1}
-    Georges Gonthier,
-    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
-    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
 
-\bibitem{4CT2}
-    Georges Gonthier,
-    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
-    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
-    
 
 \end{thebibliography}
 
