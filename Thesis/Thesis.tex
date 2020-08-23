@@ -434,11 +434,11 @@ All of these sources of clumsiness would add up if we attempted to prove that a 
 
 \subsection{Improving patchwork definitions} \label{improvingpatchwork}
 
-The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they correspond more closely to the definition of natural numbers: \m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list.
+The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they corresponded more closely to the definition of natural numbers: \m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list.
 
 However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition of sortedness and try to find a better one.
 
-How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.
+How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.\footnote{If the patchwork definition consists of universal quantifiers and implications, then restating it as an inductive definition is a special case of a more general transformation known as defunctionalization. \cite{Defunctionalization}}
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0.5} \\
@@ -446,8 +446,6 @@ How do we go about that? As has been said previously, in general it requires som
 \end{center}
 
 Let's try to restate the intuitive definition of sortedness, which says that elements with smaller indices are less than or equal to elements with bigger indices. If we (conceptually) unfold this statement a bit, we get this: the element with the smallest index is the least element, the element with the second smallest index is the second least element, etc. Unfolding a bit more: the first element is less than everything that follows it, the second element is less than everything that follows it, etc.
-
-% the head of the list is less than or equal to all elements of the tail, the head of the tail is less than or equal to all elements of the tail of the tail and so on. This looks like a perfectly good inductive definition.
 
 \inputminted
 [
@@ -498,8 +496,6 @@ How do we put this into practice? It's quite simple: in our definition, we repla
 ]
 {Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
 
-% This is the paradoxical benefit of generality, embodied by the Inventor's paradox: what at first looks like a constraint, is in fact freedom from certain kinds of errors.
-
 Note that we don't assume anything about the relation -- \m{R} can be any relation whatsoever, not necessarily a total order relation. This is the first glimpse of a concept we will meet later: don't assume what is not needed. To state the definition we don't need \m{R} to have any properties, so we don't assume any.
 
 \subsection{Just about right... or is it? Staying on the right track} \label{justright}
@@ -520,8 +516,6 @@ Having said that, how do we define what it means for two lists to be permutation
     lastline = 17
 ]
 {Coq}{Snippets/Chapter2/JustRight.v}
-
-% We can think about the proposition \m{Permutation l1 l2} as a collection of all ways to turn \m{l1} into \m{l2} by moving elements around: if \m{l1} is empty, there is nothing to move, so the result must also be empty; we can skip the head and go permuting in the tail or we can swap the two initial elements; we can also use transitivity.
 
 After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove anything nontrivial about quicksort. The reason is that quicksort moves list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
 
@@ -556,7 +550,7 @@ The definition we get as a result is not abstract enough, because not all types 
 ]
 {Coq}{Snippets/Chapter2/JustRight.v}
 
-The final specification of a sorting function that we have arrived at through our considerations is shown in the listing. A function \m{f} is a sorting function (according to some relation \m{R}, of which we think as the order) if the output is a sorted permutation of the input. We pack these notions into a class named \m{Sort} using a combination of parameters and fields - a distinction we will revisit later. % TODO: parametry kontra pola rekordu/klasy 
+The final specification of a sorting function that we have arrived at through our considerations is shown in the listing. A function \m{f} is a sorting function (according to some relation \m{R}, of which we think as the order) if the output is a sorted permutation of the input. We pack these notions into a class named \m{Sort} using a combination of parameters and fields - a distinction we will revisit later.
 
 To sum up our struggles, we once more stress the fact that inventing specifications is an art that one gets better at with experience. We learned a useful criterion for telling when a specification is bad, but to apply it we must first have something to apply it to. We also saw two hints that can help us improve a bad specification, but they don't always work: sometimes by ``inductivizing'' a definition we can gain a lot, but sometimes inductive definitions are a path to oblivion and more patchwork-y definitions reign supreme.
 
@@ -702,9 +696,9 @@ With these improved types our template doesn't change a lot, but the user experi
 
 The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}\footnote{This is a term I coined for the purpose of this thesis.}. It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', just that we will consider the flow of information in a program, not a proof.
 
-Before we see how to use this new concept to improve our original template, we first have to meet its relatives: \textit{boolean blindness}, a dangerous disease which often afflicts programmers trasitioning from imperative to functional, and \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}.
+Before we see how to use this new concept to improve our original template, we will first have to meet the problem it solves, called \textit{boolean blindness}, a dangerous disease that often afflicts programmers trasitioning from imperative to functional. We will also develop a conceptual framework which allows to understand these two in a deeper sense and link them with many other phenomena, like the \textit{small-scale reflection} proof methodology or \textit{intrinsic and extrinsic typing} in lambda calculus.
 
-``Boolean blindness''\footnote{The term was coined by Dan Licata in his lecture notes for an introductory functional programming class \cite{BBLicata}.} is an informal term used in the functional programming blogosphere to describe a few interrelated programming misconceptions and antipatterns. Robert Harper used it on his blog \cite{BBHarper} to name the erroneous view, held by some imperative programmers and classical mathematicians, that booleans and propositions are the same thing. However, it is mot often applied to quite different phenomena (see \cite{BBFairbank} for a more software-engineering-oriented presentation and \cite{BBHXA} for a perspective going beyond the booleans).
+``Boolean blindness''\footnote{The term was coined by Dan Licata in his lecture notes for an introductory functional programming class \cite{BBLicata}.} is an informal term used in the functional programming blogosphere to describe a few interrelated programming misconceptions and antipatterns. Robert Harper used it on his blog \cite{BBHarper} to name the erroneous view, held by some imperative programmers and classical mathematicians, that booleans and propositions are the same thing.\footnote{Note that it is only wrong to think that they are \textit{a priori} the same. If we assume classical logic and the Univalence Axiom, it is indeed the case that \m{bool = Prop}. For details see exercise 3.9 in \cite{HoTTBook}.} However, it is most often applied to quite different phenomena (see \cite{BBFairbank} for a more software-engineering-oriented presentation and \cite{BBHXA} for a perspective going beyond the booleans).
 
 One of these is a bad programming practice, in which any concept that can take one of two values is represented using the boolean type. This decreases code readability, because in a call like \m{f\ true} it's not obvious what the \m{true} stands for, and one has to consult documentation or the function's definition to learn that the first argument of \m{f} is named, for example, \m{isAdmin}, which clarifies the meaning of the call \m{f true}.
 
@@ -720,7 +714,13 @@ In the example, in the else branch of \m{if isZero n} we know that \m{n} is not 
 
 In Coq the difference between \m{bool} and \m{Prop} is very clear and hard to miss, so the first kind of boolean blindness is unlikely to afflict Coq users. Because not much ordinary software development is carried out in Coq, the second kind is also unlikely. It is therefore the third kind that can most easily sneak into our Coq code and thankfully only in the milder form (the \m{isZero} and \m{pred} example), because Coq shields us from the worst mistakes (the \m{unwrapSome} example).
 
-This is indeed what happened to our initial template
+This is what has indeed happened to our initial template. We declared the return type of \m{short} to be \m{bool} and then branched on it in the definition of \m{qs}. This causes the information on shortness (or lack of it) to not be present in the else branch, so that the only sensible domain for \m{choosePivot} is \m{list A}, which leads to problems with filling the template that we saw in the last subsection.
+
+How do we avoid such mistakes in the future? To do that, we first have to look at the problem from a more general perspective. One such perspective, which also encompasses many other phenomena, stems from making a distinction between implicit and explicit information.\footnote{The names and the whole perspective are mine. I don't know if it appears anywhere in the literature.}
+
+
+, and \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}.
+
 
 % New perspective: implicit vs explicit information. Boolean blindness is when our information is too implicit. Extrinsic typing in lamda calc is implicit type information, intrinsic typing is explicit type info. Reflection is replacing some explicit information with implicit information realized by computation. Strong specification types in Coq (like sumbool, sumor) allow enriching thing with more explicit information. The same difference is present in data structures, e.g. we can have BSTs with explicit proofs of BST property, or ordinary trees which will satisfy the BST property implicitly when constructed using an appropriate interface.
 
@@ -934,18 +934,14 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Verified Functional Algorithms}, 2018 \\
     \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
 
+\bibitem{Defunctionalization}
+    Olivier Danvy and Lasse R. Nielsen,
+    \textit{Defunctionalization at Work},
+    2001, \\
+    \url{https://www.brics.dk/RS/01/23/BRICS-RS-01-23.pdf}
+
 \bibitem{Polya}
     George Pólya, \textit{How to Solve It}, 1945
-
-\bibitem{4CT1}
-    Georges Gonthier,
-    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
-    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
-
-\bibitem{4CT2}
-    Georges Gonthier,
-    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
-    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
 
 \bibitem{BBLicata}
     \url{https://www.cs.cmu.edu/~15150/previous-semesters/2012-spring/resources/lectures/09.pdf}
@@ -955,6 +951,12 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Boolean Blindness},
     2011, \\
     \url{https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/}
+
+\bibitem{HoTTBook}
+    The Univalent Foundations Program, \\
+    \textit{Homotopy Type Theory: Univalent Foundations of Mathematics},
+    2013, \\
+    \url{https://homotopytypetheory.org/book/}
 
 \bibitem{BBFairbank}
     Jeremy Fairbank,
@@ -967,6 +969,17 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{‘Boolean-blindness’ is about types},
     2013, \\
     \url{http://www.hxa.name/notes/note-hxa7241-20131124T0927Z.html}
+    
+\bibitem{4CT1}
+    Georges Gonthier,
+    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
+    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
+
+\bibitem{4CT2}
+    Georges Gonthier,
+    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
+    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
+
 
 \bibitem{SSR1}
     Georges Gonthier, Assia Mahboubi, Enrico Tassi \\
