@@ -692,9 +692,9 @@ Improving our flawed template turns out to be pretty easy. We can change the typ
 
 With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version of basic quicksort.
 
-\subsection{Overcoming boolean blindness with evidence-based programming}
+\subsection{Boolean blindness vs evidence-based programming}
 
-The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}\footnote{This is a term I coined for the purpose of this thesis.}. It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', just that we will consider the flow of information in a program, not a proof.
+The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}.\footnote{This is a term I coined for the purpose of this thesis.} It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', but we will consider the flow of information in a program, not a proof.
 
 Before we see how to use this new concept to improve our original template, we will first have to meet the problem it solves, called \textit{boolean blindness}, a dangerous disease that often afflicts programmers trasitioning from imperative to functional. We will also develop a conceptual framework which allows to understand these two in a deeper sense and link them with other related things, like the \textit{small-scale reflection} proof methodology or \textit{intrinsic and extrinsic typing} in lambda calculus.
 
@@ -710,19 +710,25 @@ A less ominous example would be writing \m{if isZero n then x else f (pred n)} i
 
 The clou of this last kind of boolean blindness is a lack of explicitly represented evidence, stemming from the use of boolean tests instead of pattern matching, which distorts, or sometimes even blocks, the flow of information in the program.
 
-In the example, in the else branch we know that \m{n} is not zero, but the evidence for that fact, which is the predecessor of \m{n}, is missing. Because of this the flow of information is blocked, i.e. we can't explicitly pass the predecessor to \m{f}. This forces us to call \m{pred}, which recovers the predecessor and thus restores the flow of information. When seen from this angle, using if-then-else instead of pattern matching is not only inefficient, but also extremely silly.
+In the example, in the else branch we know that \m{n} is not zero, but the evidence for that fact, which is the predecessor of \m{n}, is missing. Because of this the flow of information is blocked, i.e. we can't explicitly pass the predecessor to \m{f}. This forces us to call \m{pred}, which recovers the predecessor and thus restores the flow of information. When seen from this angle, using if-then-else instead of pattern matching is not only very inefficient, but also extremely silly.
 
 In Coq the difference between \m{bool} and \m{Prop} is very clear and hard to miss, so the first kind of boolean blindness is unlikely to afflict Coq users. Because not much ordinary software development is carried out in Coq, the second kind is also unlikely. It is therefore the third kind that can most easily sneak into our Coq code and thankfully only in the milder form (the \m{isZero} and \m{pred} example), because Coq shields us from the worst mistakes (the \m{unwrapSome} example).
 
-This is what has indeed happened to our initial template. We declared the return type of \m{short} to be \m{bool} and then branched on it in the definition of \m{qs}. This causes the information on shortness (or lack of it) to not be present in the else branch, so that the only sensible domain for \m{choosePivot} is \m{list A}, which leads to problems with filling the template that we have already seen.
+This is what has indeed happened to our initial template. We declared the return type of \m{short} to be \m{bool} and then branched on it in the definition of \m{qs}. This causes the information on shortness to not be present in the else branch, so that the only sensible domain for \m{choosePivot} is \m{list A}, which leads to problems with filling the template that we have already seen.
 
-How do we avoid such mistakes in the future? To do that, we first have to look at the problem from a more general perspective. One such perspective, which also encompasses many other phenomena, stems from making a distinction between implicit and explicit information.\footnote{The names and the whole perspective are mine. I don't know if it appears anywhere in the literature.} A piece of information is explicit when we have an element of some type that represents it and implicit otherwise.
+How do we avoid making such mistakes in the future? To learn that, we have to look at the problem from a more general perspective first. One such perspective, which also encompasses many other phenomena, stems from making a distinction between implicit and explicit information.\footnote{The terms and the whole perspective are mine. I don't know if it appears anywhere in the literature.} A piece of information is explicit when it is backed by evidence\footnote{For the purpose of the current paragraph, ``evidence'' is basically synonymous with judgments of type theory, as presented in section \ref{mltt}} that and implicit otherwise. This distinction can be likened to that between language and metalanguage or theory and metatheory: explicit information is information internal to the system (in our case, available inside Coq), whereas implicit information is information external to the system (in our case, available to us, but not necessarily to Coq).
 
-If we match on a list \m{l}, for example, then in the \m{nil} branch we explicitly know that \m{l} is empty and the evidence for that is \m{l} itself, which is convertible with \m{nil} in this branch. In the \m{cons} case, we explicitly know that \m{l} is not empty and the evidence for that is again \m{l} itself, this time convertible with \m{h\ ::\ t} where \m{h} is its head and \m{t} its tail. Another example: the lists \m{[1; 2; 3]} and \m{[2; 3; 1]} are obviously permutations of each other, but this information stays implicit. If we also have a proof of \m{Permutation [1; 2; 3] [2; 3; 1]} then this information becomes explicit, with the proof being the evidence.
+An example: the lists \m{[1; 2; 3]} and \m{[2; 3; 1]} are obviously permutations of each other, but given only this, the information stays implicit. If we also have a proof of \m{Permutation [1; 2; 3] [2; 3; 1]}, the information becomes explicit, with the proof being our evidence. Another example: if we pattern match on a list \m{l}, then in the \m{nil} branch we explicitly know that \m{l} is empty and the evidence is the fact that \m{l} and \m{nil} are convertible. In the \m{cons} case, we explicitly know that \m{l} is not empty and the evidence is the fact that \m{l} is convertible with \m{h\ ::\ t} where \m{h} is its head and \m{t} its tail.
 
-Boolean blindness (of the third kind) can be summarized by saying that it occurs when there's too much implicit information and too little explicit information. But we can apply this distinction to understand many more phenomena. For example, there are two version of simply typed lambda calculus: extrinsically typed and intrinsically typed \cite{IntrinsicExtrinsic}. In the intrinsic variant all terms are well-typed (so, for example, $\lambda x.xx$ is not a term). In the extrinsic variant terms need only conform to the grammar and types are assigned separately, so $\lambda x.xx$ is a term, but it is not well-typed. It is easy to see that the difference is all about typing information: in the intrinsic variant it is explicit and in the extrinsic variant it is implicit. Other conclusions follow: in the extrinsic variant type inference is a method of reconstructing explicit evidence for the implicit typing information present in terms. But lambda calculus is not the only place where a distinction between intrinsic and extrinsic typing information makes sense -- the same holds for almost any data structure. Consider binary search trees, for example. We can define the underlying type of trees in two ways: in the first case all trees are binary search trees (intrinsic typing, explicit information); in the second case, the trees are just ordinary binary trees and the binary search trees are only those that satisfy an extrinsic specification (extrinsic ``typing'', implicit information).
+Boolean blindness (of the third kind) can be summarized by saying that it occurs when not enough explicit information is present to guarantee a smooth information flow in the program, but we can apply the distinction between explicit and implicit information to understand many more phenomena.
 
-From this perspective we can also understand \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}. Small-scale reflection is all about changing the form of explicit information. Let's say we have a predicate \m{Even\ :\ nat -> Prop} which represents the property of a natural number being even. It explicitly contains all the information on evenness, but it also takes a lot of memory and computing with it is rather slow. Small-scale reflection is a way of improving this situation by defining a function \m{even\ :\ nat -> bool}, which ``reflects'' the predicate \m{Even}: \m{Even n} holds if and only if \m{even n = true}. Using \m{even} we can compute much faster and the proofs of \m{even n = true} occupy a negligible amount of memory. When we need the explicit information about \m{n} being even, we can recover it using \m{even}'s specification and use \m{Even n} as if we had it from the very beginning. 
+For example, there are two versions of simply typed lambda calculus: extrinsically typed and intrinsically typed \cite{IntrinsicExtrinsic}. In the intrinsic variant all terms are well-typed (so, for example, $\lambda x.xx$ is not a term). In the extrinsic variant terms need only conform to the grammar and types are assigned separately, so $\lambda x.xx$ is a term, but it is not well-typed. It is easy to see that the difference is all about typing information: in the intrinsic variant it is explicit (present in the term) and in the extrinsic variant it is implicit (not present in the term, but outside it, in a separate typing relation). Other conclusions follow: in the extrinsic variant type inference is a method of reconstructing explicit evidence for the implicit typing information present in terms.
+
+Lambda calculus is not the only place where a distinction between intrinsic and extrinsic typing information makes sense -- the same holds for almost any data structure. Consider binary search trees, for example. We can define the underlying type of trees in two ways: in the first case all trees are binary search trees (intrinsic typing, explicit information); in the second case, the trees are just ordinary binary trees and the binary search trees are only those that satisfy an extrinsic specification (extrinsic ``typing'', implicit information).
+
+From this perspective we can also understand \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}. At its heart lie conversions between explicit and implicit information (and ), which are performed systematically, depending on which one is more convenient in a given situation, in order to maximize ease of proving theorems, speed of execution, memory usage or some other goal.
+
+Let's say we have a predicate \m{Even\ :\ nat -> Prop} which represents the property of a natural number being even. It explicitly contains all the information on evenness, but it also takes a lot of memory and computing with it is rather slow. Small-scale reflection is a way of improving this situation by defining a function \m{even\ :\ nat -> bool}, which ``reflects'' the predicate \m{Even} -- \m{Even n} holds if and only if \m{even n = true}. Using \m{even} we can compute much faster and the proofs of \m{even n = true} occupy a negligible amount of memory. When we need the explicit information about \m{n} being even, we can recover it using \m{even}'s specification and use \m{Even n} as if we had it from the very beginning.
 
 
 
@@ -979,17 +985,6 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{The Meaning of Types: from Intrinsic to Extrinsic Semantics},
     2000, \\
     \url{https://www.cs.cmu.edu/afs/cs/user/jcr/ftp/typemeaning.pdf}
-    
-\bibitem{4CT1}
-    Georges Gonthier,
-    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
-    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
-
-\bibitem{4CT2}
-    Georges Gonthier,
-    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
-    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
-
 
 \bibitem{SSR1}
     Georges Gonthier, Assia Mahboubi, Enrico Tassi \\
@@ -1004,6 +999,15 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Mathematical Components}, 2018, \\
     \url{https://math-comp.github.io/mcb/}
 
+\bibitem{4CT1}
+    Georges Gonthier,
+    \textit{A computer-checked proof of the Four Colour Theorem}, 2005 \\
+    \url{https://www.cl.cam.ac.uk/~lp15/Pages/4colproof.pdf}
+
+\bibitem{4CT2}
+    Georges Gonthier,
+    \textit{Formal Proof -- The Four-Color Theorem}, 2008, \\
+    \url{http://www.ams.org/notices/200811/tx081101382p.pdf}
 
 \end{thebibliography}
 
