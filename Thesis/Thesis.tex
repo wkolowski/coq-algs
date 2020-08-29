@@ -752,9 +752,18 @@ We could have defined our template in a slightly different manner, namely with a
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-This definition of \m{QSArgs} differs from the previous one in that \m{A\ :\ Type} is now a field, whereas previously it was a parameter. In such cases we will call the class that has \m{A} as a field ``bundled'' and the one that has \m{A} as a parameter ``unbundled''.
+Our first definition of \m{QSArgs} was unbundled in respect to \m{A\ :\ Type}, because it was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{A} is a field instead. We declare \m{A} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
+The difference between bundled and unbundled versions of a class does not matter in theory -- we can derive each one from the other. If we have an unbundled class, we can define a new class whose fields correspond to the parameters of the original class and an instance of this class itself. In the other direction, given a bundled class we can define a new unbundled class, with parameters corresponding to some fields of the original class, whose fields are an instance of the original class itself and equality proofs that constrain the instance's fields to match the parameters of the new class.
 
+In practice, however, the difference is very annoying. Each direction of the conversion is rather clumsy and impractical to use, with the bundled-to-unbundled more so than the other way around. It is therefore best to avoid having to perform the conversion and decide ahead of time which version to use. This is mainly a question of sharing, i.e. a situation in which we want two or more classes to have equal parameters/fields. It is easy to set parameters of two classes to be the same (a matter of application, which is well-behaved), but hard to ensure two classes have equal fields (a matter of equality constraints, which are clumsy), so when we need to share, we better use unbundled classes which realize the shared things as parameters.
+
+In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version. Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#2.8901234567} \\
+    If you are developing many algorithm templates at once, make components shared between them into parameters and other components into fields. In case of a single template, use a bundled class by default.
+\end{center}
 
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
