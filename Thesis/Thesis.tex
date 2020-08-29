@@ -438,7 +438,7 @@ The problems are not insurmountable -- with some additional bookkeeping and anno
 
 However, that would still yield us a patchwork definition and patchwork definitions have this worrisome property that the more you use them, the more you hate them. Therefore, let's forgo this definition of sortedness and try to find a better one.
 
-How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.\footnote{If the patchwork definition consists of universal quantifiers and implications, then restating it as an inductive definition is a special case of a more general transformation known as defunctionalization. \cite{Defunctionalization}}
+How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.\footnote{If the patchwork definition consists of universal quantifiers and implications, then restating it as an inductive definition is a special case of a more general transformation known as defunctionalization. See \cite{DefunctionalizationLight} for a programmer-friendly introduction and \cite{DefunctionalizationSerious} for a more academic work.}
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0.5} \\
@@ -726,18 +726,35 @@ For example, there are two versions of simply typed lambda calculus: extrinsical
 
 Lambda calculus is not the only place where a distinction between intrinsic and extrinsic typing information makes sense -- the same holds for almost any data structure. Consider binary search trees, for example. We can define the underlying type of trees in two ways: in the first case all trees are binary search trees (intrinsic typing, explicit information); in the second case, the trees are just ordinary binary trees and the binary search trees are only those that satisfy an extrinsic specification (extrinsic ``typing'', implicit information).
 
-From this perspective we can also understand \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}. At its heart lie conversions between explicit and implicit information (and ), which are performed systematically, depending on which one is more convenient in a given situation, in order to maximize ease of proving theorems, speed of execution, memory usage or some other goal.
+From this perspective we can also understand \textit{small-scale reflection}\footnote{See \cite{SSR1} for an implementation of a proof language for Coq which is based on this methodology and \cite{SSR2} for its documentation. Also see \cite{MCB}, a book about a library of formalized mathematics done in Coq which uses the small scale reflection methodology.}, a general-purpose proof engineering methodology most famously applied to the first fully formal proof of the four colour theorem \cite{4CT1} \cite{4CT2}. At its heart lie conversions between explicit and implicit information, which are performed systematically, depending on which one is more convenient in a given situation, in order to maximize ease of proving theorems, speed of execution, memory usage or some other goal.
 
 Let's say we have a predicate \m{Even\ :\ nat -> Prop} which represents the property of a natural number being even. It explicitly contains all the information on evenness, but it also takes a lot of memory and computing with it is rather slow. Small-scale reflection is a way of improving this situation by defining a function \m{even\ :\ nat -> bool}, which ``reflects'' the predicate \m{Even} -- \m{Even n} holds if and only if \m{even n = true}. Using \m{even} we can compute much faster and the proofs of \m{even n = true} occupy a negligible amount of memory. When we need the explicit information about \m{n} being even, we can recover it using \m{even}'s specification and use \m{Even n} as if we had it from the very beginning.
 
+Explicit and implicit information are not absolute concepts. Between these two extremes there are various degrees and shades of mixedness, with some (pieces of) information being explicit and other implicit. We can use these subtle shades to clearly see the, otherwise murky, purpose of the so-called ``hybrid types'' in Coq. An example is the type \m{sumor A P}, whose elements can be: either of the form \m{inleft a} for \m{a\ :\ A}, which we can interpret as successful computation results that don't carry any explicit information; or of the form \m{inright p} for \m{p\ :\ P}, which we can interpret as failures carrying explicit information -- a proof of a proposition which states what went wrong.
+
+Having come so far, we can now explain what evidence-based programming is: it is programming that incorporates considerations about information flow in the program into its design process. We can apply it to our algorithmic template as follows:
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#2.75} \\
+    Make sure that types in your abstract template contain enough evidence, so that information flow in the algorithm is smooth, but also make sure that it's not cluttered with unnecessary evidence.
+\end{center}
+
+\subsection{Remarks on (un)bundling and (lack of) sharing}
+
+We could have defined our template in a slightly different manner, namely with a more bundled class for holding the arguments. By ``bundling'', in the context of Coq, we will mean realizing a component of a record or a class as a field. ``Unbundling'', on the other hand, is realizing a component of a class or record as a parameter.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=91,
+    lastline=111
+]
+{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+
+This definition of \m{QSArgs} differs from the previous one in that \m{A\ :\ Type} is now a field, whereas previously it was a parameter. In such cases we will call the class that has \m{A} as a field ``bundled'' and the one that has \m{A} as a parameter ``unbundled''.
 
 
-%Reflection is replacing some explicit information with implicit information realized by computation. Strong specification types in Coq (like sumbool, sumor) allow enriching thing with more explicit information.
-
-
-\subsection{Some technical remarks on modularity mechanisms and bundling}
-
-Discussion about classes vs records vs modules, bundling and unbundling.
 
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
@@ -944,11 +961,18 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Verified Functional Algorithms}, 2018 \\
     \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
 
-\bibitem{Defunctionalization}
+\bibitem{DefunctionalizationLight}
+    James Koppel, \\
+    \textit{The Best Refactoring You've Never Heard Of},
+    2019, \\
+    \url{http://www.pathsensitive.com/2019/07/the-best-refactoring-youve-never-heard.html}
+
+\bibitem{DefunctionalizationSerious}
     Olivier Danvy and Lasse R. Nielsen,
     \textit{Defunctionalization at Work},
     2001, \\
     \url{https://www.brics.dk/RS/01/23/BRICS-RS-01-23.pdf}
+
 
 \bibitem{Polya}
     George Pólya, \textit{How to Solve It}, 1945

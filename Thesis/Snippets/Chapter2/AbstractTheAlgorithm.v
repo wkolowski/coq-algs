@@ -86,6 +86,32 @@ Compute qs QS_nat [5; 4; 3; 2; 1; 0].
 (* ===> = [0; 1; 2; 3; 4; 5]
         : list nat *)
 
+Module bundled.
+
+Class QSArgs : Type :=
+{
+    A : Type;
+    short : list A -> option (A * list A);
+    adhoc : list A -> list A;
+    choosePivot : A -> list A -> A * list A;
+    partition : A -> list A -> list A * list A * list A;
+}.
+
+Coercion A : QSArgs >-> Sortclass.
+
+Unset Guard Checking.
+Fixpoint qs (A : QSArgs) (l : list A) {struct l} : list A :=
+    match short l with
+        | None => adhoc l
+        | Some (h, t) =>
+            let '(pivot, rest) := choosePivot h t in
+            let '(lt, eq, gt)  := partition pivot rest in
+              qs A lt ++ pivot :: eq ++ qs A gt
+    end.
+Set Guard Checking.
+
+End bundled.
+
 
 (*
 Function uqs
