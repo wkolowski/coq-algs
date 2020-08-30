@@ -47,6 +47,8 @@ Compute qs QS_nat [5; 4; 3; 2; 1; 0].
 
 End FirstTry.
 
+Module Unbundled.
+
 Class QSArgs (A : Type) : Type :=
 {
     short : list A -> option (A * list A);
@@ -86,7 +88,9 @@ Compute qs QS_nat [5; 4; 3; 2; 1; 0].
 (* ===> = [0; 1; 2; 3; 4; 5]
         : list nat *)
 
-Module bundled.
+End Unbundled.
+
+Module Bundled.
 
 Class QSArgs : Type :=
 {
@@ -101,95 +105,70 @@ Coercion A : QSArgs >-> Sortclass.
 
 Unset Guard Checking.
 Fixpoint qs (A : QSArgs) (l : list A) {struct l} : list A :=
-    match short l with
-        | None => adhoc l
-        | Some (h, t) =>
-            let '(pivot, rest) := choosePivot h t in
-            let '(lt, eq, gt)  := partition pivot rest in
-              qs A lt ++ pivot :: eq ++ qs A gt
-    end.
+match short l with
+    | None => adhoc l
+    | Some (h, t) =>
+        let '(pivot, rest) := choosePivot h t in
+        let '(lt, eq, gt)  := partition pivot rest in
+          qs A lt ++ pivot :: eq ++ qs A gt
+end.
 Set Guard Checking.
 
-End bundled.
-
-
-(*
-Function uqs
-  (A : Type)
-  (args : QSArgs A)
-  (l : list A)
-  {measure length l} : list A :=
-match small l with
-    | inl l' => adhoc l'
-    | inr (h, t) =>
-        let
-          '(pivot, rest) := choosePivot h t
-        in
-        let
-          '(lo, eq, hi) := partition pivot rest
-        in
-          uqs args lo ++ pivot :: eq ++ uqs args hi
-end.
-Proof.
-  all: intros;
-    apply small_inr, Permutation_length in teq;
-    apply choosePivot_spec, Permutation_length in teq1.
-  1: apply len_hi in teq2.
-  2: apply len_lo in teq2.
-  all: cbn in *; omega. Show Proof.
-Defined.
-*)
-
-Require Import ImprovingPatchworkDefinitions.
-Import M3.
-
-Module wuud.
-
-Class QSArgs (A : Type) : Type :=
-{
-    short : list A -> list A + A * list A;
-    adhoc : list A -> list A;
-    choosePivot : A * list A -> A * list A;
-    partition : A -> list A -> list A * list A * list A;
-}.
-
-Class VerifiedQSArgs (A : Type) : Type :=
-{
-    args :> QSArgs A;
-    rel : A -> A -> Prop;
-    Sorted_adhoc :
-      forall l1 l2 : list A,
-        short l1 = inl l2 -> Sorted rel (adhoc l2);
-(*    adhoc_perm :
-      forall l l' : list A,
-        small l = inl l' -> perm l' (adhoc l');*)
-}.
-
-End wuud.
-
-Module wuud2.
+End Bundled.
 
 Class QSArgs : Type :=
 {
     A : Type;
-    short : list A -> list A + A * list A;
+    short : list A -> option (A * list A);
     adhoc : list A -> list A;
-    choosePivot : A * list A -> A * list A;
+    choosePivot : A -> list A -> A * list A;
     partition : A -> list A -> list A * list A * list A;
 }.
 
-Class VerifiedQSArgs : Type :=
+Coercion A : QSArgs >-> Sortclass.
+
+Inductive QSDom (A : QSArgs) : list A -> Type :=
+    | Short :
+        forall l : list A, short l = None -> QSDom A l
+    | Long :
+        forall {l : list A},
+          forall {h : A} {t : list A},
+            short l = Some (h, t) ->
+          forall (pivot : A) {rest : list A},
+            choosePivot h t = (pivot, rest) ->
+          forall (eq : list A) {lt gt : list A},
+            partition pivot rest = (lt, eq, gt) ->
+          QSDom A lt -> QSDom A gt -> QSDom A l.
+
+Arguments Short {A0 l}.
+
+Fixpoint qs {A : QSArgs} {l : list A} (d : QSDom A l) : list A :=
+match d with
+    | Short _ => adhoc l
+    | Long _ _ pivot _ eq _ ltd gtd => qs ltd ++ pivot :: eq ++ qs gtd
+end.
+
+Unset Guard Checking.
+Definition QSDom_all :
+  forall (A : QSArgs) (l : list A), QSDom A l :=
+    fun A : QSArgs =>
+      fix f (l : list A) : QSDom A l := f l.
+Set Guard Checking.
+
+Instance QSArgs_nat : QSArgs :=
 {
-    args :> QSArgs;
-    rel : A -> A -> Prop;
-    Sorted_adhoc :
-      forall l1 l2 : list A,
-        short l1 = inl l2 -> Sorted rel (adhoc l2);
-(*    adhoc_perm :
-      forall l l' : list A,
-        small l = inl l' -> perm l' (adhoc l');*)
+    A := nat;
+    short l :=
+      match l with
+          | [] => None
+          | h :: t => Some (h, t)
+      end;
+    adhoc _ := [];
+    choosePivot h t := (h, t);
+    partition p l :=
+      (filter (fun x => leb x p) l,
+       [],
+       filter (fun x => negb (leb x p)) l)
 }.
 
-Print VerifiedQSArgs.
-
-Arguments rel {A} _.
+Compute qs (QSDom_all QSArgs_nat [4; 3; 2; 1]).

@@ -483,7 +483,7 @@ There are two main reasons for seeking abstraction when solving a problem. The f
 
 Our initial choice has far-reaching implications, because the type of natural numbers is an object very rich in structure. Naturals form a semiring under addition and multiplication and a totally ordered set under the standard ordering, they support proof by induction, are countably infinite, embed in the reals, etc. On the other hand, a general type \m{A} doesn't have any of this structure -- we know almost nothing about it.
 
-At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At a second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong. After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting.
+At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At a second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong.\footnote{At a third glance, this should be obvious to every proponent of strong, static typing. After all, types are a mechanism that constrains the programmer by ruling out suspicious (i.e. not well-typed) programs.} After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting.
 
 How do we put this into practice? It's quite simple: in our definition, we replace \m{nat} with \m{A} and the order \m{<=} with a general relation \m{R}. Both \m{A} and \m{R} become parameters.
 
@@ -526,7 +526,7 @@ How to find a better definition of \m{Permutation}? Let's try the following advi
     Sometimes we can find an alternative specification by changing the focus from one aspect to another.
 \end{center}
 
-This one is admittedly quite murky. What is meant by ``aspect'' here? The best way to understand it is to immediately apply it to our case. In the inductive definition of \m{Permutation}, the main idea is that of rearranging list elements. What this concept/technique is trying to tell us is to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
+This one is admittedly quite murky. What is meant by ``aspect'' here? The best way to understand it is to immediately apply it to our case. In the inductive definition of \m{Permutation}, the main idea is that of rearranging elements in a list. What this concept/technique is trying to tell us is to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
 
 \inputminted
 [
@@ -647,7 +647,7 @@ In the next section we will see a technique that allows us to deal with these tw
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Here's our first attempt at the abstract template. We begin by defining a class\footnote{Coq's classes are like a cross of Haskell's typeclasses and records, but much more powerful because of dependent types.} whose fields are the user-provided subroutines that we will use in our template. Then comes the template itself. It is a direct translation of the (modified) four-point description of quicksort from the beginning of this section: if the list is short, sort it using some ad hoc sorting procedure; otherwise choose a pivot, partition the rest of the list into three parts, sort the parts containing smaller and greater elements recursively and join all the parts together with the pivot in the middle.
+Here's our first attempt at the abstract template. We begin by defining a class\footnote{Coq's classes are like a cross of Haskell's typeclasses and records, but much more powerful because of dependent types -- the types of later fields in a class can depend on the values of earlier fields.} whose fields are the user-provided subroutines that we will use in our template. Then comes the template itself. It is a direct translation of the (modified) four-point description of quicksort from the beginning of this section: if the list is short, sort it using some ad hoc sorting procedure; otherwise choose a pivot, partition the rest of the list into three parts, sort the parts containing smaller and greater elements recursively and join all the parts together with the pivot in the middle.
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
@@ -683,8 +683,8 @@ When we run this particular version of quicksort on a reverse-sorted example lis
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=50,
-    lastline=87
+    firstline=52,
+    lastline=89
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
@@ -730,9 +730,9 @@ From this perspective we can also understand \textit{small-scale reflection}\foo
 
 Let's say we have a predicate \m{Even\ :\ nat -> Prop} which represents the property of a natural number being even. It explicitly contains all the information on evenness, but it also takes a lot of memory and computing with it is rather slow. Small-scale reflection is a way of improving this situation by defining a function \m{even\ :\ nat -> bool}, which ``reflects'' the predicate \m{Even} -- \m{Even n} holds if and only if \m{even n = true}. Using \m{even} we can compute much faster and the proofs of \m{even n = true} occupy a negligible amount of memory. When we need the explicit information about \m{n} being even, we can recover it using \m{even}'s specification and use \m{Even n} as if we had it from the very beginning.
 
-Explicit and implicit information are not absolute concepts. Between these two extremes there are various degrees and shades of mixedness, with some (pieces of) information being explicit and other implicit. We can use these subtle shades to clearly see the, otherwise murky, purpose of the so-called ``hybrid types'' in Coq. An example is the type \m{sumor A P}, whose elements can be: either of the form \m{inleft a} for \m{a\ :\ A}, which we can interpret as successful computation results that don't carry any explicit information; or of the form \m{inright p} for \m{p\ :\ P}, which we can interpret as failures carrying explicit information -- a proof of a proposition which states what went wrong.
+Explicit and implicit information are not absolute concepts. Between these two extremes there are various degrees and shades of mixedness, with some (pieces of) information being explicit and other implicit. We can use these subtle shades to clearly see the, otherwise murky, purpose of the so-called ``hybrid types'' in Coq. An example is the type \m{sumor A P} (with \m{A\ :\ Type} and \m{P\ :\ Prop}), whose elements can be: either of the form \m{inleft a} for \m{a\ :\ A}, which we can interpret as successful computation results that don't carry any explicit information; or of the form \m{inright p} for \m{p\ :\ P}, which we can interpret as failures carrying explicit information -- a proof of a proposition which states what went wrong.
 
-Having come so far, we can now explain what evidence-based programming is: it is programming that incorporates considerations about information flow in the program into its design process. We can apply it to our algorithmic template as follows:
+Having come so far, we can now explain what evidence-based programming is: it is programming that incorporates considerations about information flow in the program into the design process. We can apply it to our algorithmic template as follows:
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.75} \\
@@ -747,34 +747,43 @@ We could have defined our template in a slightly different manner, namely with a
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=91,
-    lastline=111
+    firstline=95,
+    lastline=115
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Our first definition of \m{QSArgs} was unbundled in respect to \m{A\ :\ Type}, because it was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{A} is a field instead. We declare \m{A} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
+Our first definition of \m{QSArgs} was unbundled with respect to \m{A\ :\ Type}, because it was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{A} is a field instead. We declare \m{A} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
 The difference between bundled and unbundled versions of a class does not matter in theory -- we can derive each one from the other. If we have an unbundled class, we can define a new class whose fields correspond to the parameters of the original class and an instance of this class itself. In the other direction, given a bundled class we can define a new unbundled class, with parameters corresponding to some fields of the original class, whose fields are an instance of the original class itself and equality proofs that constrain the instance's fields to match the parameters of the new class.
 
-In practice, however, the difference is very annoying. Each direction of the conversion is rather clumsy and impractical to use, with the bundled-to-unbundled more so than the other way around. It is therefore best to avoid having to perform the conversion and decide ahead of time which version to use. This is mainly a question of sharing, i.e. a situation in which we want two or more classes to have equal parameters/fields. It is easy to set parameters of two classes to be the same (a matter of application, which is well-behaved), but hard to ensure two classes have equal fields (a matter of equality constraints, which are clumsy), so when we need to share, we better use unbundled classes which realize the shared things as parameters.
+In practice, however, the difference is very annoying. Each direction of the conversion is rather clumsy and impractical to perform, with the bundled-to-unbundled more so than the other way around. It is therefore best to avoid having to perform the conversion and decide ahead of time which version to use. This is mainly a question of sharing, i.e. a situation in which we want two or more classes to have equal parameters/fields. It is easy to set parameters of two classes to be the same (a matter of application, which is well-behaved), but hard to ensure two classes have equal fields (a matter of equality constraints, which are clumsy), so when we need to share, we better use unbundled classes which realize the shared things as parameters.
 
-In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version. Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
+In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{A\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.8901234567} \\
     If you are developing many algorithm templates at once, make components shared between them into parameters and other components into fields. In case of a single template, use a bundled class by default.
 \end{center}
 
-
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
 
 \section{Prove termination} \label{termination}
+
+The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate. This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off.
+
+
 
 \concept{Implement a better template using a type that represents the shape of the algorithm's recursion. Prove termination using well-founded induction.}
 
 Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not necessarily.
 
 Mention functional induction here and how to derive it.
+
+\subsection{A less relevant variant of the inductive domain method}
+
+\subsection{Automating the termination proof... a little}
+
+Coq's \m{Function} command.
 
 \subsection{Foreseeing user experience 2} \label{UX2}
 
