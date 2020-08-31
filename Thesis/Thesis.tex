@@ -412,7 +412,7 @@ So, how can we formally define the proposition ``the list of natural numbers $l$
 
 This is exactly what the above definition says. We start by importing the required modules and then define an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} being sorted means that for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, when the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
 
-This definition looks quite correct (and it is), but it won't serve us well. This is because it defies the second part of our advice \#0 -- it is not easy to use. The reason why will be rather elusive for people who are not Coq experts\footnote{Knowing at first sight that a definition like this one will later turn out to be quite clumsy requires precisely the kind of creativity and insight mentioned before that can't be packed into a repetitive, mindless technique.}, but I will nonetheless try to give an appealing argument.
+This definition looks quite correct (and it is), but it won't serve us well. This is because it defies the second part of our advice \#0 -- it is not easy to use. The reason why will be rather elusive for people who are not Coq experts,\footnote{Knowing at first sight that a definition like this one will later turn out to be quite clumsy requires precisely the kind of creativity and insight mentioned before that can't be packed into a repetitive, mindless technique.} but I will nonetheless try to give an appealing argument.
 
 The problem with this definition is that it is a \textit{patchwork} definition -- it is made up of various ingredients that don't fit together perfectly. The first ingredient is universal quantification over two natural numbers. The quantifier itself is fine, as are the numbers, but problems start with the hypothesis \m{n <= m}.
 
@@ -467,7 +467,7 @@ We can easily formalize the above reformulated definition. First we define a hel
 ]
 {Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
 
-This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it. This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the next subsection, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
 
 Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted list by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs on index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
@@ -565,7 +565,7 @@ Having found a good specification of the problem, the next step in the process i
     \item Sort both lists/arrays recursively and put them together with pivot in the middle.
 \end{itemize}
 
-When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is shown in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check!}
+When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is shown in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check it!}
 
 The main difference between these two implementations is a discrepancy in their levels of abstraction. The first\footnote{\m{qs\ []\ =\ []} in Haskell, \m{if\ (lo\ <\ hi)} in C} and second\footnote{\m{int\ p\ =\ a[hi];} in C. In Haskell, the pivot is implicitly chosen to be \m{h}.} bullet points are realized at roughly the same level. The crux of the matter is the partitioning. In the Haskell version, it is expressed as \m{filter (< h) t} and \m{filter (>= h) t}, which can be directly read as ``all elements of \m{t} which are less than \m{h}'' and ``all elements of \m{t} which are greater than or equal to \m{h}'', respectively. In the C version, things are much more non-obvious, but if we squint hard enough, we can see that the first \m{while} loop says ``let \m{a[l]} be the first element on the left of the pivot that is greater than the pivot'', the second one says ''let \m{a[h]} be the first element on the right (counting from the end) that is less than the pivot'' and the \m{if} clause means ``swap \m{a[l]} and \m{a[h]}'', and the \m{do...while} loop carries this on until the array is fully partitioned.
 
@@ -758,7 +758,7 @@ The difference between bundled and unbundled versions of a class does not matter
 
 In practice, however, the difference is very annoying. Each direction of the conversion is rather clumsy and impractical to perform, with the bundled-to-unbundled more so than the other way around. It is therefore best to avoid having to perform the conversion and decide ahead of time which version to use. This is mainly a question of sharing, i.e. a situation in which we want two or more classes to have equal parameters/fields. It is easy to set parameters of two classes to be the same (a matter of application, which is well-behaved), but hard to ensure two classes have equal fields (a matter of equality constraints, which are clumsy), so when we need to share, we better use unbundled classes which realize the shared things as parameters.
 
-In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{A\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
+In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{A\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.}\footnote{A pragmatically important thing to bear in mind when deciding between bundled and unbundled classes is that field names in Coq are treated like ordinary top-level names. This often leads to a polluted global context and interferes with other mechanisms, like automatic hypothesis naming in proofs. Parameters avoid this problem, because they are ordinary local names. Therefore, if you want to name your type \m{A}, it might be smarter to make it a parameter rather than a field.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.8901234567} \\
@@ -769,19 +769,23 @@ In case of our template's \m{QSArgs} the difference doesn't matter very much and
 
 \section{Prove termination} \label{termination}
 
-The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate. This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off.
+The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate.
 
+This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which automates these technique most of the time. In the meantime we will learn a generic technique for proving properties of functions.
 
+\subsection{The inductive domain method}
 
-\concept{Implement a better template using a type that represents the shape of the algorithm's recursion. Prove termination using well-founded induction.}
+\concept{Define a predicate that represents the shape of recursion in the algorithm and use it to implement a better template. Prove termination using well-founded induction.}
 
-Bove-Capretta method, at first crudely using sort Type, then maybe Prop but not necessarily.
-
-Mention functional induction here and how to derive it.
+\subsection{Well-founded induction}
 
 \subsection{A less relevant variant of the inductive domain method}
 
-\subsection{Automating the termination proof... a little}
+Bove-Capretta using sort Prop.
+
+\subsection{Automating the termination proof... sometimes}
+
+Mention functional induction here and how to derive it.
 
 Coq's \m{Function} command.
 
@@ -980,7 +984,7 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \url{https://softwarefoundations.cis.upenn.edu/vfa-current/index.html}
 
 \bibitem{DefunctionalizationLight}
-    James Koppel, \\
+    James Koppel,
     \textit{The Best Refactoring You've Never Heard Of},
     2019, \\
     \url{http://www.pathsensitive.com/2019/07/the-best-refactoring-youve-never-heard.html}
@@ -990,7 +994,6 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Defunctionalization at Work},
     2001, \\
     \url{https://www.brics.dk/RS/01/23/BRICS-RS-01-23.pdf}
-
 
 \bibitem{Polya}
     George Pólya, \textit{How to Solve It}, 1945
@@ -1023,7 +1026,7 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \url{http://www.hxa.name/notes/note-hxa7241-20131124T0927Z.html}
 
 \bibitem{IntrinsicExtrinsic}
-    John C. Reynolds,
+    John C. Reynolds, \\
     \textit{The Meaning of Types: from Intrinsic to Extrinsic Semantics},
     2000, \\
     \url{https://www.cs.cmu.edu/afs/cs/user/jcr/ftp/typemeaning.pdf}
