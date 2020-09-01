@@ -771,22 +771,31 @@ In case of our template's \m{QSArgs} the difference doesn't matter very much and
 
 The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate.
 
-This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which automates these techniques most of the time. In the meantime we will learn a generic technique for proving properties of functions.
+This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which is just as good as the technique while being much more automated and easy to use. In the meantime we will learn a generic technique for proving properties of recursive functions.
 
 \subsection{The inductive domain method}
 
-How do we prove that our algorithm terminates? Before we tackle that question, let's first recall \textit{why} we have to prove it: the only form of recursion allowed in Coq is \textit{structural recursion}, i.e. one in which recursive calls are made on subterms of the principal argument. Because terms are finite, this guarantees that all structurally recursive programs terminate and from termination (or rather, strong normalization) it follows that Coq's logic is consistent. Thus, on the one hand the restriction to structural recursion protects us from contradiction (and other evils), but on the other hand it can be quite inconvenient from the pragmatic programmer's point of view.
+How do we prove that our algorithm terminates? Before we tackle this question, let's first recall \textit{why} we have to prove it: the only form of recursion allowed in Coq is \textit{structural recursion}, i.e. one in which recursive calls are made on subterms of the principal argument. Because terms are finite, this guarantees that all structurally recursive programs terminate and from termination (or rather, from strong normalization) follows consistency of Coq's logic. Thus, on the one hand, the restriction to structural recursion protects us from contradiction (and from other evils too), but on the other hand it can be quite inconvenient from the pragmatic programmer's point of view.
 
-Structural recursion is to be contrasted with \textit{general recursion}, found in most programming languages, in which arguments of recursive calls can be arbitrary. This is very convenient for the pragmatic programmer, because it doesn't constrain him at all, but renders the language inconsistent as a logic, and thus absolutely useless for formal reasoning.\footnote{Note, however, that an inconsistent language can still be useful for the purpose of \textit{rigorous} reasoning. See \cite{FastAndLoose} for details.} Consider Haskell's \m{Void} type, for example, which is supposed to be empty, just like its Coq equivalent \m{False}. There is no direct way of making an element of \m{Void}, but using general recursion we can easily define a nonterminationg function \m{f\ ::\ a -> Void} (for example by writing \m{f x = f x}), which we can then use to obtain an element of \m{Void} (for example, \m{f ()\ ::\ Void}).
+Structural recursion is to be contrasted with \textit{general recursion}, found in most programming languages, in which arguments of recursive calls can be arbitrary. This is very convenient for the pragmatic programmer, because it doesn't constrain him at all, but renders the language inconsistent as a logic, and thus absolutely useless for formal reasoning.\footnote{Note, however, that an inconsistent language can still be useful for the purpose of \textit{rigorous} reasoning. See \cite{FastAndLoose} for details.} Consider Haskell's \m{Void} type, for example, which is supposed to be empty, just like its Coq equivalent \m{False}. There is no direct way of making an element of \m{Void}, but using general recursion we can easily define a nonterminationg function \m{f\ ::\ a -> Void} (for example by setting \m{f x = f x}), which we can then use to obtain an element of \m{Void} (for example, \m{f ()\ ::\ Void}).
 
-Back to our (almost) initial question: we need to prove termination because only structural recursion is allowed and our algorithm is not structurally recursive. As for the truly initial question of how to do it, the answer might look like a revelation, but in hindsight it couldn't be more obvious.
+Back to our (almost) initial question: we need to prove termination because only structural recursion is allowed and our algorithm is not structurally recursive. As for the truly initial question of how to do it, the answer might look like a revelation, but in hindsight it couldn't have been more obvious.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#3.1} \\
     Define a predicate that represents the shape of recursion in the algorithm and use it to implement a better template.
 \end{center}
 
+This technique, which I will call the \textit{Inductive Domain Method},\footnote{In the literature it is called the Bove-Capretta method, but this name, derived from the surnames of its inventors, is neither descriptive nor very catchy, so I will avoid it. The method and related ideas were developed in a string of papers between 2001 and 2009: \cite{BCM1} \cite{BCM2} \cite{BCM3} \cite{BCM4} \cite{BCM5} \cite{BCM6} \cite{BCM7} \cite{BCM8} \cite{BCM9}.} is trying to tell us is that we basically want to represent general recursion on elements of some type by structural recursion on elements of a type crafted precisely for this purpose. If we do that, we get a new template which is guaranteed to terminate when filled in. There's a caveat, however: we changed the type of our algorithm, so what we got is not what we initially wanted. To implement the original algorithm, we will have to do some more work.
 
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=34,
+    lastline=51
+]
+{Coq}{Snippets/Chapter2/ProvingTermination.v}
 
 \subsection{Well-founded induction}
 
@@ -1069,6 +1078,62 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     Nils Anders Danielsson, John Hughes, Patrik Jansson, Jeremy Gibbons, \\
     \textit{Fast and Loose Reasoning is Morally Correct}, 2006, \\
     \url{https://www.cs.ox.ac.uk/jeremy.gibbons/publications/fast+loose.pdf}
+
+\bibitem{BCM1}
+    Ana Bove,
+    \textit{Simple general recursion in type theory},
+    2001, \\
+    \url{https://dl.acm.org/doi/10.5555/774194.774197}
+
+\bibitem{BCM2}
+    Ana Bove and Venanzio Capretta,
+    \textit{Nested General Recursion and Partiality in Type Theory},
+    2001, \\
+    \url{https://www.researchgate.net/publication/285777618_Nested_General_Recursion_and_Partiality_in_Type_Theory}
+
+\bibitem{BCM3}
+    Ana Bove,
+    \textit{Mutual General Recursion in Type Theory},
+    2002, \\
+    \url{https://core.ac.uk/display/197949303}
+
+\bibitem{BCM4}
+    Ana Bove,
+    \textit{General Recursion in Type Theory},
+    2003, \\
+    \url{https://link.springer.com/chapter/10.1007/3-540-39185-1_3}
+
+\bibitem{BCM5}
+    Ana Bove and Venanzio Capretta,
+    \textit{Modelling general recursion in type theory},
+    2004, \\
+    \url{http://www.cs.nott.ac.uk/~pszvc/publications/General_Recursion_MSCS_2005.pdf}
+
+\bibitem{BCM6}
+    Ana Bove and Venanzio Capretta,
+    \textit{Recursive Functions with Higher Order Domains},
+    2005, \\
+    \url{http://www.cs.ru.nl/~venanzio/publications/Higher_Domains_TLCA2005.pdf}
+
+\bibitem{BCM7}
+    Ana Bove and Venanzio Capretta,
+    \textit{Computation by Prophecy},
+    2007, \\
+    \url{https://www.researchgate.net/publication/220727479_Computation_by_Prophecy}
+
+\bibitem{BCM8}
+    Ana Bove and Venanzio Capretta,
+    \textit{A Type of Partial Recursive Functions},
+    2008, \\
+    \url{https://www.researchgate.net/publication/221302295_A_Type_of_Partial_Recursive_Functions}
+
+\bibitem{BCM9}
+    Ana Bove,
+    \textit{Another Look at Function Domains},
+    2009, \\
+    \url{https://core.ac.uk/download/pdf/82578788.pdf}
+
+
 \end{thebibliography}
 
 \end{document}
