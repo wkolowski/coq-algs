@@ -44,10 +44,10 @@ Inductive QSDom (A : QSArgs) : list A -> Type :=
             partition pivot rest = (lt, eq, gt) ->
           QSDom A lt -> QSDom A gt -> QSDom A l.
 
-Fixpoint qs {A : QSArgs} {l : list A} (d : QSDom A l) : list A :=
+Fixpoint qs' {A : QSArgs} {l : list A} (d : QSDom A l) : list A :=
 match d with
     | Short _ _ _ => adhoc l
-    | Long _ _ pivot _ eq _ ltd gtd => qs ltd ++ pivot :: eq ++ qs gtd
+    | Long _ _ pivot _ eq _ ltd gtd => qs' ltd ++ pivot :: eq ++ qs' gtd
 end.
 
 Definition QSDom_all :
@@ -68,6 +68,9 @@ Proof.
           apply (partition_len_gt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
 Defined.
+
+Definition qs (A : QSArgs) (l : list A) : list A :=
+  qs' (QSDom_all A l).
 
 Lemma len_filter :
   forall (A : Type) (p : A -> bool) (l : list A),
@@ -103,4 +106,4 @@ Proof.
   inversion 1; subst. apply len_filter.
 Defined.
 
-Compute qs (QSDom_all QSArgs_nat [4; 3; 2; 1]).
+Compute qs QSArgs_nat [4; 3; 2; 1].
