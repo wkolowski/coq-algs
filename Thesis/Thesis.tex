@@ -14,7 +14,7 @@
 % polecenia \fmlinebreak.
 \englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
 \polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepcje i techniki}
-\polishabstract {Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
+\polishabstract {Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające się na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
 \englishabstract{We discuss how to specify, implement and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
@@ -791,9 +791,9 @@ Back to our (almost) initial question: we need to prove termination because only
     frame=lines,
     bgcolor=CoqIDE,
     firstline=34,
-    lastline=51
+    lastline=52
 ]
-{Coq}{Snippets/Chapter2/ProvingTermination.v}
+{Coq}{Snippets/Chapter2/ProveTermination.v}
 
 The above listing shows how the inductive domain method looks in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
 
@@ -803,9 +803,9 @@ Given such a domain predicate, the implementation of \m{qs'} (a helper function 
 
 Having seen an example use of the method, let's restate it in more abstract terms: the idea is to implement a general recursive function of type \m{A -> B} as a function of type \m{forall a\ :\ A, D a -> B}, where \m{D\ :\ A -> Type} is the domain predicate whose elements represent the call graph of the principal argument, i.e. the tree of all the recursive calls that have to be performed in order to compute the result.
 
-In the literature, the inductive domain method is better known as the ``Bove-Capretta method'', but this name, derived from the surnames of its inventors, is neither descriptive nor very catchy, so we avoid it. The method and related ideas were first developed in a string of papers between 2001 and 2009 \cite{BCM1} \cite{BCM2} \cite{BCM3} \cite{BCM4} \cite{BCM5} \cite{BCM6} \cite{BCM7} \cite{BCM8} \cite{BCM9} in a form that more closely resembles what we will see in section \ref{lessrelevant}.
+In the literature, the inductive domain method is better known as the ``Bove-Capretta method'', but this name, derived from the surnames of its inventors, is neither very descriptive nor catchy, so we avoid it. The method and related ideas were first developed in a string of papers between 2001 and 2009 \cite{BCM1} \cite{BCM2} \cite{BCM3} \cite{BCM4} \cite{BCM5} \cite{BCM6} \cite{BCM7} \cite{BCM8} \cite{BCM9} in a form that more closely resembles what we will see in section \ref{lessrelevant}.
 
-We have seen only the basic version of the inductive domain method because quicksort's recursion scheme is rather basic. The method is pretty malleable and can be accomodated to fit mutual recursion (i.e. two or more general recursive functions that call each other; see \cite{BCM3}), nested recursion (i.e. a situation where the result of a recursive call is the argument of another recursive call, like in the famous McCarthy f91 function \cite{f91}; see \cite{BCM2}) and possibly even higher-order recursion (i.e. a situation where recursive calls may be partially applied; see \cite{BCM6}).
+We have seen only the basic version of the inductive domain method because quicksort's recursion scheme is rather basic. The method is pretty malleable and can be accomodated to fit mutual recursion (i.e. two or more general recursive functions that call each other; see \cite{BCM3}), nested recursion (i.e. a situation where the result of a recursive call is the argument of another recursive call, like in McCarthy's famous f91 function \cite{f91}; see \cite{BCM2}) and possibly even higher-order recursion (i.e. a situation where recursive calls may be partially applied; see \cite{BCM6}).
 
 The inductive domain method can be used not only to implement general recursive functions, but also to represent partial recursive functions \cite{BCM8}. If a partial recursive function terminates for some input, we can construct the corresponding call graph and use it to run the function's representation. Of course in general we won't be able to prove that a partial recursive function terminates for all inputs, so we won't be able to recover the desired partial function of type \m{A -> B} from its representation of type \m{forall a\ :\ A, D a -> B}.\footnote{The inductive domain method, as a means of representing partial recursive functions, has some problems, for example with composition. See \cite{Knapp} for the most recent take on partial recursive functions and computability in (homotopy) type theory.}
 
@@ -813,23 +813,70 @@ The inductive domain method can be used not only to implement general recursive 
 
 Having gotten a new quicksort template, we can now proceed to prove termination by well-founded induction.
 
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=54,
+    lastline=71
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=4,
+    lastline=30
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=73,
+    lastline=90
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
+
+\subsection{Foreseeing user experience 2} \label{UX2}
+
+\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=95,
+    lastline=129
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
+
 \subsection{A less relevant variant of the inductive domain method} \label{lessrelevant}
 
 Bove-Capretta using sort Prop.
 
 \subsection{Automating the termination proof... sometimes}
 
-Mention functional induction here and how to derive it.
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=131,
+    lastline=148
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
 
 Coq's \m{Function} command.
-
-\subsection{Foreseeing user experience 2} \label{UX2}
-
-\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
 
 \section{Verificatio ex nihilo} \label{exnihilo}
 
 \concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
+
+\subsection{One induction to rule them all -- functional induction}
+
+Mention functional induction here and how to derive it.
 
 \subsection{Get your hands dirty -- concrete proofs}
 
