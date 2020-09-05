@@ -130,7 +130,8 @@ Compute qs QSArgs_nat [4; 3; 2; 1].
 
 Require Import Recdef.
 
-Function qsf (A : QSArgs) (l : list A) {measure length l} : list A :=
+Function qsf
+  (A : QSArgs) (l : list A) {measure length l} : list A :=
 match short l with
     | None => adhoc l
     | Some (h, t) =>
