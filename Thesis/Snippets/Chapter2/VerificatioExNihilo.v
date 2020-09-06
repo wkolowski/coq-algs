@@ -1,6 +1,8 @@
 Require Import List Arith.
 Import ListNotations.
 
+Require Import Specification Lemmas.
+
 Class VerifiedQSArgs : Type :=
 {
     T : Type;
@@ -28,10 +30,38 @@ Class VerifiedQSArgs : Type :=
         partition pivot rest = (lt, eq, gt) ->
           length gt <= length rest;
 
-    
+    (* TODO *)
+    Permutation_adhoc :
+      forall {l : list T},
+        short l = None ->
+          Permutation l (adhoc l);
+
+    Permutation_short :
+      forall {l : list T} {h : T} {t : list T},
+        short l = Some (h, t) ->
+          Permutation l (h :: t);
+
+    Permutation_choosePivot :
+      forall {h : T} {t : list T} {pivot : T} {rest : list T},
+        choosePivot h t = (pivot, rest) ->
+          Permutation (h :: t) (pivot :: rest);
+
+    Permutation_partition :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
+
+    (* TODO 2 *)
+    R : T -> T -> Prop;
+
+    Sorted_adhoc :
+      forall {l : list T},
+        short l = None -> (* TODO 3: opisać to *)
+          Sorted R (adhoc l);
 }.
 
 Coercion T : VerifiedQSArgs >-> Sortclass.
+Coercion R : VerifiedQSArgs >-> Funclass.
 
 Inductive QSDom (A : VerifiedQSArgs) : list A -> Type :=
     | Short :
@@ -108,9 +138,11 @@ Proof.
   inversion 1. reflexivity.
   inversion 1; subst. apply len_filter.
   inversion 1; subst. apply len_filter.
-Defined.
+Admitted.
 
+(*
 Compute qs QSArgs_nat [4; 3; 2; 1].
+*)
 
 Lemma qs'_ind :
   forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
@@ -178,7 +210,7 @@ Proof.
         apply IHd1_2.
 Admitted.
 
-Lemma qs_ind :
+Lemma qs_ind_bad :
   forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
@@ -302,3 +334,72 @@ Proof.
     apply (partition_len_lt teq2).
     rewrite (choosePivot_len teq1). apply (short_len teq).
 Defined.
+
+(*
+Compute qsf QSArgs_nat [4; 3; 2; 1].
+*)
+
+Instance Transitive_Permutation :
+  forall A : Type, Transitive (@Permutation A).
+Admitted.
+
+Theorem Permutation_qsf :
+  forall
+    (A : VerifiedQSArgs) (l : list A),
+      Permutation l (qsf A l).
+Proof.
+  intros.
+  functional induction (qsf A l).
+    apply Permutation_adhoc. assumption.
+    {
+      apply Permutation_short in e.
+      apply Permutation_choosePivot in e0.
+      apply Permutation_partition in e1.
+      rewrite e, e0, e1.
+      apply Permutation_app.
+        assumption.
+        apply Permutation_cons, Permutation_app.
+          apply Permutation_refl.
+          assumption.
+    }
+Qed.
+
+Theorem Sorted_qsf :
+  forall
+    (A : VerifiedQSArgs) (l : list A),
+      Sorted A (qsf A l).
+Proof.
+  intros.
+  functional induction (qsf A l).
+    apply Sorted_adhoc. assumption.
+      apply Sorted_app_all; auto.
+        apply Sorted_cons.
+          intros. apply in_app_or in H. destruct H.
+            erewrite spec_eq; eauto.
+            eapply spec_hi; eauto. eapply uqs_In; eauto.
+          apply Sorted_app; auto.
+            assert (forall x : A, In x eq -> x = pivot).
+              eapply spec_eq; eauto.
+              clear e1. induction eq; auto. destruct eq; auto. constructor.
+                rewrite (H a), (H c); cbn; auto.
+                apply IHeq. intro. inv 1; apply H; cbn; auto.
+            intros. apply uqs_In in H0.
+              erewrite (spec_eq pivot) at 1; eauto.
+                eapply spec_hi; eauto.
+          intros. apply uqs_In in H. eapply spec_lo; eauto.
+Qed.
+
+Theorem uqs_In :
+  forall
+    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
+    (choosePivot : Pivot A) (partition : Partition A)
+    (l : list A) (x : A),
+      In x (uqs adhoc choosePivot partition l) <->
+      In x l.
+Proof.
+  intros.
+  split; apply Permutation_in.
+    apply Permutation_uqs.
+    symmetry. apply Permutation_uqs.
+Qed.
+
