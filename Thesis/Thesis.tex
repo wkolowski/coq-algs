@@ -651,7 +651,7 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Foreseeing the user experience}
+\subsection{Foreseeing user experience}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 

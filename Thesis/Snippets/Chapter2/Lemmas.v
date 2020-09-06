@@ -1,3 +1,4 @@
+Require Import List.
 Require Import Specification.
 
 Require Export Setoid.
@@ -28,5 +29,18 @@ Lemma Permutation_app :
     Permutation l1 l1' ->
     Permutation l2 l2' ->
       Permutation (l1 ++ l2) (l1' ++ l2').
+Proof.
+Admitted.
+
+Lemma Permutation_Forall :
+  forall {A : Type} {P : A -> Prop} {l1 l2 : list A},
+    Permutation l1 l2 ->
+      Forall P l1 -> Forall P l2.
+Proof.
+Admitted.
+
+Lemma Permutation_swap :
+  forall {A : Type} {x y : A} {l : list A},
+    Permutation (y :: x :: l) (x :: y :: l).
 Proof.
 Admitted.

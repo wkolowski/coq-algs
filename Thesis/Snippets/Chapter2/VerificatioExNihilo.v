@@ -54,10 +54,28 @@ Class VerifiedQSArgs : Type :=
     (* TODO 2 *)
     R : T -> T -> Prop;
 
+    R_refl :
+      forall x : T, R x x;
+
     Sorted_adhoc :
       forall {l : list T},
         short l = None -> (* TODO 3: opisać to *)
           Sorted R (adhoc l);
+
+    partition_pivot_lt :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => R x pivot) lt;
+
+    partition_pivot_eq :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => pivot = x) eq;
+
+    partition_pivot_gt :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => R pivot x) gt;
 }.
 
 Coercion T : VerifiedQSArgs >-> Sortclass.
@@ -117,6 +135,8 @@ Proof.
       apply le_S. assumption.
 Defined.
 
+Require Import Lia.
+
 #[refine]
 Instance QSArgs_nat : VerifiedQSArgs :=
 {
@@ -138,6 +158,35 @@ Proof.
   inversion 1. reflexivity.
   inversion 1; subst. apply len_filter.
   inversion 1; subst. apply len_filter.
+  destruct l; inversion 1. constructor.
+  destruct l; inversion 1. constructor.
+  inversion 1. constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn in *.
+      constructor.
+      destruct (h <=? pivot); cbn.
+        eapply Permutation_trans.
+          apply Permutation_swap.
+          apply Permutation_cons. assumption.
+        admit.
+  exact le.
+  apply le_refl.
+  constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (Nat.leb_spec h pivot).
+        constructor; assumption.
+        assumption.
+  inversion 1; subst; clear H. constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (Nat.leb_spec h pivot); cbn.
+        assumption.
+        constructor.
+          lia.
+          assumption.
 Admitted.
 
 (*
@@ -364,6 +413,56 @@ Proof.
     }
 Qed.
 
+Lemma wut0 :
+  forall (A : VerifiedQSArgs) (pivot : A) (lt eq gt : list A),
+    Sorted A lt -> Sorted A (pivot :: eq ++ gt) ->
+    Forall (fun x => A x pivot) lt ->
+      Sorted A (lt ++ pivot :: eq ++ gt).
+Proof.
+  intros until 1. revert pivot eq gt.
+  induction H; cbn; intros.
+    assumption.
+    inversion H0; subst. constructor; assumption.
+    constructor.
+      assumption.
+      apply IHSorted.
+        assumption.
+        inversion H2; subst. assumption.
+Qed.
+
+Lemma wut1 :
+  forall (A : VerifiedQSArgs) (pivot : A) (eq gt : list A),
+    Sorted A gt ->
+    Forall (fun x => pivot = x) eq ->
+    Forall (fun x => A pivot x) gt ->
+      Sorted A (pivot :: eq ++ gt).
+Proof.
+  induction eq as [| h t]; cbn; intros.
+    inversion H1; subst.
+      constructor.
+      constructor; assumption.
+    inversion H0; subst. constructor.
+      apply R_refl.
+      apply IHt; assumption.
+Qed.
+
+Lemma wut :
+  forall (A : VerifiedQSArgs) (pivot : A) (lt gt : list A),
+    Sorted A lt -> Sorted A (pivot :: gt) ->
+    Forall (fun x => A x pivot) lt ->
+      Sorted A (lt ++ pivot :: gt).
+Proof.
+  intros until 1. revert pivot gt.
+  induction H; cbn; intros.
+    assumption.
+    inversion H0; subst. constructor; assumption.
+    constructor.
+      assumption.
+      apply IHSorted.
+        assumption.
+        inversion H2; subst. assumption.
+Qed.
+
 Theorem Sorted_qsf :
   forall
     (A : VerifiedQSArgs) (l : list A),
@@ -372,34 +471,13 @@ Proof.
   intros.
   functional induction (qsf A l).
     apply Sorted_adhoc. assumption.
-      apply Sorted_app_all; auto.
-        apply Sorted_cons.
-          intros. apply in_app_or in H. destruct H.
-            erewrite spec_eq; eauto.
-            eapply spec_hi; eauto. eapply uqs_In; eauto.
-          apply Sorted_app; auto.
-            assert (forall x : A, In x eq -> x = pivot).
-              eapply spec_eq; eauto.
-              clear e1. induction eq; auto. destruct eq; auto. constructor.
-                rewrite (H a), (H c); cbn; auto.
-                apply IHeq. intro. inv 1; apply H; cbn; auto.
-            intros. apply uqs_In in H0.
-              erewrite (spec_eq pivot) at 1; eauto.
-                eapply spec_hi; eauto.
-          intros. apply uqs_In in H. eapply spec_lo; eauto.
+    apply wut0.
+      assumption.
+      apply wut1.
+        assumption.
+        eapply partition_pivot_eq; eassumption.
+        apply (Permutation_Forall (Permutation_qsf A gt)).
+          eapply partition_pivot_gt; eassumption.
+      apply (Permutation_Forall (Permutation_qsf A lt)).
+          eapply partition_pivot_lt; eassumption.
 Qed.
-
-Theorem uqs_In :
-  forall
-    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
-    (choosePivot : Pivot A) (partition : Partition A)
-    (l : list A) (x : A),
-      In x (uqs adhoc choosePivot partition l) <->
-      In x l.
-Proof.
-  intros.
-  split; apply Permutation_in.
-    apply Permutation_uqs.
-    symmetry. apply Permutation_uqs.
-Qed.
-
