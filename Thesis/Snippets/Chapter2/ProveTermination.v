@@ -1,13 +1,8 @@
-Require Import List Arith.
-Import ListNotations.
+Require Export AbstractTheAlgorithm.
 
-Class QSArgs : Type :=
+Class TerminatingQSArgs : Type :=
 {
-    T : Type;
-    short : list T -> option (T * list T);
-    adhoc : list T -> list T;
-    choosePivot : T -> list T -> T * list T;
-    partition : T -> list T -> list T * list T * list T;
+    args :> QSArgs;
 
     short_len :
       forall {l : list T} {h : T} {t : list T},
@@ -29,9 +24,9 @@ Class QSArgs : Type :=
           length gt <= length rest;
 }.
 
-Coercion T : QSArgs >-> Sortclass.
+Coercion args : TerminatingQSArgs >-> QSArgs.
 
-Inductive QSDom (A : QSArgs) : list A -> Type :=
+Inductive QSDom (A : TerminatingQSArgs) : list A -> Type :=
     | Short :
         forall l : list A, short l = None -> QSDom A l
     | Long :
@@ -44,7 +39,7 @@ Inductive QSDom (A : QSArgs) : list A -> Type :=
             partition pivot rest = (lt, eq, gt) ->
           QSDom A lt -> QSDom A gt -> QSDom A l.
 
-Fixpoint qs' {A : QSArgs} {l : list A} (d : QSDom A l) : list A :=
+Fixpoint qs' {A : TerminatingQSArgs} {l : list A} (d : QSDom A l) : list A :=
 match d with
     | Short _ _ _ => adhoc l
     | Long _ _ pivot _ eq _ ltd gtd =>
@@ -52,7 +47,7 @@ match d with
 end.
 
 Lemma QSDom_all :
-  forall (A : QSArgs) (l : list A), QSDom A l.
+  forall (A : TerminatingQSArgs) (l : list A), QSDom A l.
 Proof.
   intro A.
   apply well_founded_induction_type with (R := ltof _ (@length A)).
@@ -71,7 +66,7 @@ Proof.
 Abort.
 
 Lemma QSDom_all :
-  forall (A : QSArgs) (l : list A), QSDom A l.
+  forall (A : TerminatingQSArgs) (l : list A), QSDom A l.
 Proof.
   intro A.
   apply well_founded_induction_type with (R := ltof _ (@length A)).
@@ -89,7 +84,7 @@ Proof.
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
 Defined.
 
-Definition qs (A : QSArgs) (l : list A) : list A :=
+Definition qs (A : TerminatingQSArgs) (l : list A) : list A :=
   qs' (QSDom_all A l).
 
 Lemma len_filter :
@@ -104,34 +99,38 @@ Proof.
 Defined.
 
 #[refine]
-Instance QSArgs_nat : QSArgs :=
+Instance TerminatingQSArgs_nat : TerminatingQSArgs :=
 {
-    T := nat;
-    short l :=
-      match l with
-          | [] => None
-          | h :: t => Some (h, t)
-      end;
-    adhoc _ := [];
-    choosePivot h t := (h, t);
-    partition p l :=
-      (filter (fun x => leb x p) l,
-       [],
-       filter (fun x => negb (leb x p)) l)
+    args :=
+    {|
+        T := nat;
+        short l :=
+          match l with
+              | [] => None
+              | h :: t => Some (h, t)
+          end;
+        adhoc _ := [];
+        choosePivot h t := (h, t);
+        partition p l :=
+          (filter (fun x => leb x p) l,
+           [],
+           filter (fun x => negb (leb x p)) l);
+    |}
 }.
 Proof.
-  destruct l; inversion 1; cbn. apply le_refl.
-  inversion 1. reflexivity.
-  inversion 1; subst. apply len_filter.
-  inversion 1; subst. apply len_filter.
+  all: cbn.
+    destruct l; inversion 1; cbn. apply le_refl.
+    inversion 1. reflexivity.
+    inversion 1; subst. apply len_filter.
+    inversion 1; subst. apply len_filter.
 Defined.
 
-Compute qs QSArgs_nat [4; 3; 2; 1].
+Compute qs TerminatingQSArgs_nat [4; 3; 2; 1].
 
 Require Import Recdef.
 
 Function qsf
-  (A : QSArgs) (l : list A) {measure length l} : list A :=
+  (A : TerminatingQSArgs) (l : list A) {measure length l} : list A :=
 match short l with
     | None => adhoc l
     | Some (h, t) =>

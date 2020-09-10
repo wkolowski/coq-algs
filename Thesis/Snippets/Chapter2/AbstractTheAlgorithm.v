@@ -1,5 +1,5 @@
-Require Import List Arith.
-Import ListNotations.
+Require Export List Arith.
+Export ListNotations.
 
 Module FirstTry.
 
@@ -94,14 +94,14 @@ Module Bundled.
 
 Class QSArgs : Type :=
 {
-    A : Type;
-    short : list A -> option (A * list A);
-    adhoc : list A -> list A;
-    choosePivot : A -> list A -> A * list A;
-    partition : A -> list A -> list A * list A * list A;
+    T : Type;
+    short : list T -> option (T * list T);
+    adhoc : list T -> list T;
+    choosePivot : T -> list T -> T * list T;
+    partition : T -> list T -> list T * list T * list T;
 }.
 
-Coercion A : QSArgs >-> Sortclass.
+Coercion T : QSArgs >-> Sortclass.
 
 Unset Guard Checking.
 Fixpoint qs (A : QSArgs) (l : list A) {struct l} : list A :=
@@ -115,3 +115,5 @@ end.
 Set Guard Checking.
 
 End Bundled.
+
+Export Bundled.
