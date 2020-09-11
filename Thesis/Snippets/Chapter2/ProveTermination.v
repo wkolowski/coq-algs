@@ -39,7 +39,8 @@ Inductive QSDom (A : TerminatingQSArgs) : list A -> Type :=
             partition pivot rest = (lt, eq, gt) ->
           QSDom A lt -> QSDom A gt -> QSDom A l.
 
-Fixpoint qs' {A : TerminatingQSArgs} {l : list A} (d : QSDom A l) : list A :=
+Fixpoint qs'
+  {A : TerminatingQSArgs} {l : list A} (d : QSDom A l) : list A :=
 match d with
     | Short _ _ _ => adhoc l
     | Long _ _ pivot _ eq _ ltd gtd =>

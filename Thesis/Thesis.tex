@@ -790,13 +790,12 @@ Back to our (almost) initial question: we need to prove termination because only
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=34,
-    lastline=52
+    firstline=29,
+    lastline=48
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-% TODO: check if the mentioned variant of inductive domain predicate was really described later
-The above listing shows how the inductive domain method looks in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
+The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ TerminatingQSArgs} (we will see the definition of this type soon -- for now we can think that it's the same as \m{QSArgs} from the previous section). \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
 
 There are two constructors. \m{Short} takes as argument a proof of \m{short l = None}, so it represents the case in which the list \m{l} is short. It can be read as ``if \m{l} is short, then it belongs to the domain of quicksort''. \m{Long} takes, as one of its arguments, a proof of \m{short l = Some (h, t)}, so it represents the recursive case in which \m{l} is not short. Its other arguments are proofs of \m{choosePivot h t = (pivot, rest)} and \m{partition pivot rest = (lt, eq, gt)}, which represent the calls to these functions that were present in our previous implementation of \m{qs}. Lastly, it takes as arguments the proofs that \m{lt} and \m{gt} belong to the domain, which represent the recursive calls. Therefore, the constructor \m{Long} can be read as ``\m{l} belongs to the domain if \m{lt} and \m{gt} belong to the domain''.
 
@@ -812,16 +811,20 @@ The inductive domain method can be used not only to implement general recursive 
 
 \subsection{Well-founded induction}
 
-Having gotten a new quicksort template, we can now proceed to prove termination by well-founded induction.
+We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}. A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.}
+
+For example, the relation ``is shorter than'' on \m{list A}, which we will use in the listing below, is well-founded because all lists are accessible. This should be intuitively clear: the empty list is accessible because all shorter lists (of which there are none) are accessible; all singleton lists are accessible, because all shorter lists (i.e. just the empty list) are accessible; all lists of length two are accessible, because all lists of length $0$ and $1$ are accessible and so on.\footnote{Of course a formal proof of this fact goes by induction on the list whose accessibility we are showing, but watch out -- it's a little tricky.}
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=54,
-    lastline=71
+    firstline=50,
+    lastline=67
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
+
+Our first attempt to prove termination is shown in the listing above. We proceed by well-founded induction on \m{l}, the well-founded relation being ``is shorter than'' described in the previous paragraph. The main part of the proof starts after we have convined Coq that this relation really is well-founded (using the lemma \m{well\_founded\_ltof} from the standard library).
 
 \inputminted
 [
