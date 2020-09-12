@@ -811,7 +811,7 @@ The inductive domain method can be used not only to implement general recursive 
 
 \subsection{Well-founded induction}
 
-We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}. A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.}
+We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.} A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{Conversely, structural induction is nothing more than just well-founded induction with the well-founded relation being ``is a subterm of''. This is why well-founded induction and structural induction are, in a sense, equivalent.}
 
 For example, the relation ``is shorter than'' on \m{list A}, which we will use in the listing below, is well-founded because all lists are accessible. This should be intuitively clear: the empty list is accessible because all shorter lists (of which there are none) are accessible; all singleton lists are accessible, because all shorter lists (i.e. just the empty list) are accessible; all lists of length two are accessible, because all lists of length $0$ and $1$ are accessible and so on.\footnote{Of course a formal proof of this fact goes by induction on the list whose accessibility we are showing, but watch out -- it's a little tricky.}
 
@@ -824,22 +824,39 @@ For example, the relation ``is shorter than'' on \m{list A}, which we will use i
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-Our first attempt to prove termination is shown in the listing above. We proceed by well-founded induction on \m{l}, the well-founded relation being ``is shorter than'' described in the previous paragraph. The main part of the proof starts after we have convined Coq that this relation really is well-founded (using the lemma \m{well\_founded\_ltof} from the standard library).
+Our first attempt to prove termination is shown in the listing above. We proceed by well-founded induction on \m{l}, the well-founded relation being ``is shorter than'' described in the previous paragraph. The main part of the proof starts after we have convinced Coq that this relation really is well-founded (using the lemma \m{well\_founded\_ltof} from the standard library).
+
+We split cases on whether \m{l} is short or not. If it is not, then \m{l} belongs to the domain thanks to the constructor \m{Short}. In the other case, we use the constructor \m{Long} and it suffices to prove that \m{lt} and \m{gt} belong to the domain. We consider only the \m{lt} case, because the other one is analogous.
+
+To prove \m{QSDom A lt} we use the induction hypothesis \m{IH} and so we only need to prove that \m{lt} is shorter than \m{l}. Since \m{lt} was obtained by partitioning \m{rest}, it should be the case than \m{lt} is not longer than \m{rest}. We therefore reason by transitivity and it suffices to prove \m{length lt <= length rest} and \m{length rest < length l}.
+
+As for the second inequality, \m{rest} was obtained from \m{h\ ::\ t} by choosing a pivot, so it should be of the same length as \m{t}. When it comes to \m{t}, it is returned by \m{short} along with \m{h} as evidence that \m{l} is not empty, so that \m{l = h\ ::\ t} (or, for more exotic implementations of \m{short}, \m{l} and \m{h\ ::\ t} may be just permutations) and therefore \m{t} is shorter than \m{l}.
+
+And so we proceed by... well, we don't proceed anymore. We are stuck because we have no evidence to back up our reasoning from the previous one and a half paragraphs. The reason is simple: there's nothing in \m{TerminatingQSArgs} guaranteeing that \m{short}, \m{choosePivot} and \m{partition} don't produce gibberish.
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#3.2} \\
+    When proving termination by well-founded induction, assume that every property and lemma you need is in fact given and add them to the algorithm template.
+\end{center}
+
+But the beauty of mathematics in general and of our approach to algorithms in particular is that we can just assume everything we need and call it a day! This is indeed why we haven't shown the definition of \m{TerminatingQSArgs} yet -- it is shown in the listing below.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=4,
-    lastline=30
+    firstline=3,
+    lastline=27
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
+Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward: start with a class that has a single field which accomodates the original \m{QSArgs} and then successively add all the lemmas and properties needed to finish the termination proof.
+
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=73,
+    firstline=69,
     lastline=90
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
