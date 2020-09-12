@@ -100,33 +100,21 @@ Proof.
 Defined.
 
 #[refine]
-Instance TerminatingQSArgs_nat : TerminatingQSArgs :=
+Instance TQSA_nat : TerminatingQSArgs :=
 {
-    args :=
-    {|
-        T := nat;
-        short l :=
-          match l with
-              | [] => None
-              | h :: t => Some (h, t)
-          end;
-        adhoc _ := [];
-        choosePivot h t := (h, t);
-        partition p l :=
-          (filter (fun x => leb x p) l,
-           [],
-           filter (fun x => negb (leb x p)) l);
-    |}
+    args := QSA_nat;
 }.
 Proof.
   all: cbn.
     destruct l; inversion 1; cbn. apply le_refl.
-    inversion 1. reflexivity.
+    inversion 1; subst. reflexivity.
     inversion 1; subst. apply len_filter.
     inversion 1; subst. apply len_filter.
 Defined.
 
-Compute qs TerminatingQSArgs_nat [4; 3; 2; 1].
+Compute qs TQSA_nat [4; 3; 2; 1].
+(* ===> = [1; 2; 3; 4]
+        : list TQSA_nat *)
 
 Require Import Recdef.
 

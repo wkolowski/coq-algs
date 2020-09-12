@@ -69,7 +69,7 @@ Fixpoint qs
     end.
 Set Guard Checking.
 
-Instance QS_nat : QSArgs nat :=
+Instance QSA_nat : QSArgs nat :=
 {
     short l :=
       match l with
@@ -84,7 +84,7 @@ Instance QS_nat : QSArgs nat :=
        filter (fun x => negb (leb x p)) l)
 }.
 
-Compute qs QS_nat [5; 4; 3; 2; 1; 0].
+Compute qs QSA_nat [5; 4; 3; 2; 1; 0].
 (* ===> = [0; 1; 2; 3; 4; 5]
         : list nat *)
 
@@ -113,6 +113,24 @@ match short l with
           qs A lt ++ pivot :: eq ++ qs A gt
 end.
 Set Guard Checking.
+
+Instance QSA_nat : QSArgs :=
+{
+    T := nat;
+    short l :=
+      match l with
+          | [] => None
+          | h :: t => Some (h, t)
+      end;
+    adhoc _ := [];
+    choosePivot h t := (h, t);
+    partition p l :=
+      (filter (fun x => leb x p) l,
+       [],
+       filter (fun x => negb (leb x p)) l)
+}.
+
+Compute qs QSA_nat [5; 4; 3; 2; 1; 0].
 
 End Bundled.
 

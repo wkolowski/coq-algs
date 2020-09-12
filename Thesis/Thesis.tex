@@ -651,7 +651,7 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Foreseeing user experience}
+\subsection{Foreseeing user experience} \label{UX}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
@@ -856,21 +856,25 @@ Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=69,
-    lastline=90
+    firstline=79,
+    lastline=89
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-\subsection{Foreseeing user experience 2} \label{UX2}
+Having all the lemmas we need, the proof proceeds exactly as described above. \m{qs}, our provably terminating implementation of a quicksort template, is a result of feeding the termination proof into \m{qs'}. Note that it is crucial to that we have ended the proof with the command \m{Defined} instead of \m{Qed}. If we didn't, we wouldn't be able to run \m{qs} -- it would get instantly stuck. This is because the command \m{Qed} results in the definition being opaque, i.e. the body of the definition gets erased. This would prevent \m{qs} from computing anything, because the helper function \m{qs'} was defined by structural recursion on \m{d\ :\ QSDom A l}, which in the case of \m{qs} comes from the termination proof.
 
-\concept{Make sure the concrete algorithm is runnable without having to prove anything about it.}
+\subsection{Sanity check -- concrete termination proof} \label{UX2}
+
+In section \ref{UX} we learned that an important aspect of our algorithmic work is user experience, which we defined as what happens when a user tries to fill in the algorithm template that we provide. It might have happened, after all, that our template is so silly that it isn't possible to fill it in!
+
+Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be, however, too weak -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=95,
-    lastline=129
+    firstline=102,
+    lastline=117
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
@@ -921,11 +925,13 @@ Mention functional induction here and how to derive it.
 
 The verification goes here.
 
-\subsection{Foreseeing user experience 3 -- avoiding bloatware}
-
-\subsection{Get your hands dirty -- concrete proofs}
+\subsection{Sanity check -- concrete proofs}
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
+
+\subsection{Foreseeing user experience 1 -- avoiding bloatware}
+
+\subsection{Foreseeing user experience 1 -- provide a default implementation}
 
 \section{Summary} \label{summary2}
 
