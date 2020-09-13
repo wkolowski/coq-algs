@@ -3,12 +3,12 @@ Export ListNotations.
 
 Module FirstTry.
 
-Class QSArgs (A : Type) : Type :=
+Class QSArgs (T : Type) : Type :=
 {
-    short : list A -> bool;
-    adhoc : list A -> list A;
-    choosePivot : list A -> A * list A;
-    partition : A -> list A -> list A * list A * list A;
+    short : list T -> bool;
+    adhoc : list T -> list T;
+    choosePivot : list T -> T * list T;
+    partition : T -> list T -> list T * list T * list T;
 }.
 
 Unset Guard Checking.
@@ -49,12 +49,12 @@ End FirstTry.
 
 Module Unbundled.
 
-Class QSArgs (A : Type) : Type :=
+Class QSArgs (T : Type) : Type :=
 {
-    short : list A -> option (A * list A);
-    adhoc : list A -> list A;
-    choosePivot : A -> list A -> A * list A;
-    partition : A -> list A -> list A * list A * list A;
+    short : list T -> option (T * list T);
+    adhoc : list T -> list T;
+    choosePivot : T -> list T -> T * list T;
+    partition : T -> list T -> list T * list T * list T;
 }.
 
 Unset Guard Checking.

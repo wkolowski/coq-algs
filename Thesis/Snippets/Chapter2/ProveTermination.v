@@ -116,25 +116,40 @@ Compute qs TQSA_nat [4; 3; 2; 1].
 (* ===> = [1; 2; 3; 4]
         : list TQSA_nat *)
 
-Require Import Recdef.
+(** * 2.3.4 User experience: provide a default implementation *)
 
-Function qsf
-  (A : TerminatingQSArgs) (l : list A) {measure length l} : list A :=
-match short l with
-    | None => adhoc l
-    | Some (h, t) =>
-        let '(pivot, rest) := choosePivot h t in
-        let '(lt, eq, gt)  := partition pivot rest in
-          qsf A lt ++ pivot :: eq ++ qsf A gt
-end.
+Instance QSA_default
+  (A : Type) (p : A -> A -> bool) : QSArgs :=
+{
+    T := A;
+    short l :=
+      match l with
+          | [] => None
+          | h :: t => Some (h, t)
+      end;
+    adhoc _ := [];
+    choosePivot h t := (h, t);
+    partition pivot rest :=
+      (filter (fun x => p x pivot) rest,
+       [],
+       filter (fun x => negb (p x pivot)) rest)
+}.
+
+#[refine]
+Instance TQSA_default
+  (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
+{
+    args := QSA_default A p;
+}.
 Proof.
-  intros; subst. apply le_lt_trans with (length rest).
-    apply (partition_len_gt teq2).
-    rewrite (choosePivot_len teq1). apply (short_len teq).
-  intros; subst. apply le_lt_trans with (length rest).
-    apply (partition_len_lt teq2).
-    rewrite (choosePivot_len teq1). apply (short_len teq).
+  all: cbn.
+    destruct l; inversion 1; cbn. apply le_refl.
+    inversion 1; subst. reflexivity.
+    inversion 1; subst. apply len_filter.
+    inversion 1; subst. apply len_filter.
 Defined.
+
+(** * A slight variation on a theme *)
 
 Unset Guard Checking.
 Fixpoint QSDom_all'
@@ -156,35 +171,24 @@ Definition qswut
 
 Compute qswut TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
 
-Instance QSA_default
-  (A : Type) (p : A -> A -> bool) : QSArgs :=
-{
-    T := A;
-    short l :=
-      match l with
-          | [] => None
-          | h :: t => Some (h, t)
-      end;
-    adhoc _ := [];
-    choosePivot h t := (h, t);
-    partition pivot rest :=
-      (filter (fun x => p x pivot) rest,
-       [],
-       filter (fun x => negb (p x pivot)) rest)
-}.
+(** * *)
 
-Compute Bundled.qs (QSA_default nat leb) [5; 4; 3; 2; 1; 0].
+Require Import Recdef.
 
-#[refine]
-Instance TQSA_default
-  (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
-{
-    args := QSA_default A p;
-}.
+Function qsf
+  (A : TerminatingQSArgs) (l : list A) {measure length l} : list A :=
+match short l with
+    | None => adhoc l
+    | Some (h, t) =>
+        let '(pivot, rest) := choosePivot h t in
+        let '(lt, eq, gt)  := partition pivot rest in
+          qsf A lt ++ pivot :: eq ++ qsf A gt
+end.
 Proof.
-  all: cbn.
-    destruct l; inversion 1; cbn. apply le_refl.
-    inversion 1; subst. reflexivity.
-    inversion 1; subst. apply len_filter.
-    inversion 1; subst. apply len_filter.
+  intros; subst. apply le_lt_trans with (length rest).
+    apply (partition_len_gt teq2).
+    rewrite (choosePivot_len teq1). apply (short_len teq).
+  intros; subst. apply le_lt_trans with (length rest).
+    apply (partition_len_lt teq2).
+    rewrite (choosePivot_len teq1). apply (short_len teq).
 Defined.

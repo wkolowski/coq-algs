@@ -565,58 +565,48 @@ Having found a good specification of the problem, the next step in the process i
     \item Sort both lists/arrays recursively and put them together with pivot in the middle.
 \end{itemize}
 
-When you first saw the famous two-line implementation of quicksort in Haskell, you likely realized that the above idea is pretty simple and easy to implement correctly (if you have never seen it, take a look at listing \ref{HaskellQuicksort}). But whenever you see the imperative implementation (a typical example of which is shown in listing \ref{CQuicksort}), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the implementation from listing \ref{CQuicksort} is correct -- I didn't check it!}
+\begin{minted}{Haskell}
+    qs :: Ord a => [a] -> [a]
+    qs [] = []
+    qs (h:t) = qs (filter (< h) t) ++ [h] ++ qs (filter (>= h) t)
+\end{minted}
+
+The famous two-line\footnote{Three if we count the type signature.} implementation of quicksort in Haskell, shown in the listing above, clearly shows that the idea behind quicksort is pretty simple and easy to implement correctly. But whenever you see an imperative implementation (a typical example of which is shown in the listing below), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the C implementation is correct -- I didn't check it!}
+
+\begin{minted}{C}
+// To sort array a[] of size n: qsort(a, 0, n - 1)
+void qsort(int a[], int lo, int hi)
+{
+    if (lo < hi)
+    {
+        int l = lo;
+        int h = hi;
+        int p = a[hi];
+
+        do
+        {
+            while (l < h && a[l] <= p) l = l + 1;
+            while (h > l && a[h] >= p) h = h - 1;
+
+            if (l < h)
+            {
+                int t = a[l];
+                a[l] = a[h];
+                a[h] = t;
+            }
+        }
+        while (l < h);
+
+        a[hi] = a[l];
+        a[l] = p;
+
+        qsort(a, lo, l - 1);
+        qsort(a, l + 1, hi);
+    }
+}
+\end{minted}
 
 The main difference between these two implementations is a discrepancy in their levels of abstraction. The first\footnote{\m{qs\ []\ =\ []} in Haskell, \m{if\ (lo\ <\ hi)} in C} and second\footnote{\m{int\ p\ =\ a[hi];} in C. In Haskell, the pivot is implicitly chosen to be \m{h}.} bullet points are realized at roughly the same level. The crux of the matter is the partitioning. In the Haskell version, it is expressed as \m{filter (< h) t} and \m{filter (>= h) t}, which can be directly read as ``all elements of \m{t} which are less than \m{h}'' and ``all elements of \m{t} which are greater than or equal to \m{h}'', respectively. In the C version, things are much more non-obvious, but if we squint hard enough, we can see that the first \m{while} loop says ``let \m{a[l]} be the first element on the left of the pivot that is greater than the pivot'', the second one says ''let \m{a[h]} be the first element on the right (counting from the end) that is less than the pivot'' and the \m{if} clause means ``swap \m{a[l]} and \m{a[h]}'', and the \m{do...while} loop carries this on until the array is fully partitioned.
-
-\begin{listing}[H]
-    \begin{minted}{Haskell}
-        qs :: Ord a => [a] -> [a]
-        qs [] = []
-        qs (h:t) = qs (filter (< h) t) ++ [h] ++ qs (filter (>= h) t)
-    \end{minted}
-    \caption{The famous two-line (three if we count the type signature) quicksort implementation for lists, written in Haskell.}
-    \label{HaskellQuicksort}
-\end{listing}
-
-\begin{listing}[H]
-    \begin{minted}{C}
-    // To sort array a[] of size n: qsort(a, 0, n - 1)
-    void qsort(int a[], int lo, int hi) 
-    {
-        if (lo < hi)
-        {
-            int l = lo;
-            int h = hi;
-            int p = a[hi];
-
-            do
-            {
-                while (l < h && a[l] <= p) 
-                    l = l + 1;
-                while (h > l && a[h] >= p)
-                    h = h - 1;
-                
-                if (l < h)
-                {
-                    int t = a[l];
-                    a[l] = a[h];
-                    a[h] = t;
-                }
-            }
-            while (l < h);
-
-            a[hi] = a[l];
-            a[l] = p;
-
-            qsort(a, lo, l - 1);
-            qsort(a, l + 1, hi);
-        }
-    }
-    \end{minted}
-    \caption{A typical quicksort implementation for sorting arrays, wrriten in C. This one is adapted from \url{https://wiki.haskell.org/Introduction}}
-    \label{CQuicksort}
-\end{listing}
 
 We have to admit that the presentation is a bit skewed in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is skewed in favor of C, because it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
 
@@ -634,7 +624,7 @@ The second part of the concept/technique tells us that we can ``ignore the matte
 
 Coq is a total language, which means that all recursive functions necessarily terminate. This raises the problem of termination checking: how does Coq know whether a function we're implementing is terminating? In most cases a simple syntactical check is enough, but in the general case the problem is undecidable and we have to prove termination manually.
 
-Because of this fact, an implementation of a general recursive function is usually weaved of two closely knit parts: the algorithmic part (what to do and how) and the logical part (why doing it terminates). These parts are intertwined: the algorithmic part is littered with proofs and the termination proof of course strongly depends on the algorithm's properties.
+Because of this fact, an implementation of a general recursive function is usually weaved of two closely knit parts: the algorithmic part (how to do it) and the logical part (why doing it terminates). These parts are intertwined: the algorithmic part is littered with proofs and the termination proof of course strongly depends on the algorithm's properties.
 
 In the next section we will see a technique that allows us to deal with these two parts separately and a Coq language feature that can automate this technique, but at present, in accordance with concept/technique \#2, we will ignore the matter of termination. A nice way to do this, recently introduced into Coq, is the command \m{Unset Guard Checking}, which can temporarily turn the termination checker off.
 
@@ -651,7 +641,7 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Sanity check -- concrete algorithm} \label{sanity1}
+\subsection{User experience: concerete algorithm as a sanity check} \label{sanity1}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
@@ -677,7 +667,7 @@ Here's what happens when we try this advice for our quicksort template. Let's sa
 
 But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot, but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, as this number does not appear in the list (since it's empty).
 
-When we run this particular version of quicksort on a reverse-sorted example list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{A} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
+When we run this particular version of quicksort on a reverse-sorted example list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{T} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
 
 \inputminted
 [
@@ -688,13 +678,13 @@ When we run this particular version of quicksort on a reverse-sorted example lis
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Improving our flawed template turns out to be pretty easy. We can change the type of \m{choosePivot} to \m{A -> list A -> A * list A}, whose domain we can interpret as guaranteeing that the input list is not empty. But what if the input list \textit{is} empty? This shouldn't happen: we call \m{choosePivot} only in case the input list is not short and the empty list, being the shortest of all lists, certainly should be considered short. We can therefore modify the type of \m{short} to \m{list A -> option (A * list A)}, with the possible results being either \m{None} (which means that the list is short) or \m{Some (h, t)} (which means it is not short and guarantees that it is not empty).
+Improving our flawed template turns out to be pretty easy. We can change the type of \m{choosePivot} to \m{T -> list T -> T * list T}, whose domain we can interpret as guaranteeing that the input list is not empty. But what if the input list \textit{is} empty? This shouldn't happen: we call \m{choosePivot} only in case the input list is not short and the empty list, being the shortest of all lists, certainly should be considered short. We can therefore modify the type of \m{short} to \m{list T -> option (T * list T)}, with the possible results being either \m{None} (which means that the list is short) or \m{Some (h, t)} (which means it is not short and guarantees that it is not empty).
 
-With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version of basic quicksort.
+With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version.
 
 \subsection{Boolean blindness vs evidence-based programming}
 
-The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}.\footnote{This is a term I coined for the purpose of this thesis.} It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', but we will consider the flow of information in a program, not a proof.
+The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}.\footnote{This is a term I coined for the purpose of this thesis. Of course it is a pun on all the ``evidence-based X'', like evidence-based medicine or evidence-based policy.} It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', but we will consider the flow of information in a program, not a proof.
 
 Before we see how to use this new concept to improve our original template, we will first have to meet the problem it solves, called \textit{boolean blindness}, a dangerous disease that often afflicts programmers trasitioning from imperative to functional. We will also develop a conceptual framework which allows to understand these two in a deeper sense and link them with other related things, like the \textit{small-scale reflection} proof methodology or \textit{intrinsic and extrinsic typing} in lambda calculus.
 
@@ -752,13 +742,13 @@ We could have defined our template in a slightly different manner, namely with a
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
+Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, it takes only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
 The difference between bundled and unbundled versions of a class does not matter in theory -- we can derive each one from the other. If we have an unbundled class, we can define a new class whose fields correspond to the parameters of the original class and an instance of this class itself. In the other direction, given a bundled class we can define a new unbundled class, with parameters corresponding to some fields of the original class, whose fields are an instance of the original class itself and equality proofs that constrain the instance's fields to match the parameters of the new class.
 
 In practice, however, the difference is very annoying. Each direction of the conversion is rather clumsy and impractical to perform, with the bundled-to-unbundled more so than the other way around. It is therefore best to avoid having to perform the conversion and decide ahead of time which version to use. This is mainly a question of sharing, i.e. a situation in which we want two or more classes to have equal parameters/fields. It is easy to set parameters of two classes to be the same (a matter of application, which is well-behaved), but hard to ensure two classes have equal fields (a matter of equality constraints, which are clumsy), so when we need to share, we better use unbundled classes which realize the shared things as parameters.
 
-In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{A\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.}\footnote{A pragmatically important thing to bear in mind when deciding between bundled and unbundled classes is that field names in Coq are treated like ordinary top-level names. This often leads to a polluted global context and interferes with other mechanisms, like automatic hypothesis naming in proofs. Parameters avoid this problem, because they are ordinary local names. Therefore, if you want to name your type \m{A}, it might be smarter to make it a parameter rather than a field.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
+In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{T\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.}\footnote{A pragmatically important thing to bear in mind when deciding between bundled and unbundled classes is that field names in Coq are treated like ordinary top-level names. This often leads to a polluted global context and interferes with other mechanisms, like automatic hypothesis naming in proofs. Parameters avoid this problem, because they are ordinary local names. Therefore, if you want to name your type \m{T}, it might be smarter to make it a parameter rather than a field.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.8901234567} \\
@@ -863,20 +853,36 @@ Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward
 
 Having all the lemmas we need, the proof proceeds exactly as described above. \m{qs}, our provably terminating implementation of a quicksort template, is a result of feeding the termination proof into \m{qs'}. Note that it is crucial to that we have ended the proof with the command \m{Defined} instead of \m{Qed}. If we didn't, we wouldn't be able to run \m{qs} -- it would get instantly stuck. This is because the command \m{Qed} results in the definition being opaque, i.e. the body of the definition gets erased. This would prevent \m{qs} from computing anything, because the helper function \m{qs'} was defined by structural recursion on \m{d\ :\ QSDom A l}, which in the case of \m{qs} comes from the termination proof.
 
-\subsection{Sanity check -- concrete termination proof} \label{sanity2}
+\subsection{User experience: default implementation as a sanity check} \label{sanity2}
 
 In section \ref{sanity1} we learned an important sanity check we can easily perform: filling the template in to get a concrete algorithm. Carrying out that check turned out very beneficial -- it might have happened, after all, that our template is so silly that it isn't possible to fill it in!
 
-Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless.
+Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless. We might be tempted to extend our previous sanity check by providing a concrete termination proof for the concrete algorithm that it brought to life. There is, however, a smarter thing to do.
+
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#3.3} \\
+    Make sure that a user can run a default implementation of the algorithm without having to prove anything.
+\end{center}
+
+By listening to the advice in the above technique, we can hit two birds with one stone: instead of a concrete termination proof for a quicksort for sorting lists of naturals according to the standard order, we can define and prove termination of a default implementation of quicksort that works for any type \m{A} and any comparison function \m{p\ :\ A -> A -> bool}. The effort required is almost the same, but the result is much more generally applicable.
+
+The rationale behind the technique is quite simple. Users are usually lazy -- they want good effects with low effort, and a decent default implementation provides just that. But not only are users low effort, they want the \textit{least effort}. In our case, this translates 
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=102,
-    lastline=117
+    firstline=121,
+    lastline=150
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
+
+
+
+
+\subsection{A slight variation on a theme}
+
+%TODO: opisać alternatywny dizajn, gdzie to QSDom_all ma wyłączony termination checker
 
 \subsection{A less relevant variant of the inductive domain method} \label{lessrelevant}
 
@@ -929,11 +935,7 @@ The verification goes here.
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-\subsection{Foreseeing user experience 1 -- avoid bloatware}
-
-\subsection{Foreseeing user experience 2 -- provide a default implementation}
-
-Provide a default concrete algorithm so that the user doesn't need to fill the template himself.
+\subsection{User experience: avoid bloatware}
 
 \section{Summary} \label{summary2}
 
