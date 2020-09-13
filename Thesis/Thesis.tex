@@ -651,17 +651,17 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{Foreseeing user experience} \label{UX}
+\subsection{Sanity check -- concrete algorithm} \label{sanity1}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
-A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm?
+A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm template?
 
-In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: even though correctness is even more taken for granted, execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``I don't run my programs, I only prove them correct.''. It is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages, but we won't be interested in performance of the extracted code.}. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
+In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: even though correctness is even more taken for granted, execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``Since discovering Coq, I don't run my programs anymore, I only prove them correct.''. It is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages, but we won't be interested in performance of the extracted code.}. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#2.5} \\
-    Instantiate your template in the most naive way. See what happens and use that observation to improve the template. Provide a default concrete algorithm so that the user doesn't need to fill the template himself.
+    Instantiate your template in the most naive way. See what happens and use that observation to improve the template.
 \end{center}
 
 \inputminted
@@ -752,7 +752,7 @@ We could have defined our template in a slightly different manner, namely with a
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Our first definition of \m{QSArgs} was unbundled with respect to \m{A\ :\ Type}, because it was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{A} is a field instead. We declare \m{A} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
+Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, we take only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
 The difference between bundled and unbundled versions of a class does not matter in theory -- we can derive each one from the other. If we have an unbundled class, we can define a new class whose fields correspond to the parameters of the original class and an instance of this class itself. In the other direction, given a bundled class we can define a new unbundled class, with parameters corresponding to some fields of the original class, whose fields are an instance of the original class itself and equality proofs that constrain the instance's fields to match the parameters of the new class.
 
@@ -795,7 +795,7 @@ Back to our (almost) initial question: we need to prove termination because only
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ TerminatingQSArgs} (we will see the definition of this type soon -- for now we can think that it's the same as \m{QSArgs} from the previous section). \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
+The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
 
 There are two constructors. \m{Short} takes as argument a proof of \m{short l = None}, so it represents the case in which the list \m{l} is short. It can be read as ``if \m{l} is short, then it belongs to the domain of quicksort''. \m{Long} takes, as one of its arguments, a proof of \m{short l = Some (h, t)}, so it represents the recursive case in which \m{l} is not short. Its other arguments are proofs of \m{choosePivot h t = (pivot, rest)} and \m{partition pivot rest = (lt, eq, gt)}, which represent the calls to these functions that were present in our previous implementation of \m{qs}. Lastly, it takes as arguments the proofs that \m{lt} and \m{gt} belong to the domain, which represent the recursive calls. Therefore, the constructor \m{Long} can be read as ``\m{l} belongs to the domain if \m{lt} and \m{gt} belong to the domain''.
 
@@ -832,14 +832,14 @@ To prove \m{QSDom A lt} we use the induction hypothesis \m{IH} and so we only ne
 
 As for the second inequality, \m{rest} was obtained from \m{h\ ::\ t} by choosing a pivot, so it should be of the same length as \m{t}. When it comes to \m{t}, it is returned by \m{short} along with \m{h} as evidence that \m{l} is not empty, so that \m{l = h\ ::\ t} (or, for more exotic implementations of \m{short}, \m{l} and \m{h\ ::\ t} may be just permutations) and therefore \m{t} is shorter than \m{l}.
 
-And so we proceed by... well, we don't proceed anymore. We are stuck because we have no evidence to back up our reasoning from the previous one and a half paragraphs. The reason is simple: there's nothing in \m{TerminatingQSArgs} guaranteeing that \m{short}, \m{choosePivot} and \m{partition} don't produce gibberish.
+And so we proceed by... well, we don't proceed anymore. We are stuck because we have no evidence to back up our reasoning from the previous one and a half paragraphs. The reason is simple: there's nothing in \m{QSArgs} guaranteeing that \m{short}, \m{choosePivot} and \m{partition} don't produce gibberish.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#3.2} \\
     When proving termination by well-founded induction, assume that every property and lemma you need is in fact given and add them to the algorithm template.
 \end{center}
 
-But the beauty of mathematics in general and of our approach to algorithms in particular is that we can just assume everything we need and call it a day! This is indeed why we haven't shown the definition of \m{TerminatingQSArgs} yet -- it is shown in the listing below.
+But the beauty of mathematics in general and of our approach to algorithms in particular is that we can just assume everything we need and call it a day! Therefore it suffices to introduce a new variant of \m{QSArgs} which will provide us with all the lemmas we need -- its definition is shown in the listing below.
 
 \inputminted
 [
@@ -850,24 +850,24 @@ But the beauty of mathematics in general and of our approach to algorithms in pa
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward: start with a class that has a single field which accomodates the original \m{QSArgs} and then successively add all the lemmas and properties needed to finish the termination proof.
+Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward: start with a class that has a single field which accomodates the original \m{QSArgs} and then successively add all the lemmas and properties needed to finish the termination proof. Don't forget about the coercion, so that elements of \m{TerminatingQSArgs} can be used in all places where an element of \m{QSArgs} is expected.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=79,
+    firstline=69,
     lastline=89
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
 Having all the lemmas we need, the proof proceeds exactly as described above. \m{qs}, our provably terminating implementation of a quicksort template, is a result of feeding the termination proof into \m{qs'}. Note that it is crucial to that we have ended the proof with the command \m{Defined} instead of \m{Qed}. If we didn't, we wouldn't be able to run \m{qs} -- it would get instantly stuck. This is because the command \m{Qed} results in the definition being opaque, i.e. the body of the definition gets erased. This would prevent \m{qs} from computing anything, because the helper function \m{qs'} was defined by structural recursion on \m{d\ :\ QSDom A l}, which in the case of \m{qs} comes from the termination proof.
 
-\subsection{Sanity check -- concrete termination proof} \label{UX2}
+\subsection{Sanity check -- concrete termination proof} \label{sanity2}
 
-In section \ref{UX} we learned that an important aspect of our algorithmic work is user experience, which we defined as what happens when a user tries to fill in the algorithm template that we provide. It might have happened, after all, that our template is so silly that it isn't possible to fill it in!
+In section \ref{sanity1} we learned an important sanity check we can easily perform: filling the template in to get a concrete algorithm. Carrying out that check turned out very beneficial -- it might have happened, after all, that our template is so silly that it isn't possible to fill it in!
 
-Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be, however, too weak -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless.
+Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless.
 
 \inputminted
 [
@@ -929,9 +929,11 @@ The verification goes here.
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-\subsection{Foreseeing user experience 1 -- avoiding bloatware}
+\subsection{Foreseeing user experience 1 -- avoid bloatware}
 
-\subsection{Foreseeing user experience 1 -- provide a default implementation}
+\subsection{Foreseeing user experience 2 -- provide a default implementation}
+
+Provide a default concrete algorithm so that the user doesn't need to fill the template himself.
 
 \section{Summary} \label{summary2}
 

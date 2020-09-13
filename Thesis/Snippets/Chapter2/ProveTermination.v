@@ -26,7 +26,7 @@ Class TerminatingQSArgs : Type :=
 
 Coercion args : TerminatingQSArgs >-> QSArgs.
 
-Inductive QSDom (A : TerminatingQSArgs) : list A -> Type :=
+Inductive QSDom (A : QSArgs) : list A -> Type :=
     | Short :
         forall l : list A, short l = None -> QSDom A l
     | Long :
@@ -40,7 +40,7 @@ Inductive QSDom (A : TerminatingQSArgs) : list A -> Type :=
           QSDom A lt -> QSDom A gt -> QSDom A l.
 
 Fixpoint qs'
-  {A : TerminatingQSArgs} {l : list A} (d : QSDom A l) : list A :=
+  {A : QSArgs} {l : list A} (d : QSDom A l) : list A :=
 match d with
     | Short _ _ _ => adhoc l
     | Long _ _ pivot _ eq _ ltd gtd =>
@@ -48,7 +48,7 @@ match d with
 end.
 
 Lemma QSDom_all :
-  forall (A : TerminatingQSArgs) (l : list A), QSDom A l.
+  forall (A : QSArgs) (l : list A), QSDom A l.
 Proof.
   intro A.
   apply well_founded_induction_type with (R := ltof _ (@length A)).
@@ -134,4 +134,57 @@ Proof.
   intros; subst. apply le_lt_trans with (length rest).
     apply (partition_len_lt teq2).
     rewrite (choosePivot_len teq1). apply (short_len teq).
+Defined.
+
+Unset Guard Checking.
+Fixpoint QSDom_all'
+  (A : TerminatingQSArgs) (l : list A) : QSDom A l.
+Proof.
+  destruct (short l) as [[h t] |] eqn: Hshort.
+    Focus 2. constructor. assumption.
+    destruct (choosePivot h t) as [pivot rest] eqn: Hpivot,
+             (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
+      econstructor 2; try eassumption.
+        apply QSDom_all.
+        apply QSDom_all.
+Defined.
+Set Guard Checking.
+
+Definition qswut
+  (A : TerminatingQSArgs) (l : list A) : list A :=
+    qs' (QSDom_all' A l).
+
+Compute qswut TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
+
+Instance QSA_default
+  (A : Type) (p : A -> A -> bool) : QSArgs :=
+{
+    T := A;
+    short l :=
+      match l with
+          | [] => None
+          | h :: t => Some (h, t)
+      end;
+    adhoc _ := [];
+    choosePivot h t := (h, t);
+    partition pivot rest :=
+      (filter (fun x => p x pivot) rest,
+       [],
+       filter (fun x => negb (p x pivot)) rest)
+}.
+
+Compute Bundled.qs (QSA_default nat leb) [5; 4; 3; 2; 1; 0].
+
+#[refine]
+Instance TQSA_default
+  (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
+{
+    args := QSA_default A p;
+}.
+Proof.
+  all: cbn.
+    destruct l; inversion 1; cbn. apply le_refl.
+    inversion 1; subst. reflexivity.
+    inversion 1; subst. apply len_filter.
+    inversion 1; subst. apply len_filter.
 Defined.
