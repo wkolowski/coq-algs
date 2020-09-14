@@ -2,9 +2,3 @@
 1.1. Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
 1.2. Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
 1.3. Cool data structures: ternary search trees, finger trees.
-
-2. Za mało reużywania kodu, zrobić tak żeby \m{TerminatingQSArgs} zawierało gołe \m{QSArgs}.
-
-3. Napisać tutaj też o kwestii \m{QSArgs} vs \m{TerminatingQSArgs} etc.
-
-4. W user experience 3 napisać coś o tym, że \m{VerifiedQSArgs} jest nieco nadmiarowy, np. dowody bycia permutacją pociągają za sobą dowody różnych długościowych rzeczy.

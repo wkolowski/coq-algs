@@ -855,34 +855,46 @@ Having all the lemmas we need, the proof proceeds exactly as described above. \m
 
 \subsection{User experience: default implementation as a sanity check} \label{sanity2}
 
-In section \ref{sanity1} we learned an important sanity check we can easily perform: filling the template in to get a concrete algorithm. Carrying out that check turned out very beneficial -- it might have happened, after all, that our template is so silly that it isn't possible to fill it in!
+In section \ref{sanity1} we learned an important sanity check we can easily perform: filling the template in to get a concrete algorithm. Carrying out that check turned out to be very beneficial -- it might have happened, after all, that our template is so silly that it isn't possible to fill it in!
 
-Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless. We might be tempted to extend our previous sanity check by providing a concrete termination proof for the concrete algorithm that it brought to life. There is, however, a smarter thing to do.
+Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless. We might be tempted to extend our previous sanity check by providing a concrete termination proof for the concrete algorithm that it spawned. There is, however, a smarter thing to do.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#3.3} \\
     Make sure that a user can run a default implementation of the algorithm without having to prove anything.
 \end{center}
 
-By listening to the advice in the above technique, we can hit two birds with one stone: instead of a concrete termination proof for a quicksort for sorting lists of naturals according to the standard order, we can define and prove termination of a default implementation of quicksort that works for any type \m{A} and any comparison function \m{p\ :\ A -> A -> bool}. The effort required is almost the same, but the result is much more generally applicable.
+The rationale behind the technique is quite simple -- it is a kind of \textit{principle of least effort}. A typical user will want to see the algorithm's results and running time immediately, without having to fill in the template. If he does decide to fill it in, he will want to get a feel of his custom algorithm without having to invest his precious time in proving anything. If he does decide to prove termination, he will want to use his provably-terminating algorithm as a building block of some bigger development without having to prove it correct. Only when he wants to prove the whole thing correct should he be forced into providing a concrete correctness proof.
 
-The rationale behind the technique is quite simple. Users are usually lazy -- they want good effects with low effort, and a decent default implementation provides just that. But not only are users low effort, they want the \textit{least effort}. In our case, this translates 
+By listening to the advice in the above technique, we can hit two birds with one stone: instead of a concrete termination proof for a quicksort for sorting lists of naturals according to the standard order, we can define and prove termination of a default implementation of quicksort that works for any type \m{A} and any comparison function \m{p\ :\ A -> A -> bool}. The effort required is almost the same, but the result is much more generally applicable.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
     firstline=121,
-    lastline=150
+    lastline=156
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-
-
+As we can see, the definition of \m{TQSA\_default} is almost the same as that of \m{QSA\_nat}. The proofs aren't very hard, so we have passed the sanity check -- we now have a provably terminating quicksort template, together with a default implementation, and, thanks to the last check, it looks like it produces correct results. But before we move on to prove our template's correctness, let's see what we could have done differently with regards to the termination proof.
 
 \subsection{A slight variation on a theme}
 
-%TODO: opisać alternatywny dizajn, gdzie to QSDom_all ma wyłączony termination checker
+The first thing we could have done differently is the relation between the provably terminating template and the possibly nonterminating template. We have implemented these separately, with termination checker turned off so that the latter gets accepted, but we could have chosen a different design in which \m{qs} is defined using inductive domain method and it is the ``termination proof'' (i.e. \m{QSDom\_all}) for which we turn off the termination checker. In this way we derive the possibly nonterminating version of \m{qs} from the template we used to define the provably terminating version. The code is shown in the listing below.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=162,
+    lastline=174
+]
+{Coq}{Snippets/Chapter2/ProveTermination.v}
+
+I am not sure why we would choose this variant over the original one. On the one hand it seems to be ``more uniform'' (one definition of \m{qs'}, two ``termination proofs'') than the original (two definitions of \m{qs'}, one termination proof), but on the other hand the definition of \m{qs'} with termination checker turned off is much more readable than the above proof of \m{QSDom\_all}, which is virtually the same, but implemented with tactics.
+
+The only argument in favor of this version that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas in the original design this would require two correctness proofs (one for the nonterminating \m{qs'}, another for the one defined using inductive domain method) that could even differ from one another.
 
 \subsection{A less relevant variant of the inductive domain method} \label{lessrelevant}
 

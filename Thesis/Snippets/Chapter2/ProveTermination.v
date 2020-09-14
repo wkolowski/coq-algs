@@ -149,11 +149,19 @@ Proof.
     inversion 1; subst. apply len_filter.
 Defined.
 
+Compute
+  qs
+    (TQSA_default _ (fun l1 l2 => leb (length l1) (length l2)))
+    [[1; 2; 3]; [2; 2]; []; [4; 4; 4; 42]].
+(* ===> = [[]; [2; 2]; [1; 2; 3]; [4; 4; 4; 42]] *)
+
 (** * A slight variation on a theme *)
 
+Module Variation.
+
 Unset Guard Checking.
-Fixpoint QSDom_all'
-  (A : TerminatingQSArgs) (l : list A) : QSDom A l.
+Fixpoint QSDom_all
+  (A : QSArgs) (l : list A) {struct l} : QSDom A l.
 Proof.
   destruct (short l) as [[h t] |] eqn: Hshort.
     Focus 2. constructor. assumption.
@@ -165,11 +173,13 @@ Proof.
 Defined.
 Set Guard Checking.
 
-Definition qswut
-  (A : TerminatingQSArgs) (l : list A) : list A :=
-    qs' (QSDom_all' A l).
+Definition qs
+  (A : QSArgs) (l : list A) : list A :=
+    qs' (QSDom_all A l).
 
-Compute qswut TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
+Compute qs TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
+
+End Variation.
 
 (** * *)
 

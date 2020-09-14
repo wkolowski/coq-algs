@@ -1,8 +1,6 @@
 Require Export ProveTermination.
 
-Module BoveCapretta_original.
-
-Inductive QSDom (A : TerminatingQSArgs) : list A -> Prop :=
+Inductive QSDom (A : QSArgs) : list A -> Prop :=
     | Short :
         forall l : list A, short l = None -> QSDom A l
     | Long :
@@ -17,7 +15,7 @@ Inductive QSDom (A : TerminatingQSArgs) : list A -> Prop :=
 
 Lemma Long_inv_lt :
   forall
-    {A : TerminatingQSArgs} {l : list A} (d : QSDom A l),
+    {A : QSArgs} {l : list A} (d : QSDom A l),
       forall {h : A} {t : list A},
         short l = Some (h, t) ->
       forall {pivot : A} {rest : list A},
@@ -38,7 +36,7 @@ Defined.
 
 Lemma Long_inv_gt :
   forall
-    {A : TerminatingQSArgs} {l : list A} (d : QSDom A l),
+    {A : QSArgs} {l : list A} (d : QSDom A l),
       forall {h : A} {t : list A},
         short l = Some (h, t) ->
       forall {pivot : A} {rest : list A},
@@ -58,7 +56,7 @@ Proof.
 Defined.
 
 Fixpoint qs'
-  (A : TerminatingQSArgs) (l : list A)
+  (A : QSArgs) (l : list A)
   (d : QSDom A l) {struct d}
   : list A :=
 match
@@ -115,11 +113,12 @@ Proof.
 Defined.
 
 #[refine]
-Instance TerminatingQSArgs_nat : TerminatingQSArgs :=
+Instance TQSA_default
+  (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
 {
     args :=
     {|
-        T := nat;
+        T := A;
         short l :=
           match l with
               | [] => None
@@ -127,10 +126,10 @@ Instance TerminatingQSArgs_nat : TerminatingQSArgs :=
           end;
         adhoc _ := [];
         choosePivot h t := (h, t);
-        partition p l :=
-          (filter (fun x => leb x p) l,
+        partition pivot rest :=
+          (filter (fun x => p x pivot) rest,
            [],
-           filter (fun x => negb (leb x p)) l);
+           filter (fun x => negb (p x pivot)) rest);
     |}
 }.
 Proof.
@@ -141,6 +140,4 @@ Proof.
     inversion 1; subst. apply len_filter.
 Defined.
 
-Compute qs TerminatingQSArgs_nat [4; 3; 2; 1].
-
-End BoveCapretta_original.
+Compute qs (TQSA_default nat leb) [4; 3; 2; 1].
