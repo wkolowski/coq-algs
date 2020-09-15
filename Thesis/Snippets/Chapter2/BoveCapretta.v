@@ -1,5 +1,36 @@
 Require Export ProveTermination.
 
+Extraction Language Haskell.
+Extraction QSDom.
+(* ===>
+  data QSDom =
+   | Short (List T)
+   | Long (List T) T (List T) T (List T) (List T)
+          (List T) (List T) QSDom QSDom
+*)
+
+Extraction QSDom_all.
+(* ===>
+  qSDom_all :: TerminatingQSArgs -> (List T) -> QSDom
+  qSDom_all a =
+    well_founded_induction_type (\l iH ->
+      let {o = short (args a) l} in
+      case o of {
+       Some p ->
+        case p of {
+         Pair h t ->
+          let {p0 = choosePivot (args a) h t} in
+          case p0 of {
+           Pair pivot rest ->
+            let {p1 = partition (args a) pivot rest} in
+            case p1 of {
+             Pair p2 x ->
+              case p2 of {
+               Pair lt eq -> Long l h t pivot rest eq lt x
+                (iH lt __) (iH x __)}}}};
+       None -> Short l})
+*)
+
 Inductive QSDom (A : QSArgs) : list A -> Prop :=
     | Short :
         forall l : list A, short l = None -> QSDom A l

@@ -181,8 +181,6 @@ Compute qs TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
 
 End Variation.
 
-(** * *)
-
 Require Import Recdef.
 
 Function qsf

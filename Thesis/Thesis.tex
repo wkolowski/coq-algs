@@ -368,7 +368,7 @@ Having given a thorough introduction, it should now be clear what we mean by ``f
     \item TODO: put here the remaining chapters after they're written.
 \end{itemize}
 
-\chapter{A quick \textit{tour de} sort} \label{quicksort}
+\chapter{A (not so) quick \textit{tour de} sort} \label{quicksort}
 
 The field of algorithms and data structures can, in principle, be easily separated into two subfields: the algorithms and the data structures. But these two go hand in hand: all algorithms operate on data structures, no matter how primitive, and data structures exist precisely in order for algorithms to operate on them.
 
@@ -894,11 +894,32 @@ The first thing we could have done differently is the relation between the prova
 
 I am not sure why we would choose this variant over the original one. On the one hand it seems to be ``more uniform'' (one definition of \m{qs'}, two ``termination proofs'') than the original (two definitions of \m{qs'}, one termination proof), but on the other hand the definition of \m{qs'} with termination checker turned off is much more readable than the above proof of \m{QSDom\_all}, which is virtually the same, but implemented with tactics.
 
-The only argument in favor of this version that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas in the original design this would require two correctness proofs (one for the nonterminating \m{qs'}, another for the one defined using inductive domain method) that could even differ from one another.
+The only argument in favor of this version that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas the original design this would require two correctness proofs (one for the nonterminating \m{qs'}, another for the one defined using inductive domain method) that could even differ from one another.
 
-\subsection{A less relevant variant of the inductive domain method} \label{lessrelevant}
+\subsection{A more irrelevant variant of the inductive domain method} \label{irrelevant}
 
-Bove-Capretta using sort Prop.
+Another thing we could have done differently is the particular form of the inductive domain method we used. Our domain ``predicate'' was not really a predicate, but a type family (i.e. a function \m{A -> Type}). As long as we stay inside Coq this is perfectly fine, but it starts being problematic when we leave Coq by using the mechanism of \textit{extraction}.
+
+Extraction is a way to translate a program written in Coq into Haskell, OCaml or Scheme. Because Coq is an interpreted (and thus slow) language without any mechanism to interact with the outside world,\footnote{However, there are some attempts at adding IO to Coq. See \url{http://coq.io/} and \url{https://github.com/Lysxia/coq-simple-io} for more information.} extraction is often the only way to use Coq in a real-world project. In such a case it is essential to write the Coq code that produces the highest quality extracted code.
+
+Very relevant to this goal is the distinction between the sorts\footnote{Sorts are also called universes.} \m{Type} and \m{Prop}, one of the main differences between Coq's theory and Martin-L\"{o}f Type Theory which we discussed in the introduction. For the purpose of this section we can think that \m{Type} is the universe of computationally relevant program specifications whose elements are programs, whereas \m{Prop} is the universe of computationally irrelevant propositions, whose elements are proofs.
+
+A thing is computationally relevant if its actual definition matters and irrelevant otherwise. Programs are relevant, because different programs may produce different results and we do care about the results they compute. Propositions, on the other hand, are irrelevant, because we don't care \textit{how} they are proved, only \textit{that} they are proved.
+
+This distinction between \m{Type} and \m{Prop} is realized in Coq by a rule which forbids defining a program by pattern matching on a proof of a proposition. One consequence of it is that for propositions we can assume the Axiom of Proof Irrelevance, which asserts \m{forall (P\ :\ Prop) (p1 p2\ :\ P), p1 = p2}, i.e. that any two proofs of a given proposition are equal, but we cannot do so for types, because it would lead to contradiction (because, for example, the numbers \m{0} and \m{1} are different).
+
+Another consequence is the behaviour of the extraction mechanism: because proofs of propositions are computationally irrelevant (and because none of the three target languages of extraction supports theorem proving), they are erased during extraction. Programs, on the other hand, are of course not erased, but translated into target language programs that compute the same results in the same way.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=3,
+    lastline=32
+]
+{Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is type.
 
 \subsection{Automating the termination proof... sometimes}
 
