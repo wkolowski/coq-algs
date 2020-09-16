@@ -132,6 +132,8 @@ Defined.
 Definition qs (A : TerminatingQSArgs) (l : list A) : list A :=
   qs' A l (QSDom_all A l).
 
+Recursive Extraction qs.
+
 Lemma len_filter :
   forall (A : Type) (p : A -> bool) (l : list A),
     length (filter p l) <= length l.

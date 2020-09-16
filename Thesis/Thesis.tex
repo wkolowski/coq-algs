@@ -900,11 +900,11 @@ The only argument in favor of this version that comes to my mind is that it woul
 
 Another thing we could have done differently is the particular form of the inductive domain method we used. Our domain ``predicate'' was not really a predicate, but a type family (i.e. a function \m{A -> Type}). As long as we stay inside Coq this is perfectly fine, but it starts being problematic when we leave Coq by using the mechanism of \textit{extraction}.
 
-Extraction is a way to translate a program written in Coq into Haskell, OCaml or Scheme. Because Coq is an interpreted (and thus slow) language without any mechanism to interact with the outside world,\footnote{However, there are some attempts at adding IO to Coq. See \url{http://coq.io/} and \url{https://github.com/Lysxia/coq-simple-io} for more information.} extraction is often the only way to use Coq in a real-world project. In such a case it is essential to write the Coq code that produces the highest quality extracted code.
+Extraction is a way to translate a program written in Coq into Haskell, OCaml or Scheme\footnote{There are some attempts to support other target languages. See \url{https://github.com/pirapira/coq2rust} for a project which tries to provide extraction of Coq programs into Rust.}. Because Coq is more of a bare typechecker than a full-blown programming language, it lacks any mechanism to interact with the outside world,\footnote{However, there are some attempts at adding IO to Coq. See \url{http://coq.io/} and \url{https://github.com/Lysxia/coq-simple-io} for more information.} and thus extraction is often the only way to use Coq in a real-world project. In such a case it is essential to write Coq code that produces the highest quality extracted code.
 
-Very relevant to this goal is the distinction between the sorts\footnote{Sorts are also called universes.} \m{Type} and \m{Prop}, one of the main differences between Coq's theory and Martin-L\"{o}f Type Theory which we discussed in the introduction. For the purpose of this section we can think that \m{Type} is the universe of computationally relevant program specifications whose elements are programs, whereas \m{Prop} is the universe of computationally irrelevant propositions, whose elements are proofs.
+Very relevant to this goal is the distinction between the sorts\footnote{Sorts are also called universes.} \m{Type} and \m{Prop}, one of the main differences between Coq's theory and Martin-L\"{o}f Type Theory which we discussed in the introduction. For the purpose of this section we can think that \m{Type} is the universe of computationally relevant program specifications that are inhabited by programs, whereas \m{Prop} is the universe of computationally irrelevant propositions that are inhabited by proofs.
 
-A thing is computationally relevant if its actual definition matters and irrelevant otherwise. Programs are relevant, because different programs may produce different results and we do care about the results they compute. Propositions, on the other hand, are irrelevant, because we don't care \textit{how} they are proved, only \textit{that} they are proved.
+A term is computationally relevant if its actual definition matters and irrelevant otherwise. Programs are relevant, because different programs may produce different results and we do care what the results actually look like. Proofs, on the other hand, are irrelevant, because we don't care \textit{how} propositions are proved, only \textit{that} they are proved.
 
 This distinction between \m{Type} and \m{Prop} is realized in Coq by a rule which forbids defining a program by pattern matching on a proof of a proposition. One consequence of it is that for propositions we can assume the Axiom of Proof Irrelevance, which asserts \m{forall (P\ :\ Prop) (p1 p2\ :\ P), p1 = p2}, i.e. that any two proofs of a given proposition are equal, but we cannot do so for types, because it would lead to contradiction (because, for example, the numbers \m{0} and \m{1} are different).
 
@@ -919,7 +919,44 @@ Another consequence is the behaviour of the extraction mechanism: because proofs
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is type.
+The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that our algorithm terminates. We certainly don't want the termination proof leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs} with the termination checker turned off.
+
+There is a variant of the inductive domain method (arguably somewhat more complex than the one we already know) which we can use to achieve this goal. Luckily, the aforementioned rule that disallows defining programs by pattern matching on proofs has an exception: we can pattern match on a proof if only a single case is possible.\footnote{Or, if no cases at all are possible -- this is the canonical way to construct an element of any type \m{A} from a proof of \m{False}.} To get what we want, it therefore suffices to change the codomain of \m{QSDom} into \m{Prop} and use the exception to the rule for making recursive calls.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=34,
+    lastline=45
+]
+{Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+As we said, the codomain of \m{QSDom} changes to \m{Prop}, but everything else stays the same.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=47,
+    lastline=66
+]
+{Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+Next we need an inversion lemma that retrieves a proof of \m{QSDom A lt} from a proof of \m{QSDom A l}. It realizes in practice the exception to the rule we mentioned before. Even though when matching on a proof of \m{QSDom} there are two possible cases, \m{Short} and \m{Long}, we will match it only when we know the list is not short, which reduces the number of possible cases to one.
+
+The proof is a bit involved because of all the equational premises which need to be rewritten at some point, but the idea is very simple: just retrieve a proof of \m{QSDom A lt} from the constructor's arguments. We also need an analogous inversion lemma for \m{QSDom A gt} -- it is not shown in the listing because it is completely analogous.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=89,
+    lastline=111
+]
+{Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+
 
 \subsection{Automating the termination proof... sometimes}
 
