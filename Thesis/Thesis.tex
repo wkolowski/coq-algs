@@ -906,7 +906,7 @@ Very relevant to this goal is the distinction between the sorts\footnote{Sorts a
 
 A term is computationally relevant if its actual definition matters and irrelevant otherwise. Programs are relevant, because different programs may produce different results and we do care what the results actually look like. Proofs, on the other hand, are irrelevant, because we don't care \textit{how} propositions are proved, only \textit{that} they are proved.
 
-This distinction between \m{Type} and \m{Prop} is realized in Coq by a rule which forbids defining a program by pattern matching on a proof of a proposition. One consequence of it is that for propositions we can assume the Axiom of Proof Irrelevance, which asserts \m{forall (P\ :\ Prop) (p1 p2\ :\ P), p1 = p2}, i.e. that any two proofs of a given proposition are equal, but we cannot do so for types, because it would lead to contradiction (because, for example, the numbers \m{0} and \m{1} are different).
+This distinction between \m{Type} and \m{Prop} is realized in Coq by a rule which forbids defining a program by pattern matching on a proof of a proposition. One consequence of it is that for propositions we can assume the Axiom of Proof Irrelevance which asserts that any two proofs of a given proposition are equal, i.e. \m{forall (P\ :\ Prop) (p1 p2\ :\ P), p1 = p2}. We cannot do so for types, however, because it would lead to contradiction (as, for example, the numbers \m{0} and \m{1} are different).
 
 Another consequence is the behaviour of the extraction mechanism: because proofs of propositions are computationally irrelevant (and because none of the three target languages of extraction supports theorem proving), they are erased during extraction. Programs, on the other hand, are of course not erased, but translated into target language programs that compute the same results in the same way.
 
@@ -919,9 +919,9 @@ Another consequence is the behaviour of the extraction mechanism: because proofs
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that our algorithm terminates. We certainly don't want the termination proof leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs} with the termination checker turned off.
+The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that our algorithm terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs} with the termination checker turned off.
 
-There is a variant of the inductive domain method (arguably somewhat more complex than the one we already know) which we can use to achieve this goal. Luckily, the aforementioned rule that disallows defining programs by pattern matching on proofs has an exception: we can pattern match on a proof if only a single case is possible.\footnote{Or, if no cases at all are possible -- this is the canonical way to construct an element of any type \m{A} from a proof of \m{False}.} To get what we want, it therefore suffices to change the codomain of \m{QSDom} into \m{Prop} and use the exception to the rule for making recursive calls.
+There is a variant of the inductive domain method (arguably somewhat more complex than the one we already know) which we can use to achieve this goal. Luckily, the aforementioned rule that disallows defining programs by pattern matching on proofs has an exception: we can pattern match on a proof if only a single case is possible.\footnote{Or, if no cases at all are possible -- this is the canonical way to construct an element of any type \m{A} from a proof of \m{False}.}
 
 \inputminted
 [
@@ -932,7 +932,7 @@ There is a variant of the inductive domain method (arguably somewhat more comple
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-As we said, the codomain of \m{QSDom} changes to \m{Prop}, but everything else stays the same.
+To get what we want, it therefore suffices to change the codomain of \m{QSDom} into \m{Prop} and use the exception to the rule for making recursive calls. The former task, whose results are shown in the listing above, is a piece of cake, but the latter has some technical overhead -- Coq is not smart enough to just let us match on the proof, so we will need to pack the pattern matching into special lemmas. One of these is shown in the listing below.
 
 \inputminted
 [
@@ -943,9 +943,7 @@ As we said, the codomain of \m{QSDom} changes to \m{Prop}, but everything else s
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-Next we need an inversion lemma that retrieves a proof of \m{QSDom A lt} from a proof of \m{QSDom A l}. It realizes in practice the exception to the rule we mentioned before. Even though when matching on a proof of \m{QSDom} there are two possible cases, \m{Short} and \m{Long}, we will match it only when we know the list is not short, which reduces the number of possible cases to one.
-
-The proof is a bit involved because of all the equational premises which need to be rewritten at some point, but the idea is very simple: just retrieve a proof of \m{QSDom A lt} from the constructor's arguments. We also need an analogous inversion lemma for \m{QSDom A gt} -- it is not shown in the listing because it is completely analogous.
+Even though when matching on the proof of \m{QSDom A l} there are two possible cases, \m{Short} and \m{Long}, we will match it only when we know the list is not short, which reduces the number of possible cases to one. The above inversion lemma, which retrieves a proof of \m{QSDom A lt} from the proof of \m{QSDom A l}, formalizes this simple intuition. Its proof, however, is a bit involved because of all the equational hypotheses which need to be rewritten at some point. We also need an analogous inversion lemma for \m{QSDom A gt} -- it is not shown in the listing because it is completely analogous. Note that we end the proof with \m{Defined}, not \m{Qed} -- this is crucial, because Coq will need to be able to inspect the resulting proofterm.
 
 \inputminted
 [
@@ -955,6 +953,10 @@ The proof is a bit involved because of all the equational premises which need to
     lastline=111
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \m{\{struct d\}}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'}, when the termination checker was turned off.
+
+The second important thing to notice is that, unlike previously, we don't just simply match on \m{short l} or use \m{let}s to pattern match on the results of \m{choosePivot} or \m{partition}. This time in each of these cases we have to use the full power of Coq's dependent pattern matching in order to generalize the return types. This is because we need to feed equations like \m{short l = Some (h, t)} into our inversion lemmas. Doing this is simpler than it looks: in \m{match short l as x return short l = x -> \_ with}, for example, 
 
 
 
