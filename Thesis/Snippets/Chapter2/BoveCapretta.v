@@ -1,4 +1,4 @@
-Require Export ProveTermination.
+Require Export ProveTermination Recdef.
 
 Extraction Language Haskell.
 Extraction QSDom.

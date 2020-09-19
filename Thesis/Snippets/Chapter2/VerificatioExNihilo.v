@@ -1,34 +1,8 @@
-Require Import List Arith.
-Import ListNotations.
-
-Require Import Specification Lemmas.
+Require Export Lemmas ProveTermination Lia.
 
 Class VerifiedQSArgs : Type :=
 {
-    T : Type;
-    short : list T -> option (T * list T);
-    adhoc : list T -> list T;
-    choosePivot : T -> list T -> T * list T;
-    partition : T -> list T -> list T * list T * list T;
-
-    short_len :
-      forall {l : list T} {h : T} {t : list T},
-        short l = Some (h, t) -> length t < length l;
-
-    choosePivot_len :
-      forall {h : T} {t : list T} {pivot : T} {rest : list T},
-        choosePivot h t = (pivot, rest) ->
-          length rest = length t;
-
-    partition_len_lt :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          length lt <= length rest;
-
-    partition_len_gt :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          length gt <= length rest;
+    T :> TerminatingQSArgs;
 
     (* TODO *)
     Permutation_adhoc :
@@ -51,7 +25,7 @@ Class VerifiedQSArgs : Type :=
         partition pivot rest = (lt, eq, gt) ->
           Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
 
-    (* TODO 2 *)
+    (* TODO 2: kwestia rozstrzygalności relacji *)
     R : T -> T -> Prop;
 
     R_refl :
@@ -78,86 +52,15 @@ Class VerifiedQSArgs : Type :=
           Forall (fun x => R pivot x) gt;
 }.
 
-Coercion T : VerifiedQSArgs >-> Sortclass.
+Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
 Coercion R : VerifiedQSArgs >-> Funclass.
 
-Inductive QSDom (A : VerifiedQSArgs) : list A -> Type :=
-    | Short :
-        forall l : list A, short l = None -> QSDom A l
-    | Long :
-        forall {l : list A},
-          forall {h : A} {t : list A},
-            short l = Some (h, t) ->
-          forall (pivot : A) {rest : list A},
-            choosePivot h t = (pivot, rest) ->
-          forall (eq : list A) {lt gt : list A},
-            partition pivot rest = (lt, eq, gt) ->
-          QSDom A lt -> QSDom A gt -> QSDom A l.
-
-Fixpoint qs'
-  {A : VerifiedQSArgs} {l : list A} (d : QSDom A l) : list A :=
-match d with
-    | Short _ _ _ => adhoc l
-    | Long _ _ pivot _ eq _ ltd gtd =>
-        qs' ltd ++ pivot :: eq ++ qs' gtd
-end.
-
-Lemma QSDom_all :
-  forall (A : VerifiedQSArgs) (l : list A), QSDom A l.
-Proof.
-  intro A.
-  apply well_founded_induction_type with (R := ltof _ (@length A)).
-    apply well_founded_ltof.
-    intros l IH. destruct (short l) as [[h t] |] eqn: Hshort.
-      Focus 2. constructor. assumption.
-      destruct (choosePivot h t) as [pivot rest] eqn: Hpivot;
-      destruct (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
-      econstructor 2; try eassumption.
-        apply IH; red. apply le_lt_trans with (length rest).
-          apply (partition_len_lt Hpartition).
-          rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
-        apply IH; red. apply le_lt_trans with (length rest).
-          apply (partition_len_gt Hpartition).
-          rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
-Defined.
-
-Definition qs (A : VerifiedQSArgs) (l : list A) : list A :=
-  qs' (QSDom_all A l).
-
-Lemma len_filter :
-  forall (A : Type) (p : A -> bool) (l : list A),
-    length (filter p l) <= length l.
-Proof.
-  induction l as [| h t]; cbn.
-    trivial.
-    destruct (p h).
-      cbn. apply le_n_S. assumption.
-      apply le_S. assumption.
-Defined.
-
-Require Import Lia.
-
 #[refine]
-Instance QSArgs_nat : VerifiedQSArgs :=
+Instance VQSA_nat : VerifiedQSArgs :=
 {
-    T := nat;
-    short l :=
-      match l with
-          | [] => None
-          | h :: t => Some (h, t)
-      end;
-    adhoc _ := [];
-    choosePivot h t := (h, t);
-    partition p l :=
-      (filter (fun x => leb x p) l,
-       [],
-       filter (fun x => negb (leb x p)) l)
+    T := TQSA_nat;
 }.
 Proof.
-  destruct l; inversion 1; cbn. apply le_refl.
-  inversion 1. reflexivity.
-  inversion 1; subst. apply len_filter.
-  inversion 1; subst. apply len_filter.
   destruct l; inversion 1. constructor.
   destruct l; inversion 1. constructor.
   inversion 1. constructor.
@@ -168,7 +71,16 @@ Proof.
         eapply Permutation_trans.
           apply Permutation_swap.
           apply Permutation_cons. assumption.
-        admit.
+        {
+          rewrite Permutation_app_symm.
+          rewrite <- !app_comm_cons.
+          rewrite Permutation_swap.
+          rewrite (@Permutation_swap _ h pivot).
+          apply Permutation_cons. 
+          rewrite app_comm_cons.
+          rewrite Permutation_app_symm.
+          assumption.
+        }
   exact le.
   apply le_refl.
   constructor.
@@ -187,14 +99,12 @@ Proof.
         constructor.
           lia.
           assumption.
-Admitted.
+Defined.
 
-(*
-Compute qs QSArgs_nat [4; 3; 2; 1].
-*)
+Compute qs VQSA_nat [4; 3; 2; 1].
 
 Lemma qs'_ind :
-  forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
+  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
       forall (l : list A) (h : A) (t : list A),
@@ -214,7 +124,7 @@ Proof.
 Qed.
 
 Lemma qs_ind :
-  forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
+  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
       forall (l : list A) (h : A) (t : list A),
@@ -399,7 +309,7 @@ Theorem Permutation_qsf :
 Proof.
   intros.
   functional induction (qsf A l).
-    apply Permutation_adhoc. assumption.
+    eapply Permutation_adhoc. assumption.
     {
       apply Permutation_short in e.
       apply Permutation_choosePivot in e0.

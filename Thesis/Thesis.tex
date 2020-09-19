@@ -975,19 +975,6 @@ The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the 
 
 What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have thus achieved our goal.
 
-\subsection{Automating the termination proof... sometimes}
-
-\inputminted
-[
-    frame=lines,
-    bgcolor=CoqIDE,
-    firstline=131,
-    lastline=149
-]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
-
-Coq's \m{Function} command.
-
 \section{Verificatio ex nihilo} \label{exnihilo}
 
 \concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
@@ -1010,7 +997,20 @@ Mention functional induction here and how to derive it.
     frame=lines,
     bgcolor=CoqIDE,
     firstline=208,
-    lastline=284
+    lastline=269
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+\subsection{Automating the boring stuff}
+
+Coq's \m{Function} command description goes here.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=271,
+    lastline=290
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 

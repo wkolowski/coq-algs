@@ -180,23 +180,3 @@ Definition qs
 Compute qs TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
 
 End Variation.
-
-Require Import Recdef.
-
-Function qsf
-  (A : TerminatingQSArgs) (l : list A) {measure length l} : list A :=
-match short l with
-    | None => adhoc l
-    | Some (h, t) =>
-        let '(pivot, rest) := choosePivot h t in
-        let '(lt, eq, gt)  := partition pivot rest in
-          qsf A lt ++ pivot :: eq ++ qsf A gt
-end.
-Proof.
-  intros; subst. apply le_lt_trans with (length rest).
-    apply (partition_len_gt teq2).
-    rewrite (choosePivot_len teq1). apply (short_len teq).
-  intros; subst. apply le_lt_trans with (length rest).
-    apply (partition_len_lt teq2).
-    rewrite (choosePivot_len teq1). apply (short_len teq).
-Defined.
