@@ -915,11 +915,11 @@ Another consequence is the behaviour of the extraction mechanism: because proofs
     frame=lines,
     bgcolor=CoqIDE,
     firstline=3,
-    lastline=32
+    lastline=42
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-The above listing shows how the domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that our algorithm terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs} with the termination checker turned off.
+The above listing shows how \m{qs'}, its domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that \m{qs'} terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs'} from section \ref{template} with the termination checker turned off. But when we look at the result of extraction for \m{qs'}, we clearly see that this is not the case.
 
 There is a variant of the inductive domain method (arguably somewhat more complex than the one we already know) which we can use to achieve this goal. Luckily, the aforementioned rule that disallows defining programs by pattern matching on proofs has an exception: we can pattern match on a proof if only a single case is possible.\footnote{Or, if no cases at all are possible -- this is the canonical way to construct an element of any type \m{A} from a proof of \m{False}.}
 
@@ -927,8 +927,8 @@ There is a variant of the inductive domain method (arguably somewhat more comple
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=34,
-    lastline=45
+    firstline=44,
+    lastline=55
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
@@ -938,8 +938,8 @@ To get what we want, it therefore suffices to change the codomain of \m{QSDom} i
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=47,
-    lastline=66
+    firstline=57,
+    lastline=76
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
@@ -949,16 +949,31 @@ Even though when matching on the proof of \m{QSDom A l} there are two possible c
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=89,
-    lastline=111
+    firstline=99,
+    lastline=123
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \m{\{struct d\}}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'}, when the termination checker was turned off.
+Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \m{\{struct d\}}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'} from section \ref{template}, when the termination checker was turned off.
 
-The second important thing to notice is that, unlike previously, we don't just simply match on \m{short l} or use \m{let}s to pattern match on the results of \m{choosePivot} or \m{partition}. This time in each of these cases we have to use the full power of Coq's dependent pattern matching in order to generalize the return types. This is because we need to feed equations like \m{short l = Some (h, t)} into our inversion lemmas. Doing this is simpler than it looks: in \m{match short l as x return short l = x -> \_ with}, for example, 
+The second important thing to notice is that, unlike previously, we don't just simply match on \m{short l} or use \m{let}s to pattern match on the results of \m{choosePivot} or \m{partition}. This time in each of these cases we have to use the full power of Coq's dependent pattern matching in order to generalize the return types. This is because we need to feed equations like \m{short l = Some (h, t)} into our inversion lemmas.
 
+Doing this is simple, but the code looks a bit scary. For example, consider the fragment \m{match short l as x return short l = x -> list A with\ ...\ end eq\_refl}. It works like this. We match on \m{short l}. We use \m{x} to name the matched value (i.e. either \m{Some (h, t)} or \m{None}). Then we say that the return type of the whole match is \m{short l = x -> list A}, but after the \m{end} we have to apply the function returned by the \m{match} to \m{eq\_refl}, because we want our final result to be just \m{list A}. This works, because Coq now knows that \m{eq\_refl\ :\ short l = short l} is convertible with \m{eq\_refl\ :\ short l = x}, because \m{x} in the branches reduces to either \m{None} or \m{Some (h, t)} and these are convertible with \m{short l} because a match was performed. We have to repeat a similar maneuver three times, once for each of the equations we need for our inversion lemmas.
 
+The last important thing to notice is how the recursive calls look like. We use the lemma \m{Long\_inv\_lt} applied to the proof of \m{QSDom A l} and the three equations and it retrieves for us a proof of \m{QSDom A lt} which we use in the recursive call of \m{qs'}. Coq can see from the body of \m{Long\_inv\_lt} that it is a structurally smaller subterm of \m{d} and thus the recursive call is valid.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=183,
+    lastline=205
+]
+{Coq}{Snippets/Chapter2/BoveCapretta.v}
+
+The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the codomain of \m{QSDom} is now \m{Prop} doesn't affect it in the slightest. The same can be said of \m{qs} and the default instance \m{TQSA\_default} -- their definitions are the same as before. When we run \m{qs} on an exemple list of naturals, can see the list also gets sorted just like before.
+
+What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have thus achieved our goal.
 
 \subsection{Automating the termination proof... sometimes}
 

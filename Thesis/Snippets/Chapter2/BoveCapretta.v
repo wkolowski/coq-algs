@@ -31,6 +31,16 @@ Extraction QSDom_all.
        None -> Short l})
 *)
 
+Extraction qs'.
+(* ===>
+  qs' :: QSArgs -> (List T) -> QSDom -> List T
+  qs' a l d =
+    case d of {
+     Short _ -> adhoc a l;
+     Long _ _ _ pivot _ eq lt gt ltd gtd ->
+      app (qs' a lt ltd) (Cons pivot (app eq (qs' a gt gtd)))}
+*)
+
 Inductive QSDom (A : QSArgs) : list A -> Prop :=
     | Short :
         forall l : list A, short l = None -> QSDom A l
@@ -87,25 +97,27 @@ Proof.
 Defined.
 
 Fixpoint qs'
-  (A : QSArgs) (l : list A)
-  (d : QSDom A l) {struct d}
-  : list A :=
+  (A : QSArgs) (l : list A) (d : QSDom A l) {struct d} : list A :=
 match
-  short l as x return short l = x -> _
+  short l as x return short l = x -> list A
 with
 | None => fun _ => adhoc l
-| Some (h, t) => fun _ =>
+| Some (h, t) => fun eq1 =>
     match
-      choosePivot h t as y return choosePivot h t = y -> _
+      choosePivot h t as y
+    return
+      choosePivot h t = y -> list A
     with
-    | (pivot, rest) => fun _ =>
+    | (pivot, rest) => fun eq2 =>
         match
-          partition pivot rest as z return partition pivot rest = z -> _
+          partition pivot rest as z
+        return
+          partition pivot rest = z -> list A
         with
-        | (lt, eq, gt) => fun _ =>
-            qs' A lt ltac:(eapply Long_inv_lt; eassumption)
+        | (lt, eq, gt) => fun eq3 =>
+            qs' A lt (Long_inv_lt d eq1 eq2 eq3)
             ++ pivot :: eq ++
-            qs' A gt ltac:(eapply Long_inv_gt; eassumption)
+            qs' A gt (Long_inv_gt d eq1 eq2 eq3)
         end eq_refl
     end eq_refl
 end eq_refl.
@@ -128,11 +140,6 @@ Proof.
           apply (partition_len_gt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
 Defined.
-
-Definition qs (A : TerminatingQSArgs) (l : list A) : list A :=
-  qs' A l (QSDom_all A l).
-
-Recursive Extraction qs.
 
 Lemma len_filter :
   forall (A : Type) (p : A -> bool) (l : list A),
@@ -173,4 +180,26 @@ Proof.
     inversion 1; subst. apply len_filter.
 Defined.
 
+Definition qs (A : TerminatingQSArgs) (l : list A) : list A :=
+  qs' A l (QSDom_all A l).
+
 Compute qs (TQSA_default nat leb) [4; 3; 2; 1].
+(* ===> = [1; 2; 3; 4] *)
+
+Extraction qs'.
+(* ===>
+  qs' :: QSArgs -> (List T) -> List T
+  qs' a l =
+    case short a l of {
+     Some p ->
+      case p of {
+       Pair h t ->
+        case choosePivot a h t of {
+         Pair pivot rest ->
+          case partition a pivot rest of {
+           Pair p0 gt ->
+            case p0 of {
+             Pair lt eq ->
+              app (qs' a lt) (Cons pivot (app eq (qs' a gt)))}}}};
+     None -> adhoc a l}
+*)
