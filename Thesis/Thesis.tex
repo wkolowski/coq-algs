@@ -973,9 +973,11 @@ The last important thing to notice is how the recursive calls look like. We use 
 
 The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the codomain of \m{QSDom} is now \m{Prop} doesn't affect it in the slightest. The same can be said of \m{qs} and the default instance \m{TQSA\_default} -- their definitions are the same as before. When we run \m{qs} on an exemple list of naturals, can see the list also gets sorted just like before.
 
-What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have thus achieved our goal.
+What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have achieved our goal.
 
 \section{Verificatio ex nihilo} \label{exnihilo}
+
+We are now ready to make the last step in our grand journey for formally verified quicksort: prove correctness of our template (and then, as a sanity check, of a default concrete implementation too).
 
 \concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
 
@@ -987,8 +989,8 @@ Mention functional induction here and how to derive it.
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=115,
-    lastline=206
+    firstline=106,
+    lastline=124
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
@@ -996,8 +998,26 @@ Mention functional induction here and how to derive it.
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=208,
-    lastline=269
+    firstline=126,
+    lastline=146
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=148,
+    lastline=197
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=199,
+    lastline=275
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
@@ -1009,14 +1029,41 @@ Coq's \m{Function} command description goes here.
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=271,
-    lastline=290
+    firstline=277,
+    lastline=295
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
 \subsection{E pluribus unum}
 
 The verification goes here.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=3,
+    lastline=53
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=299,
+    lastline=318
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=370,
+    lastline=395
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
 \subsection{Sanity check -- concrete proofs}
 

@@ -146,7 +146,7 @@ Proof.
 Abort.
 
 Lemma isProp_QSDom :
-  forall (A : VerifiedQSArgs) (l : list A) (d1 d2 : QSDom A l),
+  forall (A : TerminatingQSArgs) (l : list A) (d1 d2 : QSDom A l),
     d1 = d2.
 Proof.
   induction d1; destruct d2.
@@ -170,7 +170,7 @@ Proof.
 Admitted.
 
 Lemma qs_ind_bad :
-  forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
+  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
       forall (l : list A) (h : A) (t : list A),
@@ -196,7 +196,7 @@ Proof.
     }
 Qed.
 
-Inductive qsG (A : VerifiedQSArgs) : list A -> list A -> Prop :=
+Inductive qsG (A : QSArgs) : list A -> list A -> Prop :=
     | ShortG :
         forall l : list A, short l = None -> qsG A l (adhoc l)
     | LongG :
@@ -212,7 +212,7 @@ Inductive qsG (A : VerifiedQSArgs) : list A -> list A -> Prop :=
               qsG A l (lt' ++ pivot :: eq ++ gt').
 
 Lemma qsG_det :
-  forall (A : VerifiedQSArgs) (l r1 r2 : list A),
+  forall (A : QSArgs) (l r1 r2 : list A),
     qsG A l r1 -> qsG A l r2 -> r1 = r2.
 Proof.
   intros until 1. revert r2.
@@ -231,7 +231,7 @@ Proof.
 Qed.
 
 Lemma qsG_correct :
-  forall (A : VerifiedQSArgs) (l : list A),
+  forall (A : TerminatingQSArgs) (l : list A),
     qsG A l (qs A l).
 Proof.
   intros. unfold qs.
@@ -242,7 +242,7 @@ Proof.
 Qed.
 
 Lemma qsG_complete :
-  forall (A : VerifiedQSArgs) (l r : list A),
+  forall (A : TerminatingQSArgs) (l r : list A),
     qsG A l r -> r = qs A l.
 Proof.
   intros.
@@ -252,7 +252,7 @@ Proof.
 Qed.
 
 Lemma qs_ind :
-  forall (A : VerifiedQSArgs) (P : list A -> list A -> Prop),
+  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
       forall (l : list A) (h : A) (t : list A),
@@ -277,7 +277,7 @@ Qed.
 Require Import Recdef.
 
 Function qsf
-  (A : VerifiedQSArgs) (l : list A) {measure length l} : list A :=
+  (A : TerminatingQSArgs) (l : list A) {measure length l} : list A :=
 match short l with
     | None => adhoc l
     | Some (h, t) =>
@@ -294,13 +294,7 @@ Proof.
     rewrite (choosePivot_len teq1). apply (short_len teq).
 Defined.
 
-(*
-Compute qsf QSArgs_nat [4; 3; 2; 1].
-*)
-
-Instance Transitive_Permutation :
-  forall A : Type, Transitive (@Permutation A).
-Admitted.
+Compute qsf (TQSA_default nat leb) [4; 3; 2; 1].
 
 Theorem Permutation_qsf :
   forall
@@ -390,4 +384,12 @@ Proof.
           eapply partition_pivot_gt; eassumption.
       apply (Permutation_Forall (Permutation_qsf A lt)).
           eapply partition_pivot_lt; eassumption.
+Qed.
+
+#[refine]
+Instance Sort_qsf
+  (A : VerifiedQSArgs) : Sort A (qsf A) := {}.
+Proof.
+  apply Sorted_qsf.
+  apply Permutation_qsf.
 Qed.
