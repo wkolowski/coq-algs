@@ -103,6 +103,89 @@ Defined.
 
 Compute qs VQSA_nat [4; 3; 2; 1].
 
+(** * One induction to rule them all: functional induction *)
+
+Inductive QSGraph (A : QSArgs) : list A -> list A -> Prop :=
+    | ShortG :
+        forall l : list A, short l = None -> QSGraph A l (adhoc l)
+    | LongG :
+        forall {l : list A},
+          forall {h : A} {t : list A},
+            short l = Some (h, t) ->
+          forall (pivot : A) {rest : list A},
+            choosePivot h t = (pivot, rest) ->
+          forall (eq : list A) {lt gt : list A},
+            partition pivot rest = (lt, eq, gt) ->
+          forall lt' gt' : list A,
+            QSGraph A lt lt' -> QSGraph A gt gt' ->
+              QSGraph A l (lt' ++ pivot :: eq ++ gt').
+
+Lemma QSGraph_correct :
+  forall (A : TerminatingQSArgs) (l : list A),
+    QSGraph A l (qs A l).
+Proof.
+  intros. unfold qs.
+  generalize (QSDom_all A l).
+  induction q; cbn.
+    constructor. assumption.
+    econstructor; eassumption.
+Qed.
+
+Lemma QSGraph_det :
+  forall (A : QSArgs) (l r1 r2 : list A),
+    QSGraph A l r1 -> QSGraph A l r2 -> r1 = r2.
+Proof.
+  intros until 1. revert r2.
+  induction H; inversion 1; subst.
+    reflexivity.
+    congruence.
+    congruence.
+    {
+      rewrite H in H5. inversion H5; subst.
+      rewrite H0 in H6. inversion H6; subst.
+      rewrite H1 in H7; inversion H7; subst.
+      repeat f_equal.
+        apply IHQSGraph1. assumption.
+        apply IHQSGraph2. assumption.
+    }
+Qed.
+
+Lemma QSGraph_complete :
+  forall (A : TerminatingQSArgs) (l r : list A),
+    QSGraph A l r -> r = qs A l.
+Proof.
+  intros.
+  eapply QSGraph_det.
+    eassumption.
+    apply QSGraph_correct.
+Qed.
+
+Lemma qs_ind :
+  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
+    (forall l : list A, short l = None -> P l (adhoc l)) ->
+    (
+      forall (l : list A) (h : A) (t : list A),
+        short l = Some (h, t) ->
+      forall (pivot : A) (rest : list A),
+        choosePivot h t = (pivot, rest) ->
+      forall lt eq gt : list A,
+        partition pivot rest = (lt, eq, gt) ->
+          P lt (qs A lt) -> P gt (qs A gt) ->
+            P l (qs A lt ++ pivot :: eq ++ qs A gt)
+    ) ->
+      forall l : list A, P l (qs A l).
+Proof.
+  intros.
+  apply QSGraph_ind.
+    assumption.
+    intros. apply QSGraph_complete in H4. apply QSGraph_complete in H6.
+      subst. eapply H0; eassumption.
+    apply QSGraph_correct.
+Qed.
+
+(** * Mathematicians hate him! He found a simple way to derive the
+      functional induction principle *)
+
 Lemma qs'_ind :
   forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
@@ -198,83 +281,7 @@ Proof.
     }
 Qed.
 
-Inductive qsG (A : QSArgs) : list A -> list A -> Prop :=
-    | ShortG :
-        forall l : list A, short l = None -> qsG A l (adhoc l)
-    | LongG :
-        forall {l : list A},
-          forall {h : A} {t : list A},
-            short l = Some (h, t) ->
-          forall (pivot : A) {rest : list A},
-            choosePivot h t = (pivot, rest) ->
-          forall (eq : list A) {lt gt : list A},
-            partition pivot rest = (lt, eq, gt) ->
-          forall lt' gt' : list A,
-            qsG A lt lt' -> qsG A gt gt' ->
-              qsG A l (lt' ++ pivot :: eq ++ gt').
-
-Lemma qsG_det :
-  forall (A : QSArgs) (l r1 r2 : list A),
-    qsG A l r1 -> qsG A l r2 -> r1 = r2.
-Proof.
-  intros until 1. revert r2.
-  induction H; inversion 1; subst.
-    reflexivity.
-    congruence.
-    congruence.
-    {
-      rewrite H in H5. inversion H5; subst.
-      rewrite H0 in H6. inversion H6; subst.
-      rewrite H1 in H7; inversion H7; subst.
-      repeat f_equal.
-        apply IHqsG1. assumption.
-        apply IHqsG2. assumption.
-    }
-Qed.
-
-Lemma qsG_correct :
-  forall (A : TerminatingQSArgs) (l : list A),
-    qsG A l (qs A l).
-Proof.
-  intros. unfold qs.
-  generalize (QSDom_all A l).
-  induction q; cbn.
-    constructor. assumption.
-    econstructor; eassumption.
-Qed.
-
-Lemma qsG_complete :
-  forall (A : TerminatingQSArgs) (l r : list A),
-    qsG A l r -> r = qs A l.
-Proof.
-  intros.
-  eapply qsG_det.
-    eassumption.
-    apply qsG_correct.
-Qed.
-
-Lemma qs_ind :
-  forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
-    (forall l : list A, short l = None -> P l (adhoc l)) ->
-    (
-      forall (l : list A) (h : A) (t : list A),
-        short l = Some (h, t) ->
-      forall (pivot : A) (rest : list A),
-        choosePivot h t = (pivot, rest) ->
-      forall lt eq gt : list A,
-        partition pivot rest = (lt, eq, gt) ->
-          P lt (qs A lt) -> P gt (qs A gt) ->
-            P l (qs A lt ++ pivot :: eq ++ qs A gt)
-    ) ->
-      forall l : list A, P l (qs A l).
-Proof.
-  intros.
-  apply qsG_ind.
-    assumption.
-    intros. apply qsG_complete in H4. apply qsG_complete in H6.
-      subst. eapply H0; eassumption.
-    apply qsG_correct.
-Qed.
+(** * Wut *)
 
 Require Import Recdef.
 

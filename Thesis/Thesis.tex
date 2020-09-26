@@ -986,21 +986,31 @@ We are now ready to make the last step in our grand journey for formally verifie
 
 \subsection{One induction to rule them all -- functional induction}
 
-But before we make the last step of our journey, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to put them together? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
+Before we make the last step of our journey, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to put them together? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
 
 If the recursion scheme of the function is different from the induction scheme in the induction principle used for the proof, problems may arise. For example, the standard induction principle for natural numbers, which is concerned only with $0$ and $n + 1$, is sometimes not sufficient for proofs about the Fibonacci numbers, which are defined by recursion by considering the cases of $0$, $1$ and $n + 2$.
 
-A tentative answer to this problem may be to use well-founded induction, just as we did for the termination proof. But again, as anybody who was ever done a proof by well-founded induction in Coq knows, this would be a bit messy and inconvenient. Because well-founded induction is so general it can be used for any function whatsoever, it doesn't fit any single recursion scheme particularly well and this produces some overhead.
+A tentative answer to this problem may be to use well-founded induction, just as we did for the termination proof. But again, as anybody who was ever done a proof by well-founded induction in Coq knows, this would be a bit messy and inconvenient. Because well-founded induction is so general that it can be used for any function whatsoever, it doesn't fit any single recursion scheme particularly well and this produces some overhead.
 
-Fortunately, there is a relatively cheap ultimate solution of the problem of inductive proofs: functional induction. This is a form of induction in which we use a tailor-made induction principle that perfectly fits the function's recursion scheme to prove all properties of the function. Thanks to this technique the proofs become pretty easy\footnote{Problems may arise only when we compose the function in question with others -- in such a case even the functional induction principle may be not enough to guarantee a smooth proof without overhead.} and also easy to automate, and the derivation of the functional induction principle is very schematic and easy to automate itself.
+Fortunately, there is a relatively cheap ultimate solution of the problem of inductive proofs: functional induction. This is a form of induction in which we use a tailor-made induction principle that perfectly fits the function's recursion scheme to prove all properties of the function. Thanks to this technique the proofs become pretty easy\footnote{Problems may arise only when we compose the function in question with others -- in such a case even the functional induction principle may be not enough to guarantee a smooth proof.} and also easy to automate, and the derivation of the functional induction principle is very schematic and easy to automate itself.
 
+\begin{center}
+    \textbf{Formally verified algorithm concept/technique \#4.1} \\
+    Define an inductive relation that represents the graph of your algorithm, prove that it is correct and complete and use its induction principle to derive the functional induction principle of your algorithm.
+\end{center}
+
+The above technique outlines how to derive the functional induction principle. The first step is to notice that there are two inductive families whose induction principles are almost what we're looking for: the inductive domain predicate and the inductive graph relation. We have already seen the former and should be adept at using it, but it turns our not to be what we are looking for -- we will see why in the next section. We are thus left with the latter.
+
+We say that a binary relation \m{R\ :\ A -> B -> Prop} is a graph of the function \m{f\ :\ A -> B} when \m{R a b <-> f a = b}. We called \m{R} ``a'' graph, but it can be proven that any function has exactly one graph, so we can just as well call it ``the'' graph. But even though all graphs of a given function are equivalent, they are not equivalently useful for our purposes, because the usefulness of their intensional characteristics can vary.
+
+For example, we can define the graph of the function \m{div2}, which divides a natural number by two (rounding down if the number is odd), in two extensionally equivalent ways, either by saying that \m{R a b := a = 2 * b $\lor$ a = 1 + 2 * b} or with an inductive definition that closely follows the recursive definition of \m{div2}. Only the latter, inductively defined graph relation is useful for deriving the functional induction principle. 
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=106,
-    lastline=126
+    firstline=108,
+    lastline=121
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
