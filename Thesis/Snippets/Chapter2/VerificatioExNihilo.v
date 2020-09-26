@@ -111,10 +111,12 @@ Lemma qs'_ind :
         short l = Some (h, t) ->
       forall (pivot : A) (rest : list A),
         choosePivot h t = (pivot, rest) ->
-      forall (lt eq gt : list A) (ltd : QSDom A lt) (gtd : QSDom A gt) ,
-        partition pivot rest = (lt, eq, gt) ->
-          P lt (qs' ltd) -> P gt (qs' gtd) ->
-            P l (qs' ltd ++ pivot :: eq ++ qs' gtd)
+      forall
+        (lt eq gt : list A)
+        (ltd : QSDom A lt) (gtd : QSDom A gt) ,
+          partition pivot rest = (lt, eq, gt) ->
+            P lt (qs' ltd) -> P gt (qs' gtd) ->
+              P l (qs' ltd ++ pivot :: eq ++ qs' gtd)
     ) ->
       forall (l : list A) (d : QSDom A l), P l (qs' d).
 Proof.
