@@ -124,11 +124,8 @@ Lemma QSGraph_correct :
   forall (A : TerminatingQSArgs) (l : list A),
     QSGraph A l (qs A l).
 Proof.
-  intros. unfold qs.
-  generalize (QSDom_all A l).
-  induction q; cbn.
-    constructor. assumption.
-    econstructor; eassumption.
+  intros. unfold qs. generalize (QSDom_all A l).
+  induction q; cbn; econstructor; eassumption.
 Qed.
 
 Lemma QSGraph_det :
@@ -154,9 +151,8 @@ Lemma QSGraph_complete :
   forall (A : TerminatingQSArgs) (l r : list A),
     QSGraph A l r -> r = qs A l.
 Proof.
-  intros.
-  eapply QSGraph_det.
-    eassumption.
+  intros. apply QSGraph_det with l.
+    assumption.
     apply QSGraph_correct.
 Qed.
 
@@ -175,11 +171,11 @@ Lemma qs_ind :
     ) ->
       forall l : list A, P l (qs A l).
 Proof.
-  intros.
-  apply QSGraph_ind.
-    assumption.
-    intros. apply QSGraph_complete in H4. apply QSGraph_complete in H6.
-      subst. eapply H0; eassumption.
+  intros A P Hshort Hlong l.
+  apply QSGraph_ind; intros.
+    apply Hshort. assumption.
+    apply QSGraph_complete in H2. apply QSGraph_complete in H4.
+      subst. eapply Hlong; eassumption.
     apply QSGraph_correct.
 Qed.
 
