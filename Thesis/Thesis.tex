@@ -1055,13 +1055,17 @@ With the lemma at hand, proving completeness is trivial: first we use the lemma 
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-At last we can formulate the functional induction principle and prove it. The principle looks similar to the induction principle \m{QSGraph\_ind} that Coq generated automatically for \m{QSGraph}. The differences are that we assume the induction hypothesis holds for \m{P lt (qs A lt)} and \m{P gt (qs A gt)} instead of \m{lt'} and \m{gt'} coming from derivations of \m{QSGraph A lt lt'} and \m{QSGraph A gt gt'}. Another difference is that there is no mention of \m{QSGraph} in the conclusion.
+At last we can formulate the functional induction principle and prove it. The principle looks similar to the induction principle \m{QSGraph\_ind} that Coq generated automatically for \m{QSGraph}. The differences are that we assume the induction hypothesis holds for \m{qs A lt} and \m{qs A gt} instead of \m{lt'} and \m{gt'} (which come from derivations of \m{QSGraph A lt lt'} and \m{QSGraph A gt gt'}). Another difference is that there is no mention of \m{QSGraph} in the conclusion.
 
-The proof is straightforward. We introduce assumptions to context and apply the induction principle of \m{QSGraph}. In the first case we use an assumption. In the second case
+The proof is straightforward. We introduce assumptions to context and apply the induction principle of \m{QSGraph}. In the first case we use one of the assumptions and in the second case we use the other one, with two uses of the completeness lemma to make everything typecheck. When asked for a proof of \m{QSGraph A l (qs A l)}, we use the correctness lemma.
 
+Deriving the functional induction principle turned out to be pretty easy and it should be just as easy when applied with the variant of inductive domain method from section \ref{irrelevant}. Moreover, derivation of the principle can be easily automated (together with the the inductive domain method) in most situations, as we will see in section \ref{automate}.
 
+But not all functions are as tame as quicksort -- there exist some nasty functions that could resist the approach presented above. An example that instantly comes to mind is McCarthy's f91 function\footnote{This is a function which satisfies the equation \m{f n = if 100 < n then n - 10 else f (f (n + 11))}.} and, more generally, any function with \textit{nested recursion}, i.e. in which the result of a recursive call is an argument of another recursive call.
 
-\subsection{Automating the boring stuff}
+\subsection{Don't do this at home}
+
+\subsection{Automating the boring stuff} \label{automate}
 
 Coq's \m{Function} command description goes here.
 
