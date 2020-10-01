@@ -1059,13 +1059,52 @@ At last we can formulate the functional induction principle and prove it. The pr
 
 The proof is straightforward. We introduce assumptions to context and apply the induction principle of \m{QSGraph}. In the first case we use one of the assumptions and in the second case we use the other one, with two uses of the completeness lemma to make everything typecheck. When asked for a proof of \m{QSGraph A l (qs A l)}, we use the correctness lemma.
 
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=182,
+    lastline=196
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+The last thing to do is proving the recursive equation, shown in the listing above. In theory it should not be necessary -- the functional induction principle should always suffice -- but in practice it is sometimes handy to have it. The purpose of the recursive equation is to be able to ``unfold'' the function's definition, replacing it with the desired, clean body we wanted to have at the very beginning instead of the clumsy actual implementation, which involves hairy details like the termination proof.
+
+The proof is very easy -- we introduce assumptions into context and proceed by functional induction, using the principle we just derived. This needs to be done with the tactic \m{apply}, because the tactic \m{induction} doesn't understand our custom principle. In both cases we finish by rewriting some hypotheses. Note that the induction hypotheses were not necessary.
+
 Deriving the functional induction principle turned out to be pretty easy and it should be just as easy when applied with the variant of inductive domain method from section \ref{irrelevant}. Moreover, derivation of the principle can be easily automated (together with the the inductive domain method) in most situations, as we will see in section \ref{automate}.
 
 But not all functions are as tame as quicksort -- some tougher classes of functions require slight modifications to the approach presented above. One such class are the functions that exhibit \textit{nested recursion}, i.e. a situation in which the result of a recursive call is an argument of another recursive call. These functions are problematic because the domain predicate can't be defined in the usual way: whether an element belongs to the domain might depend on whether the function's result for this argument belongs to the domain. Luckily, we can deal with such functions by first defining the inductive graph relation and then using it to represent the recursive calls in the definition of the domain predicate and then proceed as usual.
 
-Another not-so-tame class of recursive functions that doesn't easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code.
+Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in \ref{automate} often can't generate these definitions automatically.
 
 \subsection{Don't do this at home}
+
+Before proceeding to see the automation, we will try to explore another way of deriving the functional induction principle -- a way which, at first sight, looks much easier and more appealing than the one we have already seen, but upon closer inspection leads down a rabbit hole.
+
+That way is to omit the inductive graph alltogether and try to derive the functional induction principle from the induction principle of the domain predicate. The first step in such an attempt is to prove an induction principle for the helper function \m{qs'}, show in the listing below.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=222,
+    lastline=220
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+Even though deriving an induction principle for the helper function is very easy, transfering the principle to \m{qs} is impossible, as shown in the listing below.
+
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=222,
+    lastline=241
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
 
 \subsection{Automating the boring stuff} \label{automate}
 

@@ -179,8 +179,23 @@ Proof.
     apply QSGraph_correct.
 Qed.
 
-(** * Mathematicians hate him! He found a simple way to derive the
-      functional induction principle *)
+Lemma qs_eq :
+  forall (A : TerminatingQSArgs) (l : list A),
+    qs A l =
+    match short l with
+        | None => adhoc l
+        | Some (h, t) =>
+            let '(pivot, rest) := choosePivot h t in
+            let '(lt, eq, gt)  := partition pivot rest in
+              qs A lt ++ pivot :: eq ++ qs A gt
+    end.
+Proof.
+  intros A l. apply qs_ind; intros.
+    rewrite H. reflexivity.
+    rewrite H, H0, H1. reflexivity.
+Qed.
+
+(** * Don't do this at home *)
 
 Lemma qs'_ind :
   forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
@@ -204,7 +219,7 @@ Proof.
     eapply H0; eassumption.
 Qed.
 
-Lemma qs_ind :
+Lemma qs_ind_bad :
   forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
     (
@@ -219,10 +234,9 @@ Lemma qs_ind :
     ) ->
       forall l : list A, P l (qs A l).
 Proof.
-  intros.
-  unfold qs.
+  intros A P Hshort Hlong l. unfold qs.
   apply qs'_ind.
-    apply H.
+    apply Hshort.
     intros. unfold qs in *.
 Abort.
 
