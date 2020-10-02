@@ -234,10 +234,10 @@ Lemma qs_ind_bad :
     ) ->
       forall l : list A, P l (qs A l).
 Proof.
-  intros A P Hshort Hlong l. unfold qs.
+  unfold qs. intros A P Hshort Hlong l.
   apply qs'_ind.
     apply Hshort.
-    intros. unfold qs in *.
+    intros.
 Abort.
 
 Lemma isProp_QSDom :
@@ -257,13 +257,11 @@ Proof.
       assert (eq = eq0) by congruence.
       assert (gt = gt0) by congruence.
       subst. f_equal.
-        admit.
-        admit.
-        admit.
-        apply IHd1_1.
-        apply IHd1_2.
-Admitted.
+        4: apply IHd1_1.
+        4: apply IHd1_2.
+Abort.
 
+(*
 Lemma qs_ind_bad :
   forall (A : TerminatingQSArgs) (P : list A -> list A -> Prop),
     (forall l : list A, short l = None -> P l (adhoc l)) ->
@@ -290,6 +288,7 @@ Proof.
       eapply H0; eassumption.
     }
 Qed.
+*)
 
 (** * Wut *)
 
