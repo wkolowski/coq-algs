@@ -248,7 +248,6 @@ Proof.
     f_equal. admit.
     congruence.
     congruence.
-    {
       assert (h = h0) by congruence.
       assert (t = t0) by congruence.
       assert (pivot = pivot0) by congruence.
@@ -257,8 +256,6 @@ Proof.
       assert (eq = eq0) by congruence.
       assert (gt = gt0) by congruence.
       subst. f_equal.
-        4: apply IHd1_1.
-        4: apply IHd1_2.
 Abort.
 
 (*
@@ -289,6 +286,29 @@ Proof.
     }
 Qed.
 *)
+
+(** It's possible to prove theorems using just QSDom_ind, but it's not
+    very abstract or modular to do so. *)
+Theorem Permutation_qs :
+  forall
+    (A : VerifiedQSArgs) (l : list A),
+      Permutation l (qs A l).
+Proof.
+  unfold qs. intros. generalize (QSDom_all A l).
+  induction q; cbn.
+    eapply Permutation_adhoc. assumption.
+    {
+      apply Permutation_short in e.
+      apply Permutation_choosePivot in e0.
+      apply Permutation_partition in e1.
+      rewrite e, e0, e1.
+      apply Permutation_app.
+        assumption.
+        apply Permutation_cons, Permutation_app.
+          apply Permutation_refl.
+          assumption.
+    }
+Qed.
 
 (** * Wut *)
 

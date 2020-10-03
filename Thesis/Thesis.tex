@@ -1102,30 +1102,30 @@ Even though deriving an induction principle for the helper function is very easy
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-A smart Coq user could try to salvage the above proof by attempting to prove that any two \m{d\ :\ QSDom A l} are equal. This too, however, is impossible, as can be seen in the listing below (or rather, by going over the below listing interactively in CoqIDE). We start by induction on \m{d1} and then perform case analysis on \m{d2}. When they are constructed with different constructors, we have an easy contradiction (\m{short l} is both \m{None} and \m{Some} at the same time). When both are \m{Short}, we are required us to prove that any two proofs of \m{short l = None} are equal. This is possible, but pretty involved -- techniques from Homotopy Type Theory are necessary.\footnote{The appropriate technique is called the \textit{encode-decode method}. It is described in the HoTT Book \cite{HoTTBook}.} The real problem is that in the last case, when both \m{d1} and \m{d2} we're constructed using \m{Long}, atfter establishing some initial equalities, we have to prove that two proofs of \m{short l = Some (h, t)} are equal. This, according to Homotopy Type Theory, for a general \m{A\ :\ Type} is not possible, as it contradicts Univalence.
+A smart Coq user could try to salvage the above proof by attempting to prove that any two \m{d\ :\ QSDom A l} are equal. This too, however, is impossible, as can be seen in the listing below (or rather, by going over the below listing interactively in CoqIDE). We start by induction on \m{d1} and then perform case analysis on \m{d2}. When they are constructed with different constructors, we have an easy contradiction (\m{short l} is both \m{None} and \m{Some} at the same time). When both are \m{Short}, we are required us to prove that any two proofs of \m{short l = None} are equal. This is possible, but pretty involved -- techniques from Homotopy Type Theory are necessary\footnote{The appropriate technique is called the \textit{encode-decode method}. See sections 2.12 and 2.13 of the HoTT Book \cite{HoTTBook} for easy examples and section 8.1 for an application to the fundamental group of the circle. Also see \cite{EncodeDecodeAbstract} \cite{EncodeDecodeSlides} for a newer ideas that relate the encode-decode method to functional induction principles.} -- and thus we skip it with the tactic \m{admit}.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
     firstline=243,
-    lastline=265
+    lastline=259
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
+The real problem is that in the last case, in which both \m{d1} and \m{d2} were made with the constructor \m{Long}, after establishing some initial equalities we have to prove that two proofs of \m{short l = Some (h, t)} are equal (and this is just the first of three similar goals). This time however the goal is impossible to achieve: Homotopy Type Theory tells us\footnote{See sections 2.5---2.14 of the HoTT Book. \cite{HoTTBook}} that the properties of equality proofs in type \m{option (A * list A)} depend on the properties of equality proofs in type \m{A}.
+
+The bottom line is that in Coq without assuming additional axioms, we can't prove that an arbitrary type \m{A} satisfies UIP\footnote{UIP stands for \textit{Uniqueness of Identity Proofs}. A type \m{A} satisfies UIP when for all \m{x y\ :\ A}, any two proofs \m{p q\ :\ x = y} are equal.} and therefore we have no chance to prove that any two proofs of \m{short l = Some (h, t)} are equal. Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance.
+
+The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the last section is quite boilerplate-heavy, there is no way around it...
+
+Or is there? Another idea that may come to a smart prover's mind is just to directly use the induction principle of the domain predicate in every single proof, either by first proving a lemma for \m{qs'}, or by unfolding the definition of \m{qs} and generalizing the termination proof in-place.
+
+That would be fine if we wanted to just get a single small proof done quickly, but in a longer perspective it is not a good solution either. The crucial difference is that in case of the functional induction principle we rely on an abstract specification, whereas using induction on \m{QSDom} means relying on a concrete implementation. 
 
 \subsection{Automating the boring stuff} \label{automate}
 
 Coq's \m{Function} command description goes here.
-
-\inputminted
-[
-    frame=lines,
-    bgcolor=CoqIDE,
-    firstline=277,
-    lastline=295
-]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
 \subsection{E pluribus unum}
 
@@ -1488,6 +1488,19 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     Theory},
     2018, \\
     \url{https://etheses.bham.ac.uk//id/eprint/8448/4/Knapp18PhD.pdf}
+
+\bibitem{EncodeDecodeAbstract}
+    James McKinna and Fredrik Nordvall Forsberg,
+    \textit{The Encode-Decode Method, Relationally (Abstract)},
+    2015, \\
+    \url{http://cs.ioc.ee/types15/abstracts-book/contrib27.pdf}
+
+\bibitem{EncodeDecodeSlides}
+    James McKinna and Fredrik Nordvall Forsberg,
+    \textit{The Encode-Decode Method, Relationally (Slides)},
+    2015, \\
+    \url{https://personal.cis.strath.ac.uk/fredrik.nordvall-forsberg/talks/stp_dundee_2015/stp_dundee_2015-10-07.pdf}
+
 \end{thebibliography}
 
 \end{document}
