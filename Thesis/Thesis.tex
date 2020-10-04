@@ -793,7 +793,7 @@ Given such a domain predicate, the implementation of \m{qs'} (a helper function 
 
 Having seen an example use of the method, let's restate it in more abstract terms: the idea is to represent a general recursive function of type \m{A -> B} as a function of type \m{forall a\ :\ A, D a -> B}, where \m{D\ :\ A -> Type} is the domain predicate whose elements represent the call graph of the principal argument, i.e. the tree of all the recursive calls that have to be performed in order to compute the result. To obtain the original function of type \m{A -> B} it suffices to prove that all \m{a\ :\ A} satisfy the domain predicate.
 
-In the literature, the inductive domain method is better known as the ``Bove-Capretta method'', but this name, derived from the surnames of its inventors, is neither very descriptive nor catchy, so we avoid it. The method and related ideas were first developed in a string of papers between 2001 and 2009 \cite{BCM1} \cite{BCM2} \cite{BCM3} \cite{BCM4} \cite{BCM5} \cite{BCM6} \cite{BCM7} \cite{BCM8} \cite{BCM9} in a form that more closely resembles what we will see in section \ref{irrelevant}.
+In the literature, the inductive domain method is better known as the ``Bove-Capretta method'', but this name, derived from the surnames of its inventors, is neither very descriptive nor catchy, so we avoid it. It is also sometimes called the \textit{ad-hoc predicate} method, but this name is even worse. The method and related ideas were first developed in a string of papers between 2001 and 2009 \cite{BCM1} \cite{BCM2} \cite{BCM3} \cite{BCM4} \cite{BCM5} \cite{BCM6} \cite{BCM7} \cite{BCM8} \cite{BCM9} in a form that vaguely resembles what we have seen in this section. In the meantime, \cite{CoqArt} proposed a more complicated variant which makes use of sort \m{Prop} to improve the method's fitness for use with Coq's extraction mechanism -- we will see it in section \ref{irrelevant}.
 
 We have seen only the basic version of the inductive domain method because quicksort's recursion scheme is rather basic. The method is pretty malleable and can be accomodated to fit mutual recursion (i.e. two or more general recursive functions that call each other; see \cite{BCM3}), nested recursion (i.e. a situation where the result of a recursive call is the argument of another recursive call, like in McCarthy's famous f91 function \cite{f91}; see \cite{BCM2}) and possibly even higher-order recursion (i.e. a situation where recursive calls may be partially applied; see \cite{BCM6}).
 
@@ -1077,6 +1077,9 @@ Deriving the functional induction principle turned out to be pretty easy and it 
 But not all functions are as tame as quicksort -- some tougher classes of functions require slight modifications to the approach presented above. One such class are the functions that exhibit \textit{nested recursion}, i.e. a situation in which the result of a recursive call is an argument of another recursive call. These functions are problematic because the domain predicate can't be defined in the usual way: whether an element belongs to the domain might depend on whether the function's result for this argument belongs to the domain. Luckily, we can deal with such functions by first defining the inductive graph relation and then using it to represent the recursive calls in the definition of the domain predicate and then proceed as usual.
 
 Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in \ref{automate} often can't generate these definitions automatically.
+
+% TODO
+To finish, \footnote{It was first described in an early form by Burstall in \cite{Burstall} and in the more modern form by \cite{Slind} and then reinvented many times \cite{Function} \cite{Program} \cite{FromTheLeft}, which shows that the technique is quite intuitive and natural.}
 
 \subsection{Don't do this at home}
 
@@ -1488,6 +1491,37 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     Theory},
     2018, \\
     \url{https://etheses.bham.ac.uk//id/eprint/8448/4/Knapp18PhD.pdf}
+
+\bibitem{Burstall}
+    R. M. Burstall,
+    \textit{Proving properties of programs by structural induction},
+    1968, \\
+    \url{http://www.cse.chalmers.se/edu/year/2010/course/DAT140_Types/Burstall.pdf}
+
+\bibitem{Slind}
+    Konrad Slind,
+    \textit{Reasoning about terminating functional programs},
+    1999
+
+\bibitem{Function}
+    Gilles Barthe, Julien Forest, David Pichardie, and Vlad Rusu,
+    \textit{Defining and Reasoning About Recursive
+    Functions: A Practical Tool for the Coq
+    Proof Assistant},
+    2006 \\
+    \url{https://www.researchgate.net/publication/48415012_Defining_and_Reasoning_About_Recursive_Functions_A_Practical_Tool_for_the_Coq_Proof_Assistant}
+
+\bibitem{Program}
+    Matthieu Sozeau,
+    \textit{Un environnement pour la programmation avec types d´ependants},
+    2008 \\
+    \url{https://www.irif.fr/~sozeau/research/publications/thesis-sozeau.pdf}
+
+\bibitem{FromTheLeft}
+    Conor McBride, James McKinna,
+    \textit{The view from the left},
+    2004, \\
+    \url{https://www.researchgate.net/publication/220676549_The_view_from_the_left}
 
 \bibitem{EncodeDecodeAbstract}
     James McKinna and Fredrik Nordvall Forsberg,
