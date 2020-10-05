@@ -992,14 +992,14 @@ If the recursion scheme of the function is different from the induction scheme i
 
 A tentative answer to this problem may be to use well-founded induction, just as we did for the termination proof. But again, as anybody who was ever done a proof by well-founded induction in Coq knows, this would be a bit messy and inconvenient. Because well-founded induction is so general that it can be used for any function whatsoever, it doesn't fit any single recursion scheme particularly well and this produces some overhead.
 
-Fortunately, there is a relatively cheap ultimate solution of the problem of inductive proofs: functional induction. This is a form of induction in which a tailor-made induction principle that perfectly fits the function's recursion scheme is used to prove all properties of the function. Thanks to this technique the proofs become pretty easy\footnote{Problems may arise only when we compose the function in question with others -- in such a case even the functional induction principle may be not enough to guarantee a smooth proof.} and also easy to automate, and the derivation of the functional induction principle is very schematic and easy to automate itself.
-
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#4.1} \\
     Define an inductive relation that represents the graph of your algorithm, prove that it really is the graph and use its induction principle to derive the functional induction principle of your algorithm.
 \end{center}
 
-The above technique outlines how to derive the functional induction principle. The first step is to notice that there are two inductive families whose induction principles are almost what we're looking for: the inductive domain predicate and the inductive graph relation. We have already seen the former and should be adept at using it, but it turns our not to be what we are looking for -- we will see why in the next section. We are thus left with the latter.
+Fortunately, there is a relatively cheap ultimate solution of the problem of inductive proofs: functional induction. This is a form of induction in which a tailor-made induction principle that perfectly fits the function's recursion scheme is used to prove all properties of the function. Thanks to this technique the proofs become pretty easy\footnote{Problems may arise only when we compose the function in question with others -- in such a case even the functional induction principle may be not enough to guarantee a smooth proof.} and also easy to automate, and the derivation of the functional induction principle is very schematic and easy to automate itself. The above technique outlines how to derive the principle.
+
+The idea behind functional induction is pretty simple. First, we want to separate the implementation of the function (its intensional aspect) from reasoning about its properties (its extensional aspect). Second, we want to capture the reasoning process in a single standalone lemma that we can reuse. To achieve this, we need to think about functions extensionally: two functions are equal whenever they give equal results for equal arguments.\footnote{Sadly, this principle (called functional extensionality) is not provable in Coq and needs to be assumed as an axiom if we want to use it.} Thus if we know all relationships between the inputs and outputs of a function, we know everything about the function. A relation that embodies all input-output relationships of a function is called a graph of that function. Therefore, we can deduce all properties of a function from its graph.
 
 We say that a binary relation \m{R\ :\ A -> B -> Prop} is a graph of the function \m{f\ :\ A -> B} when \m{R a b <-> f a = b}. We called \m{R} ``a'' graph, but it can be proven that any function has exactly one graph, so we can just as well call it ``the'' graph. But even though all graphs of a given function are equivalent, they are not equivalently useful for our purposes, because the usefulness of their intensional characteristics may vary.
 
@@ -1078,8 +1078,9 @@ But not all functions are as tame as quicksort -- some tougher classes of functi
 
 Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in \ref{automate} often can't generate these definitions automatically.
 
-% TODO
-To finish, \footnote{It was first described in an early form by Burstall in \cite{Burstall} and in the more modern form by \cite{Slind} and then reinvented many times \cite{Function} \cite{Program} \cite{FromTheLeft}, which shows that the technique is quite intuitive and natural.}
+Before we finish, let's try to trace the history of functional induction. The term itself isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
+
+The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was as first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind} and \cite{FromTheLeft}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of three tools designed for this purpose: \m{Function} \cite{Function}, \m{Program} \cite{Program} and \m{Equations}. \cite{Equations}
 
 \subsection{Don't do this at home}
 
@@ -1116,15 +1117,9 @@ A smart Coq user could try to salvage the above proof by attempting to prove tha
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-The real problem is that in the last case, in which both \m{d1} and \m{d2} were made with the constructor \m{Long}, after establishing some initial equalities we have to prove that two proofs of \m{short l = Some (h, t)} are equal (and this is just the first of three similar goals). This time however the goal is impossible to achieve: Homotopy Type Theory tells us\footnote{See sections 2.5---2.14 of the HoTT Book. \cite{HoTTBook}} that the properties of equality proofs in type \m{option (A * list A)} depend on the properties of equality proofs in type \m{A}.
+The real problem is that in the last case, in which both \m{d1} and \m{d2} were made with the constructor \m{Long}, after establishing some initial equalities we have to prove that two proofs of \m{short l = Some (h, t)} are equal (and this is just the first of three similar goals). This time however the goal is impossible to achieve: Homotopy Type Theory tells us\footnote{See sections 2.5---2.14 of the HoTT Book. \cite{HoTTBook}} that the properties of equality proofs in type \m{option (A * list A)} depend on the properties of equality proofs in type \m{A}. The bottom line is that in Coq without assuming additional axioms, we can't prove that an arbitrary type \m{A} satisfies UIP\footnote{UIP stands for \textit{Uniqueness of Identity Proofs}. A type \m{A} satisfies UIP when for all \m{x y\ :\ A}, any two proofs \m{p q\ :\ x = y} are equal.} and therefore there is no chance of proving that any two proofs of \m{short l = Some (h, t)} are equal.
 
-The bottom line is that in Coq without assuming additional axioms, we can't prove that an arbitrary type \m{A} satisfies UIP\footnote{UIP stands for \textit{Uniqueness of Identity Proofs}. A type \m{A} satisfies UIP when for all \m{x y\ :\ A}, any two proofs \m{p q\ :\ x = y} are equal.} and therefore we have no chance to prove that any two proofs of \m{short l = Some (h, t)} are equal. Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance.
-
-The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the last section is quite boilerplate-heavy, there is no way around it...
-
-Or is there? Another idea that may come to a smart prover's mind is just to directly use the induction principle of the domain predicate in every single proof, either by first proving a lemma for \m{qs'}, or by unfolding the definition of \m{qs} and generalizing the termination proof in-place.
-
-That would be fine if we wanted to just get a single small proof done quickly, but in a longer perspective it is not a good solution either. The crucial difference is that in case of the functional induction principle we rely on an abstract specification, whereas using induction on \m{QSDom} means relying on a concrete implementation. 
+Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance. The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the last section is quite boilerplate-heavy, there is no way around it... except for automation.\footnote{Well, there is. If we need to do just a few quick proofs and don't care about separating the reasoning from the implementation, we can just directly use the domain predicate's induction principle.}
 
 \subsection{Automating the boring stuff} \label{automate}
 
@@ -1503,6 +1498,12 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     \textit{Reasoning about terminating functional programs},
     1999
 
+\bibitem{FromTheLeft}
+    Conor McBride, James McKinna,
+    \textit{The view from the left},
+    2004, \\
+    \url{https://www.researchgate.net/publication/220676549_The_view_from_the_left}
+
 \bibitem{Function}
     Gilles Barthe, Julien Forest, David Pichardie, and Vlad Rusu,
     \textit{Defining and Reasoning About Recursive
@@ -1517,11 +1518,11 @@ Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
     2008 \\
     \url{https://www.irif.fr/~sozeau/research/publications/thesis-sozeau.pdf}
 
-\bibitem{FromTheLeft}
-    Conor McBride, James McKinna,
-    \textit{The view from the left},
-    2004, \\
-    \url{https://www.researchgate.net/publication/220676549_The_view_from_the_left}
+\bibitem{Equations}
+    Matthieu Sozeau, Cyprien Mangin,
+    \textit{Equations Reloaded: High-Level Dependently-Typed Functional Programming and Proving in Coq},
+    2019,
+    \url{https://www.irif.fr/~sozeau//research/publications/Equations_Reloaded-ICFP19.pdf}
 
 \bibitem{EncodeDecodeAbstract}
     James McKinna and Fredrik Nordvall Forsberg,
