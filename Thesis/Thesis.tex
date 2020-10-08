@@ -1121,7 +1121,19 @@ Assuming that all types satisfy UIP is consistent with Coq, but an axiom-depende
 
 \subsection{Automating the boring stuff} \label{automate}
 
-Coq's \m{Function} command description goes here.
+Most of what we've been doing lately was pretty boring. Given the cleanest definition of the algorithm we saw back in section \ref{template}, when we weren't concerned with the termination proof and the functional induction principle, can be derived automatically:
+
+\begin{itemize}
+    \item To define the graph, repeat the function's definition, with each \m{match} turned into a constructor, each \m{let} turned into a bunch of universally quantified variables together with the appropriate equality hypothesis, and each recursive call turned into an inductive occurrence of the relation being defined.
+    \item To define the domain predicate, take the graph and erase the last index, which corresponds to erasing the function's result. Also change the codomain from \m{Prop} to \m{Type}.
+    \item To define the auxiliary function (the one with the modified domain), repeat the target function's definition, with an additional argument corresponding to the proof of the domain predicate. Replace the original \m{match} with a \m{match} on this proof, the recursive calls with recursive calls on subproofs, etc.
+    \item To define the function itself, feed the termination proof to the auxiliary function.
+    \item To prove the function correct with respect to the graph, an \m{induction} on the proof of the domain predicate together with \m{eauto} should suffice.
+    \item To prove the graph deterministic, \m{induction} on the first hypothesis and \m{inversion} on the second. The hairy rewritings can be automated with some \m{Ltac} code.
+    \item To prove the graph complete, use the previously established properties.
+    \item To derive the functional induction principle, repeat the graph's induction principle, with occurrences of the graph replaced with the property being proved. Prove it using graph's induction principle and previously proved lemmas.
+    \item To derive the recursive equation, use the target function's definition. Prove it with functional induction.
+\end{itemize}
 
 \subsection{E pluribus unum}
 
