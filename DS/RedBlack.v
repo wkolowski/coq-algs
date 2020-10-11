@@ -12,8 +12,8 @@ Inductive RBTree (A : Type) : Type :=
     | E : RBTree A
     | T : color -> RBTree A -> A -> RBTree A -> RBTree A.
 
-Arguments E [A].
-Arguments T [A] _ _ _.
+Arguments E {A}.
+Arguments T {A} _ _ _.
 
 Inductive elem {A : Type} (x : A) : RBTree A -> Prop :=
     | elem_root : forall (c : color) (l r : RBTree A),
@@ -348,7 +348,7 @@ Proof.
   split.
     induction t; cbn; intros; try apply in_app_or in H; firstorder.
       subst. firstorder.
-    induction 1; cbn; firstorder.
+    induction 1; cbn; apply in_or_app; firstorder.
 Qed.
 
 Lemma toList_count_RBT :

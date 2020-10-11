@@ -157,7 +157,7 @@ Inductive solution (P : Prop) : Type :=
     | No' : solution P.
 
 Arguments Yes' [P] _.
-Arguments No' [P].
+Arguments No' {P}.
 
 Notation "'Yes'" := (Yes' _).
 Notation "'No'" := No'.

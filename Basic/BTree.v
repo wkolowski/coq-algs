@@ -135,7 +135,7 @@ Proof.
   split.
     induction t; cbn; intros; try apply in_app_or in H; firstorder.
       subst. firstorder.
-    induction 1; cbn; firstorder.
+    induction 1; cbn; apply in_or_app; firstorder.
 Qed.
 
 (** Properties of [size]. *)
@@ -217,9 +217,11 @@ Lemma isEmpty_Elem_false :
   forall (A : LinDec) (t : BTree A),
     isEmpty t = false <-> exists x : A, Elem x t.
 Proof.
-  split; destruct t; cbn; firstorder.
+  split; destruct t; cbn; intros.
+    congruence.
     eauto.
-    inv H.
+    inv H. inv H0.
+    reflexivity.
 Qed.
 
 Lemma isEmpty_Elem_true :
@@ -228,21 +230,24 @@ Lemma isEmpty_Elem_true :
 Proof.
   split; destruct t; cbn; firstorder.
     inv 1.
-    contradiction (H c). auto.
+    congruence.
+    contradiction (H c). constructor.
 Qed.
 
 Lemma isEmpty_isHeap :
   forall (A : LinDec) (t : BTree A),
     isEmpty t = true -> isHeap t.
 Proof.
-  destruct t; firstorder.
+  destruct t; intro.
+    constructor.
+    cbn in H. congruence.
 Qed.
 
 Lemma isEmpty_empty :
   forall (A : Type) (t : BTree A),
     isEmpty t = true <-> t = empty.
 Proof.
-  destruct t; cbn; firstorder. inv H.
+  destruct t; cbn; firstorder congruence.
 Qed.
 
 Lemma isEmpty_singleton :
@@ -254,7 +259,7 @@ Lemma isEmpty_size_false :
   forall (A : Type) (t : BTree A),
     isEmpty t = false <-> size t <> 0.
 Proof.
-  split; destruct t; cbn; firstorder.
+  split; destruct t; cbn; firstorder congruence.
 Qed.
 
 Lemma isEmpty_size_true :

@@ -116,6 +116,7 @@ Lemma isEmpty_partition_true :
       isEmpty h = true <-> isEmpty l = true /\ isEmpty r = true.
 Proof.
   split; intros; functional induction @partition A x h; inv H; firstorder.
+    all: cbn in *; congruence.
 Qed.
 
 Lemma isEmpty_partition_false :
@@ -140,6 +141,7 @@ Lemma isEmpty_merge_true :
       isEmpty h1 = true /\ isEmpty h2 = true.
 Proof.
   destruct h1; cbn; intros; try destruct (partition c h2); firstorder.
+    cbn in H. congruence.
 Qed.
 
 Lemma isEmpty_merge_false :
@@ -147,7 +149,8 @@ Lemma isEmpty_merge_false :
     isEmpty (merge h1 h2) = false <->
       isEmpty h1 = false \/ isEmpty h2 = false.
 Proof.
-  destruct h1; cbn; intros; try destruct (partition c h2); firstorder.
+  destruct h1; cbn; intros; try destruct (partition c h2);
+    firstorder congruence.
 Qed.
 
 Lemma isEmpty_size :
@@ -168,7 +171,7 @@ Qed.
 
 (** Properties of [partition]. *)
 
-Lemma partition_elem :
+(* TODO: fix *) Lemma partition_elem :
   forall (A : LinDec) (x pivot : A) (h l r : SplayHeap A),
     partition pivot h = (l, r) ->
       elem x h <-> elem x l \/ elem x r.

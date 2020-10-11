@@ -1,5 +1,3 @@
-
-
 Require Export LinDec.
 Require Import Sorting.Sort.
 
@@ -9,8 +7,8 @@ Inductive RSTree (A : Type) : Type :=
     | empty : RSTree A
     | node : nat -> A -> RSTree A -> RSTree A -> RSTree A.
 
-Arguments empty [A].
-Arguments node [A] _ _ _.
+Arguments empty {A}.
+Arguments node {A} _ _ _.
 
 Definition right_spine {A : Type} (t : RSTree A) : nat :=
 match t with

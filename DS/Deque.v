@@ -210,8 +210,10 @@ Proof.
   intros. functional induction @deque A f r; cbn; intros.
     destruct f0, r0; aux.
     destruct f0, r0; aux.
-    destruct f as [| hf1 [| hf2 tf]], r as [| hr1 [| hr2 tr]]; cbn in *;
-      firstorder.
+    destruct f as [| hf1 [| hf2 tf]],
+             r as [| hr1 [| hr2 tr]];
+    cbn in *; firstorder.
+      all: inversion 1; inversion H; inversion H2.
 Qed.
 
 Lemma deque_isDeque' :
@@ -265,6 +267,7 @@ Proof.
     destruct f0; aux.
     destruct f0; aux.
     destruct f as [| h1 [| h2 t]], r; firstorder.
+      all: cbn in H; congruence.
 Qed.
 
 Lemma isEmpty_deque' :
@@ -563,7 +566,7 @@ Proof.
       inv e1.
       destruct H; firstorder.
       destruct (H ltac:(omega)). congruence.
-    destruct _x, r; firstorder.
+    destruct _x, r; firstorder congruence.
 Qed.
 
 (* [toList] and its properties. *)

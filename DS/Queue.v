@@ -1,5 +1,3 @@
-
-
 Require Import RCCBase.
 
 Definition Queue (A : Type) : Type := list A * list A.
@@ -113,7 +111,7 @@ Lemma isEmpty_tail_true :
   forall (A : Type) (q : Queue A),
     isEmpty q = true -> tail q = None.
 Proof.
-  destruct q as [[| h t] r]; cbn; firstorder.
+  destruct q as [[| h t] r]; cbn; firstorder congruence.
 Qed.
 
 Lemma isEmpty_snoc :
