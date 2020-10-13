@@ -140,12 +140,12 @@ Proof.
   q. cbn in *. destruct lenf as [| lenf']; cbn.
     firstorder. destruct (force f); cbn in *; try congruence.
       firstorder.
-        rewrite app_length. cbn. rewrite rev_length. omega.
-        omega.
+        rewrite app_length. cbn. rewrite rev_length. lia.
+        lia.
     firstorder. case_eq (leb lenr lenf'); intros.
-      apply leb_complete in H3. destruct w; cbn; firstorder; omega.
-      destruct (force f); cbn in *; firstorder; try omega.
-        rewrite !app_length, rev_length. cbn. omega.
+      apply leb_complete in H3. destruct w; cbn; firstorder; lia.
+      destruct (force f); cbn in *; firstorder; try lia.
+        rewrite !app_length, rev_length. cbn. lia.
 Qed.
 
 Lemma force_delay :
@@ -168,9 +168,9 @@ Proof.
         apply leb_complete in H1. auto.
       rewrite !force_delay in *. destruct (force f); cbn in *; inv H.
         firstorder. rewrite force_delay, rev_length.
-          apply leb_complete_conv in H1. omega.
-        omega.
-        destruct l; inv H3; firstorder; try omega; rewrite force_delay; inv H.
+          apply leb_complete_conv in H1. lia.
+        lia.
+        destruct l; inv H3; firstorder; try lia; rewrite force_delay; inv H.
           rewrite rev_length. cbn. reflexivity.
           cbn. rewrite app_length, rev_length. reflexivity.
 Qed.

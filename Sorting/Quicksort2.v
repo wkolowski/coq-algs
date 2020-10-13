@@ -59,7 +59,7 @@ Proof.
     apply choosePivot_spec, Permutation_length in teq1.
   1: apply len_hi in teq2.
   2: apply len_lo in teq2.
-  all: cbn in *; omega. Show Proof.
+  all: cbn in *; lia.
 Defined.
 
 Class VerifiedQSArgs (A : Type) : Type :=
@@ -98,11 +98,13 @@ Proof.
             clear e1. induction eq; auto. destruct eq; auto. constructor.
               rewrite (H a), (H a0); cbn; auto. admit.
               apply IHeq. intro. inv 1; apply H; cbn; auto.
-          intros. apply uqs_In in H0.
+          intros. (* TODO: fix apply uqs_In in H0.
             erewrite (spec_eq pivot) at 1; eauto.
               eapply spec_hi; eauto.
         intros. apply uqs_In in H. eapply spec_lo; eauto.
 Qed.
+*)
+Admitted.
 
 
 (** Ordinary quicksort using [uqs] *)
@@ -153,7 +155,7 @@ Proof.
     rewrite filter_In in H0. dec.
       destruct H0. inv H0.
       destruct H0. apply LinDec_not_leq_lt in n. firstorder.
-    cbn. omega.
+    cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
 
@@ -172,7 +174,7 @@ Proof.
     apply filter_In in H0. dec.
       destruct H0. inv H0.
       destruct H0. apply LinDec_not_leq_lt in n. firstorder.
-    cbn. omega.
+    cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
 

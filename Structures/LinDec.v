@@ -3,11 +3,11 @@ Export ListNotations.
 
 Require Export Bool.Bool.
 Require Export Arith.
-Require Export Omega.
+Require Export Lia.
 
 Class LinDec : Type :=
 {
-    carrier :> Type;
+    carrier : Type;
     leq : carrier -> carrier -> Prop;
     leq_refl : forall x : carrier, leq x x;
     leq_antisym : forall x y : carrier, leq x y -> leq y x -> x = y;
@@ -74,7 +74,7 @@ Proof.
     right. unfold lt in H. apply le_Sn_le. auto.
   intros. case_eq (leb x y); intro.
     apply leb_complete in H. auto.
-    apply leb_complete_conv in H. constructor. omega.
+    apply leb_complete_conv in H. constructor. lia.
 Defined.
 
 Ltac dec := cbn; repeat
@@ -94,7 +94,7 @@ match goal with
 end; cbn; try
 match goal with
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
-end; eauto; try omega; try congruence.
+end; eauto; try lia; try congruence.
 
 Lemma LinDec_not_leq :
   forall (A : LinDec) (x y : A), ~ leq x y -> leq y x.

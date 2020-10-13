@@ -95,10 +95,10 @@ Proof.
   intros. functional induction @rebalance A v l r; trich; cbn in *.
     destruct (height' b).
       apply le_n_S. rewrite Max.max_0_r in *. apply le_S_n in e.
-        rewrite ?Max.max_r; omega.
+        rewrite ?Max.max_r; lia.
       apply le_n_S. apply le_S_n in e. rewrite !Nat.max_le_iff.
         right. apply le_n_S.
-          repeat apply Max.max_lub; rewrite ?Nat.max_le_iff in *; omega.
+          repeat apply Max.max_lub; rewrite ?Nat.max_le_iff in *; lia.
     destruct (height' r).
       apply le_n_S. rewrite Max.max_0_r in *. apply le_S_n in e.
         apply le_trans with (max (S (height' a)) (S (height' b))).

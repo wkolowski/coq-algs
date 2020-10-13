@@ -103,7 +103,7 @@ Instance natlt : TrichDec :=
     trichb := trichb_nat
 }.
 Proof.
-  1-4: intros; omega.
+  1-4: intros; lia.
   induction x as [| x']; destruct y as [| y']; cbn;
   split; try (trich; fail).
     intros. apply lt_n_S. apply IHx'. assumption.

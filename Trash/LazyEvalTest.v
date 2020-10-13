@@ -34,11 +34,13 @@ end.
 
 Infix "+++" := lapp (at level 50).
 
+(** Commented out for build purposes. *)
+(*
+
 Let sl := to0 30000.
 Let ll := lazy_to0 30000.
 
-(** Commented out for build purposes. *)
-(*Fail
+Fail
 Time Eval cbv in head
   ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl).
 Time Eval cbv in head

@@ -36,7 +36,7 @@ Lemma count_app_comm :
 Proof.
   induction l1 as [| h1 t1]; cbn; intros.
     rewrite app_nil_r. reflexivity.
-    rewrite !count_app. cbn. destruct (p h1); omega.
+    rewrite !count_app. cbn. destruct (p h1); lia.
 Qed.
 
 Lemma count_last :
@@ -52,7 +52,7 @@ Lemma count_reverse :
 Proof.
   induction l as [| h t]; cbn; intros.
     reflexivity.
-    rewrite count_app, IHt. cbn. destruct (p h); omega.
+    rewrite count_app, IHt. cbn. destruct (p h); lia.
 Qed.
 
 Lemma count_cons :
@@ -70,7 +70,7 @@ Proof.
   induction t as [| h' t']; cbn.
     reflexivity.
     destruct (p1 h') eqn: H, (p2 h'); cbn; rewrite ?H, ?IHt'; try
-      omega.
+      lia.
 Qed.
 
 Lemma count_In :
@@ -251,7 +251,7 @@ Proof.
   induction l as [| h t]; cbn; intros.
     reflexivity.
     destruct (p h) eqn: Hph; cbn.
-      omega.
+      lia.
       rewrite Hph. inv H.
 Qed.
 

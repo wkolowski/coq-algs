@@ -62,8 +62,6 @@ match n with
         Bind (Call self n1) (fun r1 : nat => Pure (r2 + r1)))
 end.
 
-Print Memoize.
-
 Fixpoint fmap_Memoize
   {A B : Type} (f : A -> B) (x : Memoize A) : Memoize B :=
 match x with

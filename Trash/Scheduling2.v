@@ -21,7 +21,7 @@ Inductive CorrectSchedule : Schedule -> Prop :=
 (*Goal CorrectSchedule [(0, (1, 2))].
 Proof.
   apply CS_wait. constructor.
-      1-2: omega.
+      1-2: lia.
       constructor.
 Qed.
 
@@ -30,8 +30,8 @@ Lemma CS_singl :
     b <= n -> S n <= e -> CorrectSchedule n [(b, e)].
 Proof.
   induction 1; intro.
-    constructor. 1-2: omega. constructor.
-    constructor. 1-2: omega. constructor.
+    constructor. 1-2: lia. constructor.
+    constructor. 1-2: lia. constructor.
 Qed.
 
 Lemma CS_S :
@@ -70,7 +70,7 @@ Proof.
     assumption.
     apply IHk'.
       apply CS_wait. assumption.
-      omega.
+      lia.
 Qed.
 *)
 
@@ -95,16 +95,18 @@ Instance LinDec_Task : LinDec :=
     leqb := leqb_Task
 }.
 Proof.
-  destruct x as [b e]. cbn. right. omega.
-  destruct x as [b1 e1], y as [b2 e2]. cbn. firstorder.
-  destruct x as [b1 e1], y as [b2 e2], z as [b3 e3]. cbn. firstorder.
+  destruct x as [b e]. cbn. right. lia.
+  destruct x as [b1 e1], y as [b2 e2]; cbn.
+    firstorder; f_equal; lia.
+  destruct x as [b1 e1], y as [b2 e2], z as [b3 e3]; cbn.
+    firstorder; lia.
   destruct x as [b1 e1], y as [b2 e2]. cbn.
     destruct (le_lt_dec b1 b2).
       destruct (le_lt_eq_dec _ _ l).
         left. left. assumption.
         subst. destruct (le_lt_dec e1 e2).
           left. right. split; trivial.
-          do 2 right. split; trivial. omega.
+          do 2 right. split; trivial. lia.
       right. left. assumption.
   destruct x as [b1 e1], y as [b2 e2]. cbn.
     destruct (trichb_nat b1 b2) eqn: H.
@@ -115,7 +117,7 @@ Proof.
             reflexivity.
             apply leb_complete. assumption.
           constructor. intro. destruct H0.
-            omega.
+            lia.
             destruct H0. apply leb_correct in H1. congruence.
       constructor. intro. destruct H0.
         rewrite (@trichb_spec3 natlt) in H.

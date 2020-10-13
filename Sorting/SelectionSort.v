@@ -75,7 +75,7 @@ Qed.
 
 
 
-(*
+(* TODO: fix
 Function min {A : LinDec} (l : list A) : option A :=
 match l with
     | [] => None
@@ -293,7 +293,7 @@ Proof.
                 1-3: apply le_n_S; apply filter_length.
                 apply le_n_S. apply IHo.
                   rewrite e0. dec.
-                  intros. apply H. red. red in H0. cbn in *. omega.
+                  intros. apply H. red. red in H0. cbn in *. lia.
         cbn in Hc. destruct (min t); inv Hc.
 Qed.
 
@@ -468,7 +468,7 @@ Proof.
       destruct (mins' t), l.
         inv e0.
         destruct (c <?> c0); inv e0.
-    1-3: f_equal; rewrite (IHp _ _ e0), ?app_length; cbn; omega.
+    1-3: f_equal; rewrite (IHp _ _ e0), ?app_length; cbn; lia.
 Qed.
 
 Function ss_mins'
@@ -481,7 +481,7 @@ Proof.
   intros. functional induction mins' l; inv teq; cbn in *.
     apply mins'_nil in e0. subst. cbn. apply le_n_S, le_0_n.
     all: apply mins'_length in e0; cbn in e0;
-      rewrite e0, ?app_length; omega.
+      rewrite e0, ?app_length; lia.
 Defined.
 *)
 
@@ -489,7 +489,7 @@ Defined.
 
 Class Select (A : LinDec) : Type :=
 {
-    select :> list A -> list A * list A * list A;
+    select : list A -> list A * list A * list A;
     select_mins :
       forall l mins rest maxes : list A,
         select l = (mins, rest, maxes) ->
@@ -675,7 +675,7 @@ Lemma lengthOrder_removeFirst_min :
   forall (A : LinDec) (m : A) (l : list A),
     min l = Some m -> lengthOrder (removeFirst m l) l.
 Proof.
-  intros. functional induction min l; inv H; dec; red; cbn; try omega.
+  intros. functional induction min l; inv H; dec; red; cbn; try lia.
     apply lt_n_S. apply IHo. assumption.
 Qed.
 

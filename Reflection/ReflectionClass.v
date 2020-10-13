@@ -1,5 +1,3 @@
-
-
 Require Import RCCBase.
 
 Inductive formula : Set :=
@@ -30,7 +28,7 @@ Class Reify (P : Prop) : Type :=
     spec : reflect (denote reify) (solve reify)
 }.
 
-Arguments reify _ [Reify].
+Arguments reify _ {Reify}.
 
 #[refine]
 Instance ReifyFalse : Reify False :=

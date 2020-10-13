@@ -11,12 +11,12 @@ Inductive exp (X : UCRing) : Type :=
     | Mul : exp X -> exp X -> exp X
     | Neg : exp X -> exp X.
 
-Arguments Var [X] _.
-Arguments Zero [X].
-Arguments One [X].
-Arguments Add [X] _ _.
-Arguments Mul [X] _ _.
-Arguments Neg [X] _.
+Arguments Var  {X} _.
+Arguments Zero {X}.
+Arguments One  {X}.
+Arguments Add  {X} _ _.
+Arguments Mul  {X} _ _.
+Arguments Neg  {X} _.
 
 Definition exp_eq_dec {X : UCRing} (e1 e2 : exp X) : {e1 = e2} + {e1 <> e2}.
 Proof.
@@ -201,7 +201,7 @@ Qed.
 Inductive eqExp (X : UCRing) : Type :=
     | E : forall e1 e2 : exp X, eqExp X.
 
-Arguments E [X] _ _.
+Arguments E {X} _ _.
 
 Definition eqExpDenote
   {X : UCRing} (env : nat -> X) (eq : eqExp X)
@@ -286,7 +286,7 @@ match fst p, snd p with
     | _, _ => p
 end.
 Proof.
-  all: destruct p; cbn; intros; subst; cbn; omega.
+  all: destruct p; cbn; intros; subst; cbn; lia.
 Defined.
 
 Theorem simpHypEq'_correct :
@@ -294,7 +294,7 @@ Theorem simpHypEq'_correct :
     eqExpDenote env (E (fst (simpHypEq' p)) (snd (simpHypEq' p))) <->
     eqExpDenote env (E (fst p) (snd p)).
 Proof.
-  intros. functional induction simpHypEq' X p; cbn in *;
+  intros. functional induction simpHypEq' p; cbn in *;
   rewrite ?e, ?e0 in *; cbn in *; rewrite ?IHp0; split; rng.
     apply add_cancel_l in H. assumption.
     apply add_cancel_r in H. assumption.
@@ -349,14 +349,14 @@ Inductive formula (X : UCRing) : Type :=
     | fOr : formula X -> formula X -> formula X
     | fImpl : formula X -> formula X -> formula X.
 
-Arguments fFalse [X].
-Arguments fTrue [X].
-Arguments fVar [X] _.
-Arguments fEquiv [X] _ _.
-Arguments fNot [X] _.
-Arguments fAnd [X] _ _.
-Arguments fOr [X] _ _.
-Arguments fImpl [X] _ _.
+Arguments fFalse {X}.
+Arguments fTrue {X}.
+Arguments fVar {X} _.
+Arguments fEquiv {X} _ _.
+Arguments fNot {X} _.
+Arguments fAnd {X} _ _.
+Arguments fOr {X} _ _.
+Arguments fImpl {X} _ _.
 
 Fixpoint formulaDenote
   {X : UCRing} (env : nat -> X) (p : formula X) : Prop :=

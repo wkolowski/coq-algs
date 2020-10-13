@@ -41,9 +41,9 @@ end.
 Definition color {A : Type} (k : nat) (t : Tree A) : Tree (option nat) :=
   fst (auxT t k 1).
 
-Require Import Omega.
+Require Import Lia.
 
-Let wut :=
+Definition wut :=
   T 1 (F (T 2 (F (T 5 E) E)) (F (T 3 E) (F (T 4 E) E))).
 
 Compute auxT wut 1 1.

@@ -41,8 +41,6 @@ Proof.
     destruct hehe.
 Defined.
 
-Print Coercions.
-
 Function find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
   : option B :=
 match t with
@@ -67,7 +65,7 @@ end.
 Lemma fib_SS :
   forall n : nat, fib (S (S n)) = fib n + fib (S n).
 Proof.
-  intros. cbn. omega.
+  intros. cbn. lia.
 Qed.
 
 Fixpoint fib_tr_aux (n a b : nat) : nat :=
@@ -88,8 +86,8 @@ Proof.
     change (fib_tr_aux (S k) (fib (1 + n)) (fib n + fib (1 + n)) =
             fib (1 + S k + n)).
       replace (fib n + fib (1 + n)) with (fib (2 + n)).
-        rewrite IHk. f_equal. omega.
-        cbn. omega.
+        rewrite IHk. f_equal. lia.
+        cbn. lia.
 Qed.
 
 Theorem fib_tr_is_fib : fib_tr = fib.
@@ -97,11 +95,12 @@ Proof.
   ext n. unfold fib_tr. destruct n.
     cbn. trivial.
     change 1 with (fib 1). change 0 with (fib 0).
-      rewrite fib_tr_aux_spec. f_equal. cbn. omega.
+      rewrite fib_tr_aux_spec. f_equal. cbn. lia.
 Qed.
 
-Let list_map := @map.
+Definition list_map := @map.
 
+(* TODO: fix memoization
 Function fibM_aux (n : nat) (acc : BTree FibAcc) : nat :=
 match n with
     | 0 => 0
@@ -110,7 +109,7 @@ match n with
         match find n'' acc with
             | None =>
                 let a := fibM_aux n'' acc in
-                let b := fibM_aux n' (@BTree_ins FibAcc (n'', a) acc) in a + b
+                let b := fibM_aux n' (insert FibAcc (n'', a) acc) in a + b
             | Some a =>
                 match find n' acc with
                     | None =>
@@ -151,10 +150,10 @@ end;
 repeat multimatch goal with
     | H : elem _ _ |- _ =>
         destruct (@elem_ins FibAcc _ _ _ H); clear H
-    | H : (?k, ?v) = _ |- _ = fib _ => inv H; cbn; omega
+    | H : (?k, ?v) = _ |- _ = fib _ => inv H; cbn; lia
     | H : forall (k : _) (v : _), elem _ ?acc -> _, H' : elem _ ?acc |- _ =>
         rewrite ?(H _ _ H') in *
-end; cbn; auto; try omega.
+end; cbn; auto; try lia.
 
 Theorem aux'_correct :
   forall (n : nat) (acc : BTree FibAcc),
@@ -189,10 +188,10 @@ Proof.
     fib.
     fib.
     erewrite IHn1, IHn0; eauto; cbn.
-      omega.
+      lia.
       apply acc_correct_ins_fibM_aux; auto.
     apply find_elem in e0. rewrite (H _ _ e0).
-      erewrite IHn0; eauto; cbn. omega.
+      erewrite IHn0; eauto; cbn. lia.
     fib.
 Qed.
 
@@ -256,14 +255,14 @@ Proof.
     repeat match goal with
         | H : find _ _ = Some _ |- _ => apply find_elem in H
     end.
-      inv H1; inv H2. rewrite (H _ _ H0), (H _ _ H3). cbn; omega.
+      inv H1; inv H2. rewrite (H _ _ H0), (H _ _ H3). cbn; lia.
       inv H1. destruct (prod_eq H2).
-        rewrite (H _ _ H3), <- H1, IHn0. cbn; omega. assumption.
+        rewrite (H _ _ H3), <- H1, IHn0. cbn; lia. assumption.
       destruct (prod_eq H1). inv H2. destruct (@elem_ins FibAcc _ _ _ H0).
-        inv H2. omega.
-        rewrite (H _ _ H2), IHn1. cbn; omega. assumption.
+        inv H2. lia.
+        rewrite (H _ _ H2), IHn1. cbn; lia. assumption.
       destruct (prod_eq H1), (prod_eq H2); subst. rewrite IHn0, IHn1.
-        cbn; omega.
+        cbn; lia.
         assumption.
         apply acc_correct_ins_fibM'_aux; auto.
 Qed.
@@ -296,4 +295,5 @@ Time Compute wutzor 30.
 Time Compute
   wutzor' 30
     (@fromList FibAcc [(0, 0); (1, 0); (2, 0); (3, 0)]).
+*)
 *)

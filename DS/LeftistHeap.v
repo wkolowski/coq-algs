@@ -46,7 +46,7 @@ match p with
         else balance v' l' (merge (t1, r'))
 end.
 Proof.
-  1-2: intros; cbn; omega.
+  1-2: intros; cbn; lia.
 Defined.
 
 Arguments merge [x] _.
@@ -190,7 +190,9 @@ Lemma isEmpty_leftBiased :
   forall (A : LinDec) (t : Tree A),
     isEmpty t = true -> leftBiased t.
 Proof.
-  destruct t; firstorder.
+  destruct t; intro.
+    constructor.
+    cbn in H. congruence.
 Qed.
 
 (** Properties of [singleton]. *)
@@ -326,9 +328,9 @@ Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
   functional induction @merge A p; inv 1.
     erewrite balance_size. cbn. rewrite (IHt r (N _ v' l' r') eq_refl).
-      cbn. omega.
+      cbn. lia.
     erewrite balance_size. cbn. rewrite (IHt (N _ v l r) r' eq_refl).
-      cbn. omega.
+      cbn. lia.
 Unshelve.
   all: exact 0.
 Qed.
@@ -340,9 +342,9 @@ Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
   functional induction @merge A p; inv 1.
     erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
-      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); omega.
+      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); lia.
     erewrite balance_count_Tree. specialize (IHt _ _ eq_refl).
-      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); omega.
+      cbn in *. rewrite IHt. unfold id. destruct (f v), (f v'); lia.
 Unshelve.
   1-2: exact 0.
 Qed.

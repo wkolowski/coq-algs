@@ -1,5 +1,3 @@
-
-
 Require Import List.
 Import ListNotations.
 
@@ -7,8 +5,8 @@ Inductive llist (A : Type) : Type :=
     | lnil : llist A
     | lcons : A -> (unit -> llist A) -> llist A.
 
-Arguments lnil [A].
-Arguments lcons [A] _ _.
+Arguments lnil  {A}.
+Arguments lcons {A} _ _.
 
 Notation "[[]]" := lnil.
 Notation "x ::: y" := (lcons x y) (at level 60, right associativity).

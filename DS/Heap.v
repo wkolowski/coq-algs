@@ -1,4 +1,5 @@
 Require Import BTree.
+Require Import BST.
 Require Export LinDec.
 Require Import Sorting.Sort.
 
@@ -77,6 +78,7 @@ end.
 
 Ltac m := unfold min, max, minmax in *; wut.
 
+(*
 Lemma sendDown_elem :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
@@ -348,3 +350,4 @@ Proof.
       eapply ih_sendDown_arg; eauto.
       dec.
 Qed.
+*)

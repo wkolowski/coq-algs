@@ -146,7 +146,7 @@ Lemma size_swap :
   forall (A : Type) (n : nat) (v : A) (l r : RSTree A),
     size (node n v r l) = size (node n v l r).
 Proof.
-  intros. cbn. omega.
+  intros. cbn. lia.
 Qed.
 
 Lemma balance_size:
@@ -155,7 +155,7 @@ Lemma balance_size:
 Proof.
   intros. balance.
     trivial.
-    cbn. omega.
+    cbn. lia.
 Qed.
 
 Lemma balance_elem :
@@ -198,7 +198,7 @@ match p with
         else balance v' l' (merge' (t1, r'))
 end.
 Proof.
-  1-2: intros; cbn; omega.
+  1-2: intros; cbn; lia.
 Defined.
 
 Arguments merge' [x] _.
@@ -250,9 +250,9 @@ Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
   functional induction @merge' A p; inv 1.
     erewrite balance_size. cbn. rewrite (IHr r (node _ v' l' r') eq_refl).
-      cbn. omega.
+      cbn. lia.
     erewrite balance_size. cbn. rewrite (IHr (node _ v l r) r' eq_refl).
-      cbn. omega.
+      cbn. lia.
     Unshelve. all: auto.
 Qed.
 
@@ -372,7 +372,7 @@ match deleteMin t with
 end.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst.
-  rewrite merge'_size. omega.
+  rewrite merge'_size. lia.
 Defined.
 
 Arguments toList [x] _.

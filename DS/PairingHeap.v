@@ -354,7 +354,7 @@ Lemma countTree_merge :
   forall (A : LinDec) (x : A) (h1 h2 : PairingHeap A),
     countTree x (merge h1 h2) = countTree x h1 + countTree x h2.
 Proof.
-  destruct h1, h2; cbn; intros; dec; dec; unfold id; omega.
+  destruct h1, h2; cbn; intros; dec; dec; unfold id; lia.
 Qed.
 
 Lemma countTree_insert :

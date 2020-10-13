@@ -8,3 +8,7 @@ make
 
 # Delete the makefile and related files.
 rm makefile makefile.conf
+
+# Build the thesis.
+cd Thesis
+./buildthesis.sh

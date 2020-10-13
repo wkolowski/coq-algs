@@ -7,7 +7,7 @@ Require Export FunctionalExtensionality.
 Require Export Bool.
 
 Require Export Arith.
-Require Export Omega.
+Require Export Lia.
 Require Export Nat.
 
 Require Export Equality.

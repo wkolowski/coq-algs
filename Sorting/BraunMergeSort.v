@@ -66,7 +66,7 @@ Lemma braunCount_braunInsert :
 Proof.
   induction b as [a | l IHl r IHr]; cbn.
     destruct (p x); reflexivity.
-    rewrite IHr. destruct (p x); unfold id; omega.
+    rewrite IHr. destruct (p x); unfold id; lia.
 Qed.
 
 Lemma braunCount_fromList :

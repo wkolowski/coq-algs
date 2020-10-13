@@ -155,7 +155,7 @@ Proof.
   intros. functional induction @toList A q.
     constructor.
     rewrite toList_equation in *. destruct (unMin q') eqn: H.
-      Focus 2. constructor.
+      2: constructor.
       destruct p. constructor; auto. apply (unMin_spec A m q q').
         assumption.
         rewrite (unMin_elem _ c m q q').

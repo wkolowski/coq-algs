@@ -48,7 +48,7 @@ Lemma removeFirst_le :
   forall (A : Type) (p : A -> bool) (l : list A),
     length (removeFirst p l) <= length l.
 Proof.
-  induction l as [| h t]; cbn; try destruct (p h); cbn; omega.
+  induction l as [| h t]; cbn; try destruct (p h); cbn; lia.
 Qed.
 
 Lemma removeFirst_In_lt :
@@ -115,9 +115,9 @@ Proof.
     exists [], []. cbn. dec.
     simpl. dec; subst; cbn.
       exists [h'], t'. dec.
-      Focus 2. exists [h], t'. cbn. dec.
-      Focus 2. exists [h], t'. dec.
       exists [], (h' :: t'). rewrite <- e. dec.
+      exists [h], t'. cbn. dec.
+      exists [h], t'. dec.
       destruct IHt' as [l1 [l2 [H H']]]. destruct l1.
         inv H.
         exists (h :: h' :: l1), l2. split.
@@ -131,7 +131,7 @@ Lemma removeFirst_In_conv :
       In x (h :: t).
 Proof.
   induction t as [| h' t'].
-    simpl. dec.
+    cbn. dec.
     simpl in *. dec; inv H. inv H0.
       edestruct IHt'; cbn; auto.
 Qed.
@@ -155,7 +155,7 @@ Lemma filter_length :
   forall (A : Type) (f : A -> bool) (l : list A),
     length (filter f l) <= length l.
 Proof.
-  induction l as [| h t]; simpl; try destruct (f h); simpl; omega.
+  induction l as [| h t]; simpl; try destruct (f h); simpl; lia.
 Qed.
 
 Lemma filter_lengthOrder :
@@ -247,7 +247,7 @@ Theorem take_length_le :
     length (take n l) <= length l.
 Proof.
   induction n as [| n']; destruct l; simpl; intros; auto.
-    omega.
+    lia.
     apply le_n_S. apply IHn'.
 Qed.
 
@@ -258,7 +258,7 @@ Proof.
   induction n as [| n']; simpl; intros; auto.
   destruct l; simpl in *.
     inversion H.
-    apply lt_n_S. apply IHn'. omega.
+    apply lt_n_S. apply IHn'. lia.
 Qed.
 
 Theorem drop_length_le : forall (A : Type) (l : list A) (n : nat),
@@ -371,12 +371,12 @@ Lemma div2_pres_le :
   forall n m : nat, n <= m -> Nat.div2 n <= Nat.div2 m.
 Proof.
   intro. functional induction div2 n; intros.
-    omega.
-    omega.
+    lia.
+    lia.
     destruct m as [| [| m']].
-      omega.
-      omega.
-      simpl. apply le_n_S. apply IHn0. omega.
+      lia.
+      lia.
+      simpl. apply le_n_S. apply IHn0. lia.
 Qed.
 
 (* Moved from Test.v *)

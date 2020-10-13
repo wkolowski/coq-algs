@@ -58,6 +58,4 @@ Proof.
     destruct 1 as [n Hn]. unfold g in Hn.
       specialize (inj _ _ Hn). inversion inj.
     exists (fun x : A => x). repeat split; intros.
-      Focus 2. assumption.
-      Focus 2. exists y. auto.
 Abort.

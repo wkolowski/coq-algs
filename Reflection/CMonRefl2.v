@@ -11,8 +11,8 @@ Inductive type (X : CMon) : Type :=
     | elem : type X
     | prop : type X.
 
-Arguments elem [X].
-Arguments prop [X].
+Arguments elem {X}.
+Arguments prop {X}.
 
 Inductive exp {X : CMon} : type X -> Type :=
     | Id : exp elem
@@ -25,13 +25,13 @@ Inductive exp {X : CMon} : type X -> Type :=
     | fOr : exp prop -> exp prop -> exp prop
     | fImpl : exp prop -> exp prop -> exp prop.
 
-Arguments Id [X].
-Arguments Var [X] _.
-Arguments Op [X] _ _.
-Arguments fEquiv [X] _ _.
-Arguments fAnd [X] _ _.
-Arguments fOr [X] _ _.
-Arguments fImpl [X] _ _.
+Arguments Id     {X}.
+Arguments Var    {X} _.
+Arguments Op     {X} _ _.
+Arguments fEquiv {X} _ _.
+Arguments fAnd   {X} _ _.
+Arguments fOr    {X} _ _.
+Arguments fImpl  {X} _ _.
 
 Definition typeDenote {X : CMon} (t : type X) : Type :=
 match t with

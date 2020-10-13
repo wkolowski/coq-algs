@@ -94,7 +94,7 @@ Proof.
   destruct t1 as [x r ts], t2 as [x' r ts'].
     destruct (x <=? x').
       exact (node x (bfcons (node x' ts') ts)).
-      exact (node x' (bfcons (node x ts) ts')). Show Proof.
+      exact (node x' (bfcons (node x ts) ts')).
 Defined.
 
 Lemma link_comm :

@@ -39,7 +39,7 @@ Proof.
     rewrite teq0. cbn. reflexivity.
   intros. replace l1 with (fst (split0 l)).
     apply split_spec_l. assumption.
-    rewrite teq0. cbn. reflexivity. Show Proof.
+    rewrite teq0. cbn. reflexivity.
 Defined.
 
 Functional Scheme div2_ind := Induction for div2 Sort Prop.
@@ -47,9 +47,10 @@ Functional Scheme div2_ind := Induction for div2 Sort Prop.
 Lemma div2_lt_S :
   forall n : nat, div2 n < S n.
 Proof.
-  intros. functional induction @div2 n; omega.
+  intros. functional induction @div2 n; lia.
 Qed.
 
+(*
 #[refine]
 Instance HalfSplit (A : LinDec) : Split A :=
 {
@@ -60,15 +61,16 @@ Instance HalfSplit (A : LinDec) : Split A :=
 }.
 Proof.
   intros. destruct l as [| x [| y t]]; cbn in *.
-    omega.
-    omega.
+    lia.
+    lia.
     inversion H; subst; cbn. apply lt_n_S. apply take_length_lt. cbn.
       apply div2_lt_S.
   intros. inversion H; subst. apply drop_length_lt. cbn.
-    destruct l as [| x [| y t]]; cbn in *; omega.
-    destruct l as [| x [| y t]]; cbn in *; inversion 1. omega.
+    destruct l as [| x [| y t]]; cbn in *; lia.
+    destruct l as [| x [| y t]]; cbn in *; inversion 1. lia.
   intros. cbn. rewrite take_drop. reflexivity.
 Defined.
+*)
 
 Fixpoint interleave {A : Type} (l1 l2 : list A) : list A :=
 match l1, l2 with
@@ -92,7 +94,7 @@ Proof.
   induction l1 as [| h1 t1]; cbn; auto.
     destruct l2 as [| h2 t2]; cbn.
       apply plus_n_O.
-      rewrite IHt1. destruct (p h1), (p h2); omega.
+      rewrite IHt1. destruct (p h1), (p h2); lia.
 Qed.
 
 Lemma perm_interleave :
@@ -103,9 +105,10 @@ Proof.
   unfold perm. intros. rewrite !count_interleave. auto.
 Qed.
 
+(* TODO: fix Mergesort2
 Lemma merge_perm_interleave :
   forall (A : LinDec) (l : list A * list A),
-    perm (merge A l) (interleave (fst l) (snd l)).
+    perm (ghms A l) (interleave (fst l) (snd l)).
 Proof.
   unfold perm; intros. rewrite count_interleave.
   rewrite <- merge_perm. rewrite count_app. auto.
@@ -118,12 +121,12 @@ Instance MsSplit (A : LinDec) : Split A :=
 }.
 Proof.
   intros. destruct l as [| x [| y t]]; cbn in *.
-    omega.
-    omega.
+    lia.
+    lia.
     eapply ms_split_len1. eauto.
   intros. destruct l as [| x [| y t]]; cbn in *.
-    omega.
-    omega.
+    lia.
+    lia.
     eapply ms_split_len2. eauto.
   intros. rewrite <- ms_split_interleave at 1.
     rewrite <- merge_perm_interleave. rewrite merge_perm. reflexivity.
@@ -153,9 +156,9 @@ Function ums
                @ums A (1 + depth) maxdepth sort split l2).
 Proof.
   intros. apply split'_spec2 with l1; dec.
-    cbn in *. omega.
+    cbn in *. lia.
   intros. apply split'_spec1 with l2; dec.
-    cbn in *. omega.
+    cbn in *. lia.
 Defined.
 
 (** Time for ultimatier mergesort. *)
@@ -231,3 +234,4 @@ match fuel with
           merge A (trollms fuel' sort split l1,
                    trollms fuel' sort split l2)
 end.
+*)

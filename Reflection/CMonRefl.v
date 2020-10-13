@@ -9,9 +9,9 @@ Inductive exp (X : CMon) : Type :=
     | Var : nat -> exp X
     | Op : exp X -> exp X -> exp X.
 
-Arguments Id [X].
-Arguments Var [X] _.
-Arguments Op [X] _ _.
+Arguments Id  {X}.
+Arguments Var {X} _.
+Arguments Op  {X} _ _.
 
 Fixpoint expDenote {X : CMon} (envX : Env X) (e : exp X) : X :=
 match e with
@@ -157,13 +157,13 @@ Inductive formula (X : CMon) : Type :=
     | fOr : formula X -> formula X -> formula X
     | fImpl : formula X -> formula X -> formula X.
 
-Arguments fFalse [X].
-Arguments fTrue [X].
-Arguments fEq [X] _ _.
-Arguments fVar [X] _.
-Arguments fAnd [X] _ _.
-Arguments fOr [X] _ _.
-Arguments fImpl [X] _ _.
+Arguments fFalse {X}.
+Arguments fTrue  {X}.
+Arguments fEq    {X} _ _.
+Arguments fVar   {X} _.
+Arguments fAnd   {X} _ _.
+Arguments fOr    {X} _ _.
+Arguments fImpl  {X} _ _.
 
 Fixpoint formulaDenote
   {X : CMon} (envX : Env X) (envP : Env Prop) (f : formula X) : Prop :=
@@ -200,12 +200,13 @@ Theorem subst_idempotent :
       subst (subst e1 i e2) i e2 = subst e1 i e2.
 Proof.
   intros. functional induction subst e1 i e2; cbn.
-    trivial.
-    Focus 2. rewrite e0. trivial.
-    Focus 2. erewrite IHe0, IHe; eauto.
+    reflexivity.
     gen e2. induction e2; intros; cbn in *.
-      trivial.
-      destruct (Nat.eq_dec n n0); trivial.
+      reflexivity.
+      destruct (Nat.eq_dec n n0); reflexivity.
+      admit.
+    rewrite e0. reflexivity.
+    erewrite IHe0, IHe; eauto.
 Abort.
 
 Function substF {X : CMon} (f : formula X) (i : nat) (e : exp X)
@@ -278,14 +279,14 @@ end.
 Lemma size_gt_0 :
   forall (X : CMon) (f : formula X), 0 < size f.
 Proof.
-  induction f; cbn; omega.
+  induction f; cbn; lia.
 Qed.
 
 Lemma size_substF :
   forall (X : CMon) (f : formula X) (i : nat) (e : exp X),
     size (substF f i e) = size f.
 Proof.
-  intros. functional induction substF f i e; cbn; omega.
+  intros. functional induction substF f i e; cbn; lia.
 Qed.
 
 Hint Resolve size_gt_0.
@@ -311,8 +312,8 @@ Proof.
               | H : 0 < size f |- _ => idtac
               | _ => pose (size_gt_0 f)
           end
-  end; try omega.
-    rewrite size_substF. omega.
+  end; try lia.
+    rewrite size_substF. lia.
 Defined.
 
 Theorem simplifyEq'_correct :

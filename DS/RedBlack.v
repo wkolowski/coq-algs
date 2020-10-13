@@ -217,7 +217,7 @@ Lemma balance_count_RBT :
 Proof.
   intros. functional induction @balance A c l v r;
   cbn; destruct_if;
-  unfold id; try omega.
+  unfold id; try lia.
 Qed.
 
 (** Properties of [makeBlack]. *)
@@ -276,7 +276,7 @@ Lemma ins_count_RBT :
 Proof.
   induction t; cbn; dec;
   rewrite balance_count_RBT; cbn; rewrite ?IHt1, ?IHt2;
-  destruct_if; unfold id; omega.
+  destruct_if; unfold id; lia.
 Qed.
 
 (** Properties of [insert]. *)

@@ -114,7 +114,8 @@ Proof.
     pose (e' := e). apply small_inl in e'; subst.
       apply Sorted_adhoc in e. admit.
     apply small_inr in e. apply pivot_spec in e0.
-      Check Sorted_app_all. ; auto.
+(* TODO: finish Sorted'_uqs (custom definition of Sorted)
+       apply Sorted_app_all; auto.
         apply Sorted_cons.
           intros. apply in_app_or in H. destruct H.
             erewrite spec_eq; eauto.
@@ -129,7 +130,8 @@ Proof.
               erewrite (spec_eq pivot) at 1; eauto.
                 eapply spec_hi; eauto.
           intros. apply uqs_In in H. eapply spec_lo; eauto.
-Qed.
+*)
+Abort.
 
 #[refine]
 Instance Sort_uqs

@@ -129,7 +129,7 @@ Proof.
   apply well_founded_induction_type with (R := ltof _ (@length A)).
     apply well_founded_ltof.
     intros l IH. destruct (short l) as [[h t] |] eqn: Hshort.
-      Focus 2. constructor. assumption.
+      2: constructor; assumption.
       destruct (choosePivot h t) as [pivot rest] eqn: Hpivot;
       destruct (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
       econstructor 2; try eassumption.

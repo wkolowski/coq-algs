@@ -127,7 +127,7 @@ Proof.
     intro. apply le_S_n in H0. destruct n'.
       cbn in H0. inv H0.
       assert (S n' <> 0) by congruence. specialize (IHn0 H1).
-        assert (S n' <= Init.Nat.div2 (S n')) by omega. contradiction.
+        assert (S n' <= Init.Nat.div2 (S n')) by lia. contradiction.
 Qed.
 
 Lemma div2_inv :
@@ -397,7 +397,7 @@ Lemma size_deque :
     size (deque f r) = length f + length r.
 Proof.
   intros. functional induction @deque A f r; cbn; auto;
-  apply split_length in e1; cbn in e1; rewrite rev_length; omega.
+  apply split_length in e1; cbn in e1; rewrite rev_length; lia.
 Qed.
 
 Lemma size_cons :
@@ -420,7 +420,7 @@ Lemma size_snoc :
   forall (A : Type) (x : A) (d : Deque A),
     size (snoc x d) = S (size d).
 Proof.
-  intros. unfold snoc. destruct d. rewrite size_deque. cbn. omega.
+  intros. unfold snoc. destruct d. rewrite size_deque. cbn. lia.
 Qed.
 
 Lemma size_init :
@@ -428,7 +428,7 @@ Lemma size_init :
     init d = Some d' -> size d' = pred (size d).
 Proof.
   intros. functional inversion H; subst.
-    rewrite size_deque. cbn. omega.
+    rewrite size_deque. cbn. lia.
     reflexivity.
 Qed.
 
@@ -565,7 +565,7 @@ Proof.
     destruct _x1 as [| h1 [| h2 t]]; cbn in *.
       inv e1.
       destruct H; firstorder.
-      destruct (H ltac:(omega)). congruence.
+      destruct (H ltac:(lia)). congruence.
     destruct _x, r; firstorder congruence.
 Qed.
 
@@ -605,7 +605,7 @@ Lemma toList_head :
 Proof.
   intros. functional induction @head A d; cbn in *; auto.
   destruct _x as [| h1 [| h2 t]]; cbn in *; try tauto.
-  destruct (H ltac:(omega)). congruence.
+  destruct (H ltac:(lia)). congruence.
 Qed.
 
 Lemma toList_tail :
@@ -640,7 +640,7 @@ Proof.
     case_eq (rev (_x ++ rev _x0 ++ [x])); intros;
       rewrite !rev_app_distr in H0; cbn in *; congruence.
     cbn in H. destruct _x as [| h1 [| h2 t]]; cbn; try tauto.
-      cbn in *. destruct (H ltac:(omega)). contradiction.
+      cbn in *. destruct (H ltac:(lia)). contradiction.
 Qed.
 
 Lemma toList_init :
@@ -730,7 +730,7 @@ Proof.
       destruct (split (Nat.div2 (length t)) (a :: t)).
         cbn. reflexivity.
     destruct _x as [| h1 [| h2 t]]; cbn in *; firstorder.
-      destruct (H ltac:(omega)). congruence.
+      destruct (H ltac:(lia)). congruence.
 Qed.
 
 (** [fromList] and its properties. *)

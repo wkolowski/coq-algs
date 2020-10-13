@@ -153,7 +153,7 @@ Lemma size_length :
 Proof.
   induction t; cbn.
     reflexivity.
-    rewrite !app_length. cbn. rewrite IHt1, IHt2. omega.
+    rewrite !app_length. cbn. rewrite IHt1, IHt2. lia.
 Qed.
 
 Lemma count_toList :
@@ -387,7 +387,7 @@ Proof.
   induction t; cbn.
     apply le_0_n.
     destruct (p a); cbn.
-      apply le_n_S. omega.
+      apply le_n_S. lia.
       apply le_0_n.
 Qed.
 
@@ -423,7 +423,7 @@ end.
 Definition leaf {A : Type} (x : A) : BTree A :=
   node x empty empty.
 
-Let test :=
+Definition test :=
   node 1
     (node 2 (leaf 4) (leaf 5))
     (leaf 3).
@@ -491,7 +491,7 @@ match ts with
 end.
 Proof.
   intros. subst. cbn. apply le_S, le_n.
-  intros. subst. cbn. rewrite sumOfWuts_app. cbn. omega.
+  intros. subst. cbn. rewrite sumOfWuts_app. cbn. lia.
 Defined.
 
 Definition bfs {A : Type} (t : BTree A) : list A :=
@@ -523,7 +523,7 @@ Proof.
   intros. functional induction bfs_aux A l acc; cbn.
     reflexivity.
     apply IHl0.
-    rewrite IHl0, sumOfSizes_app. cbn. omega.
+    rewrite IHl0, sumOfSizes_app. cbn. lia.
 Qed.
 
 Lemma length_bfs :
@@ -604,7 +604,7 @@ Proof.
     end;
     rewrite ?IHt1, ?IHt2, ?plus_0_r, ?Nat.mul_max_distr_l,
             ?Nat.mul_cancel_l, ?Nat.max_id in *;
-    omega.
+    lia.
 Qed.
 
 Lemma S_pow_minus_1 :
@@ -615,7 +615,7 @@ Proof.
     reflexivity.
     rewrite plus_0_r, Nat.add_sub_swap.
       rewrite <- Nat.add_succ_l, IHn'. reflexivity.
-      omega.
+      lia.
 Qed.
 
 Lemma size_intersperse_complete :
@@ -628,7 +628,7 @@ Proof.
       rewrite !plus_0_r, <- 4!Nat.add_succ_l.
       rewrite S_pow_minus_1, plus_n_Sm, S_pow_minus_1.
       rewrite Nat.add_succ_l, plus_n_Sm, <- Nat.add_succ_l, S_pow_minus_1.
-        omega.
+        lia.
 Qed.
 
 Lemma mirror_intersperse :
@@ -878,13 +878,13 @@ Proof.
     split; [reflexivity | assumption].
     destruct (p a) eqn: Hpa.
       inv H. specialize (IHt1_1 (node a t1_2 t2)). cbn in *.
-        rewrite Hpa in *. destruct (IHt1_1 ltac:(omega)). inv H0.
-        destruct (IHt1_2 _ H3). omega.
+        rewrite Hpa in *. destruct (IHt1_1 ltac:(lia)). inv H0.
+        destruct (IHt1_2 _ H3). lia.
       assert (S (size t1_1 + size t1_2 + size t2) <=
                 (size t1_1 + size t1_2 + size t2)).
         rewrite <- H. unfold id.
           repeat apply plus_le_compat; apply count_size.
-        omega.
+        lia.
 Qed.
 
 Lemma All_count :
@@ -907,7 +907,7 @@ Proof.
                   (size t1 + size t2)).
           rewrite <- H1. unfold id.
             apply plus_le_compat; apply count_size.
-          omega.
+          lia.
 Qed.
 
 Inductive SameStructure {A B : Type} : BTree A -> BTree B -> Prop :=

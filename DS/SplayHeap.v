@@ -171,7 +171,8 @@ Qed.
 
 (** Properties of [partition]. *)
 
-(* TODO: fix *) Lemma partition_elem :
+(* TODO: fix elem
+Lemma partition_elem :
   forall (A : LinDec) (x pivot : A) (h l r : SplayHeap A),
     partition pivot h = (l, r) ->
       elem x h <-> elem x l \/ elem x r.
@@ -219,7 +220,7 @@ Lemma partition_size :
     partition x h = (h1, h2) -> size h = size h1 + size h2.
 Proof.
   intros A x h. functional induction partition x h; cbn;
-  inv 1; dec; rewrite (IHp _ _ e3); omega.
+  inv 1; dec; rewrite (IHp _ _ e3); lia.
 Qed.
 
 Lemma partition_count_BTree :
@@ -230,7 +231,7 @@ Proof.
   intros until h.
   functional induction partition pivot h; cbn; inv 1.
 (*
- rewrite ?(IHp0 _ _ _ e3). cbn.  destruct (p x), (p y). omega.
+ rewrite ?(IHp0 _ _ _ e3). cbn.  destruct (p x), (p y). lia.
 *)
 Admitted.
 
@@ -304,7 +305,7 @@ Lemma merge_size :
 Proof.
   intros. functional induction @merge A h1 h2; cbn.
     reflexivity. inv e0.
-    rewrite IHs, IHs0. apply partition_size in H0. rewrite H0. omega.
+    rewrite IHs, IHs0. apply partition_size in H0. rewrite H0. lia.
 Qed.
 
 Lemma merge_count_BTree :
@@ -316,7 +317,7 @@ Proof.
     case_eq (partition a h2); cbn; intros.
       apply (partition_count_BTree p) in H.
       rewrite IHh1_1, IHh1_2, H.
-      destruct (p a); omega.
+      destruct (p a); lia.
 Qed.
 
 (** Properties of [findMin] *)
@@ -522,3 +523,4 @@ Proof.
       rewrite IHo; dec.
 *)
 Admitted.
+*)

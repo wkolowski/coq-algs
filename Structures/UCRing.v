@@ -1,5 +1,3 @@
-
-
 Require Export RCCBase.
 
 Set Implicit Arguments.

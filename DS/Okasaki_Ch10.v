@@ -14,9 +14,9 @@ Inductive Seq (A : Type) : Type :=
     | Zero : Seq (A * A) -> Seq A
     | One : A -> Seq (A * A) -> Seq A.
 
-Arguments Nil [A].
-Arguments Zero [A] _.
-Arguments One [A] _ _.
+Arguments Nil  {A}.
+Arguments Zero {A} _.
+Arguments One  {A} _ _.
 
 Definition empty {A : Type} : Seq A := Nil.
 

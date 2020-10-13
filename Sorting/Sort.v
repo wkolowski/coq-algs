@@ -12,7 +12,7 @@ Hint Constructors Sorted.
 
 Class Sort {A : Type} (R : A -> A -> Prop) : Type :=
 {
-    sort :> list A -> list A;
+    sort : list A -> list A;
     Sorted_sort :
       forall l : list A, Sorted R (sort l);
     Permutation_sort :

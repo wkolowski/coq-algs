@@ -105,7 +105,7 @@ Proof.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
     rewrite MergeSort.merge_equation. dec.
-    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. omega.
+    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. lia.
 Qed.
 
 Lemma length_merge :
@@ -215,7 +215,7 @@ Proof.
   destruct s; cbn; intros. inv teq. apply lt_div2.
   destruct size; cbn in *.
     congruence.
-    omega.
+    lia.
 Defined.
 
 Arguments addSeg {x} _ _.
@@ -242,7 +242,7 @@ Proof.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
     rewrite MergeSort.merge_equation. dec.
-    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. omega.
+    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. lia.
 Qed.
 
 Lemma length_merge :

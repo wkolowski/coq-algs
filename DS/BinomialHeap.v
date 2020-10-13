@@ -1,5 +1,3 @@
-
-
 Require Export LinDec.
 Require Export RCCBase.
 
@@ -373,9 +371,9 @@ Proof.
         auto.
         cbn in H. tree'.
           specialize (IHh1 _ H1). firstorder.
-          Focus 2. rewrite insTree_elemHeap, link_elemTree' in H.
-            decompose [or] H; clear H; auto. specialize (IHh1 _ H0). inv IHh1.
           specialize (IHh2 H1). inv IHh2.
+          rewrite insTree_elemHeap, link_elemTree' in H.
+            decompose [or] H; clear H; auto. specialize (IHh1 _ H0). inv IHh1.
 Restart.
   split; gen h2.
     induction h1; induction h2; tree'.
@@ -477,7 +475,7 @@ Lemma count_Tree_link :
   forall (A : LinDec) (x : A) (t1 t2 : Tree A),
     count_Tree x (link t1 t2) = count_Tree x t1 + count_Tree x t2.
 Proof.
-  destruct t1, t2. cbn. do 2 dec; unfold id; omega.
+  destruct t1, t2. cbn. do 2 dec; unfold id; lia.
 Qed.
 
 Lemma insTree_Some :
@@ -496,7 +494,7 @@ Proof.
   induction h as [| t' h']; cbn; intros.
     reflexivity.
     tree'. unfold count_Heap in *. rewrite IHh'.
-      rewrite count_Tree_link. omega.
+      rewrite count_Tree_link. lia.
 Qed.
 
 Lemma count_Heap_insert :

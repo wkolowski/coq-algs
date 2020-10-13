@@ -130,7 +130,7 @@ Proof.
     apply pivot_spec, Permutation_length in teq1.
   1: apply len_hi in teq2.
   2: apply len_lo in teq2.
-  all: cbn in *; omega.
+  all: cbn in *; lia.
 Defined.
 
 (** Ordinary quicksort using [uqs] *)
@@ -179,7 +179,7 @@ Proof.
     rewrite filter_In in H0. dec.
       destruct H0. inv H0.
       destruct H0. apply LinDec_not_leq_lt in n. firstorder.
-    cbn. omega.
+    cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
 
@@ -198,7 +198,7 @@ Proof.
     apply filter_In in H0. dec.
       destruct H0. inv H0.
       destruct H0. apply LinDec_not_leq_lt in n. firstorder.
-    cbn. omega.
+    cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
 

@@ -9,9 +9,9 @@ Inductive exp (X : CMon) : Type :=
     | Var : nat -> exp X
     | Op : exp X -> exp X -> exp X.
 
-Arguments Id [X].
-Arguments Var [X] _.
-Arguments Op [X] _ _.
+Arguments Id  {X}.
+Arguments Var {X} _.
+Arguments Op  {X} _ _.
 
 Require Import CoqMTL.Base.
 

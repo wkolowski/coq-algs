@@ -12,8 +12,8 @@ Inductive Tree (A : Type) : Type :=
     | E : Tree A
     | T : A -> list (Tree A) -> Tree A.
 
-Arguments E [A].
-Arguments T [A] _ _.
+Arguments E {A}.
+Arguments T {A} _ _.
 
 Inductive elem {A : Type} (x : A) : Tree A -> Prop :=
     | elem0 : forall l : list (Tree A), elem x (T x l)
@@ -308,14 +308,14 @@ Lemma height_isEmpty_true :
   forall (A : Type) (t : Tree A),
     height t = 0 <-> isEmpty t = true.
 Proof.
-  Tree_ind; firstorder.
+  Tree_ind; firstorder; congruence.
 Qed.
 
 Lemma height_isEmpty_false :
   forall (A : Type) (t : Tree A),
     height t <> 0 <-> isEmpty t = false.
 Proof.
-  Tree_ind; firstorder.
+  Tree_ind; firstorder; congruence.
 Qed.
 
 Fixpoint mirror {A : Type} (t : Tree A) : Tree A :=
