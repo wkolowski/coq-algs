@@ -120,11 +120,10 @@ match n with
     | S n' => n :: to0 n'
 end.
 
-Definition sl := to0 30000.
-
-(*Definition ll := lazy_to0 30000.*)
-
 (*
+Definition sl := to0 30000.
+Definition ll := lazy_to0 30000.
+
 Fail
 Time Eval cbv in head
   ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl).

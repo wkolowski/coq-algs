@@ -13,7 +13,7 @@ Arguments Bind {A B}.
 
 Notation "x '<-' e1 ; e2" := (bind e1 (fun x => e2))
   (right associativity, at level 42, only parsing).
-Notation "'do' e" := e.
+Notation "'do' e" := e (only parsing).
 
 Fixpoint slowfib (n : nat) : nat :=
 match n with
@@ -48,9 +48,6 @@ match x with
 end.
 
 Definition fib (n : nat) : nat := extract (fibMemo n).
-
-Time Compute fib 23.
-Time Compute slowfib 23.
 
 (*
 Definition fibF (self : nat -> Memoize nat) (n : nat) : Memoize nat :=
@@ -99,6 +96,4 @@ match n with
     | 2 => 0
     | S (S (S n3 as n2) as n1) => benchmark n1 + benchmark n2 + benchmark n3
 end.
-
-Time Compute benchmark 35.
 *)

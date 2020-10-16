@@ -1,7 +1,7 @@
-
-
 Require Export Formula.
 (* Require Import Formula2. TODO *)
+
+Section FormulaTest.
 
 Variables A B C D E F G P Q R S : Prop.
 
@@ -149,3 +149,5 @@ Proof. try solveGoal. Abort.
 
 Theorem impl_and : (P -> Q /\ R) -> ((P -> Q) /\ (P -> R)).
 Proof. try solveGoal. Abort.
+
+End FormulaTest.

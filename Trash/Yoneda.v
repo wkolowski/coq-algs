@@ -1,6 +1,8 @@
 Require Import CoqMTL.Control.Functor.
 Require Import CoqMTL.Control.Monad.Reader.
 
+Section Yoneda.
+
 Variables
   (F : Type -> Type)
   (inst : Functor F)
@@ -32,3 +34,5 @@ Proof.
   unfold Yoneda, abstract, concretize.
   intro. rewrite fmap_id. reflexivity.
 Qed.
+
+End Yoneda.

@@ -38,10 +38,6 @@ Lemma Sorted_ins :
   forall (A : LinDec) (x : A) (l : list A),
     Sorted A l -> Sorted A (ins A x l).
 Proof.
-  induction l as [| h t]; intros; cbn.
-    constructor.
-    dec. induction t as [| h' t']; cbn in *; dec.
-Restart.
   induction 1; cbn in *; dec.
 Qed.
 
@@ -97,10 +93,6 @@ Lemma Sorted_ins' :
   forall (A : LinDec) (x : A) (l : list A),
     Sorted A l -> Sorted A (ins' (@leqb A) x l).
 Proof.
-  induction l as [| h t]; cbn; intros.
-    constructor.
-    dec. induction t as [| h' t']; cbn in *; dec.
-Restart.
   induction 1; cbn in *; dec.
 Qed.
 

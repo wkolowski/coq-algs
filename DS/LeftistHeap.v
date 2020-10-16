@@ -111,7 +111,7 @@ Inductive isHeap {A : LinDec} : Tree A -> Prop :=
           isHeap r ->
             isHeap (N (1 + right_spine r) v l r).
 
-Hint Constructors Tree leftBiased elem isHeap.
+Hint Constructors Tree leftBiased elem isHeap : core.
 
 Ltac balance := unfold balance, id in *; intros;
 match goal with

@@ -51,7 +51,7 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-Hint Constructors elem elem' isHeap.
+Hint Constructors elem elem' isHeap : core.
 
 Hint Extern 0 =>
 match goal with
@@ -60,7 +60,8 @@ match goal with
     | H : elem _ E |- _ => inv H
     | H : elem' _ E |- _ => inv H
     | H : Exists _ [] |- _ => inv H
-end.
+end
+  : core.
 
 (** * Induction principles *)
 Fixpoint Tree_rect'

@@ -9,7 +9,7 @@ Inductive Ord : Type :=
     | Eq : Ord
     | Gt : Ord.
 
-Hint Constructors Ord.
+Hint Constructors Ord : core.
 
 Class TrichDec : Type :=
 {
@@ -35,12 +35,13 @@ Class TrichDec : Type :=
 Infix "<" := trich_lt (at level 70).
 Infix "<?>" := trichb (at level 70).
 
-Hint Resolve trich_lt_irrefl trich_lt_antisym trich_lt_trans trich_lt_trich.
+Hint Resolve trich_lt_irrefl trich_lt_antisym trich_lt_trans trich_lt_trich : core.
 
 Hint Extern 0 =>
 match goal with
     | H : _ < _ |- _ => apply trich_lt_irrefl in H; contradiction
-end.
+end
+  : core.
 
 Definition TrichDec_ltb {A : TrichDec} (x y : @carrier A) : bool :=
 match x <?> y with

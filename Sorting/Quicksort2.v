@@ -6,14 +6,15 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Local Hint Unfold lt.
-Local Hint Resolve le_n_S filter_length.
+Local Hint Unfold lt : core.
+Local Hint Resolve le_n_S filter_length : core.
 
 Local Hint Extern 0 (length _ < length _) =>
 match goal with
     | H : bifilter _ _ = _ |- _ => rewrite bifilter_spec in H; inversion H;
         apply filter_lengthOrder
-end.
+end
+  : core.
 
 Class QSArgs (A : Type) : Type :=
 {

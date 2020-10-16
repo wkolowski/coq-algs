@@ -174,7 +174,7 @@ Proof.
   sized. rewrite Q.isEmpty_head_true. split; trivial.
 Qed.
 
-(*  Hint Resolve Q.isEmpty_head_true : wut. *)
+(*  Hint Resolve Q.isEmpty_head_true : wut : core. *)
 
 Lemma isEmpty_head_false :
   forall (A : Type) (q : Queue A),

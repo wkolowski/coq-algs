@@ -70,8 +70,6 @@ Proof.
     destruct IHn' as [ds H]. exists (ncons tt ds). cbn. congruence.
 Defined.
 
-Compute nvalue (nat_to_unary 41).
-
 Definition complete (sys : PNNS) : Prop :=
   forall n : nat, exists rep : num sys, nvalue rep = n.
 

@@ -30,7 +30,7 @@ Inductive isBST {A : LinDec} : RBTree A -> Prop :=
         (forall x : A, elem x r -> leq v x) -> isBST r ->
         isBST (T c l v r).
 
-Hint Constructors color RBTree elem isBST.
+Hint Constructors color RBTree elem isBST : core.
 
 (** [empty], [isEmpty] and [singleton] are my own. *)
 Definition empty {A : Type} : RBTree A := E.
@@ -196,14 +196,14 @@ Lemma balance_elem :
   forall (A : LinDec) (c : color) (x v : A) (l r : RBTree A),
     elem x (T c l v r) <-> elem x (balance c l v r).
 Proof.
-  Time split; functional induction @balance (@carrier A) c l v r; aux.
+  split; functional induction @balance (@carrier A) c l v r; aux.
 Qed.
 
 Lemma balance_isBST :
   forall (A : LinDec) (c : color) (v : A) (l r : RBTree A),
     isBST (T c l v r) -> isBST (balance c l v r).
 Proof.
-  Time intros; functional induction @balance (@carrier A) c l v r; aux.
+  intros; functional induction @balance (@carrier A) c l v r; aux.
 Qed.
 
 Ltac destruct_if := repeat

@@ -151,7 +151,7 @@ Proof.
       apply perm_swap. apply perm_refl.
 Qed.
 
-Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front.
+Hint Resolve perm_refl perm_symm perm_cons perm_swap perm_front : core.
 
 Lemma perm_app_comm :
   forall (A : Type) (l1 l2 : list A),

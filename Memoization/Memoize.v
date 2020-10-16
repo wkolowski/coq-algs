@@ -41,7 +41,7 @@ Proof.
     destruct hehe.
 Defined.
 
-Function find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
+Fixpoint find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
   : option B :=
 match t with
     | empty => None
@@ -289,11 +289,4 @@ match n with
         let (x3, acc3) := bind n2 wutzor' acc2 in
         let (x4, acc4) := bind n1 wutzor' acc3 in x1 + x2 + x3 + x4
 end.
-
-(*
-Time Compute wutzor 30.
-Time Compute
-  wutzor' 30
-    (@fromList FibAcc [(0, 0); (1, 0); (2, 0); (3, 0)]).
-*)
 *)

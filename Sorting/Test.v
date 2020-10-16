@@ -1,5 +1,3 @@
-
-
 (*
 Require Import InsertionSort.
 Require Import SelectionSort.

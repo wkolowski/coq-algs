@@ -97,7 +97,7 @@ Theorem simplify_idempotent :
     simplify (simplify e) = simplify e.
 Proof.
   intros. unfold simplify.
-  rewrite ?flatten_lte. Check sort_idempotent.
+  rewrite ?flatten_lte.
   pose (sort_idempotent (Sort_insertionSort natle)). simpl in e0.
   rewrite e0. reflexivity.
 Qed.
@@ -289,7 +289,7 @@ Proof.
   intros. functional induction substF f i e; cbn; lia.
 Qed.
 
-Hint Resolve size_gt_0.
+Hint Resolve size_gt_0 : core.
 
 (*Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
   : formula X :=
@@ -372,7 +372,7 @@ Theorem simplifyLogic_correct :
     formulaDenote envX envP (simplifyLogic f) <-> formulaDenote envX envP f.
 Proof.
   intros. functional induction simplifyLogic f; cbn.
-  Time all:
+  all:
   repeat match goal with
       | envX : Env _, IH : forall _ : Env _, _ |- _ => specialize (IH envX)
       | e : simplifyLogic ?f = _,

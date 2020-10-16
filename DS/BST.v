@@ -14,7 +14,7 @@ Inductive isBST
 
 Arguments isBST {A} _ _.
 
-Hint Constructors Elem isBST.
+Hint Constructors Elem isBST : core.
 
 Record BST {A : Type} (cmp : A -> A -> comparison) : Type :=
 {
@@ -127,7 +127,8 @@ match goal with
     | H : Elem _ empty |- _ => inversion H
     | H : isBST _ (node _ ?l _) |- isBST _ ?l => inversion H; auto
     | H : isBST _ (node _ _ ?r) |- isBST _ ?r => inversion H; auto
-end.
+end
+  : core.
 
 Lemma Elem_insert :
   forall
@@ -174,7 +175,6 @@ Abort.
       destruct l; cbn in *.
         inversion e0.
         destruct (removeMin cmp l1) as [[] |]; inversion e0; subst.
-          
       inversion H; subst. destruct (IHo x _ _ H4 e0).
         destruct (H1 
 *)

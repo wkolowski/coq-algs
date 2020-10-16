@@ -33,5 +33,3 @@ Instance MsArgs_nat : MsArgs :=
     join := @concat nat
 }.
 
-Compute ms MsArgs_nat [1; 5; 2; 6; 3; 7].
-

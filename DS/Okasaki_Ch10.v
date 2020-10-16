@@ -92,7 +92,7 @@ Inductive lookupGraph :
         forall i A h t r,
           lookupGraph i A (Zero t) r -> lookupGraph (S i) A (One h t) r.
 
-Hint Constructors lookupGraph.
+Hint Constructors lookupGraph : core.
 
 Definition lookup_strong
   (i : nat) {A : Type} (s : Seq A)
@@ -130,7 +130,7 @@ Inductive fupdateGraph
           fupdateGraph i A f (Zero t) r ->
             fupdateGraph (S i) A f (One h t) (cons h r).
 
-Hint Constructors fupdateGraph.
+Hint Constructors fupdateGraph : core.
 
 Definition fupdate_strong
   (i : nat) (A : Type) (f : A -> A) (s : Seq A)
@@ -221,7 +221,7 @@ end.
 
 (** Tests *)
 
-Let to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
+Definition to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
 
 Compute fromList to_1_10.
 Compute update 5 42 (fromList to_1_10).

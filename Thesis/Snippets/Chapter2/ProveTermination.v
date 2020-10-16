@@ -164,7 +164,7 @@ Fixpoint QSDom_all
   (A : QSArgs) (l : list A) {struct l} : QSDom A l.
 Proof.
   destruct (short l) as [[h t] |] eqn: Hshort.
-    Focus 2. constructor. assumption.
+    2: constructor; assumption.
     destruct (choosePivot h t) as [pivot rest] eqn: Hpivot,
              (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
       econstructor 2; try eassumption.
@@ -177,6 +177,6 @@ Definition qs
   (A : QSArgs) (l : list A) : list A :=
     qs' (QSDom_all A l).
 
-Compute qs TQSA_nat [4; 2; 3; 5; 1; 1; 0; 12345].
+Compute qs TQSA_nat [4; 2; 3; 5; 1; 1; 0; 99].
 
 End Variation.

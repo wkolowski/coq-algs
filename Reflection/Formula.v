@@ -64,7 +64,7 @@ Theorem simplifyFormula_correct :
     formulaDenote env (simplifyFormula f) <-> formulaDenote env f.
 Proof.
   intros. functional induction simplifyFormula f; cbn.
-  Time all:
+  all:
   repeat match goal with
       | e : simplifyFormula ?f = _,
         IH : formulaDenote _ (simplifyFormula ?f) <-> _ |- _ =>

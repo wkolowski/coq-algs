@@ -13,7 +13,7 @@ Inductive elemTree {A : Type} (x : A) : Tree A -> Prop :=
         forall (n : nat) (y : A) (l : list (Tree A)) (t : Tree A),
           elemTree x t -> In t l -> elemTree x (T n y l).
 
-Hint Constructors elemTree.
+Hint Constructors elemTree : core.
 
 Definition Heap (A : Type) : Type := list (Tree A).
 
@@ -35,7 +35,7 @@ with elemHeap {A : Type} (x : A) : Heap A -> Prop :=
         forall (t : Tree A) (h' : Heap A),
           elemHeap x h' -> elemHeap x (t :: h').
 
-Hint Constructors elemTree' elemHeap.
+Hint Constructors elemTree' elemHeap : core.
 
 Definition empty {A : Type} : Heap A := [].
 
@@ -337,20 +337,17 @@ Hint Extern 0 =>
 match goal with
     | |- context [elemTree' _ (link _ _)] =>
         rewrite link_elemTree'
-end.
+end
+  : core.
 
 Lemma insTree_elemHeap :
-  forall (A : LinDec) (x : A) (t : Tree A) (h : Heap A),
+  forall (A : LinDec) (h : Heap A) (x : A) (t : Tree A),
     elemHeap x (insTree t h) <-> elemTree' x t \/ elemHeap x h.
 Proof.
-  split.
-    gen t; gen x. induction h as [| t' h']; tree'.
-      specialize (IHh' _ _ H). rewrite link_elemTree' in IHh'.
-        firstorder.
-    gen t; gen x. induction h as [| t' h']; tree'.
-Restart.
-  split; gen t; gen x; induction h as [| t' h']; tree'.
-  specialize (IHh' _ _ H). rewrite link_elemTree' in IHh'. firstorder.
+  split; revert x t.
+    induction h as [| t' h']; tree'.
+      specialize (IHh' _ _ H). rewrite link_elemTree' in IHh'. firstorder.
+    induction h as [| t' h']; tree'.
 Qed.
 
 Lemma insert_elemTree' :
@@ -364,17 +361,6 @@ Lemma merge_elemHeap :
   forall (A : LinDec) (x : A) (h1 h2 : Heap A),
     elemHeap x (merge h1 h2) <-> elemHeap x h1 \/ elemHeap x h2.
 Proof.
-  split; gen h2.
-    induction h1.
-      cbn. auto.
-      intros. induction h2.
-        auto.
-        cbn in H. tree'.
-          specialize (IHh1 _ H1). firstorder.
-          specialize (IHh2 H1). inv IHh2.
-          rewrite insTree_elemHeap, link_elemTree' in H.
-            decompose [or] H; clear H; auto. specialize (IHh1 _ H0). inv IHh1.
-Restart.
   split; gen h2.
     induction h1; induction h2; tree'.
       specialize (IHh1 _ H1). firstorder.
@@ -527,12 +513,12 @@ Inductive heapOrdered {A : LinDec} : Tree A -> Prop :=
           Forall (fun t => x ≤ root t /\ heapOrdered t) l ->
             heapOrdered (T r x l).
 
-Hint Constructors validTree' validForest heapOrdered.
+Hint Constructors validTree' validForest heapOrdered : core.
 
 Definition isHeap {A : LinDec} (h : Heap A) : Prop :=
   Forall (fun t => validTree t /\ heapOrdered t) h.
 
-Hint Unfold validTree isHeap.
+Hint Unfold validTree isHeap : core.
 
 Lemma empty_isHeap :
   forall A : LinDec, isHeap (@empty A).

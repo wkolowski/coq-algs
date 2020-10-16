@@ -46,8 +46,6 @@ Require Import Lia.
 Definition wut :=
   T 1 (F (T 2 (F (T 5 E) E)) (F (T 3 E) (F (T 4 E) E))).
 
-Compute auxT wut 1 1.
-
 Lemma specT :
   forall (A : Type) (t : Tree A) (t' : Tree (option nat)) (k acc acc' : nat),
     acc <= k -> auxT t k acc = (t', acc') -> acc' <= S k

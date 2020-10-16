@@ -200,7 +200,7 @@ Qed.
 
 Require Import TrichDec.
 
-Function trifilter {A : TrichDec} (x : A) (l : list A)
+Fixpoint trifilter {A : TrichDec} (x : A) (l : list A)
   : list A * list A * list A :=
 match l with
     | [] => ([], [], [])

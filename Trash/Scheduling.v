@@ -130,8 +130,6 @@ Defined.
 Definition sort (ts : list Task) : list Task :=
   insertionSort LinDec_Task ts.
 
-Compute sort [(1, 3); (2, 4); (1, 5); (1, 2); (2, 2); (2, 5)].
-
 (*Function schedule_aux
   {A : Type} (time : nat) (ts : list Task) : list Task :=*)
 

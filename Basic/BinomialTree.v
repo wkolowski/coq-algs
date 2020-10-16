@@ -26,7 +26,7 @@ with elemForest {A : Type} (x : A)
         forall (r : nat) (t : BinomialTree A r) (f : BinomialForest A r),
           elem x t \/ elemForest x f -> elemForest x (bfcons t f).
 
-Hint Constructors elem elemForest.
+Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
   {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) :

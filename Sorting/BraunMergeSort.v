@@ -107,5 +107,7 @@ Proof.
   intros. apply perm_Permutation. rewrite <- perm_braunSort. reflexivity.
 Defined.
 
+(*
 Time Compute @braunSort natle (cycle 200 testl).
 Time Compute @ums' natle 1 (Small_recdepth natle 5) (braunSort) (HalfSplit natle) (cycle 200 testl).
+*)

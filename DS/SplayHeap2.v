@@ -26,7 +26,7 @@ match h with
           end
 end.
 
-Compute bigger 2 (node 5 (node 2 empty empty) empty).
+(* Compute bigger 2 (node 5 (node 2 empty empty) empty). *)
 
 Function smaller
   {A : LinDec} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
@@ -47,7 +47,7 @@ match h with
         else smaller pivot l
 end.
 
-Compute smaller 4 (node 5 (node 2 empty empty) empty).
+(* Compute smaller 4 (node 5 (node 2 empty empty) empty). *)
 
 Definition partition
   {A : LinDec} (x : A) (h : SplayHeap A) : SplayHeap A * SplayHeap A:=

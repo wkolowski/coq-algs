@@ -109,6 +109,8 @@ match n, l with
     | S n', lcons h t => h :: ltake' n' (t tt)
 end.
 
-Time Eval cbv in take 300 (insertionSort (to0 300)).
-Time Eval cbv in ltake 300 (lazyInsertionSort (lazy_to0 300)).
-Time Eval cbv in ltake' 300 (lazyInsertionSort (lazy_to0 300)).
+(*
+Time Eval cbv in take 3 (insertionSort (to0 300)).
+Time Eval cbv in ltake 3 (lazyInsertionSort (lazy_to0 300)).
+Time Eval cbv in ltake' 3 (lazyInsertionSort (lazy_to0 300)).
+*)

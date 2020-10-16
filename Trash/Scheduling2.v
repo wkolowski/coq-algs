@@ -212,8 +212,6 @@ Definition schedule (ts : list Task) : option Schedule :=
 
 Definition test := [(1, 3); (2, 4); (1, 5); (1, 2)].
 
-Compute schedule (take 3 test). 
-
 
 
 

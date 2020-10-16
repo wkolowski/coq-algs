@@ -28,8 +28,8 @@ Infix "<=?" := leqb (at level 70).
 
 Infix "<" := LinDec_lt (at level 70).*)
 
-Hint Resolve leq_refl leq_antisym leq_trans leq_total.
-Hint Constructors reflect.
+Hint Resolve leq_refl leq_antisym leq_trans leq_total : core.
+Hint Constructors reflect : core.
 
 Definition LinDec_eqb {A : LinDec} (x y : A) : bool :=
     andb (leqb x y) (leqb y x).
@@ -130,7 +130,7 @@ Proof.
       destruct (leq_total x y); contradiction.
 Defined.
 
-Hint Resolve LinDec_not_leq.
+Hint Resolve LinDec_not_leq : core.
 
 Definition testl := [3; 0; 1; 42; 34; 19; 44; 21; 42; 65; 5].
 

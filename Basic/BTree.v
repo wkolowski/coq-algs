@@ -29,7 +29,7 @@ Inductive isHeap {A : LinDec} : BTree A -> Prop :=
           (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (node v l r).
 
-Hint Constructors Elem isHeap.
+Hint Constructors Elem isHeap : core.
 
 Definition singleton {A : Type} (x : A) : BTree A :=
   node x empty empty.
@@ -428,10 +428,6 @@ Definition test :=
     (node 2 (leaf 4) (leaf 5))
     (leaf 3).
 
-Compute inorder test.
-Compute preorder test.
-Compute postorder test.
-
 Lemma preorder_mirror :
   forall (A : Type) (t : BTree A),
     preorder (mirror t) = rev (postorder t).
@@ -497,9 +493,14 @@ Defined.
 Definition bfs {A : Type} (t : BTree A) : list A :=
   rev (bfs_aux A [t] []).
 
-Compute bfs test.
 
+(*
+Compute inorder test.
+Compute preorder test.
+Compute postorder test.
+Compute bfs test.
 Compute bfs (mirror test).
+*)
 
 Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
 match l with
@@ -550,8 +551,6 @@ match t with
     | node _ l r => 1 + max (height l) (height r)
 end.
 
-Compute size (intersperse 1 (complete 5 0)).
-
 Lemma height_complete :
   forall (A : Type) (n : nat) (x : A),
     height (complete n x) = n.
@@ -566,13 +565,6 @@ Lemma max_height_intersperse :
     height t1 <= height t2 ->
       height (intersperse x t1) <= height (intersperse x t2).
 Proof.
-  induction t1; cbn; intros.
-    apply le_0_n.
-    destruct t2; cbn in *.
-      inv H.
-      repeat apply le_n_S; repeat apply le_S_n in H.
-        rewrite ?Nat.max_le_iff, ?Nat.max_lub_iff in *.
-Restart.
   induction t1; cbn; intros.
     apply le_0_n.
     destruct t2; cbn in *.
@@ -674,8 +666,6 @@ match n, t with
         drop n' l ++ drop n' r
 end.
 
-Compute drop 4 test.
-
 Lemma height_drop :
   forall (A : Type) (h : nat) (t : BTree A),
     height t < h -> drop h t = [].
@@ -768,7 +758,7 @@ Inductive Any {A : Type} (P : A -> Prop) : BTree A -> Prop :=
         forall (v : A) (l r : BTree A),
           Any P r -> Any P (node v l r).
 
-Hint Constructors Any.
+Hint Constructors Any : core.
 
 Lemma Any_find :
   forall (A : Type) (P : A -> Prop) (p : A -> bool) (t : BTree A),

@@ -77,7 +77,7 @@ Theorem simplifyExp_correct :
     expDenote env (simplifyExp e) = expDenote env e.
 Proof.
   intros X env e. revert env.
-  Time functional induction simplifyExp e; cbn; trivial;
+  functional induction simplifyExp e; cbn; trivial;
   repeat multimatch goal with
       | IH : forall _, _ |- _ => rewrite <- ?IH
       | H : ?a = ?b |- _ => rewrite ?H in *
@@ -151,9 +151,11 @@ Inductive ANF {X : UCRing} : exp X -> Prop :=
         NoAdd e1 -> NoAdd e2 -> ANF e1 -> ANF e2 -> ANF (Mul e1 e2)
     | ANF_Neg : forall e : exp X, ANF e -> ANF (Neg e).
 
-Hint Constructors NoAdd ANF.
+Hint Constructors NoAdd ANF : core.
 
-Ltac inv H := try inversion H; subst; auto.
+(* A hack to dodge a warning. *)
+Ltac inv' H := try inversion H; subst; auto.
+Tactic Notation "inv" ident(H) := inv' H.
 
 Ltac inv_NoAdd := repeat
 match goal with
@@ -166,7 +168,7 @@ Theorem simplifyExp_pres_NoAdd :
   forall (X : UCRing) (e : exp X),
     NoAdd e -> NoAdd (simplifyExp e).
 Proof.
-  intros. Time functional induction simplifyExp e; try constructor;
+  intros. functional induction simplifyExp e; try constructor;
   repeat match goal with
       | H : NoAdd ?x, IH : NoAdd ?x -> _ |- _ => specialize (IH H)
       | H : ?x = _, H' : NoAdd ?x |- _ => rewrite H in H'
@@ -186,7 +188,7 @@ Theorem simplifyExp_NoAdd_ANF :
     NoAdd e -> ANF (simplifyExp e).
 Proof.
   intros. apply simplifyExp_pres_NoAdd in H.
-  Time functional induction simplifyExp e; trivial;
+  functional induction simplifyExp e; trivial;
   repeat match goal with
       | H : ?x = _, H' : context [ANF ?x] |- _ => rewrite H in H'
       | H : ?P, IH : ?P -> ?Q |- _ => specialize (IH H)
@@ -427,7 +429,7 @@ Theorem simpFormula_correct :
     formulaDenote env (simpFormula f) <-> formulaDenote env f.
 Proof.
   intros. functional induction simpFormula f; cbn.
-  Time all:
+  all:
   repeat match goal with
       | env : nat -> _, IH : forall env' : nat -> _, _ |- _ =>
           specialize (IH env)

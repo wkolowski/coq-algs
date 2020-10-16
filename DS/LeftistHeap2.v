@@ -54,7 +54,7 @@ Proof.
   do 2 inversion 1; subst; auto.
 Qed.
 
-Hint Resolve isHeap_inv_l isHeap_inv_r.
+Hint Resolve isHeap_inv_l isHeap_inv_r : core.
 
 Inductive left_biased {A : LinDec} : RSTree A -> Prop :=
     | left_biased_empty : left_biased empty
@@ -64,7 +64,7 @@ Inductive left_biased {A : LinDec} : RSTree A -> Prop :=
           left_biased l -> left_biased r ->
             left_biased (node (S (right_spine r)) v l r).
 
-Hint Constructors RSTree elem isHeap left_biased.
+Hint Constructors RSTree elem isHeap left_biased : core.
 
 Ltac lh x :=
   let t := fresh "t" in
