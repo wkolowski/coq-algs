@@ -177,3 +177,13 @@ match goal with
     | H : existT _ _ _ = existT _ _ _ |- _ =>
         apply inj_pair2 in H
 end; subst.
+
+(* A nice coercion that reconciles three-way and two-way comparisons. *)
+Definition comparison2bool (c : comparison) : bool :=
+match c with
+    | Lt => true
+    | Eq => true
+    | Gt => false
+end.
+
+Coercion comparison2bool : comparison >-> bool.

@@ -24,3 +24,5 @@ makefile
 
 .vscode
 _minted*
+
+.lia.cache

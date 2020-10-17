@@ -35,26 +35,23 @@ end.
 Infix "+++" := lapp (at level 50).
 
 (** Commented out for build purposes. *)
-(*
 
-Let sl := to0 30000.
-Let ll := lazy_to0 30000.
+Definition sl := to0 3000.
+Definition ll := lazy_to0 3000.
 
-Fail
-Time Eval cbv in head
-  ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl).
-Time Eval cbv in head
-  (sl ++ sl ++ sl ++ sl ++ sl ++ sl ++ sl).
-Time Eval cbv in lhead
-  ((((((ll +++ ll) +++ ll) +++ ll) +++ ll) +++ ll) +++ ll).
+(* Fail Time Eval cbv in head
+  ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl). *)
+(* Time Eval cbv in head
+  (sl ++ sl ++ sl ++ sl ++ sl ++ sl ++ sl). *)
+(* Time Eval cbv in lhead
+  ((((((ll +++ ll) +++ ll) +++ ll) +++ ll) +++ ll) +++ ll). *)
 
-Time Eval cbn in head
-  ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl).
-Time Eval cbn in head
-  (sl ++ sl ++ sl ++ sl ++ sl ++ sl ++ sl).
-Time Eval cbn in lhead
-  ((((((ll +++ ll) +++ ll) +++ ll) +++ ll) +++ ll) +++ ll).
-*)
+(* Time Eval cbn in head
+  ((((((sl ++ sl) ++ sl) ++ sl) ++ sl) ++ sl) ++ sl). *)
+(* Time Eval cbn in head
+  (sl ++ sl ++ sl ++ sl ++ sl ++ sl ++ sl). *)
+(* Time Eval cbn in lhead
+  ((((((ll +++ ll) +++ ll) +++ ll) +++ ll) +++ ll) +++ ll). *)
 
 Require Import Arith.
 

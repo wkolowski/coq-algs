@@ -1,9 +1,15 @@
 (** * 10 Data-Structural Bootstrapping *)
 
-Require Import List.
+Require Import List Div2.
 Import ListNotations.
 
 Require Import FunInd.
+
+Require Import CoqMTL.Base.
+Require Import CoqMTL.Control.Functor.
+Require Import CoqMTL.Control.Monad.All.
+
+Require Import RCCBase.
 
 (** ** 10.1 Structural Decomposition *)
 
@@ -51,22 +57,11 @@ match s with
     | One h t => Some (h, Zero t)
 end.
 
-(*
-Require Import CoqMTL.Base.
-Require Import CoqMTL.Control.Functor.
-Require Import CoqMTL.Control.Monad.All.
-*)
-
-Require Import RCCBase.
-
-(*
 Definition head {A : Type} (s : Seq A) : option A :=
   fmap fst (uncons s).
 
 Definition tail {A : Type} (s : Seq A) : option (Seq A) :=
   fmap snd (uncons s).
-
-Require Import Div2.
 
 Fixpoint even (n : nat) : bool :=
 match n with
@@ -221,6 +216,7 @@ end.
 
 (** Tests *)
 
+(*
 Definition to_1_10 := [0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10].
 
 Compute fromList to_1_10.
@@ -228,6 +224,7 @@ Compute update 5 42 (fromList to_1_10).
 Compute lookup 1 (fromList to_1_10).
 Compute lookup 5 (fromList to_1_10).
 Compute update 1 42 (fromList to_1_10).
+*)
 
 (** Properties of [isEmpty]. *)
 
@@ -347,7 +344,7 @@ Proof.
         cbn in *. congruence.
     functional inversion Heqw; inj; subst.
       specialize (IHo (x0, h) t eq_refl). rewrite e0 in IHo.
-        cbn in *. congruence.
+        cbn in *. inv IHo.
     functional inversion Heqw; inj; subst; cbn; reflexivity.
 Qed.
 
@@ -390,15 +387,20 @@ Proof.
 Qed.
 
 (** Properties of tail *)
-Lemma tail_cons :
-  forall (A : Type) (x : A) (s : Seq A),
-    fmap normalize (tail (cons x s)) = Some (s).
+
+Lemma uncons_cons' :
+  forall (A : Type) (x y : A) (s s' : Seq A),
+    uncons (cons x s) = Some (y, s') ->
+      x = y /\ toList s = toList s'.
 Proof.
-  intros. remember (cons x s) as w. gen s; gen x. unfold tail.
-  functional induction @uncons A w; intros.
-    symmetry in Heqw. apply cons_not_Nil in Heqw. contradiction.
-    functional inversion Heqw; inj; subst; cbn.
-Abort.
+  intros. functional induction (cons x s); cbn in *.
+    inv H.
+    inv H.
+    destruct (uncons (cons (x, h) t)) eqn: Huc.
+      destruct p, p. inv H. destruct (IHs0 _ _ eq_refl) as [Heq IH].
+        cbn. rewrite IH. inv Heq.
+      inv H.
+Qed.
 
 Lemma toList_tail :
   forall (A : Type) (s : Seq A),
@@ -645,4 +647,3 @@ Module Ex_10_2.
 End Ex_10_2.
 
 (** *** 10.1.3 Bootstrapped Queues *)
-*)

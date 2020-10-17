@@ -264,7 +264,8 @@ Definition singleton (x : O.Elem) : PQ := insert x empty.
 
 End PriorityQueue2.
 
-(*Module wut : PriorityQueue.
+(*
+Module wut : PriorityQueue.
 
 Require Import PQ.
 
@@ -278,4 +279,5 @@ Definition PQ (A : LinDec) := PQ A.
 Definition singleton {A : LinDec} (x : A) : PQ A :=
   node x empty empty.
 
-End wut.*)
+End wut.
+*)

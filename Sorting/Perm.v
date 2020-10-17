@@ -1,6 +1,6 @@
 Require Export RCCBase.
 
-(*Require Export LinDec.*)
+Require Export LinDec.
 
 Require Export Sorting.ListLemmas.
 Require Import TrichDec.
@@ -90,14 +90,14 @@ Proof.
         right. apply IHt, H.
 Qed.
 
-(*Lemma count_0_nil :
+Lemma count_0_nil :
   forall (A : Type) (l : list A),
     (forall p : A -> bool, count p l = 0) -> l = [].
 Proof.
   induction l as [| h t]; cbn; intros.
-    trivial.
-    specialize (H h). dec.
-Qed.*)
+    reflexivity.
+    specialize (H (fun _ => true)). cbn in H. congruence.
+Qed.
 
 (* Lemmas about [perm]. *)
 Lemma perm_refl :
@@ -176,15 +176,13 @@ Proof.
 Qed.
 
 Lemma perm_In :
-  forall (A : Type) (x : A) (l l' : list A),
+  forall (A : LinDec) (x : A) (l l' : list A),
     In x l -> perm l l' -> In x l'.
 Proof.
-(*
   intros. rewrite In_Exists, Exists_dec in *.
   rewrite count_In. red in H0. rewrite <- H0, <- count_In.
   assumption.
-*)
-Admitted.
+Qed.
 
 Instance Equiv_perm (A : Type) : Equivalence (@perm A).
 Proof.
@@ -192,17 +190,14 @@ Proof.
 Defined.
 
 Lemma perm_singl :
-  forall (A : Type) (x : A) (l : list A),
+  forall (A : LinDec) (x : A) (l : list A),
     perm [x] l -> l = [x].
 Proof.
-(*
   unfold perm; destruct l as [| h1 [| h2 t]]; cbn; intros.
     specialize (H (fun _ => true)). cbn in H. inversion H.
-    specialize (H (fun _ => true)). cbn in H. inversion H.
-    specialize (H x). dec.
-    assert (H1 := H h1). assert (H2 := H h2). dec.
-*)
-Admitted.
+    specialize (H (fun y => y =? h1)). cbn in H. dec.
+    assert (H1 := H (fun y => y =? h1)). assert (H2 := H (fun y => y =? h2)). cbn in *. dec.
+Qed.
 
 Lemma perm_cons_inv :
   forall (A : Type) (h : A) (t1 t2 : list A),
@@ -227,13 +222,11 @@ Proof.
 Qed.
 
 Lemma perm_In' :
-  forall (A : Type) (h : A) (t l : list A),
+  forall (A : LinDec) (h : A) (t l : list A),
     perm (h :: t) l -> In h l.
 Proof.
-(*
   intros. rewrite In_Exists, Exists_dec, count_In, <- H. cbn. dec.
-*)
-Admitted.
+Qed.
 
 Lemma count_removeFirst_neq :
   forall (A : LinDec) (x y : A) (l : list A),

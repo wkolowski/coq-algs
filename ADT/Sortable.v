@@ -1,6 +1,11 @@
+Require Import Recdef Div2.
+
 Require Import RCCBase.
 Require Import Structures.LinDec.
 Require Import Sorting.Sort.
+Require Import Sorting.MergeSort.
+
+Require Import CoqMTL.Control.Monad.Lazy.
 
 (** Sortable collections as in chapter 6.4.3 of Okasaki. *)
 
@@ -23,7 +28,6 @@ Parameter Sorted_sort :
 
 End Sortable.
 
-(*
 Module Sortable_BottomUpMergesortWithSharing.
 
 Definition Sortable (A : LinDec) : Type :=
@@ -35,49 +39,31 @@ Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
 Definition empty {A : LinDec} : Sortable A :=
   (0, delay []).
 
-Require Import Div2.
-
-Require Import Sorting.MergeSort.
-
 Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
   Sorting.MergeSort.merge A (l1, l2).
-
-(*Function addSeg
-  {A : LinDec} (seg : list A) (segs : list (list A)) (size : nat)
-  : list (list A) :=
-match segs with
-    | [] => [seg]
-    | seg' :: segs' =>
-        if isEven size
-        then seg :: segs
-        else addSeg (merge seg seg') segs' (div2 size)
-end.*)
-
-From Equations Require Import Equations.
 
 Definition lt_Sortable {A : LinDec} (s1 s2 : Sortable A) : Prop :=
   fst s1 < fst s2.
 
-#[refine]
-Instance lt_Sortable_wf (A : LinDec) : WellFounded (@lt_Sortable A).
+Lemma lt_Sortable_wf :
+  forall A : LinDec, well_founded (@lt_Sortable A).
 Proof.
-  red. apply well_founded_lt_compat with fst.
+  intro. red. apply well_founded_lt_compat with fst.
   unfold lt_Sortable. auto.
 Defined.
 
-Equations addSeg'
-  {A : LinDec} (s : Sortable A) (seg : list A) : Sortable A
-  by wf (fst s) lt :=
-addSeg' s seg with (fst s, force (snd s), even (fst s)) => {
-  addSeg' s seg (_, [], _) := (1, delay [seg]);
-  addSeg' s seg (_, seg' :: segs', true) :=
-    (length seg + fst s, delay (seg :: seg' :: segs'));
-  addSeg' s seg (size, seg' :: segs', false) :=
-    addSeg' (div2 (fst s), delay segs') (merge seg seg')}.
-Next Obligation.
-  destruct s; cbn; intros. apply Nat.lt_div2. cbn in *.
-  destruct n; cbn in *.
-Admitted.
+Function addSeg'
+  {A : LinDec} (s : Sortable A) (seg : list A) {measure fst s} : Sortable A :=
+match fst s, force (snd s), even (fst s) with
+    | _, [], _ => (1, delay [seg])
+    | _, seg' :: segs', true => (length seg + fst s, delay (seg :: seg' :: segs'))
+    | size, seg' :: segs', false => addSeg' (div2 (fst s), delay segs') (merge seg seg')
+end.
+Proof.
+  destruct s; cbn; intros. apply Nat.lt_div2. cbn. destruct n.
+    cbn in teq0. congruence.
+    apply Nat.lt_0_succ.
+Defined.
 
 Definition addSeg {A} s seg := @addSeg' A seg s.
 
@@ -129,27 +115,15 @@ Lemma addSeg_isValid :
   forall (A : LinDec) (seg : list A) (s : Sortable A),
     Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
-(*
-  intros. functional induction @addSeg A seg s.
-    compute. auto.
+  intros. unfold addSeg. functional induction @addSeg' A s seg.
+    constructor; auto.
     destruct s as [size segs]; cbn in *. compute. inv H0.
       unfold force in H2. rewrite e0 in H2. inv H2.
       unfold force in H1. rewrite e0 in H1. inv H1.
     apply IHs0.
       apply Sorted_merge; cbn; inv H0.
       inv H0. compute. rewrite e0 in H1. inv H1.
-*)
-Restart.
-  intros. unfold addSeg. revert H H0.
-  funelim (addSeg' s seg); intros.
-    constructor; auto.
-    destruct s0 as [size segs]; cbn in *. compute. inv H2.
-      compute in H4. congruence.
-      compute in H3. rewrite <- H3 in H. inv H.
-    apply H.
-      apply Sorted_merge; cbn; inv H3.
-      compute. inv H3. rewrite H0 in H4. inv H4.
-Admitted.
+Qed.
 
 Lemma add_isValid :
   forall (A : LinDec) (x : A) (s : Sortable A),
@@ -183,9 +157,8 @@ Proof.
 Qed.
 
 End Sortable_BottomUpMergesortWithSharing.
-*)
 
-(*
+
 Module Sortable_BottomUpMergesortWithSharing'.
 
 Definition Sortable (A : LinDec) : Type :=
@@ -196,8 +169,6 @@ Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
 
 Definition empty {A : LinDec} : Sortable A := (0, []).
 
-Require Import Sorting.MergeSort.
-
 Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
   Sorting.MergeSort.merge A (l1, l2).
 
@@ -207,7 +178,7 @@ Function addSeg
 match s with
     | (_, []) => (1, [seg])
     | (size, seg' :: segs') =>
-        if isEven size
+        if even size
         then (length seg + size, seg :: seg' :: segs')
         else addSeg (merge seg seg') (div2 size, segs')
 end.
@@ -306,4 +277,3 @@ Proof.
 Qed.
 
 End Sortable_BottomUpMergesortWithSharing'.
-*)
