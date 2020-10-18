@@ -1,3 +1,4 @@
+Require Export RCCBase.
 Require Export BTree.
 Require Import BST.
 Require Export Sorting.Sort.
@@ -169,8 +170,7 @@ Qed.
 
 (** Properties of [partition]. *)
 
-(* TODO: fix elem *)
-Lemma partition_elem :
+Lemma Elem_partition :
   forall (A : Type) (p : A -> A -> bool) (x pivot : A) (h l r : SplayHeap A),
     partition p pivot h = (l, r) ->
       Elem x h <-> Elem x l \/ Elem x r.
@@ -200,148 +200,144 @@ match goal with
     | H : isBST (node _ _ _) |- _ => inv H
 end; auto.
 
-(*
 Check LinDec_not_leq.
 
-Lemma partition_isBST :
+Lemma isBST_partition :
   forall (A : Type) (p : A -> A -> comparison) (x : A) (h l r : SplayHeap A),
     partition p x h = (l, r) -> isBST p h -> isBST p (node x l r).
 Proof.
   intros A p x h.
-  functional induction @partition A p x h;
-  inv 1; inv 1; aux. Focus 2.
+  functional induction partition p x h;
+  inv 1; inv 1; aux. constructor; auto.
   try specialize (IHp0 _ _ _ e3 H7); try specialize (IHp0 _ _ _ e3 H9);
-  try inv IHp0; repeat constructor; aux. inv H.  Focus 2. eapply partition_elem in H0.
-  firstorder. dec.
-Unshelve.
-  all: assumption.
-Qed.
-
-Lemma partition_size :
-  forall (A : Type) (x : A) (h h1 h2 : SplayHeap A),
-    partition x h = (h1, h2) -> size h = size h1 + size h2.
-Proof.
-  intros A x h. functional induction partition x h; cbn;
-  inv 1; dec; rewrite (IHp _ _ e3); lia.
-Qed.
-
-Lemma partition_count_BTree :
-  forall (A : Type) (p : A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
-    partition pivot h = (h1, h2) ->
-      count_BTree p h = count_BTree p h1 + count_BTree p h2.
-Proof.
-  intros until h.
-  functional induction partition pivot h; cbn; inv 1.
-(*
- rewrite ?(IHp0 _ _ _ e3). cbn.  destruct (p x), (p y). lia.
-*)
+  try inv IHp0; repeat constructor; aux. inv H.
 Admitted.
 
+Lemma size_partition :
+  forall (A : Type) (p : A -> A -> bool) (x : A) (h h1 h2 : SplayHeap A),
+    partition p x h = (h1, h2) -> size h = size h1 + size h2.
+Proof.
+  intros A p x h.
+  functional induction partition p x h; inv 1; cbn;
+  erewrite IHp0; eauto; lia.
+Qed.
+
+Lemma count_BTree_partition :
+  forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
+    partition cmp pivot h = (h1, h2) ->
+      count_BTree p h = count_BTree p h1 + count_BTree p h2.
+Proof.
+  intros until h. revert p.
+  functional induction partition cmp pivot h;
+  inv 1; cbn; erewrite IHp; eauto;
+  destruct (p x), (p y); cbn; lia.
+Qed.
+
 (** Properties of [insert]. *)
-Lemma insert_elem :
-  forall (A : Type) (x : A) (h : SplayHeap A),
-    elem x (insert x h).
+Lemma Elem_insert :
+  forall (A : Type) (p : A -> A -> bool) (x : A) (h : SplayHeap A),
+    Elem x (insert p x h).
 Proof.
-  intros. unfold insert. destruct (partition x h). constructor.
+  intros. unfold insert. destruct (partition p x h). constructor.
 Qed.
 
-Lemma insert_isBST :
-  forall (A : Type) (x : A) (h : SplayHeap A),
-    isBST h -> isBST (insert x h).
+Lemma isBST_insert :
+  forall (A : Type) (p : A -> A -> comparison) (x : A) (h : SplayHeap A),
+    isBST p h -> isBST p (insert p x h).
 Proof.
-  intros. unfold insert. case_eq (partition x h); intros l r H'.
-  eapply partition_isBST; eauto.
+  intros. unfold insert.
+  destruct (partition p x h) eqn: Heq.
+  eapply isBST_partition; eauto.
 Qed.
 
-Lemma insert_size :
-  forall (A : Type) (x : A) (h : SplayHeap A),
-    size (insert x h) = 1 + size h.
+Lemma size_insert :
+  forall (A : Type) (p : A -> A -> bool) (x : A) (h : SplayHeap A),
+    size (insert p x h) = 1 + size h.
 Proof.
-  intros. unfold insert. case_eq (partition x h); intros smaller bigger H.
-  cbn. f_equal. symmetry. eapply partition_size. eassumption.
+  intros. unfold insert.
+  destruct (partition p x h) as [smaller bigger] eqn: Heq.
+  cbn. f_equal. symmetry.
+  eapply size_partition. eassumption.
 Qed.
 
-Lemma insert_count_BTree :
-  forall (A : Type) (p : A -> bool) (x : A) (h : SplayHeap A),
-    count_BTree p (insert x h) =
+Lemma count_BTree_insert :
+  forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (x : A) (h : SplayHeap A),
+    count_BTree p (insert cmp x h) =
     (if p x then S else id) (count_BTree p h).
 Proof.
   intros. unfold insert.
-  case_eq (partition x h); intros.
-  apply (partition_count_BTree p) in H. rewrite H.
-  cbn. destruct (p x); reflexivity.
+  destruct (partition cmp x h) eqn: Heq.
+  apply (count_BTree_partition cmp p) in Heq.
+  rewrite Heq. cbn. destruct (p x); reflexivity.
 Qed.
 
 (** Properties of [merge]. *)
 
-Lemma merge_elem :
-  forall (A : Type) (x : A) (h1 h2 : SplayHeap A),
-    elem x (merge h1 h2) <-> elem x h1 \/ elem x h2.
+Lemma Elem_merge :
+  forall (A : Type) (p : A -> A -> bool) (x : A) (h1 h2 : SplayHeap A),
+    Elem x (merge p h1 h2) <-> Elem x h1 \/ Elem x h2.
 Proof.
   split; revert x.
-    functional induction @merge A h1 h2; intros; inv H;
-      eapply partition_elem in e0.
-      destruct (IHs _ H1); firstorder.
-      destruct (IHs0 _ H1); firstorder.
-    functional induction @merge A h1 h2; intros; inv H.
+    functional induction merge p h1 h2; inv 1.
+      edestruct IHs; eauto. right. eapply Elem_partition; eauto.
+      edestruct IHs0; eauto. right. eapply Elem_partition; eauto.
+    functional induction merge p h1 h2; inv 1.
       inv H0.
-      inv H0.
-      rewrite (@partition_elem _ x v _ l' r') in H0; firstorder.
+      erewrite (Elem_partition _ _ _ _ e0) in H0. inv H0.
 Qed.
 
-Lemma merge_isBST :
-  forall (A : Type) (h1 h2 : SplayHeap A),
-    isBST h1 -> isBST h2 -> isBST (merge h1 h2).
+Lemma isBST_merge :
+  forall (A : Type) (p : A -> A -> comparison) (h1 h2 : SplayHeap A),
+    isBST p h1 -> isBST p h2 -> isBST p (merge p h1 h2).
 Proof.
-  induction h1 as [| v l IHl r IHr]; cbn; intros.
-    assumption.
-    case_eq (partition v h2); intros small big Hp.
-      apply partition_isBST in Hp; aux. constructor; intros; auto.
-        apply merge_elem in H. firstorder.
-        apply merge_elem in H. firstorder.
+  intros until h2.
+  functional induction merge p h1 h2; inv 1; intro.
+  constructor.
+    apply IHs; eauto. eapply isBST_partition in e0; eauto.
+    intros. apply Elem_merge in H0. inv H0.
+      apply isBST_partition in e0; auto. inv e0.
+    apply IHs0; eauto. eapply isBST_partition in e0; eauto.
+    intros. apply Elem_merge in H0. inv H0.
+      apply isBST_partition in e0; auto. inv e0.
 Qed.
 
-Lemma merge_size :
-  forall (A : Type) (h1 h2 : SplayHeap A),
-    size (merge h1 h2) = size h1 + size h2.
+Lemma size_merge :
+  forall (A : Type) (p : A -> A -> bool) (h1 h2 : SplayHeap A),
+    size (merge p h1 h2) = size h1 + size h2.
 Proof.
-  intros. functional induction @merge A h1 h2; cbn.
-    reflexivity. inv e0.
-    rewrite IHs, IHs0. apply partition_size in H0. rewrite H0. lia.
-Qed.
-
-Lemma merge_count_BTree :
-  forall (A : Type) (p : A -> bool) (h1 h2 : SplayHeap A),
-    count_BTree p (merge h1 h2) = count_BTree p h1 + count_BTree p h2.
-Proof.
-  induction h1; cbn; intros.
+  intros. functional induction merge p h1 h2; cbn.
     reflexivity.
-    case_eq (partition a h2); cbn; intros.
-      apply (partition_count_BTree p) in H.
-      rewrite IHh1_1, IHh1_2, H.
-      destruct (p a); lia.
+    apply size_partition in e0. lia.
+Qed.
+
+Lemma count_BTree_merge :
+  forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (h1 h2 : SplayHeap A),
+    count_BTree p (merge cmp h1 h2) = count_BTree p h1 + count_BTree p h2.
+Proof.
+  intros until h2.
+  functional induction (merge cmp h1 h2); cbn.
+    reflexivity.
+    apply (count_BTree_partition cmp p) in e0.
+      destruct (p v); lia.
 Qed.
 
 (** Properties of [findMin] *)
 
-Lemma findMin_elem :
+Lemma Elem_findMin :
   forall (A : Type) (m : A) (h : SplayHeap A),
-    findMin h = Some m -> elem m h.
+    findMin h = Some m -> Elem m h.
 Proof.
   intros. functional induction @findMin A h; inv H.
 Qed.
 
-Lemma findMin_elem_node :
+Lemma Elem_findMin_node :
   forall (A : Type) (m v : A) (l r : SplayHeap A),
-    findMin (node v l r) = Some m -> m = v \/ elem m l.
+    findMin (node v l r) = Some m -> m = v \/ Elem m l.
 Proof.
   intros. remember (node v l r) as h. revert m v l r Heqh H.
-  functional induction @findMin A h; inv 1; intros.
-    inv H.
-    inv H. destruct l0; cbn in *.
-      congruence.
-      destruct (findMin l0_1); inv e0.
-        destruct (IHo _ _ _ _ eq_refl eq_refl); subst; auto.
+  functional induction (findMin h); inv 1; inv 1.
+  functional inversion e0; subst; eauto.
+  edestruct IHo; eauto. subst. eauto.
 Qed.
 
 Lemma findMin_aux :
@@ -353,19 +349,78 @@ Proof.
   functional induction @findMin A h; inv Heqh.
 Qed.
 
-Lemma findMin_spec :
-  forall (A : Type) (m : A) (h : SplayHeap A),
-    isBST h -> findMin h = Some m ->
-      forall x : A, elem x h -> m ≤ x.
+Lemma cmp_spec_antirefl :
+  forall {A : Type} (cmp : A -> A -> comparison),
+    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+      forall x : A, cmp x x = Lt -> False.
 Proof.
-  intros A m h. revert m.
-  functional induction @findMin A h; inv 1; intros.
+  intros. specialize (H x x). inv H.
+Qed.
+
+Lemma cmp_spec_asym :
+  forall {A : Type} (cmp : A -> A -> comparison),
+    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+      forall x y : A, cmp x y = Lt -> cmp y x <> Lt.
+Proof.
+  intros. specialize (H x y). inv H.
+Qed.
+
+Lemma cmp_spec_trans :
+  forall {A : Type} (cmp : A -> A -> comparison),
+    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+      forall x y z : A, cmp x y = Lt -> cmp y z = Lt -> cmp x z = Lt.
+Proof.
+  intros A cmp H x y z Hxy Hyz.
+  pose (H' := H x z). inv H'.
+    pose (H' := H y z). inv H'.
+(*    pose (H' := H y z). inv H'.*)
+Abort.
+
+Lemma cmp_spec_comparison :
+  forall {A : Type} (cmp : A -> A -> comparison),
+    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+      forall x y z : A, cmp x z = Lt -> cmp x y = Lt \/ cmp y z = Lt.
+Proof.
+  intros A cmp H x y z Hxz.
+  pose (H' := H x y). inv H'. right.
+  pose (H' := H y z). inv H'.
+  pose (H' := H x z). inv H'.
+Abort.
+
+Lemma cmp_spec_connectedness :
+  forall {A : Type} (cmp : A -> A -> comparison),
+    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+      forall x y : A, cmp x y <> Lt -> cmp y x <> Lt -> cmp x y = Eq.
+Proof.
+  intros A cmp H x y Hxy Hyx.
+  pose (H' := H x y). inv H'.
+Qed.
+
+Lemma findMin_spec :
+  forall (A : Type) (p : cmp_spec A) (m : A) (h : SplayHeap A),
+    isBST p h -> findMin h = Some m ->
+      forall x : A, Elem x h -> p m x <> Gt.
+Proof.
+  intros A p m h. revert m.
+  functional induction findMin h; inv 1; intros.
     inv H.
-      destruct l.
-        inv H0. inv H1.
-        cbn in e0. destruct (findMin l1); congruence.
+      inv H0. rewrite cmp_spec3. inv 1.
+      functional inversion e0. subst. inv H1.
+      specialize (H6 _ H1). destruct (cmpr_spec m x); congruence.
     inv H. inv H0.
-      apply H3. apply findMin_elem. assumption.
+      apply Elem_findMin in e0. rewrite (H4 _ e0). inv 1.
+      apply Elem_findMin in e0. specialize (H4 _ e0). specialize (H6 _ H1).
+        destruct (cmpr_spec m0 x); try congruence.
+Admitted.
+(*      Focus 2.
+      
+      apply IHo; auto. apply 
+      destruct (cmpr_spec m0 v); try congruence.
+      functional inversion e0; subst.
+        
+        
+    inv H. inv H0.
+      apply H3. apply Elem_findMin. assumption.
       aux. eapply leq_trans with v; try assumption.
         destruct l.
           cbn in e0. congruence.
