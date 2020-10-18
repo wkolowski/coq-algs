@@ -187,3 +187,8 @@ match c with
 end.
 
 Coercion comparison2bool : comparison >-> bool.
+
+(* A nice coercion for treating booleans as propositions. *)
+Definition bool2Prop (b : bool) : Prop := b = true.
+
+Coercion bool2Prop : bool >-> Sortclass.

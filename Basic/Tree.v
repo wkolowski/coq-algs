@@ -2,12 +2,6 @@ Require Export LinDec.
 
 Require Export RCCBase.
 
-(*
-Require Import CoqMTL.Control.Functor.
-Require Import CoqMTL.Control.Foldable.
-Require Import CoqMTL.Misc.Monoid.
-*)
-
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
     | T : A -> list (Tree A) -> Tree A.
@@ -15,27 +9,27 @@ Inductive Tree (A : Type) : Type :=
 Arguments E {A}.
 Arguments T {A} _ _.
 
-Inductive elem {A : Type} (x : A) : Tree A -> Prop :=
-    | elem0 : forall l : list (Tree A), elem x (T x l)
-    | elem1 : forall (a : A) (l : list (Tree A)),
-        Exists (fun t => elem x t) l -> elem x (T a l).
+Inductive Elem {A : Type} (x : A) : Tree A -> Prop :=
+    | Elem0 : forall l : list (Tree A), Elem x (T x l)
+    | Elem1 : forall (a : A) (l : list (Tree A)),
+        Exists (fun t => Elem x t) l -> Elem x (T a l).
 
-Inductive elem' {A : Type} (x : A) : Tree A -> Prop :=
-    | elem0' : forall l : list (Tree A), elem' x (T x l)
-    | elem1' :
+Inductive Elem' {A : Type} (x : A) : Tree A -> Prop :=
+    | Elem0' : forall l : list (Tree A), Elem' x (T x l)
+    | Elem1' :
         forall (a : A) (t : Tree A) (ts : list (Tree A)),
-          elem' x t -> elem' x (T a (t :: ts))
-    | elem2' :
+          Elem' x t -> Elem' x (T a (t :: ts))
+    | Elem2' :
         forall (a : A) (t : Tree A) (ts : list (Tree A)),
-          elem' x (T a ts) -> elem' x (T a (t :: ts)). 
+          Elem' x (T a ts) -> Elem' x (T a (t :: ts)). 
 
-Inductive isHeap {A : LinDec} : Tree A -> Prop :=
-    | isHeap_E : isHeap E
+Inductive isHeap {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
+    | isHeap_E : isHeap R E
     | isHeap_T :
         forall (v : A) (l : list (Tree A)),
-          Forall (fun t : Tree A => forall x : A, elem x t -> v ≤ x) l ->
-          Forall (fun t : Tree A => isHeap t) l ->
-            isHeap (T v l).
+          Forall (fun t : Tree A => forall x : A, Elem x t -> R v x) l ->
+          Forall (fun t : Tree A => isHeap R t) l ->
+            isHeap R (T v l).
 
 Inductive All {A : Type} (P : A -> Prop) : Tree A -> Prop :=
     | All_E : All P E
@@ -51,14 +45,14 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-Hint Constructors elem elem' isHeap : core.
+Hint Constructors Elem Elem' isHeap All Any Exists : core.
 
 Hint Extern 0 =>
 match goal with
-    | |- ~ elem _ E => intro
-    | |- ~ elem' _ E => intro
-    | H : elem _ E |- _ => inv H
-    | H : elem' _ E |- _ => inv H
+    | |- ~ Elem _ E => intro
+    | |- ~ Elem' _ E => intro
+    | H : Elem _ E |- _ => inv H
+    | H : Elem' _ E |- _ => inv H
     | H : Exists _ [] |- _ => inv H
 end
   : core.
@@ -140,99 +134,6 @@ match t with
     | T x l => T (f x) (map (fmap_Tree f) l)
 end.
 
-(*
-#[refine]
-Instance Functor_Tree : Functor Tree :=
-{
-    fmap := @fmap_Tree
-}.
-Proof.
-  all: intros; ext t; gen t; Tree_ind.
-Defined.
-*)
-
-(*
-Fixpoint foldMap_Tree
-  {A : Type} {M : Monoid} (f : A -> M) (t : Tree A) : M :=
-match t with
-    | E => neutr
-    | T x l => op (f x)
-                  (fold_right (fun h t => op (foldMap_Tree f h) t) neutr l)
-end.
-
-#[refine]
-Instance Foldable_Tree : Foldable Tree :=
-{
-    foldMap := @foldMap_Tree;
-}.
-Proof.
-  intros. ext t. gen t.
-  apply (@Tree_rect' _ _ (fun l =>
-      fold_right (fun t ts => op (foldMap_Tree (f .> g) t) ts) neutr l =
-      fold_right (fun t ts => op (g (foldMap_Tree f t)) ts) neutr l)).
-    unfold compose; cbn. rewrite H. reflexivity.
-    cbn. reflexivity.
-    intros. cbn. rewrite H1, H2. reflexivity.
-    intros. unfold compose in *. cbn in *. rewrite ?H1, H0.
-      f_equal. clear H1. induction l as [| h t]; cbn.
-        rewrite H. reflexivity.
-        rewrite H0.
-        rewrite IHt. reflexivity.
-Defined.
-*)
-
-(** * Utility functions *)
-
-(*Fixpoint foldr {A B : Type} (f : A -> B -> B) (b : B) (t : Tree A) : B :=
-match t with
-    | E => b
-    | T x ts => f x (fold_right (fun t ts => foldr f ts t) b ts)
-end.
-
-Fixpoint foldr' {A B : Type} (f : A -> B -> B) (b : B) (t : Tree A) : B :=
-match t with
-    | E => b
-    | T x ts =>
-        let
-          aux := fix aux (b : B) (ts : list (Tree A)) : B :=
-          match ts with
-              | [] => f x b
-              | t :: ts' =>
-                  let b' := foldr f b t in aux b' ts'
-          end
-        in aux b ts
-end.
-
-Lemma foldr_foldr' : @foldr = @foldr'.
-Proof.
-  ext A; ext  B; ext f; ext b; ext t; gen b; gen t. Tree_ind.
-  rewrite IHt. rewrite <- IHts. f_equal.
-  rewrite <- !IHt.
-Abort.
-
-Definition foldr2
-  {A B : Type} (f : A -> list B -> B) (b : B) (t : Tree A) : B :=
-match t with
-    | E => b
-    | T x ts => f x (map foldr2 *)
-
-(* TODO Definition sizef {A : Type} (t : Tree A) : nat :=
-  foldr (fun _ ts => 1 + ts) 0 t.
-
-Lemma sizef_spec : @sizef = @size.
-Proof.
-  ext A; ext t; gen t. Tree_ind. inv IHts.
-Abort.
-
-Definition sizef' {A : Type} (t : Tree A) : nat :=
-  foldr' (fun _ => S) 0 t.
-
-Compute sizef (T 5 [T 0 []; T 1 []]).
-Compute sizef' (T 5 [T 0 []; T 1 []]).
-
- (T 5 [T 0 []; T 1 []]).
-Compute sizef' (T 5 [T 0 []; T 1 []]). *)
-
 Definition isEmpty
   {A : Type} (t : Tree A) : bool :=
 match t with
@@ -252,24 +153,37 @@ match t with
     | T _ ts => 1 + fold_right (fun h t => max (height h) t) 0 ts
 end.
 
-Fixpoint countTree {A : LinDec} (x : A) (t : Tree A) : nat :=
+Fixpoint countTree {A : Type} (p : A -> bool) (t : Tree A) : nat :=
 match t with
     | E => 0
-    | T x' l =>
-        (if x =? x' then S else id)
-          (fold_right (fun h t => countTree x h + t) 0 l)
+    | T x l =>
+        (if p x then S else id)
+          (fold_right (fun h t => countTree p h + t) 0 l)
+end.
+
+Fixpoint sum (l : list nat) : nat :=
+match l with
+    | [] => 0
+    | h :: t => h + sum t
+end.
+
+Fixpoint countTree' {A : Type} (p : A -> bool) (t : Tree A) : nat :=
+match t with
+    | E => 0
+    | T x ts =>
+        (if p x then S else id) (sum (map (countTree' p) ts))
 end.
 
 (** Properties of [isEmpty]. *)
 
-Lemma isEmpty_elem :
+Lemma isEmpty_Elem :
   forall (A : Type) (x : A) (t : Tree A),
-    isEmpty t = true -> ~ elem x t.
+    isEmpty t = true -> ~ Elem x t.
 Proof. Tree_ind. Qed.
 
 Lemma isEmpty_isHeap :
-  forall (A : LinDec) (t : Tree A),
-    isEmpty t = true -> isHeap t.
+  forall (A : Type) (R : A -> A -> Prop) (t : Tree A),
+    isEmpty t = true -> isHeap R t.
 Proof. Tree_ind. Qed.
 
 Lemma isEmpty_size_false :
@@ -289,9 +203,9 @@ Lemma size_fmap :
     size (fmap_Tree f t) = size t.
 Proof. Tree_ind. Qed.
 
-Lemma fmap_elem' :
+Lemma fmap_Elem' :
   forall (A B : Type) (f : A -> B) (t : Tree A) (x : A),
-    elem' x t -> elem' (f x) (fmap_Tree f t).
+    Elem' x t -> Elem' (f x) (fmap_Tree f t).
 Proof.
   induction 1; cbn; auto.
 Qed.
@@ -358,12 +272,85 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma count_mirror :
-  forall (A : Type) (p : A -> bool) (t : Tree A),
-    count p (mirror t) = count p t.
+Lemma sum_app :
+  forall l1 l2 : list nat,
+    sum (l1 ++ l2) = sum l1 + sum l2.
 Proof.
-  Tree_ind. destruct (p x) eqn: Hpx.
-    inv IHts. rewrite fold_left_snoc, IHt, H0.
-      change (count p t0 + 0) with ((fun t h => count p h + t) 0 t0).
-      rewrite fold_left_init.
-Abort.
+  induction l1 as [| h1 t1]; cbn.
+    reflexivity.
+    intro. rewrite IHt1, plus_assoc. reflexivity.
+Qed.
+
+Lemma sum_rev :
+  forall l : list nat,
+    sum (rev l) = sum l.
+Proof.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    rewrite sum_app, IHt, plus_comm. cbn. rewrite plus_0_r. reflexivity.
+Qed.
+
+(** Revived code *)
+
+Require Import CoqMTL.Control.Functor.
+Require Import CoqMTL.Control.Foldable.
+Require Import CoqMTL.Misc.Monoid.
+
+#[refine]
+Instance Functor_Tree : Functor Tree :=
+{
+    fmap := @fmap_Tree
+}.
+Proof.
+  all: intros; ext t; gen t; Tree_ind.
+    unfold id. inv IHts. repeat f_equal. assumption.
+Defined.
+
+Fixpoint foldMap_Tree
+  {A : Type} {M : Monoid} (f : A -> M) (t : Tree A) : M :=
+match t with
+    | E => neutr
+    | T x l => op (f x)
+                  (fold_right (fun h t => op (foldMap_Tree f h) t) neutr l)
+end.
+
+#[refine]
+Instance Foldable_Tree : Foldable Tree :=
+{
+    foldMap := @foldMap_Tree;
+}.
+Proof.
+  intros. ext t. gen t.
+  apply (@Tree_rect' _ _ (fun l =>
+      fold_right (fun t ts => op (foldMap_Tree (f .> g) t) ts) neutr l =
+      fold_right (fun t ts => op (g (foldMap_Tree f t)) ts) neutr l)).
+    unfold compose; cbn. rewrite H. reflexivity.
+    cbn. reflexivity.
+    intros. cbn. rewrite H1, H2. reflexivity.
+    intros. unfold compose in *. cbn in *. rewrite ?H1, H0.
+      f_equal. clear H1. induction l as [| h t]; cbn.
+        rewrite H. reflexivity.
+        rewrite H0.
+        rewrite IHt. reflexivity.
+Defined.
+
+(* TODO: sort out the foldr stuff for Tree *)
+Fixpoint foldr {A B : Type} (f : A -> B -> B) (b : B) (t : Tree A) : B :=
+match t with
+    | E => b
+    | T x ts => f x (fold_right (fun t ts => foldr f ts t) b ts)
+end.
+
+Definition foldr' {A B : Type} (f : A -> B -> B) (b : B) (t : Tree A) : B :=
+match t with
+    | E => b
+    | T x ts =>
+        let
+          aux := fix aux (b : B) (ts : list (Tree A)) : B :=
+          match ts with
+              | [] => b
+              | t :: ts' =>
+                  let b' := foldr f b t in aux b' ts'
+          end
+        in f x (aux b ts)
+end.
