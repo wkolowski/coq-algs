@@ -2,11 +2,11 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Function min {A : LinDec} (l : list A) : option (A * list A) :=
+Function extractMin {A : LinDec} (l : list A) : option (A * list A) :=
 match l with
     | [] => None
     | h :: t =>
-        match min t with
+        match extractMin t with
             | None => Some (h, [])
             | Some (m, l') =>
                 if h <=? m then Some (h, m :: l') else Some (m, h :: l')
@@ -14,26 +14,26 @@ match l with
 end.
 
 Function ss {A : LinDec} (l : list A) {measure length l} : list A :=
-match min l with
+match extractMin l with
     | None => []
     | Some (m, l') => m :: ss l'
 end.
 Proof.
   induction l as [| h t]; cbn; intros.
     inv teq.
-    destruct (min t) eqn: Heq.
+    destruct (extractMin t) eqn: Heq.
       destruct p0. dec; inv teq; cbn; apply lt_n_S; eapply IHt; eauto.
       inv teq. cbn. apply le_n_S, le_0_n.
 Defined.
 
-Lemma Permutation_min :
+Lemma Permutation_extractMin :
   forall (A : LinDec) (l l' : list A) (m : A),
-    min l = Some (m, l') -> Permutation (m :: l') l.
+    extractMin l = Some (m, l') -> Permutation (m :: l') l.
 Proof.
-  intros A l. functional induction @min A l; cbn; inv 1.
+  intros A l. functional induction extractMin l; cbn; inv 1.
     destruct t; cbn in e0.
       reflexivity.
-      destruct (min t).
+      destruct (extractMin t).
         destruct p. 1-2: dec.
     rewrite Permutation.perm_swap. auto.
 Qed.
@@ -45,16 +45,16 @@ Proof.
   intros. functional induction @ss A l.
     destruct l; cbn in e.
       reflexivity.
-      destruct (min l); try destruct p; dec.
-    apply Permutation_min in e. rewrite <- e, IHl0. reflexivity.
+      destruct (extractMin l); try destruct p; dec.
+    apply Permutation_extractMin in e. rewrite <- e, IHl0. reflexivity.
 Qed.
 
-Lemma min_spec :
+Lemma extractMin_spec :
   forall (A : LinDec) (l l' : list A) (m : A),
-    min l = Some (m, l') -> forall x : A, In x l' -> leq m x.
+    extractMin l = Some (m, l') -> forall x : A, In x l' -> leq m x.
 Proof.
   intros A l.
-  functional induction @min A l; inv 1; cbn; intros; destruct H; subst; dec.
+  functional induction extractMin l; inv 1; cbn; intros; destruct H; subst; dec.
 Qed.
 
 Lemma Sorted_ss :
@@ -68,14 +68,10 @@ Proof.
         apply Permutation_in with (ss A l').
           apply Permutation_ss.
           assumption.
-        eapply min_spec; eauto.
+        eapply extractMin_spec; eauto.
       assumption.
 Qed.
 
-
-
-
-(* TODO: fix
 Function min {A : LinDec} (l : list A) : option A :=
 match l with
     | [] => None
@@ -86,12 +82,14 @@ match l with
                 Some (if h <=? m then h else m)
         end
 end.
+Print removeFirst.
 
+(*
 Function ss (A : LinDec) (l : list A) {measure length l} : list A :=
 match min l with
     | None => []
     | Some m =>
-        m :: ss A (removeFirst m l)
+        m :: ss A (removeFirst  l)
 end.
 Proof.
   intros. functional induction @min A l; inv teq; cbn; dec.

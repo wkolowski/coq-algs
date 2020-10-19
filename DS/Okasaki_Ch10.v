@@ -640,10 +640,3 @@ Restart.
       reflexivity.
       apply IHl.
 Qed.
-
-(* TODO: Ex. 10.2 *)
-
-Module Ex_10_2.
-End Ex_10_2.
-
-(** *** 10.1.3 Bootstrapped Queues *)

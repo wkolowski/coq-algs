@@ -428,18 +428,19 @@ Admitted.
             rewrite H in e0. inv e0.
             eapply leq_trans with c; eauto.
 Qed.
+*)
 
 (** Properties of [findMin']. *)
 Lemma findMin'_elem :
   forall (A : Type) (m : A) (h : SplayHeap A),
-    findMin' h = Some m -> elem m h.
+    findMin' h = Some m -> Elem m h.
 Proof.
   intros. functional induction @findMin' A h; inv H.
 Qed.
 
 Lemma findMin'_elem_node :
   forall (A : Type) (m v : A) (l r : SplayHeap A),
-    findMin' (node v l r) = Some m -> m = v \/ elem m l.
+    findMin' (node v l r) = Some m -> m = v \/ Elem m l.
 Proof.
   intros. remember (node v l r) as h. revert m v l r Heqh H.
   functional induction @findMin' A h; inv 1; intros.
@@ -459,20 +460,22 @@ Proof.
 Qed.
 
 Lemma findMin'_spec :
-  forall (A : Type) (m : A) (h : SplayHeap A),
-    isBST h -> findMin' h = Some m ->
-      forall x : A, elem x h -> m ≤ x.
+  forall (A : Type) (cmp : A -> A -> comparison) (m : A) (h : SplayHeap A),
+    isBST cmp h -> findMin' h = Some m ->
+      forall x : A, Elem x h -> cmp m x.
 Proof.
-  intros A m h. revert m.
-  functional induction @findMin' A h; do 3 inv 1.
-    inv H1.
-    apply H3. apply findMin'_elem. assumption.
-    aux. eapply leq_trans; try eassumption. destruct l.
-      contradiction.
-      eapply leq_trans with c; eauto.
-Qed.
+  intros A cmp m h. revert m.
+  functional induction findMin' h; inv 1; inv 1.
+    inv 1.
+      admit.
+      admit.
+    specialize (H4 _ (findMin'_elem _ H1)). inv 1.
+      red. rewrite H4. cbn. reflexivity.
+      specialize (H6 _ H2). admit. (* transitivity *)
+Admitted.
 
 (** Properties of [deleteMin2]. *)
+
 Lemma deleteMin2_size :
   forall (A : Type) (m : A) (h h' : SplayHeap A),
     deleteMin2 h = Some (m, h') -> size h = 1 + size h'.
@@ -503,7 +506,7 @@ Qed.
 
 Lemma deleteMin2_elem :
   forall (A : Type) (m : A) (h h' : SplayHeap A),
-    deleteMin2 h = Some (m, h') -> elem m h.
+    deleteMin2 h = Some (m, h') -> Elem m h.
 Proof.
   intros A m h. revert m.
   functional induction @deleteMin2 A h; inv 1; eauto.
@@ -511,7 +514,7 @@ Qed.
 
 Lemma deleteMin2_elem_node :
   forall (A : Type) (m v : A) (l r h' : SplayHeap A),
-    deleteMin2 (node v l r) = Some (m, h') -> m = v \/ elem m l.
+    deleteMin2 (node v l r) = Some (m, h') -> m = v \/ Elem m l.
 Proof.
   intros. remember (node v l r) as h. revert m v l r h' Heqh H.
   functional induction @deleteMin2 A h; inv 1; intros.
@@ -541,29 +544,25 @@ Proof.
 Qed.
 
 Lemma deleteMin2_spec :
-  forall (A : Type) (m : A) (h h' : SplayHeap A),
-    isBST h -> deleteMin2 h = Some (m, h') ->
-      forall x : A, elem x h -> m ≤ x.
+  forall (A : Type) (cmp : A -> A -> comparison) (m : A) (h h' : SplayHeap A),
+    isBST cmp h -> deleteMin2 h = Some (m, h') ->
+      forall x : A, Elem x h -> cmp m x.
 Proof.
-  intros A m h. revert m.
-  functional induction @deleteMin2 A h; inv 1; intros.
-    inv H. inv H0. destruct l.
-      inv H1.
-      cbn in e0. destruct (deleteMin2 l1); try destruct p; congruence.
+  intros A cmp m h. revert m.
+  functional induction deleteMin2 h; inv 1; intros.
     inv H. inv H0.
-      apply H3. eapply deleteMin2_elem. eassumption.
-      eauto.
-      aux. eapply leq_trans with v; try assumption.
-        destruct l.
-          cbn in e0. congruence.
-          destruct (@deleteMin2_aux _ c l1 l2).
-            rewrite H in e0. inv e0.
-            eapply leq_trans with c; eauto.
-Qed.
+      admit.
+      functional inversion e0; subst. inv H1.
+      specialize (H6 _ H1). admit. (* flip H6 *)
+      inv H. inv H0.
+        rewrite H4. reflexivity. eapply deleteMin2_elem. eassumption.
+        eapply IHo; eauto.
+        specialize (H6 _ H1). apply deleteMin2_elem in e0. specialize (H4 _ e0). admit. (* transitivity *)
+Admitted.
 
 Lemma deleteMin2_count_BTree :
-  forall (A : Type) (p : A -> bool) (m : A) (h h' : SplayHeap A),
-    isBST h -> deleteMin2 h = Some (m, h') ->
+  forall (A : Type) (cmp : A -> A -> comparison) (p : A -> bool) (m : A) (h h' : SplayHeap A),
+    isBST cmp h -> deleteMin2 h = Some (m, h') ->
       count_BTree p h =
       (if p m then S else id) (count_BTree p h').
 Proof.
@@ -580,4 +579,3 @@ Proof.
       rewrite IHo; dec.
 *)
 Admitted.
-*)

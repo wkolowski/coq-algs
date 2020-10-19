@@ -55,14 +55,6 @@ match t with
     | T _ x _ => x
 end.
 
-(*Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
-match t1, t2 with
-    | T r x ts1, T _ y ts2 =>
-        if x <=? y
-        then T (S r) x (t2 :: ts1)
-        else T (S r) y (t1 :: ts2)
-end.*)
-
 Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
 match t1, t2 with
     | T r1 x ts1, T r2 y ts2 =>
@@ -543,7 +535,6 @@ Proof.
   destruct t1, t2. cbn. dec.
 Admitted.
 
-(** TODO WUT ACHTUNG: changed [link]. *)
 Lemma insTree_isHeap :
   forall (A : LinDec) (t : Tree A) (h : Heap A),
     validTree t -> heapOrdered t -> isHeap h ->

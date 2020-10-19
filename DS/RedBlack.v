@@ -434,4 +434,4 @@ Proof.
     rewrite Permutation_toList_insert, IHt. reflexivity.
 Qed.
 
-(** TODO: [join] and [split] *)
+(** TODO: implement [join] and [split] *)

@@ -347,19 +347,6 @@ Proof.
         apply Elem_insert_conv; assumption.
 Qed.
 
-(* TODO theorems:
-
-    elem_remove
-    min_spec
-    forall (A : LinDec) (m : A) (bst : BTree A),
-      is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
-
-    count
-    count_ins
-
-    Sortedness for TreeSort
-*)
-
 (** [fromList] and its variants. *)
 Fixpoint min {A : Type} (t : BTree A) : option A :=
 match t with
@@ -374,3 +361,16 @@ match l with
     | [] => empty
     | h :: t => insert cmp h (fromList cmp t)
 end.
+
+(* TODO theorems:
+
+    elem_remove
+    min_spec
+    forall (A : LinDec) (m : A) (bst : BTree A),
+      is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
+
+    count
+    count_ins
+
+    Sortedness for TreeSort
+*)
