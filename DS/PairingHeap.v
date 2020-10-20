@@ -3,7 +3,7 @@ Require Export RCCBase.
 
 Set Implicit Arguments.
 
-Require Import Basic.Tree.
+Require Export Basic.Tree.
 
 Definition PairingHeap (A : Type) : Type := Tree A.
 

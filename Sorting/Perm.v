@@ -8,6 +8,8 @@ Require Import TrichDec.
 Require Import Classes.RelationClasses.
 Require Import Permutation.
 
+(* TODO: sort things out regarding Permutation <-> perm equivalence *)
+
 (*Set Universe Polymorphism.*)
 
 Fixpoint count {A : Type} (p : A -> bool) (l : list A) : nat :=
@@ -321,6 +323,8 @@ Proof.
         reflexivity.
         apply IHt1. symmetry. assumption.
 Qed.
+
+Print Assumptions perm_Permutation.
 
 (** Moved from ListLemmas to avoid circularity. *)
 

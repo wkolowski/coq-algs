@@ -1,5 +1,3 @@
-
-
 Require Export RedBlack.
 
 Fixpoint toList'_aux {A : Type} (t : RBTree A) (acc : list A) : list A :=
