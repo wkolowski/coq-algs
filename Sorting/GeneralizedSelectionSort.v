@@ -22,15 +22,24 @@ Class ssArgs : Type :=
 
     R : A -> A -> Prop;
 
-(*     Sorted_extractMin :
-      forall (a : A) (s s' : S),
-        extractMin s = Some (a, s') -> 
- *)
+    extractMin_spec :
+      forall (x y : A) (s1 s2 s3 : S),
+        extractMin s1 = Some (x, s2) -> extractMin s2 = Some (y, s3) -> R x y;
+
     countS : (A -> bool) -> S -> nat;
 
     countS_fromList :
       forall (p : A -> bool) (l : list A),
         countS p (fromList l) = count p l;
+
+    countS_extractMin_None :
+      forall (p : A -> bool) (s : S),
+        extractMin s = None -> countS p s = 0;
+
+    countS_extractMin_Some :
+      forall (p : A -> bool) (a : A) (s s' : S),
+        extractMin s = Some (a, s') ->
+          countS p s = if p a then 1 + countS p s' else countS p s';
 }.
 
 Function toList (args : ssArgs) (s : S) {measure size s} : list A :=
@@ -48,22 +57,32 @@ Lemma Sorted_ss :
   forall (args : ssArgs) (l : list A),
     Sorted R (ss args l).
 Proof.
-  unfold ss. intros. generalize (fromList l). intros.
+  unfold ss. intros. generalize (fromList l). clear l; intros.
   functional induction toList args s.
     constructor.
-Abort.
+    rewrite toList_equation in *. destruct (extractMin s') as [[h' s''] |] eqn: Heq.
+      constructor.
+        eapply extractMin_spec; eassumption.
+        assumption.
+      constructor.
+Qed.
+
+Lemma count_toList :
+  forall (args : ssArgs) (s : S) (p : A -> bool),
+    count p (toList args s) = countS p s.
+Proof.
+  intros. functional induction toList args s; cbn.
+    rewrite countS_extractMin_None; trivial.
+    erewrite countS_extractMin_Some, IHl.
+      reflexivity.
+      assumption.
+Qed.
 
 Lemma perm_ss :
   forall (args : ssArgs) (l : list A),
     perm (ss args l) l.
 Proof.
-  unfold perm, ss. intros.
-  generalize (fromList l). intros. revert l.
-  functional induction (toList args s); cbn; intros.
-    admit.
-    destruct (p h) eqn: Hph.
-      rewrite (IHl (h :: l)). cbn. rewrite Hph.
-    rewrite IHl.  
-  rewrite <- countS_toList, <- countS_fromList.
+  unfold ss, perm. intros.
+  rewrite count_toList, countS_fromList.
   reflexivity.
 Qed.
