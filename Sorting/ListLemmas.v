@@ -10,7 +10,7 @@ Set Implicit Arguments.
 Definition lengthOrder {A : Type} (l1 l2 : list A) : Prop :=
   length l1 < length l2.
 
-Theorem lengthOrder_wf :
+Lemma lengthOrder_wf :
   forall A : Type, well_founded (@lengthOrder A).
 Proof.
   unfold lengthOrder. intro.
@@ -82,33 +82,10 @@ Proof.
     induction l; firstorder (subst; auto).
 Qed.
 
-Lemma removeFirst_min_lengthOrder :
-  forall (A : LinDec) (h : A) (t : list A),
-    lengthOrder
-      (removeFirst (fun x => x =? min_dflt A h t) (h :: t))
-      (h :: t).
-Proof.
-  red; intros. apply removeFirst_In_lt.
-  rewrite Exists_In. exists (min_dflt A h t). split.
-    apply min_In.
-    dec.
-Qed.
-
-(*Lemma removeFirst_cons:
-  forall (A : LinDec) (h : A) (t : list A), min_dflt A h t <> h ->
-    lengthOrder
-      (h :: removeFirst (fun x => x =? min_dflt A h t) t)
-      (h :: t).
-Proof.
-  intros. replace (h :: removeFirst (min_dflt A h t) t) with
-    (removeFirst (min_dflt A h t) (h :: t)).
-    apply removeFirst_min_lengthOrder.
-    simpl. dec.
-Qed.*)
-
 Lemma min_split :
   forall (A : LinDec) (h : A) (t : list A),
-    exists l1 l2 : list A, h :: t = l1 ++ min_dflt A h t :: l2 /\
+    exists l1 l2 : list A,
+      h :: t = l1 ++ min_dflt A h t :: l2 /\
       l1 ++ l2 = removeFirst (fun x => x =? min_dflt A h t) (h :: t).
 Proof.
   induction t as [| h' t']; intros.
@@ -123,31 +100,6 @@ Proof.
         exists (h :: h' :: l1), l2. split.
           inv H. dec.
           cbn in H'. dec.
-Qed.
-
-Lemma removeFirst_In_conv :
-  forall (A : LinDec) (x h : A) (t : list A),
-    In x (removeFirst (fun x => x =? min_dflt A h t) (h :: t)) ->
-      In x (h :: t).
-Proof.
-  induction t as [| h' t'].
-    cbn. dec.
-    simpl in *. dec; inv H. inv H0.
-      edestruct IHt'; cbn; auto.
-Qed.
-
-Lemma removeFirst_In :
-  forall (A : LinDec) (x h : A) (t : list A),
-    In x t -> min_dflt A h t <> x ->
-      In x (removeFirst (fun x => x =? min_dflt A h t) t).
-Proof.
-  induction t as [| h' t']; inversion 1; subst; intros.
-    simpl in *. dec.
-    simpl. dec. right. apply IHt'.
-      assumption.
-      simpl in *. destruct (leqb_spec h' (min_dflt A h t')).
-        contradiction.
-        assumption.
 Qed.
 
 (* Quicksort lemmas *)
@@ -167,7 +119,7 @@ Proof.
 Qed.
 
 Lemma filter_In_app :
-  forall (A : LinDec) (p : A -> bool) (x : A) (l : list A),
+  forall (A : Type) (p : A -> bool) (x : A) (l : list A),
     In x (filter p l ++ filter (fun x => negb (p x)) l) -> In x l.
 Proof.
   induction l as [| h t]; simpl.
@@ -190,7 +142,7 @@ match l with
         if p h then (h :: l1, l2) else (l1, h :: l2)
 end.
 
-Theorem bifilter_spec :
+Lemma bifilter_spec :
   forall (A : Type) (p : A -> bool) (l : list A),
     bifilter p l = (filter p l, filter (fun x : A => negb (p x)) l).
 Proof.
@@ -213,7 +165,7 @@ match l with
         end
 end.
 
-Theorem trifilter_spec :
+Lemma trifilter_spec :
   forall (A : TrichDec) (pivot : A) (l : list A),
     trifilter pivot l =
       (filter (fun x : A => x <? pivot) l,
@@ -242,7 +194,7 @@ match n, l with
     | S n', h :: t => drop n' t
 end.
 
-Theorem take_length_le :
+Lemma take_length_le :
   forall (A : Type) (n : nat) (l : list A),
     length (take n l) <= length l.
 Proof.
@@ -251,7 +203,7 @@ Proof.
     apply le_n_S. apply IHn'.
 Qed.
 
-Theorem take_length_lt :
+Lemma take_length_lt :
   forall (A : Type) (n : nat) (l : list A),
     n < length l -> length (take n l) < length l.
 Proof.
@@ -261,13 +213,13 @@ Proof.
     apply lt_n_S. apply IHn'. lia.
 Qed.
 
-Theorem drop_length_le : forall (A : Type) (l : list A) (n : nat),
+Lemma drop_length_le : forall (A : Type) (l : list A) (n : nat),
     length (drop n l) <= length l.
 Proof.
   induction l as [| h t]; destruct n; simpl; intros; auto.
 Qed.
 
-Theorem drop_length_lt : forall (A : Type) (l : list A) (n : nat),
+Lemma drop_length_lt : forall (A : Type) (l : list A) (n : nat),
     0 < n -> l <> [] -> length (drop n l) < length l.
 Proof.
   induction l as [| h t]; intros; destruct n; try (inversion H; fail);
@@ -385,14 +337,3 @@ match n with
     | 0 => []
     | S n' => l ++ cycle n' l
 end.
-
-(* Moved from TrichQuicksortSpec.v *)
-
-Lemma filter_eqb_repeat :
-  forall (A : LinDec) (x : A) (l : list A),
-    exists n : nat, filter (fun x' : A => x' =? x) l = repeat x n.
-Proof.
-  induction l as [| h t]; cbn.
-    exists 0. reflexivity.
-    dec. destruct IHt as [n H]. exists (S n). cbn. rewrite H. reflexivity.
-Qed.

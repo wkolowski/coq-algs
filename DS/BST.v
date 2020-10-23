@@ -362,6 +362,24 @@ match l with
     | h :: t => insert cmp h (fromList cmp t)
 end.
 
+Lemma Sorted_BTree_toList :
+  forall (A : Type) (p : A -> A -> comparison) (t : BTree A),
+    isBST p t -> Sorted p (BTree_toList t).
+Proof.
+  induction t; inv 1; cbn.
+    constructor.
+    apply Sorted_app.
+      apply IHt1. assumption.
+      destruct (BTree_toList t2) eqn: Heq.
+        constructor.
+        constructor.
+          red. unfold comparison2bool. destruct (p a a0) eqn: Hp.
+            1-2: reflexivity.
+            admit. (* TODO *)
+          apply IHt2. assumption.
+      admit.
+Admitted.
+
 (* TODO theorems:
 
     elem_remove

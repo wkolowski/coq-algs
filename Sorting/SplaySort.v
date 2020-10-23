@@ -1,3 +1,4 @@
+Require Export RCCBase.
 Require Export Sorting.Sort.
 Require Export ListLemmas.
 
@@ -7,25 +8,26 @@ Require Export SplayHeap.
 
 Set Implicit Arguments.
 
-(*Lemma size_deleteMin :
+Lemma size_deleteMin :
   forall (A : LinDec) (h : SplayHeap A),
     size (deleteMin h) = pred (size h).
 Proof.
-  intros. functional induction deleteMin h; cbn; trivial.
+  intros. functional induction deleteMin h; cbn; try reflexivity.
   rewrite IHs. destruct l; cbn.
     contradiction.
-    trivial.
+    reflexivity.
 Qed.
 
 Lemma size_deleteMin' :
-  forall (A : LinDec) (h h' : SplayHeap A),
-    h' = snd (deleteMin' h) -> size h' = pred (size h).
+  forall (A : LinDec) (t t' : SplayHeap A),
+    t' = snd (deleteMin' t) -> size t' = pred (size t).
 Proof.
-  intros. functional induction deleteMin' h; cbn; inv H; trivial.
+  intros. revert t' H.
+  functional induction deleteMin' t; inv 1; cbn in *.
   destruct l; cbn.
     contradiction.
-    rewrite e0 in IHp. cbn in IHp. rewrite IHp; trivial.
-Qed.*)
+    rewrite e0 in IHp. cbn in IHp. rewrite IHp; reflexivity.
+Qed.
 
 Fixpoint fromList {A : Type} (p : A -> A -> bool) (l : list A) : SplayHeap A :=
 match l with
@@ -36,43 +38,39 @@ end.
 Definition splaySort {A : Type} (p : A -> A -> bool) (l : list A) : list A :=
   BTree_toList (fromList p l).
 
-(*
-Lemma fromList_isBST :
-  forall (A : LinDec) (p : A -> A -> comparison) (l : list A),
+Lemma isBST_fromList :
+  forall (A : Type) (p : A -> A -> comparison) (l : list A),
     isBST p (fromList p l).
 Proof.
   induction l as [| h t]; cbn.
     constructor.
     apply isBST_insert. assumption.
 Qed.
-*)
 
-(*
 Theorem Sorted_splaySort :
-  forall (A : LinDec) (p : A -> A -> bool) (l : list A),
-    Sorted A (splaySort p l).
+  forall (A : Type) (p : A -> A -> comparison) (l : list A),
+    Sorted p (splaySort p l).
 Proof.
-  intros. unfold splaySort. apply Sorted_BTree_toList, fromList_isBST.
+  intros. unfold splaySort. apply Sorted_BTree_toList, isBST_fromList.
 Qed.
 
 Lemma count_BTree_fromList :
-  forall (A : LinDec) (p : A -> bool) (l : list A),
-    count_BTree p (fromList l) = Perm.count p l.
+  forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (l : list A),
+    count_BTree p (fromList cmp l) = Perm.count p l.
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
-    rewrite insert_count_BTree. rewrite IHt.
+    rewrite count_BTree_insert. rewrite IHt.
       destruct (p h); reflexivity.
 Qed.
 
 Theorem splaySort_perm :
-  forall (A : LinDec) (l : list A),
-    perm l (splaySort A l).
+  forall (A : Type) (cmp : A -> A -> bool) (l : list A),
+    perm l (splaySort cmp l).
 Proof.
   unfold splaySort, perm. intros.
   rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
 Qed.
-*)
 
 Lemma Permutation_partition :
   forall (A : LinDec) (p : A -> A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
@@ -80,21 +78,19 @@ Lemma Permutation_partition :
       Permutation (BTree_toList h) (BTree_toList h1 ++ BTree_toList h2).
 Proof.
   intros A p pivot h.
-  functional induction @partition A p pivot h; cbn in *; intros.
-    inv H.
-    inv H. cbn. rewrite app_nil_r. reflexivity.
-    inv H. cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
+  functional induction @partition A p pivot h; cbn in *; inv 1.
+    cbn. rewrite app_nil_r. reflexivity.
+    cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
       reflexivity.
       constructor. apply Permutation_app.
         reflexivity.
         constructor. apply IHp0. assumption.
-    inv H. cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
+    cbn. rewrite <- !app_assoc. cbn. apply Permutation_app.
       reflexivity.
       constructor. rewrite (IHp0 _ _ e3). rewrite <- !app_assoc. reflexivity.
-    inv H.
-    inv H. cbn. rewrite (IHp0 _ _ e3). rewrite <- !app_assoc. cbn.
+    cbn. rewrite (IHp0 _ _ e3). rewrite <- !app_assoc. cbn.
       rewrite <- app_assoc. reflexivity.
-    inv H. rewrite (IHp0 _ _ e3). cbn. rewrite <- !app_assoc. reflexivity.
+    rewrite (IHp0 _ _ e3). cbn. rewrite <- !app_assoc. reflexivity.
 Qed.
 
 Lemma Permutation_BTree_toList_insert :

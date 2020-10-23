@@ -32,13 +32,10 @@ repeat match goal with
     | x : unit |- _ => destruct x
 end.
 
-(*Ltac inv_aux H :=
-  inversion H; subst; clear H; try (cbn; auto; congruence); clear_useless.*)
-
 Ltac inv_aux H :=
-  inversion H; subst; clear H; auto; try congruence.
+  inversion H; subst; clear H; auto; try congruence; clear_useless.
 
-Tactic Notation "inv" hyp(H) := inv_aux H.
+Tactic Notation "inv" ident(H) := inv_aux H.
 
 Tactic Notation "inv" integer(n) :=
   intros until n;

@@ -1,3 +1,4 @@
+Require Export RCCBase.
 Require Import UCRing.
 
 Set Implicit Arguments.
@@ -153,10 +154,6 @@ Inductive ANF {X : UCRing} : exp X -> Prop :=
 
 Hint Constructors NoAdd ANF : core.
 
-(* A hack to dodge a warning. *)
-Ltac inv' H := try inversion H; subst; auto.
-Tactic Notation "inv" ident(H) := inv' H.
-
 Ltac inv_NoAdd := repeat
 match goal with
     | H : NoAdd (Add _ _) |- _ => inv H; clear H
@@ -266,8 +263,6 @@ end.
 
 Definition pair_size {X : UCRing} (p : exp X * exp X) : nat :=
   size (fst p) + size (snd p).
-
-Require Import Recdef.
 
 Function simpHypEq' {X : UCRing} (p : exp X * exp X)
   {measure pair_size p} : exp X * exp X :=
