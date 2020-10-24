@@ -4,12 +4,7 @@ Require Export LinDec.
 
 Set Implicit Arguments.
 
-Inductive Ord : Type :=
-    | Lt : Ord
-    | Eq : Ord
-    | Gt : Ord.
-
-Hint Constructors Ord : core.
+Hint Constructors comparison : core.
 
 Class TrichDec : Type :=
 {
@@ -23,7 +18,7 @@ Class TrichDec : Type :=
       forall x y z : carrier, trich_lt x y -> trich_lt y z -> trich_lt x z;
     trich_lt_trich :
       forall x y : carrier, trich_lt x y \/ x = y \/ trich_lt y x;
-    trichb : carrier -> carrier -> Ord;
+    trichb : carrier -> carrier -> comparison;
     trichb_spec1 :
       forall x y : carrier, trichb x y = Lt <-> trich_lt x y;
     trichb_spec2 :
@@ -88,7 +83,7 @@ Defined.
 
 Coercion TrichDec_to_LinDec : TrichDec >-> LinDec.
 
-Fixpoint trichb_nat (n m : nat) : Ord :=
+Fixpoint trichb_nat (n m : nat) : comparison :=
 match n, m with
     | 0, 0 => Eq
     | 0, _ => Lt
@@ -126,17 +121,17 @@ Proof.
   intros. rewrite trichb_spec2. trivial.
 Qed.
 
-(*Definition flipOrd (o : Ord) : Ord :=
+(*Definition flipcomparison (o : comparison) : comparison :=
 match o with
     | Lt => Gt
     | Eq => Eq
     | Gt => Lt
 end.
 
-Lemma trichb_flipOrd :
-  forall (A : TrichDec) (x y : @carrier A), flipOrd (x <?> y) = (y <?> x).
+Lemma trichb_flipcomparison :
+  forall (A : TrichDec) (x y : @carrier A), flipcomparison (x <?> y) = (y <?> x).
 Proof.
-  intros. unfold flipOrd.
+  intros. unfold flipcomparison.
 *)
 
 Lemma ltb_negb_leqb :

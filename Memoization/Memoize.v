@@ -67,7 +67,7 @@ Lemma fib_SS :
 Proof.
   intros. cbn. lia.
 Qed.
-
+(*
 Fixpoint fib_tr_aux (n a b : nat) : nat :=
 match n with
     | 0 => a
@@ -100,7 +100,8 @@ Qed.
 
 Definition list_map := @map.
 
-(* TODO: fix memoization
+Let FibAcc' : nat * nat -> nat * nat -> comparison := fun '(a1, a2) '(b1, b2) => Nat.compare a1 b1.
+
 Function fibM_aux (n : nat) (acc : BTree FibAcc) : nat :=
 match n with
     | 0 => 0
@@ -109,7 +110,7 @@ match n with
         match find n'' acc with
             | None =>
                 let a := fibM_aux n'' acc in
-                let b := fibM_aux n' (insert FibAcc (n'', a) acc) in a + b
+                let b := fibM_aux n' (insert FibAcc' (n'', a) acc) in a + b
             | Some a =>
                 match find n' acc with
                     | None =>
@@ -120,25 +121,23 @@ match n with
 end.
 
 Definition fibM (n : nat) : nat :=
-  fibM_aux n (@fromList FibAcc [(0, 0); (1, 1)]).
+  fibM_aux n (fromList FibAcc' [(0, 0); (1, 1)]).
 
 Definition acc_correct {A : TrichDec} {B : Type}
   (f : A -> B) (acc : BTree (KVP A B)) : Prop :=
-    forall (k : A) (v : B), elem (k, v) acc -> v = f k.
+    forall (k : A) (v : B), Elem (k, v) acc -> v = f k.
 
 Lemma find_elem :
   forall (A : TrichDec) (B : Type) (k : A) (v : B) (t : BTree (KVP A B)),
-    find k t = Some v -> elem (k, v) t.
+    find k t = Some v -> Elem (k, v) t.
 Proof.
   intros. revert v H.
-(*
-  functional induction @find A B k t; intros; try congruence.
-    eauto.
-    destruct p; cbn in *. trich. inv H.
-    eauto.
-*)
-Admitted.
-
+  induction t; cbn; intros.
+    inv H.
+    destruct (k <?> fst a) eqn: HT; cbn in *; rewrite ?HT in H; eauto.
+      inv H. destruct a. cbn in *. trich.
+Qed.
+Search Elem_insert.
 Ltac fib := 
 repeat match goal with
     | p : ?P, H : ?P -> _ |- _ => destruct (H p); clear H
@@ -149,7 +148,7 @@ end;
   try (split; try red; intros);
 repeat multimatch goal with
     | H : elem _ _ |- _ =>
-        destruct (@elem_ins FibAcc _ _ _ H); clear H
+        destruct (@Elem_insert FibAcc' _ _ _ H); clear H
     | H : (?k, ?v) = _ |- _ = fib _ => inv H; cbn; lia
     | H : forall (k : _) (v : _), elem _ ?acc -> _, H' : elem _ ?acc |- _ =>
         rewrite ?(H _ _ H') in *

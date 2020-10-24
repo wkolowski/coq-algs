@@ -4,7 +4,7 @@ Require Import LinDec.
 
 Require Import Sorting.Sort.
 
-(* TODO *) Module Type PriorityQueue.
+Module Type PriorityQueue.
 
 Parameter PQ : LinDec -> Type.
 
@@ -259,25 +259,6 @@ Parameter deleteMin : PQ -> option PQ.
 (** Secondary. *)
 Parameter isEmpty : PQ -> bool.
 
-(** wut *)
 Definition singleton (x : O.Elem) : PQ := insert x empty.
 
 End PriorityQueue2.
-
-(*
-Module wut : PriorityQueue.
-
-Require Import PQ.
-
-(** Error: The kernel does not recognize yet that a parameter can be
-    instantiated by an inductive type. Hint: you can rename the inductive
-    type and give a definition to map the old name to the new name. *)
-(* Inductive PQ := wut : PQ. *)
-
-Definition PQ (A : LinDec) := PQ A.
-
-Definition singleton {A : LinDec} (x : A) : PQ A :=
-  node x empty empty.
-
-End wut.
-*)

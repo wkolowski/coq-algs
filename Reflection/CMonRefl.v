@@ -231,9 +231,38 @@ Proof.
     all: firstorder.
 Qed.
 
+Function list_eq {A : Type} (p : A -> A -> bool) (l1 l2 : list A) : bool :=
+match l1, l2 with
+    | []      , []       => true
+    | _ :: _  , []       => false
+    | []      , _ :: _   => false
+    | h1 :: t1, h2 :: t2 => p h1 h2 && list_eq p t1 t2
+end.
+
+Lemma list_eq_spec :
+  forall {A : Type} (p : A -> A -> bool),
+    (forall x y : A, reflect (x = y) (p x y)) ->
+      forall l1 l2 : list A, reflect (l1 = l2) (list_eq p l1 l2).
+Proof.
+  intros A p Spec l1 l2.
+  functional induction list_eq p l1 l2;
+  repeat constructor.
+    inv 1.
+    inv 1.
+    destruct (Spec h1 h2); cbn.
+      destruct IHb; constructor; congruence.
+      constructor. congruence.
+Qed.
+
 Function simplifyEq {X : CMon} (f : formula X) : formula X :=
 match f with
-    | fEq e1 e2 => fEq (simplify e1) (simplify e2)
+    | fEq e1 e2 =>
+        (* fEq (simplify e1) (simplify e2) *)
+        let l1 := insertionSort natle (flatten e1) in
+        let l2 := insertionSort natle (flatten e2) in
+          if list_eq Nat.eqb l1 l2
+          then fTrue
+          else fEq (simplify e1) (simplify e2)
     | fAnd f1 f2 => fAnd (simplifyEq f1) (simplifyEq f2)
     | fOr f1 f2 => fOr (simplifyEq f1) (simplifyEq f2)
     | fImpl f1 f2 =>
@@ -250,21 +279,30 @@ Theorem simplifyEq_correct :
     formulaDenote envX envP (simplifyEq f) <->
     formulaDenote envX envP f.
 Proof.
-  intros. functional induction simplifyEq f; cbn in *;
-  rewrite ?simplify_correct;
+  intros.
+  functional induction simplifyEq f;
+  cbn in *; rewrite ?simplify_correct;
   repeat multimatch goal with
       | H : forall _, _ <-> _ |- _ => rewrite ?H
   end; try tauto.
+    split; intro; auto.
+    {
+      apply reflectEq. unfold simplify.
+      destruct (list_eq_spec _ Nat.eqb_spec
+                (insertionSort natle (flatten e1))
+                (insertionSort natle (flatten e2))).
+        rewrite e. reflexivity.
+        congruence.
+    }
     split; intros.
       rewrite <- IHf0. rewrite substF_correct in H.
         apply H. rewrite e1 in IHf1. cbn in IHf1. rewrite IHf1. assumption.
         rewrite <- IHf1 in H0. rewrite e1 in H0. cbn in H0. assumption.
-    rewrite substF_correct.
-      rewrite IHf0. apply H. rewrite <- IHf1, e1. cbn. assumption.
-      assumption.
+      rewrite substF_correct.
+        rewrite IHf0. apply H. rewrite <- IHf1, e1. cbn. assumption.
+        assumption.
 Qed.
 
-(* TODO *)
 Fixpoint size {X : CMon} (f : formula X) : nat :=
 match f with
     | fFalse => 1
@@ -291,15 +329,23 @@ Qed.
 
 Hint Resolve size_gt_0 : core.
 
-(*Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
+Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
   : formula X :=
 match f with
-    | fEq e1 e2 => fEq (simplify e1) (simplify e2)
+    | fEq e1 e2 =>
+        (* fEq (simplify e1) (simplify e2) *)
+        let l1 := insertionSort natle (flatten e1) in
+        let l2 := insertionSort natle (flatten e2) in
+          if list_eq Nat.eqb l1 l2
+          then fTrue
+          else fEq (simplify e1) (simplify e2)
     | fAnd f1 f2 => fAnd (simplifyEq' f1) (simplifyEq' f2)
     | fOr f1 f2 => fOr (simplifyEq' f1) (simplifyEq' f2)
     | fImpl f1 f2 =>
-        match simplifyEq f1 with
-            | fEq (Var i) e as f1' => fImpl f1' (simplifyEq' (substF f2 i e))
+        match simplifyEq' f1 with
+            (* | fEq (Var i) e as f1' => fImpl f1' (simplifyEq' (substF f2 i e)) *)
+            (* | fEq (Var i) e as f1' => fImpl f1' (substF (simplifyEq' f2) i e) *)
+            | fEq (Var i) e as f1' => substF (simplifyEq' f2) i e
             | f1' => fImpl f1' (simplifyEq' f2)
         end
     | _ => f
@@ -313,25 +359,65 @@ Proof.
               | _ => pose (size_gt_0 f)
           end
   end; try lia.
-    rewrite size_substF. lia.
+(*     rewrite size_substF. lia. *)
 Defined.
 
 Theorem simplifyEq'_correct :
   forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
-    formulaDenote envX envP (simplifyEq' f) <->
+    formulaDenote envX envP f ->
+      formulaDenote envX envP (simplifyEq' f).
+Proof.
+  intros.
+  functional induction simplifyEq' f;
+  cbn in *; rewrite ?simplify_correct;
+  intros; try tauto.
+Abort.
+
+Theorem simplifyEq'_correct :
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
+    formulaDenote envX envP (simplifyEq' f) ->
     formulaDenote envX envP f.
 Proof.
-  intros. functional induction @simplifyEq' X f; cbn in *;
-  rewrite ?simplify_correct;
-  repeat multimatch goal with
-      | H : forall _, _ <-> _ |- _ => rewrite ?H
-  end; try tauto.
-    split; intros.
-      rewrite e1 in H.
-      rewrite substF_correct in H.
-        apply H.
-Qed.
-  *)
+  intros.
+  functional induction simplifyEq' f;
+  cbn in *; rewrite ?simplify_correct;
+  intros; try tauto.
+    {
+      apply reflectEq. unfold simplify.
+      destruct (list_eq_spec _ Nat.eqb_spec
+                (insertionSort natle (flatten e1))
+                (insertionSort natle (flatten e2))).
+        rewrite e. reflexivity.
+        congruence.
+    }
+    rewrite ?simplify_correct in *. assumption.
+    apply IHf1. rewrite substF_correct in H.
+      assumption.
+      apply (f_equal (formulaDenote envX envP)) in e1. cbn in e1.
+Abort.
+
+Theorem simplifyEq'_correct :
+  forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),
+    formulaDenote envX envP (simplifyEq' f)
+      <->
+    formulaDenote envX envP f.
+Proof.
+  intros.
+  functional induction simplifyEq' f;
+  cbn in *; rewrite ?simplify_correct;
+  intros; try tauto.
+    split; intro; auto.
+    {
+      apply reflectEq. unfold simplify.
+      destruct (list_eq_spec _ Nat.eqb_spec
+                (insertionSort natle (flatten e1))
+                (insertionSort natle (flatten e2))).
+        rewrite e. reflexivity.
+        congruence.
+    }
+    rewrite substF_correct.
+      rewrite IHf1.
+Abort.
 
 Function simplifyLogic {X : CMon} (f : formula X) : formula X :=
 match f with

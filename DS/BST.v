@@ -76,7 +76,6 @@ match t with
         end
 end.
 
-
 Inductive Reflect_cmp (P Q R : Prop) : comparison -> Prop :=
     | Reflect_Lt : P -> Reflect_cmp P Q R Lt
     | Reflect_Eq : Q -> Reflect_cmp P Q R Eq
@@ -155,12 +154,6 @@ Proof.
       apply Elem_insert_conv'; assumption.
       apply Elem_insert_conv; assumption.
 Qed.
-(*Restart.
-  intros until 1. revert x H.
-  functional induction (insert cmp y t); inv 1.
-    split; inv 1.
-    Search Elem node. Focus 2.
-Qed.*)
 
 Lemma Elem_removeMin :
   forall
@@ -347,19 +340,11 @@ Proof.
         apply Elem_insert_conv; assumption.
 Qed.
 
-(** [fromList] and its variants. *)
 Fixpoint min {A : Type} (t : BTree A) : option A :=
 match t with
     | empty => None
     | node v empty _ => Some v
     | node _ l _ => min l
-end.
-
-Fixpoint fromList
-  {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
-match l with
-    | [] => empty
-    | h :: t => insert cmp h (fromList cmp t)
 end.
 
 Lemma Sorted_BTree_toList :
@@ -380,15 +365,38 @@ Proof.
       admit.
 Admitted.
 
+(** [fromList] and its variants. *)
+Fixpoint fromList
+  {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
+match l with
+    | [] => empty
+    | h :: t => insert cmp h (fromList cmp t)
+end.
+
+Lemma isBST_fromList :
+  forall {A : Type} (cmp : cmp_spec A) (l : list A),
+    isBST cmp (fromList cmp l).
+Proof.
+  induction l as [| h t]; cbn.
+    constructor.
+    apply isBST_insert. assumption.
+Qed.
+
+Lemma count_BTree_insert :
+  forall (A : Type) (cmp : cmp_spec A) (p : A -> bool) (x : A) (t : BTree A),
+    count_BTree p (insert cmp x t) =
+      if p x then 1 + count_BTree p t else count_BTree p t.
+Proof.
+  induction t; cbn.
+    reflexivity.
+    destruct (cmpr_spec x a); cbn;
+      rewrite ?IHt1, ?IHt2;
+      destruct (p x) eqn: Hpx, (p a) eqn: Hpa; cbn; try lia.
+
 (* TODO theorems:
 
     elem_remove
     min_spec
     forall (A : LinDec) (m : A) (bst : BTree A),
       is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
-
-    count
-    count_ins
-
-    Sortedness for TreeSort
 *)

@@ -2,7 +2,7 @@ Require Import RCCBase.
 
 Require Import LinDec.
 
-(* TODO *) Module Type FinSet.
+Module Type FinSet.
 
 Parameter S : LinDec -> Type.
 

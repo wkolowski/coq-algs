@@ -71,20 +71,7 @@ Proof.
   cbn. reflexivity.
 Qed.
 
-(*Lemma height_rotateLR :
-  forall (A : Type) (t : Tree A),
-    height' (rotateLR t) <= height' t.
-Proof.
-  intros. functional induction @rotateLR A t.
-    rewrite !height'_balance. cbn. destruct (height' c).
-      rewrite Max.max_0_r. apply le_n_S.
-        apply le_trans with (max (S (height' a)) (S (height' b))).
-          apply Nat.max_le_compat_r. apply le_S. apply le_n.
-          cbn. reflexivity.
-      apply le_n_S. rewrite ?Nat.max_lub_iff. rewrite Nat.max_le_iff. destruct (height' b); cbn.
-        rewrite Max.max_0_r. apply le_n_S.
-
-*)
+(* TODO: height_rotate *)
 
 Lemma height_rebalance :
   forall (A : Type) (v : A) (l r : Tree A),
@@ -112,11 +99,10 @@ Proof.
              1-2: firstorder.
 Qed.
 
-(* TODO *) Lemma height_insert :
+Lemma height_insert :
   forall (A : LinDec) (x : A) (t : Tree A),
     height' (insert x t) <= 1 + height' t.
 Proof.
-  intros. functional induction @insert A x t; cbn.
-    reflexivity.
-    rewrite height_rebalance.
-Abort.
+  intros. functional induction insert x t;
+  cbn; rewrite ?height_rebalance; lia.
+Qed.

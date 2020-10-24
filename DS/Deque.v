@@ -735,8 +735,7 @@ Qed.
 
 (** [fromList] and its properties. *)
 
-(* TODO *) Definition fromList {A : Type} (l : list A) : Deque A :=
-  deque l [].
+Definition fromList {A : Type} (l : list A) : Deque A := deque l [].
 
 Lemma fromList_isDeque :
   forall (A : Type) (l : list A),

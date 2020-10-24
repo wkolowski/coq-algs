@@ -1,8 +1,6 @@
-
-
 Require Import RCCBase.
 
-(* TODO *) Module Type StackSpec.
+Module Type StackSpec.
 
 Parameter Stack : Type -> Type.
 
@@ -20,7 +18,6 @@ Parameter top :
 Parameter pop :
   forall {A : Type}, Stack A -> option (Stack A).
 
-(* TODO: think *)
 Definition unpush {A : Type} (s : Stack A) : option (A * Stack A) :=
 match top s, pop s with
     | None, _ => None

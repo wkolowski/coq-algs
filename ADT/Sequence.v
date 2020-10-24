@@ -2,7 +2,7 @@ Require Import RCCBase.
 
 (** A LIFO sequence. The most obvious implementation is intended to be a
     list. *)
-(* TODO *) Module Type Sequence.
+Module Type Sequence.
 
 Parameter Seq : Type -> Type.
 
@@ -21,7 +21,7 @@ Parameter head :
 Parameter tail :
   forall {A : Type}, Seq A -> option (Seq A).
 
-(* TODO *) Parameter uncons_head_tail :
+Parameter uncons_head_tail :
   forall {A : Type} (s : Seq A),
     uncons s =
     match head s, tail s with

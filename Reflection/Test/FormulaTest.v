@@ -1,5 +1,7 @@
 Require Export Formula.
-(* Require Import Formula2. TODO *)
+
+(* Uncomment in case you want to test the other implementation. *)
+(* Require Import Formula2. *)
 
 Section FormulaTest.
 

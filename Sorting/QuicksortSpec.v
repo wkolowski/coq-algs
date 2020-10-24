@@ -4,7 +4,7 @@ Set Implicit Arguments.
 
 (** [uqs] specification *)
 
-Theorem uqs_perm :
+Lemma uqs_perm :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
@@ -25,7 +25,7 @@ Proof.
               rewrite partition_perm, !count_app. reflexivity.
 Qed.
 
-Theorem Permutation_uqs :
+Lemma Permutation_uqs :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
@@ -49,7 +49,7 @@ Proof.
               assumption.
 Qed.
 
-Theorem uqs_In :
+Lemma uqs_In :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A)
@@ -63,7 +63,7 @@ Proof.
     symmetry. apply Permutation_uqs.
 Qed.
 
-Theorem Sorted_uqs :
+Lemma Sorted_uqs :
   forall
     (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
@@ -90,48 +90,6 @@ Proof.
                 eapply spec_hi; eauto.
           intros. apply uqs_In in H. eapply spec_lo; eauto.
 Qed.
-
-Inductive AllLess {A : Type} (R : A -> A -> Prop) (x : A) : list A -> Prop :=
-    | AllLess_nil : AllLess R x []
-    | AllLess_cons :
-        forall (h : A) (t : list A),
-          R x h -> AllLess R x t -> AllLess R x (h :: t).
-
-Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
-    | Sorted_nil : Sorted R []
-    | Sorted_cons :
-        forall (h : A) (t : list A),
-          AllLess R h t -> Sorted R t -> Sorted R (h :: t).
-
-Theorem Sorted'_uqs :
-  forall
-    (A : LinDec) (small : Small A) (adhoc : AdHocSort small)
-    (choosePivot : Pivot A) (partition : Partition A) (l : list A),
-      Sorted A (uqs adhoc choosePivot partition l).
-Proof.
-  intros.
-  functional induction @uqs A small adhoc choosePivot partition l.
-    pose (e' := e). apply small_inl in e'; subst.
-      apply Sorted_adhoc in e. admit.
-    apply small_inr in e. apply pivot_spec in e0.
-(* TODO: finish Sorted'_uqs (custom definition of Sorted)
-       apply Sorted_app_all; auto.
-        apply Sorted_cons.
-          intros. apply in_app_or in H. destruct H.
-            erewrite spec_eq; eauto.
-            eapply spec_hi; eauto. eapply uqs_In; eauto.
-          apply Sorted_app; auto.
-            assert (forall x : A, In x eq -> x = pivot).
-              eapply spec_eq; eauto.
-              clear e1. induction eq; auto. destruct eq; auto. constructor.
-                rewrite (H a), (H c); cbn; auto.
-                apply IHeq. intro. inv 1; apply H; cbn; auto.
-            intros. apply uqs_In in H0.
-              erewrite (spec_eq pivot) at 1; eauto.
-                eapply spec_hi; eauto.
-          intros. apply uqs_In in H. eapply spec_lo; eauto.
-*)
-Abort.
 
 #[refine]
 Instance Sort_uqs
