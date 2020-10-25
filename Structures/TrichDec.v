@@ -10,33 +10,19 @@ Class TrichDec : Type :=
 {
     carrier : Type;
     trich_lt : carrier -> carrier -> Prop;
-    trich_lt_irrefl :
-      forall x : carrier, ~ trich_lt x x;
     trich_lt_antisym :
       forall x y : carrier, trich_lt x y -> ~ trich_lt y x;
     trich_lt_trans :
       forall x y z : carrier, trich_lt x y -> trich_lt y z -> trich_lt x z;
-    trich_lt_trich :
-      forall x y : carrier, trich_lt x y \/ x = y \/ trich_lt y x;
     trichb : carrier -> carrier -> comparison;
-    trichb_spec1 :
-      forall x y : carrier, trichb x y = Lt <-> trich_lt x y;
-    trichb_spec2 :
-      forall x y : carrier, trichb x y = Eq <-> x = y;
-    trichb_spec3 :
-      forall x y : carrier, trichb x y = Gt <-> trich_lt y x;
+    trichb_spec :
+      forall x y : carrier, Reflect_cmp (trich_lt x y) (x = y) (trich_lt y x) (trichb x y);
 }.
 
 Infix "<" := trich_lt (at level 70).
 Infix "<?>" := trichb (at level 70).
 
-Hint Resolve trich_lt_irrefl trich_lt_antisym trich_lt_trans trich_lt_trich : core.
-
-Hint Extern 0 =>
-match goal with
-    | H : _ < _ |- _ => apply trich_lt_irrefl in H; contradiction
-end
-  : core.
+Hint Resolve trich_lt_antisym trich_lt_trans : core.
 
 Definition TrichDec_ltb {A : TrichDec} (x y : @carrier A) : bool :=
 match x <?> y with
@@ -45,6 +31,99 @@ match x <?> y with
 end.
 
 Notation "x <? y" := (TrichDec_ltb x y) (at level 70).
+
+Lemma trich_lt_irrefl :
+  forall (A : TrichDec) (x : carrier),
+    ~ trich_lt x x.
+Proof.
+  intros A x H. eapply trich_lt_antisym; eassumption.
+Qed.
+
+Hint Extern 0 =>
+match goal with
+    | H : _ < _ |- _ => apply trich_lt_irrefl in H; contradiction
+end
+  : core.
+
+Lemma trich_lt_antisym' :
+  forall (A : TrichDec) (x y : carrier),
+    trich_lt x y -> ~ trich_lt y x.
+Proof.
+  intros A x y.
+  intros Hxy Hyx.
+  eapply trich_lt_irrefl, trich_lt_trans; eassumption.
+Qed.
+
+Lemma trich_lt_comparison :
+  forall (A : TrichDec) (x y z : carrier),
+    trich_lt x z -> trich_lt x y \/ trich_lt y z.
+Proof.
+  intros. destruct (trichb_spec x y).
+    auto.
+    subst. auto.
+    right. eapply trich_lt_trans; eassumption.
+Qed.
+
+Lemma trich_lt_trans' :
+  forall (A : TrichDec) (x y z : carrier),
+    trich_lt x y -> trich_lt y z -> trich_lt x z.
+Proof.
+  intros A x y z Hxy Hyz.
+  destruct (trichb_spec x z).
+    assumption.
+    subst. contradict Hyz. apply trich_lt_antisym. assumption.
+    destruct (trich_lt_comparison _ _ z y Hxy).
+      assumption.
+      contradict H0. apply trich_lt_antisym. assumption.
+Qed.
+
+Lemma trich_lt_connected :
+  forall (A : TrichDec) (x y : carrier),
+    ~ trich_lt x y -> ~ trich_lt y x -> x = y.
+Proof.
+  intros. destruct (trichb_spec x y).
+    contradiction.
+    assumption.
+    contradiction.
+Qed.
+
+Hint Resolve trich_lt_irrefl trich_lt_comparison trich_lt_trans trich_lt_connected : core.
+
+Lemma trichb_spec1 :
+  forall (A : TrichDec) (x y : carrier),
+    trichb x y = Lt <-> trich_lt x y.
+Proof.
+  intros. destruct (trichb_spec x y);
+  subst; firstorder; try congruence.
+    contradict H0. apply trich_lt_antisym. assumption.
+Qed.
+
+Lemma trichb_spec2 :
+  forall (A : TrichDec) (x y : carrier),
+    trichb x y = Eq <-> x = y.
+Proof.
+  intros. destruct (trichb_spec x y);
+  firstorder; subst; auto; congruence.
+Qed.
+
+Lemma trichb_spec3 :
+  forall (A : TrichDec) (x y : carrier),
+    trichb x y = Gt <-> trich_lt y x.
+Proof.
+  intros. destruct (trichb_spec x y);
+  firstorder; try congruence.
+    contradict H0. apply trich_lt_antisym. assumption.
+    contradict H0. subst. apply trich_lt_irrefl.
+Qed.
+
+Lemma trich_lt_trich :
+  forall (A : TrichDec) (x y : carrier),
+    trich_lt x y \/ x = y \/ trich_lt y x.
+Proof.
+  intros. destruct (trichb_spec x y); auto.
+Qed.
+
+Hint Resolve trichb_spec1 trichb_spec2 trichb_spec3 trich_lt_trich : core.
 
 Ltac trich := cbn; unfold TrichDec_ltb; repeat
 match goal with
@@ -73,11 +152,11 @@ Instance TrichDec_to_LinDec (A : TrichDec) : LinDec :=
           | _ => true
       end
 }.
-Proof.
+Proof. Print LinDec.
   apply trich_lt_irrefl.
-  intros. decompose [or] (trich_lt_trich x y); trich.
-  intros; intro. decompose [or] (trich_lt_trich z y); trich.
-  intros. decompose [or] (trich_lt_trich x y); trich.
+  intros. apply trich_lt_connected; assumption.
+  intros; intro. decompose [or] (trich_lt_trich A z y); trich.
+  intros. decompose [or] (trich_lt_trich A x y); trich.
   intros. case_eq (trichb x y); intro; trich.
 Defined.
 
@@ -99,19 +178,10 @@ Instance natlt : TrichDec :=
     trichb := trichb_nat
 }.
 Proof.
-  1-4: intros; lia.
-  induction x as [| x']; destruct y as [| y']; cbn;
-  split; try (trich; fail).
-    intros. apply lt_n_S. apply IHx'. assumption.
-    rewrite IHx'. apply lt_S_n.
-  induction x as [| x']; destruct y as [| y']; cbn;
-  split; try (trich; fail); intros.
-    f_equal. apply IHx'. assumption.
-    rewrite IHx'. congruence.
-  induction x as [| x']; destruct y as [| y']; cbn;
-  split; try (trich; fail).
-    intros. apply lt_n_S. apply IHx'. assumption.
-    rewrite IHx'. apply lt_S_n.
+  1-2: intros; lia.
+  induction x as [| x']; destruct y as [| y']; cbn.
+    1-3: constructor; lia.
+    destruct (IHx' y'); constructor; lia.
 Defined.
 
 Lemma trichb_refl :
@@ -121,7 +191,7 @@ Proof.
   intros. rewrite trichb_spec2. trivial.
 Qed.
 
-(*Definition flipcomparison (o : comparison) : comparison :=
+Definition flipcomparison (o : comparison) : comparison :=
 match o with
     | Lt => Gt
     | Eq => Eq
@@ -131,8 +201,8 @@ end.
 Lemma trichb_flipcomparison :
   forall (A : TrichDec) (x y : @carrier A), flipcomparison (x <?> y) = (y <?> x).
 Proof.
-  intros. unfold flipcomparison.
-*)
+  intros. destruct (trichb_spec y x), (trichb_spec x y); cbn; trich.
+Qed.
 
 Lemma ltb_negb_leqb :
   forall (A : TrichDec) (x y : A), x <? y = negb (y <=? x).

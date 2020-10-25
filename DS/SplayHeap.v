@@ -349,53 +349,6 @@ Proof.
   functional induction @findMin A h; inv Heqh.
 Qed.
 
-Lemma cmp_spec_antirefl :
-  forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
-      forall x : A, cmp x x = Lt -> False.
-Proof.
-  intros. specialize (H x x). inv H.
-Qed.
-
-Lemma cmp_spec_asym :
-  forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
-      forall x y : A, cmp x y = Lt -> cmp y x <> Lt.
-Proof.
-  intros. specialize (H x y). inv H.
-Qed.
-
-Lemma cmp_spec_trans :
-  forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
-      forall x y z : A, cmp x y = Lt -> cmp y z = Lt -> cmp x z = Lt.
-Proof.
-  intros A cmp H x y z Hxy Hyz.
-  pose (H' := H x z). inv H'.
-    pose (H' := H y z). inv H'.
-(*    pose (H' := H y z). inv H'.*)
-Abort.
-
-Lemma cmp_spec_comparison :
-  forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
-      forall x y z : A, cmp x z = Lt -> cmp x y = Lt \/ cmp y z = Lt.
-Proof.
-  intros A cmp H x y z Hxz.
-  pose (H' := H x y). inv H'. right.
-  pose (H' := H y z). inv H'.
-  pose (H' := H x z). inv H'.
-Abort.
-
-Lemma cmp_spec_connectedness :
-  forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
-      forall x y : A, cmp x y <> Lt -> cmp y x <> Lt -> cmp x y = Eq.
-Proof.
-  intros A cmp H x y Hxy Hyx.
-  pose (H' := H x y). inv H'.
-Qed.
-
 Lemma findMin_spec :
   forall (A : Type) (p : cmp_spec A) (m : A) (h : SplayHeap A),
     isBST p h -> findMin h = Some m ->
@@ -412,23 +365,6 @@ Proof.
       apply Elem_findMin in e0. specialize (H4 _ e0). specialize (H6 _ H1).
         destruct (cmpr_spec m0 x); try congruence.
 Admitted.
-(*      Focus 2.
-      
-      apply IHo; auto. apply 
-      destruct (cmpr_spec m0 v); try congruence.
-      functional inversion e0; subst.
-        
-        
-    inv H. inv H0.
-      apply H3. apply Elem_findMin. assumption.
-      aux. eapply leq_trans with v; try assumption.
-        destruct l.
-          cbn in e0. congruence.
-          destruct (@findMin_aux _ c l1 l2).
-            rewrite H in e0. inv e0.
-            eapply leq_trans with c; eauto.
-Qed.
-*)
 
 (** Properties of [findMin']. *)
 Lemma findMin'_elem :

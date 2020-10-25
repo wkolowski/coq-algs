@@ -76,26 +76,6 @@ match t with
         end
 end.
 
-Inductive Reflect_cmp (P Q R : Prop) : comparison -> Prop :=
-    | Reflect_Lt : P -> Reflect_cmp P Q R Lt
-    | Reflect_Eq : Q -> Reflect_cmp P Q R Eq
-    | Reflect_Gt : R -> Reflect_cmp P Q R Gt.
-
-Class cmp_spec (A : Type) : Type :=
-{
-    cmpr      : A -> A -> comparison;
-    cmpr_spec :
-      forall x y : A, Reflect_cmp (cmpr y x = Gt) (x = y) (cmpr y x = Lt) (cmpr x y);
-    cmp_spec1 :
-      forall x y : A, cmpr x y = Eq -> x = y;
-    cmp_spec2 :
-      forall x y : A, cmpr x y = Lt <-> cmpr y x = Gt;
-    cmp_spec3 :
-      forall x : A, cmpr x x = Eq;
-}.
-
-Coercion cmpr : cmp_spec >-> Funclass.
-
 Hint Extern 0 =>
   intros;
 match goal with
@@ -364,34 +344,6 @@ Proof.
           apply IHt2. assumption.
       admit.
 Admitted.
-
-(** [fromList] and its variants. *)
-Fixpoint fromList
-  {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
-match l with
-    | [] => empty
-    | h :: t => insert cmp h (fromList cmp t)
-end.
-
-Lemma isBST_fromList :
-  forall {A : Type} (cmp : cmp_spec A) (l : list A),
-    isBST cmp (fromList cmp l).
-Proof.
-  induction l as [| h t]; cbn.
-    constructor.
-    apply isBST_insert. assumption.
-Qed.
-
-Lemma count_BTree_insert :
-  forall (A : Type) (cmp : cmp_spec A) (p : A -> bool) (x : A) (t : BTree A),
-    count_BTree p (insert cmp x t) =
-      if p x then 1 + count_BTree p t else count_BTree p t.
-Proof.
-  induction t; cbn.
-    reflexivity.
-    destruct (cmpr_spec x a); cbn;
-      rewrite ?IHt1, ?IHt2;
-      destruct (p x) eqn: Hpx, (p a) eqn: Hpa; cbn; try lia.
 
 (* TODO theorems:
 
