@@ -152,7 +152,7 @@ Instance TrichDec_to_LinDec (A : TrichDec) : LinDec :=
           | _ => true
       end
 }.
-Proof. Print LinDec.
+Proof.
   apply trich_lt_irrefl.
   intros. apply trich_lt_connected; assumption.
   intros; intro. decompose [or] (trich_lt_trich A z y); trich.

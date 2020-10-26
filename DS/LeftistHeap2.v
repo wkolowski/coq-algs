@@ -27,7 +27,7 @@ Inductive Elem {A : Type} (x : A) : RSTree A -> Prop :=
 Inductive isHeap {A : LinDec} : RSTree A -> Prop :=
     | isHeap_empty : isHeap empty
     | isHeap_node :
-        forall  (n : nat) (v : A) (l : RSTree A) (r : RSTree A),
+        forall  (n : nat) (v : A) (l r : RSTree A),
           (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
           (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (node n v l r).
@@ -134,7 +134,7 @@ Proof.
   intros. balance; split; intro; inv H.
 Qed.
 
-Theorem isHeap_balance :
+Lemma isHeap_balance :
   forall (A : LinDec) (n : nat) (v : A) (l r : RSTree A),
     (forall x : A, Elem x l -> v ≤ x) ->
     (forall x : A, Elem x r -> v ≤ x) ->
@@ -143,7 +143,7 @@ Proof.
   intros; balance; constructor; elem.
 Qed.
 
-Theorem LeftBiased_balance :
+Lemma LeftBiased_balance :
   forall (A : LinDec) (v : A) (l r : RSTree A),
     LeftBiased l -> LeftBiased r ->
       LeftBiased (balance v l r).
@@ -201,7 +201,7 @@ Proof.
     Unshelve. all: auto.
 Qed.
 
-Theorem merge'_spec :
+Lemma merge'_spec :
   forall (A : LinDec) (x : A) (t1 t2 : RSTree A),
     Elem x (merge' (t1, t2)) <-> Elem x t1 \/ Elem x t2.
 Proof.
@@ -212,7 +212,7 @@ Qed.
 
 Arguments Elem_merge' [A x t1 t2] _.
 
-Theorem size_merge':
+Lemma size_merge':
   forall (A : LinDec) (t1 t2 : RSTree A),
     size (merge' (t1, t2)) = size t1 + size t2.
 Proof.
@@ -225,7 +225,7 @@ Proof.
     Unshelve. all: auto.
 Qed.
 
-Theorem isHeap_merge' :
+Lemma isHeap_merge' :
   forall (A : LinDec) (t1 t2 : RSTree A),
     isHeap t1 -> isHeap t2 -> isHeap (merge' (t1, t2)).
 Proof.
@@ -239,7 +239,7 @@ Proof.
     eapply (IHr _ _ eq_refl); auto.
 Qed.
 
-Theorem LeftBiased_merge' :
+Lemma LeftBiased_merge' :
   forall (A : LinDec) (t1 t2 : RSTree A),
     LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge' (t1, t2)).
 Proof.
@@ -249,7 +249,7 @@ Proof.
 Qed.
 
 Definition insert' {A : LinDec} (x : A) (t : RSTree A) : RSTree A :=
-  merge' ((singleton' x), t).
+  merge' (singleton' x, t).
 
 Definition deleteMin {A : LinDec} (t : RSTree A)
   : option A * RSTree A :=
@@ -258,7 +258,7 @@ match t with
     | node _ v l r => (Some v, merge' (l, r))
 end.
 
-Theorem deleteMin_spec :
+Lemma deleteMin_spec :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       forall x : A, Elem x t' -> m ≤ x.
@@ -267,21 +267,21 @@ Proof.
   intros. destruct (Elem_merge' H0); auto.
 Qed.
 
-Theorem size_deleteMin:
+Lemma size_deleteMin:
   forall (A : LinDec) (m : A) (t t' : RSTree A),
     deleteMin t = (Some m, t') -> size t = S (size t').
 Proof.
   destruct t; cbn; inversion 1; subst. rewrite size_merge'. trivial.
 Qed.
 
-Theorem Elem_deleteMin :
+Lemma Elem_deleteMin :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
     deleteMin t = (Some m, t') -> Elem m t.
 Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
-Theorem isHeap_deleteMin :
+Lemma isHeap_deleteMin :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       isHeap t'.
@@ -290,7 +290,7 @@ Proof.
   apply isHeap_merge'; assumption.
 Qed.
 
-Theorem LeftBiased_deleteMin :
+Lemma LeftBiased_deleteMin :
   forall (A : LinDec) (m : A) (t t' : RSTree A),
     LeftBiased t -> deleteMin t = (Some m, t') ->
       LeftBiased t'.

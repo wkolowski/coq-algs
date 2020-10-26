@@ -371,34 +371,24 @@ Proof.
     rewrite size_mergePairs. apply le_n.
 Admitted. (* Defined. breaks *)
 
-(*Lemma Elem_toList_In :
-  forall (A : Type) (x : A) (h : PairingHeap A),
-    isHeap h -> Elem x h <-> In x (toList h).
+Lemma Elem_toList_In :
+  forall (A : Type) (cmp : A -> A -> comparison) (x : A) (h : PairingHeap A),
+    isHeap cmp h -> Elem x h <-> In x (toList cmp h).
 Proof.
   split; intros.
-    functional induction @toList A h; cbn.
+    functional induction toList cmp h; cbn.
       destruct h; cbn in *.
         inv H.
         inv e.
-      assert (x = m \/ Elem x h') by (eapply Elem_unT_eq; eauto).
+      assert (x = m \/ Elem x h').
+        eapply Elem_unT_eq.
+          exact H.
+          1-2: assumption.
         destruct H1; auto. apply isHeap_unT in e; auto.
-    functional induction @toList A h; cbn.
+    functional induction toList cmp h; cbn.
       inv H0.
-      rewrite (@Elem_unT_eq A m x h h'); auto.
+      rewrite (@Elem_unT_eq A cmp m x h h'); auto.
         apply isHeap_unT in e; auto. inv H0.
-Qed.*)
-
-Require Export Sorting.Sort.
-
-Theorem Sorted_toList :
-  forall (A : Type) (cmp : A -> A -> comparison) (h : PairingHeap A),
-    isHeap cmp h -> Sorted cmp (toList cmp h).
-Proof.
-  intros. functional induction toList cmp h.
-    constructor.
-    rewrite toList_equation in *. destruct h'; cbn in *; constructor.
-      eapply unT_spec; eauto. erewrite Elem_unT_eq; eauto. cbn. assumption.
-      eapply IHl, isHeap_unT; eauto.
 Qed.
 
 (** [countTree] and its properties. *)

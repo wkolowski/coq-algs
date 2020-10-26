@@ -50,3 +50,24 @@ Proof.
     rewrite <- plus_n_O. reflexivity.
     rewrite !size_merge, IHp0, plus_assoc. reflexivity.
 Qed.
+
+Check insert.
+
+(* Fixpoint fromList {A : Type} (cmp : A -> A -> bool) (l : list A) : PairingHeap A :=
+match l with
+    | [] => empty
+    | h :: t => insert cmp h (fromList cmp t)
+end.
+ *)
+
+
+Lemma Sorted_toList :
+  forall (A : Type) (cmp : A -> A -> comparison) (h : PairingHeap A),
+    isHeap cmp h -> Sorted cmp (toList cmp h).
+Proof.
+  intros. functional induction toList cmp h.
+    constructor.
+    rewrite toList_equation in *. destruct h'; cbn in *; constructor.
+      eapply unT_spec; eauto. erewrite Elem_unT_eq; eauto. cbn. assumption.
+      eapply IHl, isHeap_unT; eauto.
+Qed.
