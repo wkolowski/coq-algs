@@ -92,11 +92,9 @@ Lemma Elem_insert :
       isBST cmp t -> Elem x (insert cmp y t) -> x = y \/ Elem x t.
 Proof.
   intros A cmp x y t H.
-  functional induction (insert cmp y t).
-    inversion 1; subst; auto.
-    inversion H; subst. inversion 1; firstorder.
-    inversion 1; firstorder.
-    inversion H; subst. inversion 1; subst; firstorder.
+  functional induction (insert cmp y t); inv 1.
+    inv H. firstorder.
+    inv H. firstorder.
 Qed.
 
 Lemma Elem_insert_conv :
@@ -210,19 +208,11 @@ Lemma isBST_insert :
     isBST cmp t -> isBST cmp (insert cmp x t).
 Proof.
   intros.
-  functional induction (insert cmp x t).
-    auto.
-    constructor; auto; intros.
-      inversion H; subst. destruct (Elem_insert _ _ _ H4 H0); subst.
-        assumption.
-        apply H5. assumption.
-      inversion H; subst. apply H7. assumption.
-    apply cmp_spec1 in e0. subst. assumption.
-    constructor; auto; intros.
-      inversion H; subst. apply H5. assumption.
-      inversion H; subst. destruct (Elem_insert _ _ _ H6 H0); subst.
-        assumption.
-        apply H7. assumption.
+  functional induction (insert cmp x t); auto.
+    constructor; auto; intros; inv H.
+      destruct (Elem_insert _ _ _ H4 H0); subst; auto.
+    constructor; auto; intros; inv H.
+      destruct (Elem_insert _ _ _ H6 H0); subst; auto.
 Qed.
 
 Lemma isBST_removeMin :
