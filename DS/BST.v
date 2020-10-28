@@ -1,3 +1,4 @@
+Require Export RCCBase.
 Require Import BTree.
 Require Export LinDec.
 Require Import Sorting.Sort.
@@ -33,6 +34,13 @@ match t with
             | Eq => node v l r
             | Gt => node v l (insert cmp x r)
         end
+end.
+
+Function min {A : Type} (t : BTree A) : option A :=
+match t with
+    | empty => None
+    | node v empty _ => Some v
+    | node _ l _ => min l
 end.
 
 Function removeMin
@@ -120,17 +128,23 @@ Proof.
   destruct (cmpr_spec x v); subst; try congruence; auto.
 Qed.
 
+Lemma Elem_node :
+  forall {A : Type} (x v : A) (l r : BTree A),
+    Elem x (node v l r) <-> x = v \/ Elem x l \/ Elem x r.
+Proof.
+  split; inv 1; firstorder.
+Qed.
+
 Lemma Elem_insert_ultimate :
   forall
     {A : Type} {cmp : cmp_spec A}
     (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp y t) <-> x = y \/ Elem x t.
 Proof.
-  split; intros.
-    apply Elem_insert; assumption.
-    inv H0.
-      apply Elem_insert_conv'; assumption.
-      apply Elem_insert_conv; assumption.
+  intros A cmp x y t. revert x.
+  functional induction insert cmp y t;
+  inv 1; rewrite ?Elem_node; firstorder.
+  destruct (cmpr_spec y v); subst; auto; congruence.
 Qed.
 
 Lemma Elem_removeMin :
@@ -210,9 +224,9 @@ Proof.
   intros.
   functional induction (insert cmp x t); auto.
     constructor; auto; intros; inv H.
-      destruct (Elem_insert _ _ _ H4 H0); subst; auto.
+      rewrite Elem_insert_ultimate in H0; inv H0.
     constructor; auto; intros; inv H.
-      destruct (Elem_insert _ _ _ H6 H0); subst; auto.
+      rewrite Elem_insert_ultimate in H0; inv H0.
 Qed.
 
 Lemma isBST_removeMin :
@@ -279,7 +293,7 @@ Lemma elem_insert :
 Proof.
   intros. destruct (elem_spec cmp x (insert cmp x t) (isBST_insert x t H)).
     reflexivity.
-    contradiction H0. apply Elem_insert_conv'. assumption.
+    contradiction H0. rewrite Elem_insert_ultimate; auto.
 Qed.
 
 Definition eql {A : Type} (cmp : cmp_spec A) (x y : A) : bool :=
@@ -310,13 +324,6 @@ Proof.
         apply Elem_insert_conv; assumption.
 Qed.
 
-Fixpoint min {A : Type} (t : BTree A) : option A :=
-match t with
-    | empty => None
-    | node v empty _ => Some v
-    | node _ l _ => min l
-end.
-
 Lemma Sorted_BTree_toList :
   forall (A : Type) (p : A -> A -> comparison) (t : BTree A),
     isBST p t -> Sorted p (BTree_toList t).
@@ -335,10 +342,16 @@ Proof.
       admit.
 Admitted.
 
-(* TODO theorems:
+Hint Constructors All : core.
 
-    elem_remove
-    min_spec
-    forall (A : LinDec) (m : A) (bst : BTree A),
-      is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
-*)
+Lemma min_spec :
+  forall {A : Type} (cmp : A -> A -> comparison) (t : BTree A) (m : A),
+    isBST cmp t -> min t = Some m -> All (fun x => cmp m x = Lt \/ x = m) t.
+Proof.
+  intros until t.
+  functional induction min t; inv 1; inv 1.
+    constructor; auto. admit. (* H6 *)
+    constructor; auto.
+      left. apply H4. admit. (* Elem_min *)
+      admit. (* All_spec, H4 *)
+Admitted.

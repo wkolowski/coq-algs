@@ -1,6 +1,5 @@
+Require Export RCCBase.
 Require Import BTree.
-Require Export LinDec.
-Require Import Sorting.Sort.
 
 Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
     | All_empty : All P empty
@@ -8,9 +7,26 @@ Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
         forall (x : A) (l r : BTree A),
           P x -> All P l -> All P r -> All P (node x l r).
 
+Hint Constructors All : core.
+
+Lemma All_spec :
+  forall {A : Type} {P : A -> Prop} {t : BTree A},
+    All P t <-> forall x : A, Elem x t -> P x.
+Proof.
+  split.
+    induction 1; inv 1.
+    intro H. induction t; auto.
+Qed.
+
+Lemma All_Elem :
+  forall {A : Type} {P : A -> Prop} {x : A} {t : BTree A},
+    All P t -> Elem x t -> P x.
+Proof.
+  induction 1; inv 1.
+Qed.
+
 Inductive isBST
-  {A : Type} {cmp : A -> A -> comparison}
-  : BTree A -> Prop :=
+  {A : Type} {cmp : A -> A -> comparison} : BTree A -> Prop :=
     | isBST_empty : isBST empty
     | isBST_node :
         forall (v : A) (l r : BTree A),
@@ -91,6 +107,13 @@ match goal with
 end
   : core.
 
+Lemma All_node' :
+  forall {A : Type} {P : A -> Prop} {v : A} {l r : BTree A},
+    All P (node v l r) <-> P v /\ All P l /\ All P r.
+Proof.
+  split; inv 1. inv H1.
+Qed.
+
 Lemma All_insert :
   forall
     {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
@@ -98,10 +121,12 @@ Lemma All_insert :
       isBST cmp t -> All P (insert cmp x t) <-> P x /\ All P t.
 Proof.
   intros A cmp P x t H.
-  functional induction (insert cmp x t); inv H.
-    split; inv 1.
-    split; inv 1; firstorder. constructor.
-Admitted.
+  functional induction (insert cmp x t);
+  rewrite ?All_node', ?IHb; firstorder.
+  replace x with v.
+    assumption.
+    symmetry. apply cmp_spec1. assumption.
+Qed.
 
 Lemma All_removeMin :
   forall
@@ -110,7 +135,12 @@ Lemma All_removeMin :
       isBST cmp t -> removeMin cmp t = Some (m, t') ->
         All P t <-> P m /\ All P t'.
 Proof.
-Admitted.
+  intros until t. revert m.
+  functional induction removeMin cmp t;
+  inv 1; inv 1; rewrite ?All_node'.
+    functional inversion e0. firstorder.
+    rewrite IHo; firstorder eauto.
+Qed.
 
 Lemma All_remove :
   forall
@@ -118,15 +148,27 @@ Lemma All_remove :
     (x : A) (t : BTree A),
       isBST cmp t -> All P t -> All P (remove cmp x t).
 Proof.
-Admitted.
+  intros until t.
+  functional induction remove cmp x t.
+    1-4: inv 1; rewrite ?All_node', ?IHb; firstorder.
+    inv 1; inv 1. rewrite ?All_node'.
+      eapply (All_removeMin P) in e1; firstorder eauto.
+Qed.
 
 Lemma All_remove_conv :
   forall
     {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
-    (x y : A) (t : BTree A),
-      isBST cmp t -> All P (remove cmp x t) -> ~ P x \/ All P t.
+    (x : A) (t : BTree A),
+      isBST cmp t -> All P (remove cmp x t) -> (P x -> All P t).
 Proof.
-Admitted.
+  intros until t.
+  functional induction remove cmp x t;
+  inv 1; rewrite ?All_node'; firstorder.
+    destruct (cmpr_spec x v); subst; auto; congruence.
+    functional inversion e1; subst. constructor.
+    destruct (cmpr_spec x v); subst; auto; congruence.
+    eapply (All_removeMin P) in e1; firstorder eauto.
+Qed.
 
 Hint Resolve All_insert All_removeMin All_remove All_remove_conv : core.
 
@@ -168,13 +210,6 @@ Proof.
     inv 1. constructor; auto.
 Admitted.
 
-Lemma All_Elem :
-  forall {A : Type} {P : A -> Prop} {x : A} {t : BTree A},
-    All P t -> Elem x t -> P x.
-Proof.
-  induction 1; inv 1.
-Qed.
-
 Lemma elem_spec :
   forall
     {A : Type} (cmp : cmp_spec A)
@@ -189,38 +224,12 @@ Proof.
       constructor. inversion 1; subst.
         rewrite cmp_spec3 in e0. congruence.
         contradiction.
-        contradict e0. rewrite (All_Elem H4 H7). inv 1.
+        contradict e0. rewrite All_spec in H4. rewrite H4; auto.
     constructor. apply cmp_spec1 in e0. subst. constructor.
     inversion H; subst. specialize (IHb H6). destruct IHb.
       constructor. constructor 3. assumption.
       constructor. inversion 1; subst.
         rewrite cmp_spec3 in e0. congruence.
-        contradict e0. rewrite (All_Elem H3 H7). inv 1.
+        contradict e0. rewrite All_spec in H3. rewrite H3; auto.
         contradiction.
 Qed.
-
-Lemma Sorted_BTree_toList :
-  forall (A : Type) (p : A -> A -> comparison) (t : BTree A),
-    isBST p t -> Sorted p (BTree_toList t).
-Proof.
-  induction t; inv 1; cbn.
-    constructor.
-    apply Sorted_app.
-      apply IHt1. assumption.
-      destruct (BTree_toList t2) eqn: Heq.
-        constructor.
-        constructor.
-          red. unfold comparison2bool. destruct (p a a0) eqn: Hp.
-            1-2: reflexivity.
-            admit. (* TODO *)
-          apply IHt2. assumption. Check In.
-      admit.
-Admitted.
-
-(* TODO theorems:
-
-    elem_remove
-    min_spec
-    forall (A : LinDec) (m : A) (bst : BTree A),
-      is_bst bst -> min bst = Some m -> forall x : A, elem x bst -> leq m x.
-*)
