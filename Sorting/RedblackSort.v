@@ -38,5 +38,5 @@ Instance Sort_redblackSort (A : LinDec) : Sort A :=
     Sorted_sort := @Sorted_redblackSort A;
 }.
 Proof.
-  intros. apply perm_Permutation. rewrite <- redblackSort_perm. reflexivity.
+  intros. apply perm_Permutation. rewrite <- perm_redblackSort. reflexivity.
 Defined.

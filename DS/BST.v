@@ -1,6 +1,6 @@
 Require Export RCCBase.
 Require Import BTree.
-Require Export LinDec.
+(* Require Export LinDec. *)
 Require Import Sorting.Sort.
 
 Inductive isBST
@@ -44,12 +44,11 @@ match t with
 end.
 
 Function removeMin
-  {A : Type} (cmp : A -> A -> comparison)
-  (t : BTree A) : option (A * BTree A) :=
+  {A : Type} (t : BTree A) : option (A * BTree A) :=
 match t with
     | empty => None
     | node x l r =>
-        match removeMin cmp l with
+        match removeMin l with
             | None => Some (x, r)
             | Some (m, l') => Some (m, node x l' r)
         end
@@ -65,7 +64,7 @@ match t with
             | Lt => node v (remove cmp x l) r
             | Gt => node v l (remove cmp x r)
             | Eq =>
-                match removeMin cmp r with
+                match removeMin r with
                     | None => l
                     | Some (m, r') => node m l r'
                 end
@@ -147,30 +146,26 @@ Proof.
   destruct (cmpr_spec y v); subst; auto; congruence.
 Qed.
 
-Lemma Elem_removeMin :
+(* Lemma Elem_removeMin :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x m : A) (t t' : BTree A),
-      isBST cmp t -> removeMin cmp t = Some (m, t') ->
-        Elem x t' -> Elem x t.
+    {A : Type} {t t' : BTree A} {m : A},
+      removeMin t = Some (m, t') ->
+        forall [x : A], Elem x t' -> Elem x t.
 Proof.
-  intros A cmp x m t t' H1 H2.
-  revert x m t' H2 H1.
-  functional induction (removeMin cmp t);
-  inv 1; inv 1; inv 1; eauto.
+  intros until t.
+  functional induction removeMin t;
+  inv 1; inv 1; eauto.
 Qed.
 
 Lemma Elem_removeMin_conv :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x m : A) (t t' : BTree A),
-      isBST cmp t -> removeMin cmp t = Some (m, t') ->
-        Elem x t -> x = m \/ Elem x t'.
+    {A : Type} {t t' : BTree A} {m : A},
+      removeMin t = Some (m, t') ->
+        forall [x : A], Elem x t -> x = m \/ Elem x t'.
 Proof.
-  intros A cmp x m t t' H.
-  revert x m t' H.
-  functional induction (removeMin cmp t);
-  inv 1; inv 1; inv 1.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; inv 1.
     functional inversion e0. subst. inv H1.
     edestruct IHo; eauto.
 Qed.
@@ -179,13 +174,27 @@ Lemma Elem_removeMin_v2 :
   forall
     {A : Type} {cmp : cmp_spec A}
     (m : A) (t t' : BTree A),
-      isBST cmp t -> removeMin cmp t = Some (m, t') ->
+      isBST cmp t -> removeMin t = Some (m, t') ->
         Elem m t.
 Proof.
   intros A cmp m t t' H.
   revert m t' H.
-  functional induction (removeMin cmp t);
+  functional induction removeMin t;
   inv 1; inv 1; eauto.
+Qed.
+ *)
+
+Lemma Elem_removeMin :
+  forall
+    {A : Type} {t t' : BTree A} {m : A},
+      removeMin t = Some (m, t') ->
+        forall x : A, Elem x t <-> x = m \/ Elem x t'.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; intro; rewrite ?Elem_node;
+  firstorder.
+    functional inversion e0. subst. inv H.
 Qed.
 
 Lemma Elem_remove :
@@ -196,9 +205,8 @@ Lemma Elem_remove :
 Proof.
   intros A cmp x y t. revert x.
   functional induction remove cmp y t;
-  inv 1; inv 1; constructor 3.
-    eapply Elem_removeMin_v2; eauto.
-    eapply Elem_removeMin; eauto.
+  inv 1; inv 1; constructor 3;
+  eapply Elem_removeMin; eauto.
 Qed.
 
 Lemma Elem_remove_conv :
@@ -213,7 +221,7 @@ Proof.
     edestruct IHb; eauto.
     edestruct IHb; eauto.
     functional inversion e1; subst. inv H1.
-    edestruct Elem_removeMin_conv; eauto; subst; eauto.
+    rewrite Elem_node. destruct (Elem_removeMin e1 x). firstorder.
 Qed.
 
 Lemma isBST_insert :
@@ -233,10 +241,10 @@ Lemma isBST_removeMin :
   forall
     {A : Type} (cmp : cmp_spec A)
     (t t' : BTree A) (x : A),
-      isBST cmp t -> removeMin cmp t = Some (x, t') -> isBST cmp t'.
+      isBST cmp t -> removeMin t = Some (x, t') -> isBST cmp t'.
 Proof.
   intros. revert t' x H0 H.
-  functional induction (removeMin cmp t);
+  functional induction removeMin t;
   inv 1; inv 1.
   constructor; eauto; intros.
   apply H4. eapply Elem_removeMin; eauto.
@@ -254,11 +262,13 @@ Proof.
       {
         assert (cmp x0 v = Lt) by auto.
         assert (cmp m v = Gt).
-          apply H6. eapply Elem_removeMin_v2; eauto.
+          apply H6. eapply Elem_removeMin; eauto.
         (* transitivity *) admit.
       }
       eapply isBST_removeMin; eauto.
-      assert (Elem x0 r) by apply (Elem_removeMin x0 _ _ _ H5 e1 H). admit. (* doable *)
+      assert (Elem x0 r).
+        apply (Elem_removeMin e1). auto.
+        admit. (* doable *)
 Admitted.
 
 Lemma elem_spec :
@@ -355,3 +365,225 @@ Proof.
       left. apply H4. admit. (* Elem_min *)
       admit. (* All_spec, H4 *)
 Admitted.
+
+(** [split] *)
+
+Function split
+  {A : Type} (cmp : A -> A -> comparison) (x : A) (t : BTree A)
+  : BTree A * BTree A :=
+match t with
+    | empty      => (empty, empty)
+    | node v l r =>
+        match cmp x v with
+            | Lt => let (l1, l2) := split cmp x l in (l1, node v l2 r)
+            | Eq => (l, r)
+            | Gt => let (r1, r2) := split cmp x r in (node v l r1, r2)
+        end
+end.
+
+Function union {A : Type} (cmp : A -> A -> comparison) (t1 t2 : BTree A) : BTree A :=
+match t1 with
+    | empty => t2
+    | node v1 l1 r1 =>
+        let (l, r) := split cmp v1 t2 in
+          node v1 (union cmp l1 l) (union cmp r1 r)
+end.
+
+Fixpoint split'
+  {A : Type} (cmp : A -> A -> comparison) (x : A) (t : BTree A)
+  : BTree A * bool * BTree A :=
+match t with
+    | empty      => (empty, false, empty)
+    | node v l r =>
+        match cmp x v with
+            | Lt =>
+                match split' cmp x l with
+                    | (l1, b, l2) => (l1, b, node v l2 r)
+                end
+            | Eq => (l, true, r)
+            | Gt =>
+                match split' cmp x r with
+                    | (r1, b, r2) => (node v l r1, b, r2)
+                end
+        end
+end.
+
+Functional Scheme split'_ind := Induction for split' Sort Prop.
+
+Function intersection {A : Type} (cmp : A -> A -> comparison) (t1 t2 : BTree A) : BTree A :=
+match t1 with
+    | empty => empty
+    | node v1 l1 r1 =>
+        match split' cmp v1 t2 with
+            | (l, b, r)  =>
+                let l' := intersection cmp l1 l in
+                let r' := intersection cmp r1 r in
+                  if b
+                  then node v1 l' r'
+                  else
+                    match removeMin r' with
+                        | None => l'
+                        | Some (m, r'') => node m l' r''
+                    end
+        end
+end.
+
+Function difference {A : Type} (cmp : A -> A -> comparison) (t1 t2 : BTree A) : BTree A :=
+match t1 with
+    | empty => empty
+    | node v1 l1 r1 =>
+        let '(l, b, r) := split' cmp v1 t2 in
+        let l' := difference cmp l1 l in
+        let r' := difference cmp r1 r in
+          if b
+          then
+            match removeMin r' with
+                | None => l'
+                | Some (m, r'') => node m l' r''
+            end
+          else
+            node v1 l' r'
+end.
+
+Lemma Elem_split :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A},
+    split cmp v t = (t1, t2) ->
+      forall x : A, Elem x t -> x = v \/ Elem x t1 \/ Elem x t2.
+Proof.
+  intros until t.
+  functional induction split cmp v t;
+  inv 1; inv 1; try edestruct IHp; firstorder eauto.
+Admitted.
+
+Lemma Elem_split_conv :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A},
+    split cmp v t = (t1, t2) ->
+      forall x : A, Elem x t1 \/ Elem x t2 -> Elem x t.
+Proof.
+  intros until t.
+  functional induction split cmp v t;
+  inv 1; intro; rewrite ?Elem_node; firstorder.
+Qed.
+
+Lemma Elem_union :
+  forall {A : Type} (cmp : A -> A -> comparison) (x : A) (t1 t2 : BTree A),
+    Elem x (union cmp t1 t2) <-> Elem x t1 \/ Elem x t2.
+Proof.
+  intros. revert x.
+  functional induction union cmp t1 t2;
+  intro.
+    firstorder.
+    pose (H := Elem_split_conv e0 x). pose (H' := Elem_split e0 x).
+      rewrite ?Elem_node, IHb, IHb0. firstorder.
+Qed.
+
+Lemma isBST_split :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A},
+    split cmp v t = (l, r) ->
+      isBST cmp t -> isBST cmp l /\ isBST cmp r.
+Proof.
+  intros until t.
+  functional induction split cmp v t;
+  inv 1; inv 1; repeat constructor; firstorder;
+  [apply H4 | apply H6]; eapply Elem_split_conv; eauto.
+Qed.
+
+Lemma Elem_split' :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      forall x : A, Elem x t -> x = v \/ Elem x t1 \/ Elem x t2.
+Proof.
+  intros until t.
+  functional induction split' cmp v t;
+  inv 1; inv 1; try edestruct IHp; firstorder eauto.
+Admitted.
+
+Lemma Elem_split'_conv :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      forall x : A, Elem x t1 \/ Elem x t2 -> Elem x t.
+Proof.
+  intros until t.
+  functional induction split' cmp v t;
+  inv 1; intro; rewrite ?Elem_node; firstorder.
+Qed.
+
+Lemma isBST_split' :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A} {b : bool},
+    split' cmp v t = (l, b, r) ->
+      isBST cmp t -> isBST cmp l /\ isBST cmp r.
+Proof.
+  intros until t.
+  functional induction split' cmp v t;
+  inv 1; inv 1; repeat constructor; firstorder;
+  [apply H4 | apply H6]; eapply Elem_split'_conv; eauto.
+Qed.
+
+Lemma Elem_intersection :
+  forall {A : Type} {cmp : A -> A -> comparison} {t1 t2 : BTree A} (x : A),
+    isBST cmp t1 -> isBST cmp t2 ->
+      Elem x (intersection cmp t1 t2) <-> Elem x t1 /\ Elem x t2.
+Proof.
+  intros until t2.
+  functional induction intersection cmp t1 t2;
+  inv 1; intros; rewrite ?Elem_node, ?IHb, ?IHb0;
+  try (edestruct (isBST_split' e0); eauto; fail);
+  try pose (H := Elem_split'_conv e0 x);
+  try pose (H' := Elem_split' e0 x).
+    firstorder.
+    firstorder; subst.
+      admit.
+      pose (Elem_split'_conv e0 x). auto.
+      pose (Elem_split'_conv e0 x). auto.
+      right.
+Abort.
+
+Fixpoint fromList {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
+match l with
+    | [] => empty
+    | h :: t => insert cmp h (fromList cmp t)
+end.
+Check Nat.compare.
+Print insert.
+Compute fromList Nat.compare [1; 2; 3; 4; 5].
+Compute fromList Nat.compare [3; 4; 5; 6; 7].
+Compute union Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
+Compute intersection Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
+Compute difference Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
+Compute difference Nat.compare (fromList Nat.compare [3; 4; 5; 6; 7]) (fromList Nat.compare [1; 2; 3; 4; 5]).
+
+Function filterBT
+  {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
+match t with
+    | empty => empty
+    | node v l r =>
+        let l' := filterBT p l in
+        let r' := filterBT p r in
+          if p v
+          then node v l' r'
+          else
+            match removeMin r' with
+                | None => l'
+                | Some (m, r'') => node m l' r''
+            end
+end.
+
+Lemma Elem_filterBT :
+  forall (A : Type) (p : A -> bool) (t : BTree A) (x : A),
+    Elem x (filterBT p t) <-> Elem x t /\ p x = true.
+Proof.
+  intros until t.
+  functional induction filterBT p t;
+  intros;
+    rewrite ?Elem_node, ?IHb, ?IHb0.
+    firstorder.
+    firstorder. congruence.
+    firstorder.
+      congruence.
+      functional inversion e1; subst.
+        assert (Elem x empty).
+          rewrite H1, IHb0. split; assumption.
+          inv H2.
+    pose (Elem_removeMin e1). firstorder.
+      congruence.
+Qed.

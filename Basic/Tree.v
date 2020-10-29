@@ -141,24 +141,10 @@ match t with
     | _ => false
 end.
 
-Fixpoint size {A : Type} (t : Tree A) : nat :=
-match t with
-    | E => 0
-    | T _ ts => 1 + fold_right (fun h t => size h + t) 0 ts
-end.
-
 Fixpoint height {A : Type} (t : Tree A) : nat :=
 match t with
     | E => 0
     | T _ ts => 1 + fold_right (fun h t => max (height h) t) 0 ts
-end.
-
-Fixpoint countTree {A : Type} (p : A -> bool) (t : Tree A) : nat :=
-match t with
-    | E => 0
-    | T x l =>
-        (if p x then S else id)
-          (fold_right (fun h t => countTree p h + t) 0 l)
 end.
 
 Fixpoint sum (l : list nat) : nat :=
@@ -167,21 +153,27 @@ match l with
     | h :: t => h + sum t
 end.
 
-Fixpoint countTree' {A : Type} (p : A -> bool) (t : Tree A) : nat :=
+Fixpoint size {A : Type} (t : Tree A) : nat :=
+match t with
+    | E => 0
+    | T _ ts => 1 + sum (map size ts) (* fold_right (fun h t => size h + t) 0 ts *)
+end.
+
+Fixpoint countTree {A : Type} (p : A -> bool) (t : Tree A) : nat :=
 match t with
     | E => 0
     | T x ts =>
-        (if p x then S else id) (sum (map (countTree' p) ts))
+        (if p x then S else id) (sum (map (countTree p) ts))
 end.
 
 (** Properties of [isEmpty]. *)
 
-Lemma isEmpty_Elem :
+Lemma Elem_isEmpty :
   forall (A : Type) (x : A) (t : Tree A),
     isEmpty t = true -> ~ Elem x t.
 Proof. Tree_ind. Qed.
 
-Lemma isEmpty_isHeap :
+Lemma isHeap_isEmpty :
   forall (A : Type) (R : A -> A -> Prop) (t : Tree A),
     isEmpty t = true -> isHeap R t.
 Proof. Tree_ind. Qed.
@@ -245,13 +237,6 @@ Lemma mirror_inv :
 Proof.
   Tree_ind. rewrite ?map_app, ?rev_app_distr. cbn. inv IHts.
 Qed.
-
-Fixpoint count {A : Type} (p : A -> bool) (t : Tree A) : nat :=
-match t with
-    | E => 0
-    | T x ts =>
-        (if p x then S else id) (fold_left (fun t h => count p h + t) ts 0)
-end.
 
 Lemma fold_left_snoc :
   forall (A B : Type) (f : A -> B -> A) (a : A) (l : list B) (b : B),
