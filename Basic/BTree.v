@@ -31,6 +31,20 @@ Inductive isHeap {A : LinDec} : BTree A -> Prop :=
 
 Hint Constructors Elem isHeap : core.
 
+Hint Extern 0 =>
+  intros;
+match goal with
+    | H : Elem _ empty |- _ => inversion H
+end
+  : core.
+
+Lemma Elem_node :
+  forall {A : Type} (x v : A) (l r : BTree A),
+    Elem x (node v l r) <-> x = v \/ Elem x l \/ Elem x r.
+Proof.
+  split; inv 1; firstorder.
+Qed.
+
 Definition singleton {A : Type} (x : A) : BTree A :=
   node x empty empty.
 
@@ -168,7 +182,7 @@ Proof.
 Qed.
 
 (** Properties of [empty]. *)
-Lemma empty_Elem :
+Lemma Elem_empty :
   forall (A : LinDec) (x : A), ~ Elem x empty.
 Proof. inv 1. Qed.
 
@@ -176,37 +190,37 @@ Lemma empty_isHeap :
   forall A : LinDec, isHeap (@empty A).
 Proof. constructor. Qed.
 
-Lemma empty_size :
+Lemma size_empty :
   forall A : LinDec, size (@empty A) = 0.
 Proof. reflexivity. Qed.
 
-Lemma empty_count_BTree :
+Lemma count_BTree_empty :
   forall (A : Type) (p : A -> bool),
     count_BTree p empty = 0.
 Proof. reflexivity. Qed.
 
 (** Properties of [singleton]. *)
 
-Lemma singleton_Elem :
+Lemma Elem_singleton :
   forall (A : LinDec) (x y : A),
     Elem x (singleton y) <-> x = y.
 Proof.
   split; Elem.
 Qed.
 
-Lemma singleton_isHeap :
+Lemma isHeap_singleton :
   forall (A : LinDec) (x : A),
     isHeap (singleton x).
 Proof.
   intros. unfold singleton. constructor; auto; inv 1.
 Qed.
 
-Lemma singleton_size :
+Lemma size_singleton :
   forall (A : LinDec) (x : A),
     size (singleton x) = 1.
 Proof. reflexivity. Qed.
 
-Lemma singleton_count_BTree :
+Lemma count_BTree_singleton :
   forall (A : Type) (p : A -> bool) (x : A),
     count_BTree p (singleton x) = if p x then 1 else 0.
 Proof. reflexivity. Qed.
@@ -220,7 +234,7 @@ Proof.
   split; destruct t; cbn; intros.
     congruence.
     eauto.
-    inv H. inv H0.
+    inv H.
     reflexivity.
 Qed.
 
@@ -230,7 +244,6 @@ Lemma isEmpty_Elem_true :
 Proof.
   split; destruct t; cbn; firstorder.
     inv 1.
-    congruence.
     contradiction (H c). constructor.
 Qed.
 
@@ -369,20 +382,20 @@ Proof.
     rewrite IHn'. reflexivity.
 Qed.
 
-(** [takeWhile] *)
+(** [takeWhileBT] *)
 
-Fixpoint takeWhile {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
+Fixpoint takeWhileBT {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
 match t with
     | empty => empty
     | node v l r =>
         if p v
-        then node v (takeWhile p l) (takeWhile p r)
+        then node v (takeWhileBT p l) (takeWhileBT p r)
         else empty
 end.
 
-Lemma size_takeWhile :
+Lemma size_takeWhileBT :
   forall (A : Type) (p : A -> bool) (t : BTree A),
-    size (takeWhile p t) <= size t.
+    size (takeWhileBT p t) <= size t.
 Proof.
   induction t; cbn.
     apply le_0_n.
@@ -391,9 +404,9 @@ Proof.
       apply le_0_n.
 Qed.
 
-Lemma mirror_takeWhile :
+Lemma mirror_takeWhileBT :
   forall (A : Type) (p : A -> bool) (t : BTree A),
-    takeWhile p (mirror t) = mirror (takeWhile p t).
+    takeWhileBT p (mirror t) = mirror (takeWhileBT p t).
 Proof.
   induction t; cbn; intros.
     reflexivity.
@@ -693,8 +706,6 @@ Proof.
       rewrite ?IHn'. rewrite map_app, rev_app_distr. reflexivity.
 Qed.
 
-(* [filter] makes no sense. *)
-
 Fixpoint zipWith
   {A B C : Type} (f : A -> B -> C)
   (ta : BTree A) (tb : BTree B) : BTree C :=
@@ -945,3 +956,213 @@ Proof.
     apply le_n_S, Max.le_max_r.
     apply lt_trans with (height t2); assumption.
 Qed.
+
+(** [removeMin] moved from BST.v *)
+
+Function leftmost {A : Type} (t : BTree A) : option A :=
+match t with
+    | empty => None
+    | node v empty _ => Some v
+    | node _ l _ => leftmost l
+end.
+
+Function removeMin
+  {A : Type} (t : BTree A) : option (A * BTree A) :=
+match t with
+    | empty => None
+    | node x l r =>
+        match removeMin l with
+            | None => Some (x, r)
+            | Some (m, l') => Some (m, node x l' r)
+        end
+end.
+
+Lemma Elem_removeMin :
+  forall
+    {A : Type} {t t' : BTree A} {m : A},
+      removeMin t = Some (m, t') ->
+        forall x : A, Elem x t <-> x = m \/ Elem x t'.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; intro; rewrite ?Elem_node;
+  firstorder.
+    functional inversion e0. subst. inv H.
+Qed.
+
+(** * [filterBT] *)
+
+Function filterBT
+  {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
+match t with
+    | empty => empty
+    | node v l r =>
+        let l' := filterBT p l in
+        let r' := filterBT p r in
+          if p v
+          then node v l' r'
+          else
+            match removeMin r' with
+                | None => l'
+                | Some (m, r'') => node m l' r''
+            end
+end.
+
+Lemma Elem_filterBT :
+  forall (A : Type) (p : A -> bool) (t : BTree A) (x : A),
+    Elem x (filterBT p t) <-> Elem x t /\ p x = true.
+Proof.
+  intros until t.
+  functional induction filterBT p t;
+  intros;
+    rewrite ?Elem_node, ?IHb, ?IHb0.
+    firstorder.
+    firstorder. congruence.
+    firstorder.
+      congruence.
+      functional inversion e1; subst.
+        assert (Elem x empty).
+          rewrite H1, IHb0. split; assumption.
+          inv H2.
+    pose (Elem_removeMin e1). firstorder.
+      congruence.
+Qed.
+
+(* TODO: drop using cmp *)
+
+(* TODO: nth, modify, splitAt, insert, replace, modify *)
+
+Inductive All2 {A B : Type} (R : A -> B -> Prop) : BTree A -> BTree B -> Prop :=
+    | All2_empty : All2 R empty empty
+    | All2_node  :
+        forall
+          (va : A) (la ra : BTree A)
+          (vb : B) (lb rb : BTree B),
+            R va vb -> All2 R la lb -> All2 R ra rb ->
+              All2 R (node va la ra) (node vb lb rb).
+
+Inductive Ex2 {A B : Type} (R : A -> B -> Prop) : BTree A -> BTree B -> Prop :=
+    | Ex2_node  :
+        forall
+          (va : A) (la ra : BTree A)
+          (vb : B) (lb rb : BTree B),
+            R va vb \/ Ex2 R la lb \/ Ex2 R ra rb ->
+              Ex2 R (node va la ra) (node vb lb rb).
+
+Inductive PermutationBT {A : Type} : BTree A -> BTree A -> Prop :=
+    | PermutationBT_empty : PermutationBT empty empty
+    | PermutationBT_skip  :
+        forall (v : A) (l1 l2 r1 r2 : BTree A),
+          PermutationBT l1 l2 -> PermutationBT r1 r2 ->
+            PermutationBT (node v l1 r1) (node v l2 r2)
+    | PermutationBT_swapl :
+        forall (x y : A) (yl yr xr : BTree A),
+          PermutationBT (node y (node x yl yr) xr) (node x (node y yl yr) xr)
+    | PermutationBT_swapr :
+        forall (x y : A) (xl yl yr : BTree A),
+          PermutationBT (node y xl (node x yl yr)) (node x xl (node y yl yr))
+    | PermutationBT_trans :
+        forall t1 t2 t3 : BTree A,
+          PermutationBT t1 t2 -> PermutationBT t2 t3 -> PermutationBT t1 t3.
+
+Lemma PermutationBT_refl :
+  forall {A : Type} (t : BTree A),
+    PermutationBT t t.
+Proof.
+  induction t; constructor; assumption.
+Qed.
+
+Lemma PermutationBT_sym :
+  forall {A : Type} {t1 t2 : BTree A},
+    PermutationBT t1 t2 -> PermutationBT t2 t1.
+Proof.
+  induction 1; econstructor; eassumption.
+Qed.
+
+Lemma count_PermutationBT :
+  forall {A : Type} {t1 t2 : BTree A},
+    PermutationBT t1 t2 ->
+      forall p : A -> bool, count_BTree p t1 = count_BTree p t2.
+Proof.
+  induction 1; cbn; intro;
+  rewrite ?IHPermutationBT1, ?IHPermutationBT2;
+  try reflexivity;
+  destruct (p x), (p y); lia.
+Qed.
+
+Inductive AtLeast {A : Type} (P : A -> Prop) : BTree A -> nat -> Prop :=
+    | AtLeast_empty :
+        forall t : BTree A, AtLeast P t 0
+    | AtLeast_node_yes  :
+        forall (v : A) (l r : BTree A) (n m : nat),
+          P v -> AtLeast P l n -> AtLeast P r m -> AtLeast P (node v l r) (S (n + m))
+    | AtLeast_node_skip :
+        forall (v : A) (l r : BTree A) (n m : nat),
+          AtLeast P l n -> AtLeast P r m -> AtLeast P (node v l r) (n + m).
+
+Hint Constructors AtLeast : core.
+
+Fixpoint toList {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => toList l ++ v :: toList r
+end.
+
+Lemma PermutationBT_toList :
+  forall {A : Type} {t1 t2 : BTree A},
+    PermutationBT t1 t2 -> Permutation (toList t1) (toList t2).
+Proof.
+  induction 1; cbn.
+    constructor.
+    apply Permutation_app; auto.
+    rewrite <- ?app_assoc. apply Permutation_app.
+      reflexivity.
+      {
+        rewrite Permutation_app_comm.
+        cbn. constructor.
+        rewrite Permutation_app_comm, (Permutation_app_comm (toList yr)).
+        cbn. constructor.
+        apply Permutation_app_comm.
+      }
+    apply Permutation_app.
+      reflexivity.
+      rewrite 2!Permutation_middle. apply Permutation_app.
+        reflexivity.
+        constructor.
+    rewrite IHPermutationBT1, IHPermutationBT2. reflexivity.
+Qed.
+
+Lemma PermutationBT_toList_conv :
+  forall {A : Type} {t1 t2 : BTree A},
+    Permutation (toList t1) (toList t2) -> PermutationBT t1 t2.
+Proof.
+  induction 1; cbn.
+Abort.
+
+Definition PermutationBT' {A : Type} (t1 t2 : BTree A) : Prop :=
+    forall (P : A -> Prop) (n : nat),
+      Exactly P n t1 <-> Exactly P n t2.
+
+Lemma Permutation_PermutationBT' :
+  forall {A : Type} {t1 t2 : BTree A},
+    PermutationBT t1 t2 -> PermutationBT' t1 t2.
+Proof.
+  unfold PermutationBT'.
+  induction 1; split; inv 1; try constructor; firstorder.
+Abort.
+
+Definition PermutationBT'' {A : Type} (t1 t2 : BTree A) : Prop :=
+    forall (P : A -> Prop) (n : nat),
+      AtLeast P t1 n <-> AtLeast P t2 n.
+
+Lemma Permutation_PermutationBT'' :
+  forall {A : Type} {t1 t2 : BTree A},
+    PermutationBT t1 t2 -> PermutationBT'' t1 t2.
+Proof.
+  unfold PermutationBT''.
+  induction 1; split; inv 1;
+  try (constructor 2; firstorder; fail);
+  try (constructor 3; firstorder; fail).
+    inv H5. cbn. change (S m) with (1 + m). constructor 3.
+      change 1 with (1 + 0). constructor; auto. auto.
+Abort.

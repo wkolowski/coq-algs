@@ -1,12 +1,6 @@
 Require Export RCCBase.
 Require Import BTree.
 
-Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
-    | All_empty : All P empty
-    | All_node  :
-        forall (x : A) (l r : BTree A),
-          P x -> All P l -> All P r -> All P (node x l r).
-
 Hint Constructors All : core.
 
 Lemma All_spec :
@@ -57,18 +51,6 @@ match t with
         end
 end.
 
-Function removeMin
-  {A : Type} (cmp : A -> A -> comparison)
-  (t : BTree A) : option (A * BTree A) :=
-match t with
-    | empty => None
-    | node x l r =>
-        match removeMin cmp l with
-            | None => Some (x, r)
-            | Some (m, l') => Some (m, node x l' r)
-        end
-end.
-
 Function remove
   {A : Type} (cmp : A -> A -> comparison)
   (x : A) (t : BTree A) : BTree A :=
@@ -79,7 +61,7 @@ match t with
             | Lt => node v (remove cmp x l) r
             | Gt => node v l (remove cmp x r)
             | Eq =>
-                match removeMin cmp r with
+                match removeMin r with
                     | None => l
                     | Some (m, r') => node m l r'
                 end
@@ -101,7 +83,6 @@ end.
 Hint Extern 0 =>
   intros;
 match goal with
-    | H : Elem _ empty |- _ => inversion H
     | H : isBST _ (node _ ?l _) |- isBST _ ?l => inv H
     | H : isBST _ (node _ _ ?r) |- isBST _ ?r => inv H
 end
@@ -130,14 +111,13 @@ Qed.
 
 Lemma All_removeMin :
   forall
-    {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
-    (m : A) (t t' : BTree A),
-      isBST cmp t -> removeMin cmp t = Some (m, t') ->
-        All P t <-> P m /\ All P t'.
+    {A : Type} {t t' : BTree A} {m : A},
+    removeMin t = Some (m, t') ->
+        forall {P : A -> Prop}, All P t <-> P m /\ All P t'.
 Proof.
-  intros until t. revert m.
-  functional induction removeMin cmp t;
-  inv 1; inv 1; rewrite ?All_node'.
+  intros until t.
+  functional induction removeMin t;
+  inv 1; intros; rewrite ?All_node'.
     functional inversion e0. firstorder.
     rewrite IHo; firstorder eauto.
 Qed.
@@ -152,7 +132,7 @@ Proof.
   functional induction remove cmp x t.
     1-4: inv 1; rewrite ?All_node', ?IHb; firstorder.
     inv 1; inv 1. rewrite ?All_node'.
-      eapply (All_removeMin P) in e1; firstorder eauto.
+      eapply All_removeMin with P in e1; firstorder eauto.
 Qed.
 
 Lemma All_remove_conv :
@@ -167,7 +147,7 @@ Proof.
     destruct (cmpr_spec x v); subst; auto; congruence.
     functional inversion e1; subst. constructor.
     destruct (cmpr_spec x v); subst; auto; congruence.
-    eapply (All_removeMin P) in e1; firstorder eauto.
+    eapply All_removeMin with P in e1; firstorder eauto.
 Qed.
 
 Hint Resolve All_insert All_removeMin All_remove All_remove_conv : core.
@@ -192,12 +172,12 @@ Lemma isBST_removeMin :
   forall
     {A : Type} (cmp : cmp_spec A)
     (t t' : BTree A) (x : A),
-      isBST cmp t -> removeMin cmp t = Some (x, t') -> isBST cmp t'.
+      isBST cmp t -> removeMin t = Some (x, t') -> isBST cmp t'.
 Proof.
   intros. revert t' x H0 H.
-  functional induction (removeMin cmp t);
+  functional induction (removeMin t);
   inv 1; inv 1.
-  rewrite All_removeMin in H3; firstorder eauto.
+  erewrite All_removeMin in H3; firstorder eauto.
 Qed.
 
 Lemma isBST_remove :

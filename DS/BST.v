@@ -36,24 +36,6 @@ match t with
         end
 end.
 
-Function min {A : Type} (t : BTree A) : option A :=
-match t with
-    | empty => None
-    | node v empty _ => Some v
-    | node _ l _ => min l
-end.
-
-Function removeMin
-  {A : Type} (t : BTree A) : option (A * BTree A) :=
-match t with
-    | empty => None
-    | node x l r =>
-        match removeMin l with
-            | None => Some (x, r)
-            | Some (m, l') => Some (m, node x l' r)
-        end
-end.
-
 Function remove
   {A : Type} (cmp : A -> A -> comparison)
   (x : A) (t : BTree A) : BTree A :=
@@ -86,7 +68,6 @@ end.
 Hint Extern 0 =>
   intros;
 match goal with
-    | H : Elem _ empty |- _ => inversion H
     | H : isBST _ (node _ ?l _) |- isBST _ ?l => inversion H; auto
     | H : isBST _ (node _ _ ?r) |- isBST _ ?r => inversion H; auto
 end
@@ -125,13 +106,6 @@ Proof.
   functional induction (insert cmp x t);
   intros; auto.
   destruct (cmpr_spec x v); subst; try congruence; auto.
-Qed.
-
-Lemma Elem_node :
-  forall {A : Type} (x v : A) (l r : BTree A),
-    Elem x (node v l r) <-> x = v \/ Elem x l \/ Elem x r.
-Proof.
-  split; inv 1; firstorder.
 Qed.
 
 Lemma Elem_insert_ultimate :
@@ -183,19 +157,6 @@ Proof.
   inv 1; inv 1; eauto.
 Qed.
  *)
-
-Lemma Elem_removeMin :
-  forall
-    {A : Type} {t t' : BTree A} {m : A},
-      removeMin t = Some (m, t') ->
-        forall x : A, Elem x t <-> x = m \/ Elem x t'.
-Proof.
-  intros A t.
-  functional induction removeMin t;
-  inv 1; intro; rewrite ?Elem_node;
-  firstorder.
-    functional inversion e0. subst. inv H.
-Qed.
 
 Lemma Elem_remove :
   forall
@@ -354,15 +315,15 @@ Admitted.
 
 Hint Constructors All : core.
 
-Lemma min_spec :
+Lemma leftmost_spec :
   forall {A : Type} (cmp : A -> A -> comparison) (t : BTree A) (m : A),
-    isBST cmp t -> min t = Some m -> All (fun x => cmp m x = Lt \/ x = m) t.
+    isBST cmp t -> leftmost t = Some m -> All (fun x => cmp m x = Lt \/ x = m) t.
 Proof.
   intros until t.
-  functional induction min t; inv 1; inv 1.
+  functional induction leftmost t; inv 1; inv 1.
     constructor; auto. admit. (* H6 *)
     constructor; auto.
-      left. apply H4. admit. (* Elem_min *)
+      left. apply H4. admit. (* Elem_leftmost *)
       admit. (* All_spec, H4 *)
 Admitted.
 
@@ -543,47 +504,10 @@ match l with
     | [] => empty
     | h :: t => insert cmp h (fromList cmp t)
 end.
-Check Nat.compare.
-Print insert.
+
 Compute fromList Nat.compare [1; 2; 3; 4; 5].
 Compute fromList Nat.compare [3; 4; 5; 6; 7].
 Compute union Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute intersection Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute difference Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute difference Nat.compare (fromList Nat.compare [3; 4; 5; 6; 7]) (fromList Nat.compare [1; 2; 3; 4; 5]).
-
-Function filterBT
-  {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
-match t with
-    | empty => empty
-    | node v l r =>
-        let l' := filterBT p l in
-        let r' := filterBT p r in
-          if p v
-          then node v l' r'
-          else
-            match removeMin r' with
-                | None => l'
-                | Some (m, r'') => node m l' r''
-            end
-end.
-
-Lemma Elem_filterBT :
-  forall (A : Type) (p : A -> bool) (t : BTree A) (x : A),
-    Elem x (filterBT p t) <-> Elem x t /\ p x = true.
-Proof.
-  intros until t.
-  functional induction filterBT p t;
-  intros;
-    rewrite ?Elem_node, ?IHb, ?IHb0.
-    firstorder.
-    firstorder. congruence.
-    firstorder.
-      congruence.
-      functional inversion e1; subst.
-        assert (Elem x empty).
-          rewrite H1, IHb0. split; assumption.
-          inv H2.
-    pose (Elem_removeMin e1). firstorder.
-      congruence.
-Qed.
