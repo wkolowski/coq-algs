@@ -1,7 +1,109 @@
+Require Export RCCBase.
 Require Import BTree.
 Require Import BST.
 Require Export LinDec.
 Require Import Sorting.Sort.
+
+(** * Various heap property definitions and their relations. *)
+
+Inductive isHeap {A : LinDec} : BTree A -> Prop :=
+    | isHeap_empty : isHeap empty
+    | isHeap_node :
+        forall (v : A) (l r : BTree A),
+          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
+          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
+            isHeap (node v l r).
+
+Hint Constructors isHeap : core.
+
+Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : BTree A -> Prop :=
+    | OK_empty : OK R x empty
+    | OK_node  :
+        forall (v : A) (l r : BTree A),
+          R x v -> OK R x (node v l r).
+
+Inductive isHeap2 {A : Type} (R : A -> A -> Prop) : BTree A -> Prop :=
+    | isHeap2_empty : isHeap2 R empty
+    | isHeap2_node :
+        forall (v : A) (l r : BTree A),
+          OK R v l -> OK R v r ->
+            isHeap2 R l -> isHeap2 R r -> isHeap2 R (node v l r).
+
+Hint Constructors OK isHeap2 : core.
+
+Ltac ok :=
+repeat match goal with
+    | H : OK _ _ empty        |- _ => inv H
+    | H : OK _ _ (node _ _ _) |- _ => inv H
+end.
+
+Ltac isHeap2 :=
+repeat match goal with
+    | H : isHeap2 _ empty        |- _ => inv H
+    | H : isHeap2 _ (node _ _ _) |- _ => inv H
+    | _ => ok
+end.
+
+Inductive isHeap3 {A : LinDec} : BTree A -> Prop :=
+    | isHeap3_empty : isHeap3 empty
+    | isHeap3_singl : forall v : A, isHeap3 (node v empty empty)
+    | isHeap3_l :
+        forall (v x : A) (l r : BTree A),
+          v ≤ x -> isHeap3 (node x l r) -> isHeap3 (node v (node x l r) empty)
+    | isHeap3_r :
+        forall (v x : A) (l r : BTree A),
+          v ≤ x -> isHeap3 (node x l r) -> isHeap3 (node v empty (node x l r))
+    | isHeap3_lr :
+        forall (v lv rv : A) (ll lr rl rr : BTree A),
+          v ≤ lv -> isHeap3 (node lv ll lr) ->
+          v ≤ rv -> isHeap3 (node rv rl rr) ->
+            isHeap3 (node v (node lv ll lr) (node rv rl rr)).
+
+Hint Constructors isHeap3 : core.
+
+Lemma isHeap2_isHeap :
+  forall {A : LinDec} (t : BTree A),
+    isHeap2 (@leq A) t <-> isHeap t.
+Proof.
+  split.
+    induction 1; constructor; auto.
+      inv IHisHeap2_1. isHeap2. inv 1; dec.
+      inv IHisHeap2_2. isHeap2. inv 1; dec.
+    induction 1; constructor; auto.
+      inv IHisHeap1.
+      inv IHisHeap2.
+Qed.
+
+Lemma isHeap2_isHeap3 :
+  forall {A : LinDec} (t : BTree A),
+    isHeap2 (@leq A) t <-> isHeap3 t.
+Proof.
+  split.
+    induction 1.
+      constructor.
+      inv IHisHeap2_1; inv IHisHeap2_2; isHeap2; constructor; auto.
+    induction 1; constructor; auto.
+Qed.
+
+(** * Relations between [isHeap] and various [BTree] functions. *)
+
+Lemma isHeap_singleton :
+  forall (A : LinDec) (x : A),
+    isHeap (singleton x).
+Proof.
+  intros. unfold singleton. constructor; auto; inv 1.
+Qed.
+
+Lemma isHeap_isEmpty :
+  forall (A : LinDec) (t : BTree A),
+    isEmpty t = true -> isHeap t.
+Proof.
+  destruct t; intro.
+    constructor.
+    cbn in H. congruence.
+Qed.
+
+(** * The rest *)
 
 Definition minmax {A : LinDec} (x y : A) : A * A :=
   if x <=? y then (x, y) else (y, x).
@@ -173,21 +275,6 @@ match t with
         end
 end.
 
-Inductive isHeap {A : LinDec} : BTree A -> Prop :=
-    | isHeap_empty : isHeap empty
-    | isHeap_singl : forall v : A, isHeap (node v empty empty)
-    | isHeap_l :
-        forall (v x : A) (l r : BTree A),
-          v ≤ x -> isHeap (node x l r) -> isHeap (node v (node x l r) empty)
-    | isHeap_r :
-        forall (v x : A) (l r : BTree A),
-          v ≤ x -> isHeap (node x l r) -> isHeap (node v empty (node x l r))
-    | isHeap_lr :
-        forall (v lv rv : A) (ll lr rl rr : BTree A),
-          v ≤ lv -> isHeap (node lv ll lr) ->
-          v ≤ rv -> isHeap (node rv rl rr) ->
-            isHeap (node v (node lv ll lr) (node rv rl rr)).
-
 Lemma minmax_leq :
   forall (A : LinDec) (x y m M : A),
     minmax x y = (m, M) -> m ≤ M.
@@ -227,6 +314,7 @@ Proof.
   intros A x m t. revert m.
   functional induction @sendDown A x t; inv 1; right; inv H;
   repeat match goal with
+      | H : isHeap (node _ _ _) |- _ => inv H
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
       | H : True |- _ => clear H
@@ -248,7 +336,7 @@ Proof.
       | H : node _ _ _ = node _ _ _ |- _ => inv H
   end;
   try assumption;
-  unfold max, minmax in *; dec'; inv e0; dec.
+  unfold max, minmax in *; dec'; inv e0; dec. clear H4.
 Qed.
 
 Lemma Elem_node :
@@ -315,6 +403,12 @@ Lemma isHeap_makeHeap :
     isHeap (makeHeap t).
 Proof.
   intros. functional induction @makeHeap A t;
+  constructor; intros;
+  repeat match goal with
+      | H : Elem _ empty |- _            => inv H
+      |                  |- isHeap empty => constructor
+  end.
+
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x eqn: Hx
       | H : False |- _ => contradiction
@@ -329,7 +423,7 @@ Proof.
           assert (H' := sendDown_spec1 _ _ _ _ _ H H0);
           decompose [and or ex] H'; clear H'; subst
   end;
-  constructor; try assumption; try congruence.
+  constructor; try assumption; try congruence; auto.
     eapply leq_trans with vl.
       eapply sendDown_spec2; eauto.
       dec'.

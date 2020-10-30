@@ -16,7 +16,7 @@ Class TrichDec : Type :=
       forall x y z : carrier, trich_lt x y -> trich_lt y z -> trich_lt x z;
     trichb : carrier -> carrier -> comparison;
     trichb_spec :
-      forall x y : carrier, Reflect_cmp (trich_lt x y) (x = y) (trich_lt y x) (trichb x y);
+      forall x y : carrier, CompareSpec (x = y) (trich_lt x y) (trich_lt y x) (trichb x y);
 }.
 
 Infix "<" := trich_lt (at level 70).
@@ -59,8 +59,8 @@ Lemma trich_lt_comparison :
     trich_lt x z -> trich_lt x y \/ trich_lt y z.
 Proof.
   intros. destruct (trichb_spec x y).
-    auto.
     subst. auto.
+    auto.
     right. eapply trich_lt_trans; eassumption.
 Qed.
 
@@ -70,8 +70,8 @@ Lemma trich_lt_trans' :
 Proof.
   intros A x y z Hxy Hyz.
   destruct (trichb_spec x z).
-    assumption.
     subst. contradict Hyz. apply trich_lt_antisym. assumption.
+    assumption.
     destruct (trich_lt_comparison _ _ z y Hxy).
       assumption.
       contradict H0. apply trich_lt_antisym. assumption.
@@ -82,8 +82,8 @@ Lemma trich_lt_connected :
     ~ trich_lt x y -> ~ trich_lt y x -> x = y.
 Proof.
   intros. destruct (trichb_spec x y).
-    contradiction.
     assumption.
+    contradiction.
     contradiction.
 Qed.
 
@@ -112,8 +112,8 @@ Lemma trichb_spec3 :
 Proof.
   intros. destruct (trichb_spec x y);
   firstorder; try congruence.
-    contradict H0. apply trich_lt_antisym. assumption.
     contradict H0. subst. apply trich_lt_irrefl.
+    contradict H0. apply trich_lt_antisym. assumption.
 Qed.
 
 Lemma trich_lt_trich :

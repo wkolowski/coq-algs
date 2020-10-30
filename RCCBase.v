@@ -190,17 +190,11 @@ Definition bool2Prop (b : bool) : Prop := b = true.
 
 Coercion bool2Prop : bool >-> Sortclass.
 
-(* A way to specify functions that return [comparison]. *)
-Inductive Reflect_cmp (P Q R : Prop) : comparison -> Prop :=
-    | Reflect_Lt : P -> Reflect_cmp P Q R Lt
-    | Reflect_Eq : Q -> Reflect_cmp P Q R Eq
-    | Reflect_Gt : R -> Reflect_cmp P Q R Gt.
-
 Class cmp_spec (A : Type) : Type :=
 {
     cmpr      : A -> A -> comparison;
     cmpr_spec :
-      forall x y : A, Reflect_cmp (cmpr y x = Gt) (x = y) (cmpr y x = Lt) (cmpr x y);
+      forall x y : A, CompareSpec (cmpr y x = Gt) (x = y) (cmpr y x = Lt) (cmpr x y);
     cmp_spec1 :
       forall x y : A, cmpr x y = Eq -> x = y;
     cmp_spec2 :
@@ -213,7 +207,7 @@ Coercion cmpr : cmp_spec >-> Funclass.
 
 Lemma cmp_spec_antirefl :
   forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+    (forall x y : A, CompareSpec (x = y) (cmp y x = Gt) (cmp y x = Lt) (cmp x y)) ->
       forall x : A, cmp x x = Lt -> False.
 Proof.
   intros. specialize (H x x). inv H.
@@ -221,7 +215,7 @@ Qed.
 
 Lemma cmp_spec_asym :
   forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+    (forall x y : A, CompareSpec (x = y) (cmp y x = Gt) (cmp y x = Lt) (cmp x y)) ->
       forall x y : A, cmp x y = Lt -> cmp y x <> Lt.
 Proof.
   intros. specialize (H x y). inv H.
@@ -229,7 +223,7 @@ Qed.
 
 Lemma cmp_spec_trans :
   forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+    (forall x y : A, CompareSpec (x = y) (cmp y x = Gt) (cmp y x = Lt) (cmp x y)) ->
       forall x y z : A, cmp x y = Lt -> cmp y z = Lt -> cmp x z = Lt.
 Proof.
   intros A cmp H x y z Hxy Hyz.
@@ -240,7 +234,7 @@ Abort.
 
 Lemma cmp_spec_comparison :
   forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+    (forall x y : A, CompareSpec (x = y) (cmp y x = Gt) (cmp y x = Lt) (cmp x y)) ->
       forall x y z : A, cmp x z = Lt -> cmp x y = Lt \/ cmp y z = Lt.
 Proof.
   intros A cmp H x y z Hxz.
@@ -251,7 +245,7 @@ Abort.
 
 Lemma cmp_spec_connectedness :
   forall {A : Type} (cmp : A -> A -> comparison),
-    (forall x y : A, Reflect_cmp (cmp y x = Gt) (x = y) (cmp y x = Lt) (cmp x y)) ->
+    (forall x y : A, CompareSpec (x = y) (cmp y x = Gt) (cmp y x = Lt) (cmp x y)) ->
       forall x y : A, cmp x y <> Lt -> cmp y x <> Lt -> cmp x y = Eq.
 Proof.
   intros A cmp H x y Hxy Hyx.

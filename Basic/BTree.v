@@ -21,15 +21,7 @@ Inductive Elem {A : Type} (a : A) : BTree A -> Prop :=
     | Elem_right : forall (v : A) (l r : BTree A),
         Elem a r -> Elem a (node v l r).
 
-Inductive isHeap {A : LinDec} : BTree A -> Prop :=
-    | isHeap_empty : isHeap empty
-    | isHeap_node :
-        forall (v : A) (l r : BTree A),
-          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
-          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
-            isHeap (node v l r).
-
-Hint Constructors Elem isHeap : core.
+Hint Constructors Elem : core.
 
 Hint Extern 0 =>
   intros;
@@ -186,10 +178,6 @@ Lemma Elem_empty :
   forall (A : LinDec) (x : A), ~ Elem x empty.
 Proof. inv 1. Qed.
 
-Lemma empty_isHeap :
-  forall A : LinDec, isHeap (@empty A).
-Proof. constructor. Qed.
-
 Lemma size_empty :
   forall A : LinDec, size (@empty A) = 0.
 Proof. reflexivity. Qed.
@@ -206,13 +194,6 @@ Lemma Elem_singleton :
     Elem x (singleton y) <-> x = y.
 Proof.
   split; Elem.
-Qed.
-
-Lemma isHeap_singleton :
-  forall (A : LinDec) (x : A),
-    isHeap (singleton x).
-Proof.
-  intros. unfold singleton. constructor; auto; inv 1.
 Qed.
 
 Lemma size_singleton :
@@ -245,15 +226,6 @@ Proof.
   split; destruct t; cbn; firstorder.
     inv 1.
     contradiction (H c). constructor.
-Qed.
-
-Lemma isEmpty_isHeap :
-  forall (A : LinDec) (t : BTree A),
-    isEmpty t = true -> isHeap t.
-Proof.
-  destruct t; intro.
-    constructor.
-    cbn in H. congruence.
 Qed.
 
 Lemma isEmpty_empty :
