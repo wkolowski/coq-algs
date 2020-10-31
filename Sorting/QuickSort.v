@@ -233,33 +233,3 @@ Definition hqs
   (n : nat) (A : LinDec) (sort : Sort A) (l : list A) : list A :=
     uqs (AdHocSort_Sort (Small_length A n) sort)
         (Pivot_head A) (Partition_bifilter A) l.
-
-(** For trichotomous quicksort. *)
-
-Require Import TrichDec.
-
-(* TODO *) #[refine]
-Instance Partition_trifilter (A : TrichDec) : Partition A :=
-{
-    partition := @trifilter A
-}.
-Proof.
-(*
-  all: intros.
-    functional induction trifilter pivot0 l; inv H; trich.
-      inv H0. 1-3: eapply IHp; eauto.
-    functional induction trifilter pivot0 l; inv H; trich.
-      inv H0. eapply IHp; eauto.
-    functional induction trifilter pivot0 l; inv H; trich.
-      1-2: eapply IHp; eauto.
-      inv H0.
-        split; intro; trich.
-        eapply IHp; eauto.
-    1-3: rewrite trifilter_spec in H; inv H.
-    unfold perm. intro.
-      functional induction trifilter pivot0 l; cbn; inv H; trich;
-      specialize (IHp _ _ _ e0); rewrite IHp, !count_app; cbn;
-      rewrite ?count_app; trich.
-Defined.
-*)
-Admitted.

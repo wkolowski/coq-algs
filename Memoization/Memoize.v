@@ -1,4 +1,4 @@
-Require Export RCCBase.
+(* Require Export RCCBase.
 
 Require Import BTree.
 Require Import BST.
@@ -24,8 +24,10 @@ end.
 
 Axiom hehe : False.
 
+Require Import LinDec.
+
 #[refine]
-Instance KVP (A : LinDec) (B : Type) : LinDec :=
+Instance KVP (A : TrichDec) (B : Type) : LinDec :=
 {
     carrier := A * B;
     leq p1 p2 := fst p1 ≤ fst p2;
@@ -288,4 +290,4 @@ match n with
         let (x3, acc3) := bind n2 wutzor' acc2 in
         let (x4, acc4) := bind n1 wutzor' acc3 in x1 + x2 + x3 + x4
 end.
-*)
+*) *)

@@ -1,6 +1,7 @@
 Require Export RCCBase.
 Require Export BTree.
 Require Import BST.
+Require Import TrichDec.
 Require Export Sorting.Sort.
 
 Set Implicit Arguments.
@@ -351,21 +352,21 @@ Proof.
 Qed.
 
 Lemma findMin_spec :
-  forall (A : Type) (p : cmp_spec A) (m : A) (h : SplayHeap A),
-    isBST p h -> findMin h = Some m ->
-      forall x : A, Elem x h -> p m x <> Gt.
+  forall {A : TrichDec} {h : SplayHeap A} {m : A},
+    findMin h = Some m ->
+      isBST cmp h -> forall x : A, Elem x h -> cmp m x <> Gt.
 Proof.
-  intros A p m h. revert m.
-  functional induction findMin h; inv 1; intros.
-    inv H.
-      inv H0. rewrite cmp_spec3. inv 1.
+  intros A h.
+  functional induction findMin h; inv 1; inv 1.
+    inv 1.
+      trich.
       functional inversion e0. subst. inv H1.
-      specialize (H6 _ H1). destruct (cmpr_spec m x); congruence.
-    inv H. inv H0.
+      specialize (H6 _ H1). intro. trich.
+    inv 1.
       apply Elem_findMin in e0. rewrite (H4 _ e0). inv 1.
       apply Elem_findMin in e0. specialize (H4 _ e0). specialize (H6 _ H1).
-        destruct (cmpr_spec m0 x); try congruence.
-Admitted.
+        trich.
+Qed.
 
 (** Properties of [findMin']. *)
 Lemma findMin'_elem :

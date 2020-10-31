@@ -106,18 +106,6 @@ Proof.
       destruct (leq_total x y); contradiction.
 Defined.
 
-(*Lemma LinDec_not_leq_lt :
-  forall (A : LinDec) (x y : A), ~ leq x y -> y < x.
-Proof.
-  intros. destruct (leqb_spec y x).
-    split.
-      assumption.
-      intro. subst. contradiction.
-    cut False.
-      inversion 1.
-      destruct (leq_total x y); contradiction.
-Defined.*)
-
 Lemma LinDec_not_leq_lt :
   forall (A : LinDec) (x y : A), ~ leq x y -> y ≤ x /\ x <> y.
 Proof.
@@ -160,11 +148,3 @@ Proof.
         right. left. reflexivity.
         right. right. assumption.
 Qed.
-
-Theorem LinDec_leq_dec :
-  forall (A : LinDec) (x y : A), {x ≤ y} + {y ≤ x}.
-Proof.
-  intros. destruct (leqb_spec x y).
-    left. assumption.
-    right. apply LinDec_not_leq. assumption.
-Defined.

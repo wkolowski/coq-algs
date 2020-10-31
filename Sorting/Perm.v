@@ -340,7 +340,7 @@ Qed.
 (* TODO *) Theorem trifilter_spec' :
   forall (A : TrichDec) (pivot : A) (l lo eq hi : list A),
     trifilter pivot l = (lo, eq, hi) ->
-      perm (lo ++ eq) (filter (fun x : A => x <=? pivot) l) /\
+      perm (lo ++ eq) (filter (fun x : A => x ≤? pivot) l) /\
       hi = filter (fun x : A => pivot <? x) l.
 Proof.
 (*

@@ -1,6 +1,7 @@
 Require Export RCCBase.
 Require Import BTree.
 (* Require Export LinDec. *)
+Require Import TrichDec.
 Require Import Sorting.Sort.
 
 (** * Definitions of the bst property. *)
@@ -112,11 +113,10 @@ end.
 
 Lemma Elem_insert :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x y : A) (t : BTree A),
+    {A : TrichDec} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp y t) -> x = y \/ Elem x t.
 Proof.
-  intros A cmp x y t H.
+  intros A x y t H.
   functional induction (insert cmp y t); inv 1.
     inv H. firstorder.
     inv H. firstorder.
@@ -124,46 +124,42 @@ Qed.
 
 Lemma Elem_insert_conv :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x y : A) (t : BTree A),
+    {A : TrichDec} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x t -> Elem x (insert cmp y t).
 Proof.
-  intros A cmp x y t H1 H2. revert x H2 H1.
+  intros A x y t H1 H2. revert x H2 H1.
   functional induction (insert cmp y t);
   inv 1; inv 1; inv 1.
 Qed.
 
 Lemma Elem_insert_conv' :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp x t).
 Proof.
-  intros A cmp x t.
+  intros A x t.
   functional induction (insert cmp x t);
-  intros; auto; inv H.
-  apply cmp_spec1 in e0. subst. auto.
+  intros; inv H.
+  trich.
 Qed.
 
 Lemma Elem_insert_ultimate :
   forall
-    {A : Type} {cmp : cmp_spec A}
-    (x y : A) (t : BTree A),
+    {A : TrichDec} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp y t) <-> x = y \/ Elem x t.
 Proof.
-  intros A cmp x y t. revert x.
+  intros A x y t. revert x.
   functional induction insert cmp y t;
   inv 1; rewrite ?Elem_node; firstorder.
-  apply cmp_spec1 in e0. subst. auto.
+  trich.
 Qed.
 
 Lemma Elem_remove :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x y : A) (t : BTree A),
+    {A : TrichDec} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (remove cmp y t) -> Elem x t.
 Proof.
-  intros A cmp x y t. revert x.
+  intros A x y t. revert x.
   functional induction remove cmp y t;
   inv 1; inv 1; constructor 3;
   eapply Elem_removeMin; eauto.
@@ -171,11 +167,10 @@ Qed.
 
 Lemma Elem_remove_conv :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x y : A) (t : BTree A),
+    {A : TrichDec} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x t -> cmp y x = Eq \/ Elem x (remove cmp y t).
 Proof.
-  intros A cmp x y t. revert x.
+  intros A x y t. revert x.
   functional induction remove cmp y t;
   inv 1; inv 1.
     edestruct IHb; eauto.
@@ -195,7 +190,7 @@ Hint Resolve isBST_singleton : core.
 
 Lemma isBST_insert :
   forall
-    {A : Type} {cmp : cmp_spec A} (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (insert cmp x t).
 Proof.
   intros until t.
@@ -208,8 +203,7 @@ Qed.
 
 Lemma isBST_removeMin :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (t t' : BTree A) (x : A),
+    {A : TrichDec} (t t' : BTree A) (x : A),
       isBST cmp t -> removeMin t = Some (x, t') -> isBST cmp t'.
 Proof.
   intros. revert t' x H0 H.
@@ -220,10 +214,10 @@ Proof.
 Qed.
 
 Lemma isBST_remove :
-  forall (A : Type) (cmp : cmp_spec A) (x : A) (t : BTree A),
+  forall {A : TrichDec} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (remove cmp x t).
 Proof.
-  intros. revert H.
+  intros until t.
   functional induction (remove cmp x t); inv 1.
     constructor; auto; intros. apply Elem_remove in H; auto.
     constructor; auto; intros. apply Elem_remove in H; auto.
@@ -232,74 +226,68 @@ Proof.
         assert (cmp x0 v = Lt) by auto.
         assert (cmp m v = Gt).
           apply H6. eapply Elem_removeMin; eauto.
-        (* transitivity *) admit.
+        trich.
       }
       eapply isBST_removeMin; eauto.
-      assert (Elem x0 r).
-        apply (Elem_removeMin e1). auto.
-        admit. (* doable *)
+      trich.
+      assert (x0 <?> v = Gt).
+        apply H6. erewrite Elem_removeMin; eauto.
+        assert (m <?> v = Gt).
+          apply H6. erewrite Elem_removeMin.
+            left. reflexivity.
+            eassumption.
+          admit. (* lemma for remove min *)
 Admitted.
 
 Lemma elem_spec :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
       isBST cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
 Proof.
-  intros A cmp x t H.
+  intros A x t H.
   functional induction (elem cmp x t).
-    constructor. inversion 1.
-    inversion H; subst. specialize (IHb H3). destruct IHb.
-      constructor. constructor 2. assumption.
-      constructor. inversion 1; subst.
-        rewrite cmp_spec3 in e0. congruence.
-        contradiction.
-        specialize (H6 _ H7). congruence.
-    constructor. apply cmp_spec1 in e0. subst. constructor.
-    inversion H; subst. specialize (IHb H5). destruct IHb.
-      constructor. constructor 3. assumption.
-      constructor. inversion 1; subst.
-        rewrite cmp_spec3 in e0. congruence.
-        specialize (H4 _ H7). congruence.
-        contradiction.
+    constructor. inv 1.
+    inv H. specialize (IHb H3). destruct IHb.
+      auto.
+      constructor. inv 1.
+        trich.
+        specialize (H6 _ H2). trich.
+    trich.
+    inv H. specialize (IHb H5). destruct IHb.
+      auto.
+      constructor. inv 1.
+        trich.
+        specialize (H4 _ H2). trich.
 Qed.
 
 Lemma elem_insert :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
       isBST cmp t -> elem cmp x (insert cmp x t) = true.
 Proof.
-  intros. destruct (elem_spec cmp x (insert cmp x t) (isBST_insert x t H)).
+  intros. destruct (elem_spec x (insert cmp x t) (isBST_insert x t H)).
     reflexivity.
     contradiction H0. rewrite Elem_insert_ultimate; auto.
 Qed.
 
-Definition eql {A : Type} (cmp : cmp_spec A) (x y : A) : bool :=
-match cmp x y with
-    | Eq => true
-    | _  => false
-end.
-
 Lemma elem_insert' :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x y : A) (t : BTree A),
-      isBST cmp t -> elem cmp x (insert cmp y t) = eql cmp x y || elem cmp x t.
+    {A : TrichDec} (x y : A) (t : BTree A),
+      isBST cmp t -> elem cmp x (insert cmp y t) = x ==? y || elem cmp x t.
 Proof.
-  intros. destruct (elem_spec cmp x (insert cmp y t) (isBST_insert y t H)).
+  intros. destruct (elem_spec x (insert cmp y t) (isBST_insert y t H)).
     rewrite Elem_insert_ultimate in H0.
       destruct H0; subst.
-        unfold eql. rewrite cmp_spec3. cbn. reflexivity.
-        destruct (elem_spec cmp x t H).
+        trich.
+        destruct (elem_spec x t H).
           rewrite orb_true_r. reflexivity.
           contradiction.
       assumption.
-    unfold eql. destruct (cmpr_spec x y); cbn.
-      subst. contradiction H0. apply Elem_insert_conv'; assumption.
-      destruct (elem_spec cmp x t); auto. contradiction H0.
+    trich; cbn.
+      contradiction H0. apply Elem_insert_conv'; assumption.
+      destruct (elem_spec x t); auto. contradiction H0.
         apply Elem_insert_conv; assumption.
-      destruct (elem_spec cmp x t); auto. contradiction H0.
+      destruct (elem_spec x t); auto. contradiction H0.
         apply Elem_insert_conv; assumption.
 Qed.
 
@@ -510,13 +498,14 @@ match l with
     | h :: t => insert cmp h (fromList cmp t)
 end.
 
+(*
 Compute fromList Nat.compare [1; 2; 3; 4; 5].
 Compute fromList Nat.compare [3; 4; 5; 6; 7].
 Compute union Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute intersection Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute difference Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute difference Nat.compare (fromList Nat.compare [3; 4; 5; 6; 7]) (fromList Nat.compare [1; 2; 3; 4; 5]).
-
+ *)
 (** * Stuff related to [isBST2] *)
 
 Module isBST2.
@@ -546,16 +535,14 @@ Qed.
 
 Lemma All_insert :
   forall
-    {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
+    {A : TrichDec} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P (insert cmp x t) <-> P x /\ All P t.
 Proof.
-  intros A cmp P x t H.
+  intros A P x t H.
   functional induction (insert cmp x t);
   rewrite ?All_node', ?IHb; firstorder; inv H.
-  replace x with v.
-    assumption.
-    symmetry. apply cmp_spec1. assumption.
+  trich.
 Qed.
 
 Lemma All_removeMin :
@@ -573,7 +560,7 @@ Qed.
 
 Lemma All_remove :
   forall
-    {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
+    {A : TrichDec} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P t -> All P (remove cmp x t).
 Proof.
@@ -586,16 +573,16 @@ Qed.
 
 Lemma All_remove_conv :
   forall
-    {A : Type} {cmp : cmp_spec A} (P : A -> Prop)
+    {A : TrichDec} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P (remove cmp x t) -> (P x -> All P t).
 Proof.
   intros until t.
   functional induction remove cmp x t;
   inv 1; rewrite ?All_node'; firstorder.
-    destruct (cmpr_spec x v); subst; auto; congruence.
+    trich.
     functional inversion e1; subst. constructor.
-    destruct (cmpr_spec x v); subst; auto; congruence.
+    trich.
     eapply All_removeMin with P in e1; firstorder eauto.
 Qed.
 
@@ -603,7 +590,7 @@ Hint Resolve All_insert All_removeMin All_remove All_remove_conv : core.
 
 Lemma isBST2_insert :
   forall
-    {A : Type} {cmp : cmp_spec A} (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
     isBST2 cmp t -> isBST2 cmp (insert cmp x t).
 Proof.
   intros.
@@ -613,8 +600,7 @@ Qed.
 
 Lemma isBST2_removeMin :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (t t' : BTree A) (x : A),
+    {A : TrichDec} (t t' : BTree A) (x : A),
       isBST2 cmp t -> removeMin t = Some (x, t') -> isBST2 cmp t'.
 Proof.
   intros. revert t' x H0 H.
@@ -624,7 +610,7 @@ Proof.
 Qed.
 
 Lemma isBST2_remove :
-  forall (A : Type) (cmp : cmp_spec A) (x : A) (t : BTree A),
+  forall {A : TrichDec} (x : A) (t : BTree A),
     isBST2 cmp t -> isBST2 cmp (remove cmp x t).
 Proof.
   intros. revert H.
@@ -635,26 +621,23 @@ Admitted.
 
 Lemma elem_spec :
   forall
-    {A : Type} (cmp : cmp_spec A)
-    (x : A) (t : BTree A),
+    {A : TrichDec} (x : A) (t : BTree A),
       isBST2 cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
 Proof.
-  intros A cmp x t H.
+  intros A x t H.
   functional induction (elem cmp x t).
-    constructor. inversion 1.
-    inversion H; subst. specialize (IHb H5). destruct IHb.
-      constructor. constructor 2. assumption.
-      constructor. inversion 1; subst.
-        rewrite cmp_spec3 in e0. congruence.
-        contradiction.
+    constructor. inv 1.
+    inv H. specialize (IHb H5). destruct IHb.
+      auto.
+      constructor. inv 1.
+        trich.
         contradict e0. rewrite All_spec in H4. rewrite H4; [inv 1 | assumption].
-    constructor. apply cmp_spec1 in e0. subst. constructor.
-    inversion H; subst. specialize (IHb H6). destruct IHb.
-      constructor. constructor 3. assumption.
-      constructor. inversion 1; subst.
-        rewrite cmp_spec3 in e0. congruence.
+    trich.
+    inv H. specialize (IHb H6). destruct IHb.
+      auto.
+      constructor. inv 1.
+        trich.
         contradict e0. rewrite All_spec in H3. rewrite H3; [inv 1 | assumption].
-        contradiction.
 Qed.
 
 End isBST2.

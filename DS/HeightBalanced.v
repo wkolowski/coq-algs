@@ -79,24 +79,11 @@ Lemma height_rebalance :
 Proof.
   intros. functional induction @rebalance A v l r; trich; cbn in *.
     destruct (height' b).
-      apply le_n_S. rewrite Max.max_0_r in *. apply le_S_n in e.
-        rewrite ?Max.max_r; lia.
-      apply le_n_S. apply le_S_n in e. rewrite !Nat.max_le_iff.
-        right. apply le_n_S.
-          repeat apply Max.max_lub; rewrite ?Nat.max_le_iff in *; lia.
+      rewrite (@cmp_spec1 natlt) in e. cbn in e. lia.
+      rewrite (@cmp_spec1 natlt) in e. cbn in e. lia.
     destruct (height' r).
-      apply le_n_S. rewrite Max.max_0_r in *. apply le_S_n in e.
-        apply le_trans with (max (S (height' a)) (S (height' b))).
-          rewrite Nat.max_le_compat_r.
-            reflexivity.
-            apply le_S, le_n.
-          cbn. reflexivity.
-      apply le_n_S. apply lt_S_n in e.
-        repeat apply Max.max_lub; rewrite ?Nat.max_le_iff in *.
-          apply le_S. rewrite <- Max.max_assoc. apply Max.le_max_l.
-          apply le_n_S. unfold lt in e.
-            repeat apply Max.max_lub; rewrite ?Nat.max_le_iff in *.
-             1-2: firstorder.
+      rewrite (@cmp_spec1 natlt) in e. cbn in e. lia.
+      rewrite (@cmp_spec1 natlt) in e. cbn in e. lia.
 Qed.
 
 Lemma height_insert :

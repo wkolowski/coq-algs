@@ -169,7 +169,7 @@ Lemma trifilter_spec :
   forall (A : TrichDec) (pivot : A) (l : list A),
     trifilter pivot l =
       (filter (fun x : A => x <? pivot) l,
-       filter (fun x : A => x =? pivot) l,
+       filter (fun x : A => x ==? pivot) l,
        filter (fun x : A => pivot <? x) l).
 Proof.
 (*

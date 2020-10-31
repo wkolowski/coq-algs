@@ -20,28 +20,6 @@ Require Import LeftistHeap.
 
 Set Implicit Arguments.
 
-(* Doesn't work at all. *)
-(*
-Require Import Coq.Sorting.Heap.
-
-Theorem my_le_trans :
-  forall a b c : nat, a <= b -> b <= c -> a <= c.
-Proof.
-  induction 2.
-    assumption.
-    apply le_S. assumption.
-Defined.
-
-Definition stdSort_nat (l : list nat) : list nat :=
-match
-  treesort natle leq eq (LinDec_leq_dec natle) LinDec_eq_dec my_le_trans l
-with
-    | exist2 l' _ _ => l'
-end.
-
-Time Compute stdSort_nat [].
-*)
-
 (* Slow sorts on small lists. *)
 
 (*Time Compute ss natle (cycle 100 testl).
