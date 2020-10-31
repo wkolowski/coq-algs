@@ -283,6 +283,7 @@ Proof.
       edestruct IHs0; eauto. right. eapply Elem_partition; eauto.
     functional induction merge p h1 h2; inv 1.
       inv H0.
+      inv H0. Check Elem_partition.
       erewrite (Elem_partition _ _ _ _ e0) in H0. inv H0.
 Qed.
 
@@ -293,10 +294,10 @@ Proof.
   intros until h2.
   functional induction merge p h1 h2; inv 1; intro.
   constructor.
-    apply IHs; eauto. eapply isBST_partition in e0; eauto.
+    apply IHs; eauto. eapply isBST_partition in e0; inv e0.
     intros. apply Elem_merge in H0. inv H0.
       apply isBST_partition in e0; auto. inv e0.
-    apply IHs0; eauto. eapply isBST_partition in e0; eauto.
+    apply IHs0; eauto. eapply isBST_partition in e0; inv e0.
     intros. apply Elem_merge in H0. inv H0.
       apply isBST_partition in e0; auto. inv e0.
 Qed.
@@ -404,6 +405,7 @@ Proof.
   functional induction findMin' h; inv 1; inv 1.
     inv 1.
       admit.
+      inv H1.
       admit.
     specialize (H4 _ (findMin'_elem _ H1)). inv 1.
       red. rewrite H4. cbn. reflexivity.

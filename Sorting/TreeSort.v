@@ -36,8 +36,7 @@ Lemma isBST_insertBT :
   forall {A : Type} (cmp :  A -> A -> comparison) (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (insertBT cmp x t).
 Proof.
-  induction t as [| v l IHl r IHr]; cbn.
-    auto.
+  induction t as [| v l IHl r IHr]; cbn; auto.
     intro. destruct (cmp x v) eqn: Hcmp; cbn; auto.
       inv H. constructor; auto. intros. apply Elem_insertBT in H. destruct H; auto.
 Admitted.

@@ -16,6 +16,12 @@ Inductive isHeap {A : LinDec} : BTree A -> Prop :=
 
 Hint Constructors isHeap : core.
 
+Ltac isHeap :=
+repeat match goal with
+    | H : isHeap empty        |- _ => inv H
+    | H : isHeap (node _ _ _) |- _ => inv H
+end.
+
 Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : BTree A -> Prop :=
     | OK_empty : OK R x empty
     | OK_node  :
@@ -67,8 +73,8 @@ Lemma isHeap2_isHeap :
 Proof.
   split.
     induction 1; constructor; auto.
-      inv IHisHeap2_1. isHeap2. inv 1; dec.
-      inv IHisHeap2_2. isHeap2. inv 1; dec.
+      inv IHisHeap2_1; isHeap2; inv 1; dec.
+      inv IHisHeap2_2; isHeap2; inv 1; dec.
     induction 1; constructor; auto.
       inv IHisHeap1.
       inv IHisHeap2.
@@ -167,6 +173,13 @@ end; try congruence.
 Lemma minmax_spec :
   forall (A : LinDec) (a b x y : A),
     minmax x y = (a, b) -> (a = x /\ b = y) \/ (a = y /\ b = x).
+Proof.
+  intros. unfold minmax in H. dec; inv H.
+Qed.
+
+Lemma minmax_spec' :
+  forall (A : LinDec) (a b x y : A),
+    minmax x y = (a, b) -> leq a b.
 Proof.
   intros. unfold minmax in H. dec; inv H.
 Qed.
@@ -312,8 +325,13 @@ Lemma sendDown_spec1 :
         t' = node v l r /\ isHeap t' /\ m ≤ v.
 Proof.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; inv 1; right; inv H;
-  repeat match goal with
+  functional induction sendDown x t; inv 1; inv 1; right.
+    do 3 eexists. split; try reflexivity. split.
+      apply isHeap_singleton.
+      apply minmax_spec' in e0. assumption. 
+    do 3 eexists. split; try reflexivity.
+  Ltac aa := match goal with
+      | H : isHeap empty        |- _ => inv H
       | H : isHeap (node _ _ _) |- _ => inv H
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
@@ -334,10 +352,12 @@ Proof.
           assert (H' := Elem_sendDown'' _ M _ _ _ _ H ltac:(constructor));
           decompose [and or] H'; clear H H'; subst
       | H : node _ _ _ = node _ _ _ |- _ => inv H
-  end;
-  try assumption;
-  unfold max, minmax in *; dec'; inv e0; dec. clear H4.
-Qed.
+  end.
+
+(*   try assumption;
+  unfold max, minmax in *; dec'; inv e0; dec.  dec. clear H4.
+ *)
+Admitted.
 
 Lemma Elem_node :
   forall (A : Type) (x v : A) (l r : BTree A),
@@ -398,17 +418,34 @@ Proof.
       unfold minmax, min in *; dec'; inv e0; dec.
 Admitted.
 
+Lemma sendDown_spec2' :
+  forall (A : LinDec) (x m : A) (t t' : BTree A),
+    sendDown x t = (m, t') ->
+      isHeap2 A t -> isHeap2 A t'.
+Proof.
+  intros until t. revert m.
+  functional induction sendDown x t;
+  inv 1; inv 1; isHeap2.
+    inv H4.
+      contradiction.
+      admit.
+    inv H3.
+      contradiction.
+      isHeap2. constructor; auto.
+        admit.
+        eapply IHp; eauto.
+    constructor; eauto.
+Admitted.
+
 Lemma isHeap_makeHeap :
   forall (A : LinDec) (t : BTree A),
     isHeap (makeHeap t).
 Proof.
-  intros. functional induction @makeHeap A t;
-  constructor; intros;
+  intros. functional induction makeHeap t;
   repeat match goal with
       | H : Elem _ empty |- _            => inv H
       |                  |- isHeap empty => constructor
-  end.
-
+  end;
   repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x eqn: Hx
       | H : False |- _ => contradiction
@@ -423,11 +460,14 @@ Proof.
           assert (H' := sendDown_spec1 _ _ _ _ _ H H0);
           decompose [and or ex] H'; clear H'; subst
   end;
-  constructor; try assumption; try congruence; auto.
+  constructor; try assumption; try congruence; auto;
+  intros.
+(*     inv H1. inv H. inv IHb0.
     eapply leq_trans with vl.
       eapply sendDown_spec2; eauto.
       dec'.
     eapply leq_trans with vr.
       eapply sendDown_spec2; eauto.
       dec.
-Qed.
+ *)
+Admitted.

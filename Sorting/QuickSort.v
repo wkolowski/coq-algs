@@ -11,13 +11,6 @@ Set Implicit Arguments.
 Local Hint Unfold lt : core.
 Local Hint Resolve le_n_S filter_length : core.
 
-Local Hint Extern 0 (length _ < length _) =>
-match goal with
-    | H : bifilter _ _ = _ |- _ => rewrite bifilter_spec in H; inversion H;
-        apply filter_lengthOrder
-end
-  : core.
-
 (** Time to generalize [ghqs]:
     - Rather that [n], the length of the desired "small list",
       we will just give some function that determines if the

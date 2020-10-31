@@ -325,13 +325,6 @@ Proof.
   split; destruct t1, t2; cbn; intros; dec; tree'.
 Qed.
 
-Hint Extern 0 =>
-match goal with
-    | |- context [elemTree' _ (link _ _)] =>
-        rewrite link_elemTree'
-end
-  : core.
-
 Lemma insTree_elemHeap :
   forall (A : LinDec) (h : Heap A) (x : A) (t : Tree A),
     elemHeap x (insTree t h) <-> elemTree' x t \/ elemHeap x h.
@@ -339,7 +332,8 @@ Proof.
   split; revert x t.
     induction h as [| t' h']; tree'.
       specialize (IHh' _ _ H). rewrite link_elemTree' in IHh'. firstorder.
-    induction h as [| t' h']; tree'.
+    induction h as [| t' h']; tree';
+      apply IHh'; rewrite link_elemTree'; auto.
 Qed.
 
 Lemma insert_elemTree' :

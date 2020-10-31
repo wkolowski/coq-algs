@@ -67,7 +67,7 @@ Lemma Elem_singleton :
     Elem x (singleton y) <-> x = y.
 Proof.
   split; intro; subst.
-    inv H.
+    inv H. inv H1.
     constructor.
 Qed.
 
@@ -99,8 +99,16 @@ Lemma Elem_merge :
   forall (A : Type) (cmp : A -> A -> bool) (x : A) (h1 h2 : PairingHeap A),
     Elem x (merge cmp h1 h2) <-> Elem x h1 \/ Elem x h2.
 Proof.
-  split; destruct h1, h2; cbn. all: inv 1;
-  destruct (cmp a a0); try inv H0; inv H1.
+  split; destruct h1, h2; cbn;
+  repeat match goal with
+      | |- context [if ?x then _ else _] => destruct x
+      | H : Elem _ _ |- _ => inv H
+      | H : T _ _ = T _ _ |- _ => inv H
+      | H : Exists _ (_ :: _) |- _ => inv H
+      | H : Elem _ _ \/ Elem _ _ |- _ => inv H
+      | H : Elem _ _ \/ Elem _ E |- _ => inv H
+      | _ => intros
+  end.
 Qed.
 
 Lemma isHeap_merge :
@@ -114,7 +122,7 @@ Proof.
   destruct h1, h2; cbn; intros; auto.
   destruct (cmp a a0) eqn: Hcmp; do 2 constructor; try (inv H; inv H0; fail).
     inv H0. clear H4. induction H3; intros.
-      inv H0.
+      inv H0. inv H2.
       inv H1. inv H4. eauto.
     inv H0. clear H4. induction H3; intros. (*
       inv H0.
@@ -195,10 +203,12 @@ Proof.
   unfold insert, merge, singleton.
   destruct h.
     split; inv 1.
-    destruct (p y a); split; inv 1.
       inv H1.
-      inv H1. inv H0.
       inv H0.
+      destruct (p y a); split; inv 1.
+        inv H1. inv H0.
+        inv H1. inv H0. inv H1.
+        inv H0.
 Restart.
   unfold insert. split; intro.
     apply Elem_merge in H. destruct H.
@@ -247,22 +257,16 @@ Qed.
 
 (** Properties of [mergePairs]. *)
 
-Hint Extern 0 =>
-match goal with
-    | H : Elem _ E |- _ => inv H
-    | H : Elem _ empty |- _ => inv H
-end
-  : core.
-
 Lemma Elem_mergePairs :
   forall (A : Type) (p : A -> A -> bool) (x : A) (l : list (Tree A)),
     Elem x (mergePairs p l) <-> Exists (Elem x) l.
 Proof.
   split; intro.
     functional induction mergePairs p l; auto.
+      inv H.
       rewrite ?Elem_merge in H. decompose [or] H; clear H; auto.
     functional induction mergePairs p l;
-      rewrite ?Elem_merge; inv H. inv H1.
+      rewrite ?Elem_merge; inv H; inv H1.
 Qed.
 
 Lemma isHeap_mergePairs :
@@ -327,6 +331,7 @@ Proof.
   split.
     destruct h; cbn; intros; inv H0.
       inv H. induction H3; inv H1.
+        inv H0.
         inv H2.
           right. rewrite Elem_mergePairs. auto.
           inv H4. destruct (IHForall ltac:(auto) H6).
@@ -371,7 +376,9 @@ Lemma extractMin_spec :
 Proof.
   destruct h; cbn; intros; inv H0; inv H.
   induction H3.
-    inv H1. admit.
+    inv H1.
+      admit.
+      inv H0.
     inv H4. inv H1. inv H2.
 Admitted.
 

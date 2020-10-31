@@ -194,7 +194,7 @@ Class cmp_spec (A : Type) : Type :=
 {
     cmpr      : A -> A -> comparison;
     cmpr_spec :
-      forall x y : A, CompareSpec (cmpr y x = Gt) (x = y) (cmpr y x = Lt) (cmpr x y);
+      forall x y : A, CompareSpec (x = y) (cmpr y x = Gt) (cmpr y x = Lt) (cmpr x y);
     cmp_spec1 :
       forall x y : A, cmpr x y = Eq -> x = y;
     cmp_spec2 :

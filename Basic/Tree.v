@@ -47,16 +47,6 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
 
 Hint Constructors Elem Elem' isHeap All Any Exists : core.
 
-Hint Extern 0 =>
-match goal with
-    | |- ~ Elem _ E => intro
-    | |- ~ Elem' _ E => intro
-    | H : Elem _ E |- _ => inv H
-    | H : Elem' _ E |- _ => inv H
-    | H : Exists _ [] |- _ => inv H
-end
-  : core.
-
 (** * Induction principles *)
 Fixpoint Tree_rect'
   (A : Type) (P : Tree A -> Type) (Q : list (Tree A) -> Type)
@@ -171,7 +161,7 @@ end.
 Lemma Elem_isEmpty :
   forall (A : Type) (x : A) (t : Tree A),
     isEmpty t = true -> ~ Elem x t.
-Proof. Tree_ind. Qed.
+Proof. Tree_ind. inv 1. Qed.
 
 Lemma isHeap_isEmpty :
   forall (A : Type) (R : A -> A -> Prop) (t : Tree A),

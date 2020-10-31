@@ -39,12 +39,12 @@ Proof.
   intros A x H. eapply trich_lt_antisym; eassumption.
 Qed.
 
-Hint Extern 0 =>
+(* Hint Extern 0 =>
 match goal with
     | H : _ < _ |- _ => apply trich_lt_irrefl in H; contradiction
 end
   : core.
-
+ *)
 Lemma trich_lt_antisym' :
   forall (A : TrichDec) (x y : carrier),
     trich_lt x y -> ~ trich_lt y x.
@@ -93,17 +93,24 @@ Lemma trichb_spec1 :
   forall (A : TrichDec) (x y : carrier),
     trichb x y = Lt <-> trich_lt x y.
 Proof.
-  intros. destruct (trichb_spec x y);
-  subst; firstorder; try congruence.
-    contradict H0. apply trich_lt_antisym. assumption.
+  intros. destruct (trichb_spec x y).
+    subst. split.
+      inv 1.
+      intro. contradict H. apply trich_lt_irrefl.
+    firstorder.
+    split.
+      inv 1.
+      intro. contradict H. apply trich_lt_antisym. assumption.
 Qed.
 
 Lemma trichb_spec2 :
   forall (A : TrichDec) (x y : carrier),
     trichb x y = Eq <-> x = y.
 Proof.
-  intros. destruct (trichb_spec x y);
-  firstorder; subst; auto; congruence.
+  intros. destruct (trichb_spec x y).
+    firstorder.
+    split; inv 1. contradict H. apply trich_lt_irrefl.
+    split; inv 1. contradict H. apply trich_lt_irrefl.
 Qed.
 
 Lemma trichb_spec3 :
@@ -138,7 +145,7 @@ match goal with
 end; dec; cbn; subst; try
 match goal with
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
-    | H : ?x < ?x |- _ => pose (trich_lt_irrefl x); contradiction
+    | H : ?x < ?x |- _ => apply trich_lt_irrefl in H; contradiction
 end; dec.
 
 #[refine]

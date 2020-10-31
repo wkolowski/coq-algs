@@ -23,13 +23,6 @@ Inductive Elem {A : Type} (a : A) : BTree A -> Prop :=
 
 Hint Constructors Elem : core.
 
-Hint Extern 0 =>
-  intros;
-match goal with
-    | H : Elem _ empty |- _ => inversion H
-end
-  : core.
-
 Lemma Elem_node :
   forall {A : Type} (x v : A) (l r : BTree A),
     Elem x (node v l r) <-> x = v \/ Elem x l \/ Elem x r.
@@ -215,7 +208,7 @@ Proof.
   split; destruct t; cbn; intros.
     congruence.
     eauto.
-    inv H.
+    inv H. inv H0.
     reflexivity.
 Qed.
 
@@ -225,6 +218,7 @@ Lemma isEmpty_Elem_true :
 Proof.
   split; destruct t; cbn; firstorder.
     inv 1.
+    congruence.
     contradiction (H c). constructor.
 Qed.
 
@@ -988,7 +982,7 @@ Proof.
   functional induction filterBT p t;
   intros;
     rewrite ?Elem_node, ?IHb, ?IHb0.
-    firstorder.
+    firstorder. inv H.
     firstorder. congruence.
     firstorder.
       congruence.
