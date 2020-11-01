@@ -1,4 +1,4 @@
-Require Export LinDec.
+Require Export TrichDec.
 Require Export RCCBase.
 
 Inductive BinomialTree (A : Type) : nat -> Type :=
@@ -29,20 +29,20 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : LinDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].
     case_eq (x =? y); intros.
-      left. dec.
+      left. trich.
       destruct (elemForest_dec A x _ f).
         left. auto.
         right. inv 1.
-          dec.
+          trich.
           apply inj_pair2 in H4. inv H3.
   destruct f as [| r t f'].
     right. inv 1.
@@ -55,27 +55,27 @@ Proof.
 Defined.
 
 Fixpoint elem_decb
-  {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) : bool :=
+  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) : bool :=
 match t with
     | node x' ts =>
         (x =? x') || elemForest_decb x ts
 end
 with elemForest_decb
-  {A : LinDec} (x : A) {r : nat} (ts : BinomialForest A r) : bool :=
+  {A : TrichDec} (x : A) {r : nat} (ts : BinomialForest A r) : bool :=
 match ts with
     | bfnil => false
     | bfcons h ts' => elem_decb x h || elemForest_decb x ts'
 end.
 
 Lemma elem_decb_spec :
-  forall (A : LinDec) (x : A) (r : nat) (t : BinomialTree A r),
+  forall (A : TrichDec) (x : A) (r : nat) (t : BinomialTree A r),
     reflect (elem x t) (elem_decb x t)
 
 with elemForest_decb_spec :
-  forall (A : LinDec) (x : A) (r : nat) (ts : BinomialForest A r),
+  forall (A : TrichDec) (x : A) (r : nat) (ts : BinomialForest A r),
     reflect (elemForest x ts) (elemForest_decb x ts).
 Proof.
-  destruct t as [x' r ts]. simpl. dec.
+  destruct t as [x' r ts]. simpl. trich.
     destruct (elemForest_decb_spec A x r ts). auto.
       constructor. inv 1. inj. firstorder.
   destruct ts as [| r t ts']; simpl.
@@ -88,18 +88,18 @@ Qed.
 Definition BinomialHeap (A : Type) : Type :=
   list {r : nat & BinomialTree A r}.
 
-Definition link {A : LinDec} {r : nat} (t1 t2 : BinomialTree A r)
+Definition link {A : TrichDec} {r : nat} (t1 t2 : BinomialTree A r)
   : BinomialTree A (S r).
 Proof.
   destruct t1 as [x r ts], t2 as [x' r ts'].
-    destruct (x <=? x').
+    destruct (x ≤? x').
       exact (node x (bfcons (node x' ts') ts)).
       exact (node x' (bfcons (node x ts) ts')).
 Defined.
 
 Lemma link_comm :
-  forall (A : LinDec) (r : nat) (t1 t2 : BinomialTree A r),
+  forall (A : TrichDec) (r : nat) (t1 t2 : BinomialTree A r),
     link t1 t2 = link t2 t1.
 Proof.
-  destruct t1, t2. dec; repeat f_equal.
+  destruct t1, t2. trich; repeat f_equal.
 Abort.

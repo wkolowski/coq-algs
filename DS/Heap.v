@@ -1,12 +1,12 @@
 Require Export RCCBase.
 Require Import BTree.
 Require Import BST.
-Require Export LinDec.
+Require Export TrichDec.
 Require Import Sorting.Sort.
 
 (** * Various heap property definitions and their relations. *)
 
-Inductive isHeap {A : LinDec} : BTree A -> Prop :=
+Inductive isHeap {A : TrichDec} : BTree A -> Prop :=
     | isHeap_empty : isHeap empty
     | isHeap_node :
         forall (v : A) (l r : BTree A),
@@ -50,7 +50,7 @@ repeat match goal with
     | _ => ok
 end.
 
-Inductive isHeap3 {A : LinDec} : BTree A -> Prop :=
+Inductive isHeap3 {A : TrichDec} : BTree A -> Prop :=
     | isHeap3_empty : isHeap3 empty
     | isHeap3_singl : forall v : A, isHeap3 (node v empty empty)
     | isHeap3_l :
@@ -68,21 +68,25 @@ Inductive isHeap3 {A : LinDec} : BTree A -> Prop :=
 Hint Constructors isHeap3 : core.
 
 Lemma isHeap2_isHeap :
-  forall {A : LinDec} (t : BTree A),
-    isHeap2 (@leq A) t <-> isHeap t.
+  forall {A : TrichDec} (t : BTree A),
+    isHeap2 (@trich_le A) t <-> isHeap t.
 Proof.
   split.
     induction 1; constructor; auto.
-      inv IHisHeap2_1; isHeap2; inv 1; dec.
-      inv IHisHeap2_2; isHeap2; inv 1; dec.
+      inv IHisHeap2_1; isHeap2; inv 1; trich.
+        specialize (H3 _ H8). trich.
+        specialize (H5 _ H8). trich.
+      inv IHisHeap2_2; isHeap2; inv 1; trich.
+        specialize (H3 _ H8). trich.
+        specialize (H5 _ H8). trich.
     induction 1; constructor; auto.
       inv IHisHeap1.
       inv IHisHeap2.
 Qed.
 
 Lemma isHeap2_isHeap3 :
-  forall {A : LinDec} (t : BTree A),
-    isHeap2 (@leq A) t <-> isHeap3 t.
+  forall {A : TrichDec} (t : BTree A),
+    isHeap2 (@trich_le A) t <-> isHeap3 t.
 Proof.
   split.
     induction 1.
@@ -94,14 +98,14 @@ Qed.
 (** * Relations between [isHeap] and various [BTree] functions. *)
 
 Lemma isHeap_singleton :
-  forall (A : LinDec) (x : A),
+  forall (A : TrichDec) (x : A),
     isHeap (singleton x).
 Proof.
   intros. unfold singleton. constructor; auto; inv 1.
 Qed.
 
 Lemma isHeap_isEmpty :
-  forall (A : LinDec) (t : BTree A),
+  forall (A : TrichDec) (t : BTree A),
     isEmpty t = true -> isHeap t.
 Proof.
   destruct t; intro.
@@ -111,16 +115,16 @@ Qed.
 
 (** * The rest *)
 
-Definition minmax {A : LinDec} (x y : A) : A * A :=
-  if x <=? y then (x, y) else (y, x).
+Definition minmax {A : TrichDec} (x y : A) : A * A :=
+  if x ≤? y then (x, y) else (y, x).
 
-Definition min {A : LinDec} (x y : A) : A :=
-  if x <=? y then x else y.
+Definition min {A : TrichDec} (x y : A) : A :=
+  if x ≤? y then x else y.
 
-Definition max {A : LinDec} (x y : A) : A :=
-  if y <=? x then x else y.
+Definition max {A : TrichDec} (x y : A) : A :=
+  if y ≤? x then x else y.
 
-Function sendDown {A : LinDec} (x : A) (t : BTree A) : A * BTree A :=
+Function sendDown {A : TrichDec} (x : A) (t : BTree A) : A * BTree A :=
 match t with
     | empty => (x, empty)
     | node v l r =>
@@ -138,7 +142,7 @@ match t with
                     let (m1, m2) := minmax m m' in
                     (m1, node m2 l' empty)
               | node vl _ _, node vr _ _ =>
-                  if vl <=? vr
+                  if vl ≤? vr
                   then
                     let '(m', l') := sendDown M l in
                     let (m1, m2) := minmax m m' in
@@ -151,21 +155,21 @@ match t with
 end.
 
 Lemma minmax_spec :
-  forall (A : LinDec) (a b x y : A),
+  forall (A : TrichDec) (a b x y : A),
     minmax x y = (a, b) -> (a = x /\ b = y) \/ (a = y /\ b = x).
 Proof.
-  intros. unfold minmax in H. dec; inv H.
+  intros. unfold minmax in H. trich; inv H.
 Qed.
 
 Lemma minmax_spec' :
-  forall (A : LinDec) (a b x y : A),
+  forall (A : TrichDec) (a b x y : A),
     minmax x y = (a, b) -> leq a b.
 Proof.
-  intros. unfold minmax in H. dec.
+  intros. unfold minmax in H. trich.
 Qed.
 
 Lemma minmax_spec'' :
-  forall (A : LinDec) (a b x y : A),
+  forall (A : TrichDec) (a b x y : A),
     minmax x y = (a, b) ->
       leq a b /\ (
         (a = x /\ b = y)
@@ -188,7 +192,7 @@ repeat match goal with
     | H : Elem _ empty |- _ => inv H
     | H : Elem _ (node _ empty empty) |- _ => inv H
     | H : (_, _) = (_, _) |- _ => inv H
-    | H : context [_ <=? _] |- _ => dec
+    | H : context [_ ≤? _] |- _ => trich
     | H : (_, _) = (_, _) |- _ => inv H
     | _ => subst; dec
 end.
@@ -202,7 +206,7 @@ end.
 Ltac m := unfold min, max, minmax in *; wut.
 
 Lemma Elem_sendDown :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       x = m \/ Elem x t'.
 Proof.
@@ -212,12 +216,12 @@ Proof.
 Qed.
 
 (* TODO *)Lemma Elem_sendDown2 :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       (x = m (*/\ t = t'*)) \/ Elem x t'.
 Proof.
   intros A x m t. revert m.
-  functional induction sendDown x t; inv 1; dec;
+  functional induction sendDown x t; inv 1; trich;
   try
   match goal with
       | H : sendDown _ _ = _ |- _ =>
@@ -227,7 +231,7 @@ Proof.
 Qed.
 
 Lemma Elem_sendDown' :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       forall y : A, Elem y t ->
         y = m \/ Elem y t'.
@@ -239,7 +243,7 @@ Proof.
 Qed.
 
 (* TODO *) Lemma Elem_sendDown'' :
-  forall (A : LinDec) (x m y : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> Elem y t ->
       (x = m (*/\ t = t' TODO *)) \/
       (y = m /\ Elem x t').
@@ -260,7 +264,7 @@ Proof.
 *)
 Admitted.
 
-Function makeHeap {A : LinDec} (t : BTree A) : BTree A :=
+Function makeHeap {A : TrichDec} (t : BTree A) : BTree A :=
 match t with
     | empty => empty
     | node v l r =>
@@ -271,28 +275,28 @@ match t with
             | l', empty =>
                 let '(m, l'') := sendDown v l' in node m l'' empty
             | node vl _ _ as l', node vr _ _ as r' =>
-                if vl <=? vr
+                if vl ≤? vr
                 then let '(m, l'') := sendDown v l' in node m l'' r'
                 else let '(m, r'') := sendDown v r' in node m l' r''
         end
 end.
 
 Lemma minmax_leq :
-  forall (A : LinDec) (x y m M : A),
+  forall (A : TrichDec) (x y m M : A),
     minmax x y = (m, M) -> m ≤ M.
 Proof.
-  unfold minmax. intros. dec.
+  unfold minmax. intros. trich.
 Qed.
 
 Lemma leq_min_max :
-  forall (A : LinDec) (x y : A),
+  forall (A : TrichDec) (x y : A),
     min x y ≤ max x y.
 Proof.
-  unfold min, max. intros. dec.
+  unfold min, max. intros. trich.
 Qed.
 
 Lemma isHeap_Elem :
-  forall (A : LinDec) (x y v : A) (l r : BTree A),
+  forall (A : TrichDec) (x y v : A) (l r : BTree A),
     Elem y (node v l r) -> isHeap (node v l r) ->
       x ≤ v -> x ≤ y.
 Proof.
@@ -300,14 +304,14 @@ Proof.
   induction H; intros; inv Heqt.
     destruct l0.
       inv H.
-      inv H0; eapply IHElem; dec.
+      inv H0; eapply IHElem; trich.
     destruct r0.
       inv H.
-      inv H0; eapply IHElem; dec.
+      inv H0; eapply IHElem; trich.
 Qed.
 
 Lemma sendDown_spec1 :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> isHeap t ->
       t = empty /\ t' = empty \/
       exists (v : A) (l r : BTree A),
@@ -344,7 +348,7 @@ Proof.
   end.
 
 (*   try assumption;
-  unfold max, minmax in *; dec; inv e0; dec.  dec. clear H4.
+  unfold max, minmax in *; trich; inv e0; trich.  dec. clear H4.
  *)
 Admitted.
 
@@ -358,7 +362,7 @@ Proof.
 Qed.
 
 Lemma sendDown_spec2 :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> isHeap t ->
       forall a : A, Elem a t -> m ≤ a.
 Proof.
@@ -376,11 +380,11 @@ Proof.
   end.
   intros A x m t. revert m.
   functional induction @sendDown A x t; intros;
-  wut'; inv H1; wut2; dec.
+  wut'; inv H1; wut2; trich.
 Qed.
 
 Lemma sendDown_spec2' :
-  forall (A : LinDec) (x m : A) (t t' : BTree A),
+  forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       isHeap2 A t -> isHeap2 A t'.
 Proof.
@@ -399,7 +403,7 @@ Proof.
 Admitted.
 
 Lemma isHeap_makeHeap :
-  forall (A : LinDec) (t : BTree A),
+  forall (A : TrichDec) (t : BTree A),
     isHeap (makeHeap t).
 Proof.
   intros. functional induction makeHeap t;
@@ -426,7 +430,7 @@ Proof.
       | H : sendDown  _ _ = _ |- _ => apply Elem_sendDown in H
       | H : isHeap (node _ _ _) |- _ => inv H
   end.
-    inv e2; inv H; dec.
-    inv e2; inv H; dec.
-    inv e2; inv H; dec.
+    inv e2; inv H; trich.
+    inv e2; inv H; trich.
+    inv e2; inv H; trich.
 Admitted.

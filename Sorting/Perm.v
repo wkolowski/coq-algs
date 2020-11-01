@@ -1,6 +1,6 @@
 Require Export RCCBase.
 
-Require Export LinDec.
+Require Export TrichDec.
 
 Require Export Sorting.ListLemmas.
 Require Import TrichDec.
@@ -170,15 +170,17 @@ Proof.
 Qed.
 
 Lemma Exists_dec :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Exists (fun y => y = x) l <->
     Exists (fun y => y =? x = true) l.
 Proof.
-  split; induction 1; subst; dec. left. dec.
+  split; induction 1; subst; auto.
+    left. trich.
+    trich.
 Qed.
 
 Lemma perm_In :
-  forall (A : LinDec) (x : A) (l l' : list A),
+  forall (A : TrichDec) (x : A) (l l' : list A),
     In x l -> perm l l' -> In x l'.
 Proof.
   intros. rewrite In_Exists, Exists_dec in *.
@@ -192,13 +194,13 @@ Proof.
 Defined.
 
 Lemma perm_singl :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     perm [x] l -> l = [x].
 Proof.
   unfold perm; destruct l as [| h1 [| h2 t]]; cbn; intros.
     specialize (H (fun _ => true)). cbn in H. inversion H.
-    specialize (H (fun y => y =? h1)). cbn in H. dec.
-    assert (H1 := H (fun y => y =? h1)). assert (H2 := H (fun y => y =? h2)). cbn in *. dec.
+    specialize (H (fun y => y =? h1)). cbn in H. trich.
+    assert (H1 := H (fun y => y =? h1)). assert (H2 := H (fun y => y =? h2)). cbn in *. trich.
 Qed.
 
 Lemma perm_cons_inv :
@@ -213,29 +215,29 @@ Proof.
 Qed.
 
 Lemma removeFirst_In_perm :
-  forall (A : LinDec) (p : A -> bool) (x : A) (l : list A),
+  forall (A : TrichDec) (p : A -> bool) (x : A) (l : list A),
     In x l -> p x = true ->
       perm l (x :: removeFirst (fun y => y =? x) l).
 Proof.
-  induction l as [| h t]; cbn; inv 1; dec.
-    specialize (IHt H0). rewrite <- perm_swap.
-      apply perm_cons. apply IHt. assumption.
-      reflexivity.
+  induction l as [| h t]; cbn; inv 1; trich.
+  intro. rewrite perm_swap.
+    apply perm_cons, IHt; assumption.
+    reflexivity.
 Qed.
 
 Lemma perm_In' :
-  forall (A : LinDec) (h : A) (t l : list A),
+  forall (A : TrichDec) (h : A) (t l : list A),
     perm (h :: t) l -> In h l.
 Proof.
-  intros. rewrite In_Exists, Exists_dec, count_In, <- H. cbn. dec.
+  intros. rewrite In_Exists, Exists_dec, count_In, <- H. cbn. trich.
 Qed.
 
 Lemma count_removeFirst_neq :
-  forall (A : LinDec) (x y : A) (l : list A),
+  forall (A : TrichDec) (x y : A) (l : list A),
     x <> y -> count (fun z => z =? x) (removeFirst (fun z => z =? y) l) =
               count (fun z => z =? x) l.
 Proof.
-  induction l as [| h t]; cbn; intros; dec; dec.
+  induction l as [| h t]; cbn; intros; trich; trich.
 Qed.
 
 Lemma count_removeFirst_In :
@@ -251,7 +253,7 @@ Proof.
 Qed.
 
 Lemma perm_removeFirst :
-  forall (A : LinDec) (h h' : A) (t t' : list A),
+  forall (A : TrichDec) (h h' : A) (t t' : list A),
     h <> h' -> perm (h :: t) (h' :: t') ->
       perm (h :: removeFirst (fun x => x =? h') t) t'.
 Proof.
@@ -260,16 +262,16 @@ Proof.
     symmetry in H0. apply perm_In' in H0. cbn in H0. destruct H0.
       congruence.
       assumption.
-    unfold perm. intro. cbn. destruct (p h) eqn: Heq; dec.
+    unfold perm. intro. cbn. destruct (p h) eqn: Heq; trich.
       rewrite count_removeFirst_neq.
-        red in H0. specialize (H0 x). cbn in H0. dec.
+        red in H0. specialize (H0 x). cbn in H0. trich.
         assumption.
-      destruct (x =? h') eqn: Heq'; dec.
+      destruct (x =? h') eqn: Heq'; trich.
         rewrite count_removeFirst_In.
-          red in H0. specialize (H0 h'). cbn in H0. dec.
+          red in H0. specialize (H0 h'). cbn in H0. trich.
           rewrite <- Exists_dec, <- In_Exists. assumption.
         rewrite count_removeFirst_neq.
-          red in H0. specialize (H0 x). cbn in H0. dec.
+          red in H0. specialize (H0 x). cbn in H0. trich.
           assumption.
 *)
 Admitted.
@@ -284,10 +286,10 @@ Proof.
   induction l as [| h' t']; cbn; intros.
     apply perm_nil_cons in H. contradiction.
     destruct (h =? h') eqn: Heq.
-      dec. exists [], t'. cbn. split.
+      trich. exists [], t'. cbn. split.
         reflexivity.
         apply perm_cons_inv in H. rewrite H. reflexivity.
-      dec. assert (perm (h :: removeFirst (fun x => x =? h') t) t').
+      trich. assert (perm (h :: removeFirst (fun x => x =? h') t) t').
         apply perm_removeFirst; assumption.
         destruct (IHt' h (removeFirst (fun x => x =? h') t) H0)
         as (l1 & l2 & H1 & H2).
@@ -299,7 +301,7 @@ Proof.
                 apply perm_cons_inv in H. eapply perm_In.
                   Focus 2. rewrite H. reflexivity.
                   apply in_or_app. right. left. reflexivity.
-                  dec.
+                  trich.
 *)
 Admitted.
 
@@ -329,7 +331,7 @@ Print Assumptions perm_Permutation.
 (** Moved from ListLemmas to avoid circularity. *)
 
 Lemma perm_min_front :
-  forall (A : LinDec) (h : A) (t : list A),
+  forall (A : TrichDec) (h : A) (t : list A),
     let m := min_dflt A h t in
       perm (m :: removeFirst (fun x => x =? m) (h :: t)) (h :: t).
 Proof.

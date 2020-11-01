@@ -8,10 +8,10 @@ end.
 
 Definition toList' {A : Type} (t : RBTree A) : list A := toList'_aux t [].
 
-Definition fromList' {A : LinDec} (l : list A) : RBTree A :=
+Definition fromList' {A : TrichDec} (l : list A) : RBTree A :=
   fold_left (fun t x => ins x t) l E.
 
-Definition fromList'' {A : LinDec} (l : list A) : RBTree A :=
+Definition fromList'' {A : TrichDec} (l : list A) : RBTree A :=
   fold_right (fun h t => ins h t) E l.
 
 Lemma toList'_aux_spec :
@@ -32,7 +32,7 @@ Qed.
 Require Import ListLemmas.
 
 #[refine]
-Instance Sort_redblackSort (A : LinDec) : Sort A :=
+Instance Sort_redblackSort (A : TrichDec) : Sort A :=
 {
     sort := @redblackSort A;
     Sorted_sort := @Sorted_redblackSort A;

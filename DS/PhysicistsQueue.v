@@ -1,10 +1,8 @@
-
-
 Require Import RCCBase.
 
 Require Import CoqMTL.Control.Monad.Lazy.
 
-Require Import Structures.LinDec.
+Require Import Structures.TrichDec.
 
 Definition Queue (A : Type) : Type :=
   list A * nat * Lazy (list A) * nat * list A.
@@ -28,7 +26,7 @@ end.
 
 Definition queue {A : Type} (q : Queue A) : Queue A :=
   let '(w, lenf, f, lenr, r) := q in
-  if @leqb natle lenr lenf
+  if @trich_leb natlt lenr lenf
   then checkw q
   else
     let
@@ -142,8 +140,9 @@ Proof.
       firstorder.
         rewrite app_length. cbn. rewrite rev_length. lia.
         lia.
-    firstorder. case_eq (leb lenr lenf'); intros.
-      apply leb_complete in H3. destruct w; cbn; firstorder; lia.
+    firstorder. unfold trich_leb. destruct (@cmp_spec natlt (S lenr) (S lenf')).
+      destruct w; cbn; firstorder; lia.
+      destruct w; cbn; firstorder; cbn in *; lia.
       destruct (force f); cbn in *; firstorder; try lia.
         rewrite !app_length, rev_length. cbn. lia.
 Qed.
@@ -159,17 +158,19 @@ Lemma tail_isQueue :
 Proof.
   q; cbn in *. destruct w.
     inv H.
-    case_eq (leb lenr (pred lenf)); intro; rewrite H1 in *.
+    unfold trich_leb in H. destruct (@cmp_spec natlt lenr (pred lenf)).
       destruct w; inv H; rewrite force_delay; firstorder.
         destruct (force f); cbn in *; subst; auto.
-        apply leb_complete in H1. auto.
         inv H.
-        inv H. rewrite <- H7. cbn. reflexivity.
-        apply leb_complete in H1. auto.
+        inv H. rewrite <- H6 in *. cbn in *. lia.
+      destruct w; inv H; rewrite force_delay; firstorder.
+        destruct (force f); cbn in *; subst; auto.
+        inv H. rewrite <- H7 in *. cbn in *. lia.
+        inv H.
+        inv H. inv H5. rewrite <- H7 in *. cbn in *. lia.
+        inv H. inv H5. rewrite <- H7 in *. cbn in *. lia.
       rewrite !force_delay in *. destruct (force f); cbn in *; inv H.
-        firstorder. rewrite force_delay, rev_length.
-          apply leb_complete_conv in H1. lia.
-        lia.
+        inv H0. inv H.
         destruct l; inv H3; firstorder; try lia; rewrite force_delay; inv H.
           rewrite rev_length. cbn. reflexivity.
           cbn. rewrite app_length, rev_length. reflexivity.

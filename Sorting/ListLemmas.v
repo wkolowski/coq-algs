@@ -1,6 +1,6 @@
 (*Require Import Sorting.Sort.*)
 Require Export RCCBase.
-Require Export LinDec.
+Require Export TrichDec.
 
 Require Import Div2.
 
@@ -56,8 +56,11 @@ Lemma removeFirst_In_lt :
     Exists (fun x => p x = true) l ->
       length (removeFirst p l) < length l.
 Proof.
-  intros. functional induction @removeFirst A p l; inv H; cbn.
-    apply lt_n_S. auto.
+  intros.
+  functional induction @removeFirst A p l;
+  inv H; cbn in *.
+    1-2: lia.
+    specialize (IHl0 H1). lia.
 Qed.
 
 Lemma In_Exists :
@@ -82,26 +85,26 @@ Proof.
     induction l; firstorder (subst; auto).
 Qed.
 
-Definition min_dflt (A : LinDec) (d : A) (l : list A) : A :=
-    fold_right (fun x y => if x <=? y then x else y) d l.
+Definition min_dflt (A : TrichDec) (d : A) (l : list A) : A :=
+    fold_right (fun x y => if x ≤? y then x else y) d l.
 
 Lemma min_split :
-  forall (A : LinDec) (h : A) (t : list A),
+  forall (A : TrichDec) (h : A) (t : list A),
     exists l1 l2 : list A,
       h :: t = l1 ++ min_dflt A h t :: l2 /\
       l1 ++ l2 = removeFirst (fun x => x =? min_dflt A h t) (h :: t).
 Proof.
   induction t as [| h' t']; intros.
-    exists [], []. cbn. dec.
-    simpl. dec; subst; cbn.
-      exists [h'], t'. dec.
-      exists [], (h' :: t'). rewrite <- e. dec.
-      exists [h], t'. cbn. dec.
+    exists [], []. cbn. trich.
+    simpl. trich.
+      exists [h'], t'. trich.
+      exists [h], t'. cbn. trich.
+      exists [], (h' :: t'). split; trich.
       destruct IHt' as [l1 [l2 [IH IH']]]. destruct l1.
         inv IH.
         exists (h :: h' :: l1), l2. split.
-          inv IH. dec.
-          cbn in IH'. dec.
+          inv IH. trich.
+          cbn in IH'. trich.
 Qed.
 
 (* Quicksort lemmas *)
@@ -171,7 +174,7 @@ Lemma trifilter_spec :
   forall (A : TrichDec) (pivot : A) (l : list A),
     trifilter pivot l =
       (filter (fun x : A => x <? pivot) l,
-       filter (fun x : A => x ==? pivot) l,
+       filter (fun x : A => x =? pivot) l,
        filter (fun x : A => pivot <? x) l).
 Proof.
 (*

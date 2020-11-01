@@ -1,4 +1,4 @@
-Require Export LinDec.
+Require Export TrichDec.
 Require Export RCCBase.
 
 Inductive Tree (A : Type) : Type :=
@@ -55,27 +55,28 @@ match t with
     | T _ x _ => x
 end.
 
-Function link {A : LinDec} (t1 t2 : Tree A) : Tree A :=
+Function link {A : TrichDec} (t1 t2 : Tree A) : Tree A :=
 match t1, t2 with
     | T r1 x ts1, T r2 y ts2 =>
-        if x <=? y
+        if x ≤? y
         then T (S r1) x (t2 :: ts1)
         else T (S r2) y (t1 :: ts2)
 end.
 
-Fixpoint insTree {A : LinDec} (t : Tree A) (h : Heap A) : Heap A :=
+Fixpoint insTree {A : TrichDec} (t : Tree A) (h : Heap A) : Heap A :=
 match h with
     | [] => [t]
     | t' :: h' =>
-        if rank t <? rank t'
+        (* if rank t <? rank t' *)
+        if @trich_ltb natlt (rank t) (rank t')
         then t :: h
         else insTree (link t t') h'
 end.
 
-Definition insert {A : LinDec} (x : A) (h : Heap A) : Heap A :=
+Definition insert {A : TrichDec} (x : A) (h : Heap A) : Heap A :=
   insTree (T 0 x []) h.
 
-Fixpoint merge {A : LinDec} (h1 h2 : Heap A) : Heap A :=
+Fixpoint merge {A : TrichDec} (h1 h2 : Heap A) : Heap A :=
 match h1 with
     | [] => h2
     | t1 :: h1' =>
@@ -84,10 +85,12 @@ match h1 with
           match h2 with
               | [] => h1
               | t2 :: h2' =>
-                  if rank t1 <? rank t2
+                  (* if rank t1 <? rank t2 *)
+                  if @trich_ltb natlt (rank t1) (rank t2)
                   then t1 :: merge h1' h2
                   else
-                    if rank t2 <? rank t1
+                    (* if rank t2 <? rank t1 *)
+                    if @trich_ltb natlt (rank t2) (rank t1)
                     then t2 :: aux h2'
                     else insTree (link t1 t2) (merge h1' h2')
           end
@@ -95,7 +98,7 @@ match h1 with
 end.
 
 Function removeMinTree
-  {A : LinDec} (h : Heap A) : option (Tree A * Heap A) :=
+  {A : TrichDec} (h : Heap A) : option (Tree A * Heap A) :=
 match h with
     | [] => None
     | [t] => Some (t, [])
@@ -103,25 +106,25 @@ match h with
         match removeMinTree h' with
             | None => None
             | Some (t', h'') =>
-                if (root t <=? root t') && negb (root t =? root t')
+                if (root t ≤? root t') && negb (root t =? root t')
                 then Some (t, h')
                 else Some (t', t :: h'')
         end
 end.
 
-Definition findMin {A : LinDec} (h : Heap A) : option A :=
+Definition findMin {A : TrichDec} (h : Heap A) : option A :=
 match removeMinTree h with
     | None => None
     | Some (t, _) => Some (root t)
 end.
 
-Definition deleteMin {A : LinDec} (h : Heap A) : option (Heap A) :=
+Definition deleteMin {A : TrichDec} (h : Heap A) : option (Heap A) :=
 match removeMinTree h with
     | None => None
     | Some (T _ x h1, h2) => Some (merge (rev h1) h2)
 end.
 
-Definition unMin {A : LinDec} (h : Heap A) : option (A * Heap A) :=
+Definition unMin {A : TrichDec} (h : Heap A) : option (A * Heap A) :=
 match removeMinTree h with
     | None => None
     | Some (T _ x h1, h2) => Some (x, merge h1 h2)
@@ -130,7 +133,7 @@ end.
 (** spec of merge *)
 
 Lemma merge_spec :
-  forall (A : LinDec) (h1 h2 : Heap A),
+  forall (A : TrichDec) (h1 h2 : Heap A),
     merge h1 h2 =
     match h1, h2 with
         | [], _ => h2
@@ -150,7 +153,7 @@ Qed.
 (** Properties of [isEmpty]. *)
 
 Lemma isEmpty_elem :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = true <-> forall x : A, ~ elem x h.
 Proof.
   split; intro.
@@ -167,7 +170,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_elemHeap :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = true <-> forall x : A, ~ elemHeap x h.
 Proof.
   split; intro.
@@ -179,21 +182,21 @@ Proof.
 Qed.
 
 Lemma isEmpty_empty_false :
-  forall {A : LinDec} (h : Heap A),
+  forall {A : TrichDec} (h : Heap A),
     isEmpty h = false <-> h <> empty.
 Proof.
   destruct h; compute; firstorder congruence.
 Qed.
 
 Lemma isEmpty_empty_true :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = true <-> h = empty.
 Proof.
   destruct h; compute; firstorder congruence.
 Qed.
 
 Lemma isEmpty_insTree :
-  forall (A : LinDec) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h : Heap A),
     isEmpty (insTree t h) = false.
 Proof.
   intros A t h; gen t.
@@ -207,14 +210,14 @@ Proof.
 Qed.
 
 Lemma isEmpty_insert :
-  forall {A : LinDec} (x : A) (h : Heap A),
+  forall {A : TrichDec} (x : A) (h : Heap A),
     isEmpty (insert x h) = false.
 Proof.
   intros. unfold insert. apply isEmpty_insTree.
 Qed.
 
 Lemma isEmpty_merge :
-  forall {A : LinDec} (h1 h2 : Heap A),
+  forall {A : TrichDec} (h1 h2 : Heap A),
     isEmpty (merge h1 h2) = isEmpty h1 && isEmpty h2.
 Proof.
   destruct h1, h2; rewrite merge_spec; cbn; auto.
@@ -226,14 +229,14 @@ Proof.
 Qed.
 
 Lemma isEmpty_removeMinTree_false :
-  forall (A : LinDec) (t : Tree A) (h h' : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h h' : Heap A),
     removeMinTree h = Some (t, h') -> isEmpty h = false.
 Proof.
   intros. destruct h; cbn in *; congruence.
 Qed.
 
 Lemma isEmpty_removeMinTree_false' :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = false <->
     exists (t : Tree A) (h' : Heap A), removeMinTree h = Some (t, h').
 Proof.
@@ -247,7 +250,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_removeMinTree_true :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     removeMinTree h = None <-> isEmpty h = true.
 Proof.
   split.
@@ -257,7 +260,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_unMin_false :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = false <->
     exists (m : A) (h' : Heap A), unMin h = Some (m, h').
 Proof.
@@ -271,7 +274,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_unMin_true :
-  forall (A : LinDec) (h : Heap A),
+  forall (A : TrichDec) (h : Heap A),
     isEmpty h = true <-> unMin h = None.
 Proof.
   unfold unMin; split; intros.
@@ -284,22 +287,22 @@ Qed.
 (** Properties of [link]. *)
 
 Lemma link_elemTree :
-  forall (A : LinDec) (x : A) (t1 t2 : Tree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : Tree A),
     elemTree x (link t1 t2) <-> elemTree x t1 \/ elemTree x t2.
 Proof.
   split.
-    destruct t1, t2; cbn; intro; dec.
+    destruct t1, t2; cbn; intro; trich.
       inv H. inv H4. eauto.
       inv H. inv H6. eauto.
     inv 1.
-      destruct t1, t2; cbn; dec.
+      destruct t1, t2; cbn; trich.
         inv H0. eapply elemTree_child; cbn; eauto.
         inv H0.
           eapply elemTree_child; cbn; eauto.
           eapply elemTree_child with (T n c l).
             econstructor; eauto.
             left. reflexivity.
-      destruct t1, t2; cbn; dec.
+      destruct t1, t2; cbn; trich.
         inv H0.
           eapply elemTree_child; cbn; eauto.
           eapply elemTree_child with (T n0 c0 l0).
@@ -325,14 +328,14 @@ repeat match goal with
 end; auto.
 
 Lemma link_elemTree' :
-  forall (A : LinDec) (x : A) (t1 t2 : Tree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : Tree A),
     elemTree' x (link t1 t2) <-> elemTree' x t1 \/ elemTree' x t2.
 Proof.
-  split; destruct t1, t2; cbn; intros; dec; tree'.
+  split; destruct t1, t2; cbn; intros; trich; tree'.
 Qed.
 
 Lemma insTree_elemHeap :
-  forall (A : LinDec) (h : Heap A) (x : A) (t : Tree A),
+  forall (A : TrichDec) (h : Heap A) (x : A) (t : Tree A),
     elemHeap x (insTree t h) <-> elemTree' x t \/ elemHeap x h.
 Proof.
   split; revert x t.
@@ -343,14 +346,14 @@ Proof.
 Qed.
 
 Lemma insert_elemTree' :
-  forall (A : LinDec) (x : A) (h : Heap A),
+  forall (A : TrichDec) (x : A) (h : Heap A),
     elemHeap x (insert x h).
 Proof.
   intros. unfold insert. rewrite insTree_elemHeap. auto.
 Qed.
 
 Lemma merge_elemHeap :
-  forall (A : LinDec) (x : A) (h1 h2 : Heap A),
+  forall (A : TrichDec) (x : A) (h1 h2 : Heap A),
     elemHeap x (merge h1 h2) <-> elemHeap x h1 \/ elemHeap x h2.
 Proof.
   split; gen h2.
@@ -364,7 +367,7 @@ Proof.
 Qed.
 
 Lemma removeMinTree_elemHeap :
-  forall (A : LinDec) (x : A) (t : Tree A) (h h' : Heap A),
+  forall (A : TrichDec) (x : A) (t : Tree A) (h h' : Heap A),
     removeMinTree h = Some (t, h') ->
       elemHeap x h <-> elemTree' x t \/ elemHeap x h'.
 Proof.
@@ -377,7 +380,7 @@ Proof.
 Qed.
 
 Lemma unMin_elemHeap :
-  forall (A : LinDec) (x m : A) (h h' : Heap A),
+  forall (A : TrichDec) (x m : A) (h h' : Heap A),
     unMin h = Some (m, h') ->
       elemHeap x h <-> x = m \/ elemHeap x h'.
 Proof.
@@ -395,7 +398,7 @@ Proof.
 Qed.
 
 Lemma removeMinTree_insTree :
-  forall (A : LinDec) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h : Heap A),
     removeMinTree (insTree t h) <> None.
 Proof.
   repeat intro. apply isEmpty_removeMinTree_true in H.
@@ -403,7 +406,7 @@ Proof.
 Qed.
 
 Lemma unMin_insTree :
-  forall (A : LinDec) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h : Heap A),
     unMin (insTree t h) <> None.
 Proof.
   intros. unfold unMin.
@@ -413,14 +416,14 @@ Proof.
 Qed.
 
 Lemma unMin_insert :
-  forall (A : LinDec) (x : A) (h : Heap A),
+  forall (A : TrichDec) (x : A) (h : Heap A),
     unMin (insert x h) <> None.
 Proof.
   intros. unfold insert. apply unMin_insTree.
 Qed.
 
 Lemma unMin_merge :
-  forall (A : LinDec) (h1 h2 : Heap A),
+  forall (A : TrichDec) (h1 h2 : Heap A),
     unMin (merge h1 h2) = None <->
     unMin h1 = None /\ unMin h2 = None.
 Proof.
@@ -430,34 +433,34 @@ Qed.
 
 (** Counting shiet. *)
 
-Fixpoint count_Tree {A : LinDec} (x : A) (t : Tree A) : nat :=
+Fixpoint count_Tree {A : TrichDec} (x : A) (t : Tree A) : nat :=
 match t with
     | T _ x' l =>
         (if x =? x' then S else id)
           (fold_right (fun t ts => count_Tree x t + ts) 0 l)
 end.
 
-Definition count_Heap {A : LinDec} (x : A) (h : Heap A) : nat :=
+Definition count_Heap {A : TrichDec} (x : A) (h : Heap A) : nat :=
   fold_right (fun t ts => count_Tree x t + ts) 0 h.
 
 Lemma isEmpty_count_Tree :
-  forall (A : LinDec) (t : Tree A),
+  forall (A : TrichDec) (t : Tree A),
     isEmpty [t] = true <-> forall x : A, count_Tree x t = 0.
 Proof.
   split; cbn; intros.
     congruence.
-    specialize (H (root t)). destruct t. cbn in H. dec.
+    specialize (H (root t)). destruct t. cbn in H. trich.
 Qed.
 
 Lemma count_Tree_link :
-  forall (A : LinDec) (x : A) (t1 t2 : Tree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : Tree A),
     count_Tree x (link t1 t2) = count_Tree x t1 + count_Tree x t2.
 Proof.
-  destruct t1, t2. cbn. do 2 dec; unfold id; lia.
+  destruct t1, t2. cbn. do 2 trich; unfold id; lia.
 Qed.
 
 Lemma insTree_Some :
-  forall (A : LinDec) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h : Heap A),
     exists (t' : Tree A) (h' : Heap A),
       insTree t h = t' :: h'.
 Proof.
@@ -465,7 +468,7 @@ Proof.
 Qed.
 
 Lemma count_Heap_insTree :
-  forall (A : LinDec) (x : A) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (x : A) (t : Tree A) (h : Heap A),
     count_Heap x (insTree t h) = count_Tree x t + count_Heap x h.
 Proof.
   intros A x t h; gen t; gen x.
@@ -476,11 +479,11 @@ Proof.
 Qed.
 
 Lemma count_Heap_insert :
-  forall (A : LinDec) (x y : A) (h : Heap A),
+  forall (A : TrichDec) (x y : A) (h : Heap A),
     count_Heap x (insert y h) =
     (if x =? y then S else id) (count_Heap x h).
 Proof.
-  intros. unfold insert. rewrite count_Heap_insTree. cbn. dec.
+  intros. unfold insert. rewrite count_Heap_insTree. cbn. trich.
 Qed.
 
 Inductive validTree' {A : Type} : nat -> Tree A -> Prop :=
@@ -499,7 +502,7 @@ with validForest {A : Type} : nat -> list (Tree A) -> Prop :=
 Definition validTree {A : Type} (t : Tree A) : Prop :=
   validTree' (rank t) t.
 
-Inductive heapOrdered {A : LinDec} : Tree A -> Prop :=
+Inductive heapOrdered {A : TrichDec} : Tree A -> Prop :=
     | heapOrderedC :
         forall (r : nat) (x : A) (l : list (Tree A)),
           Forall (fun t => x ≤ root t /\ heapOrdered t) l ->
@@ -507,13 +510,13 @@ Inductive heapOrdered {A : LinDec} : Tree A -> Prop :=
 
 Hint Constructors validTree' validForest heapOrdered : core.
 
-Definition isHeap {A : LinDec} (h : Heap A) : Prop :=
+Definition isHeap {A : TrichDec} (h : Heap A) : Prop :=
   Forall (fun t => validTree t /\ heapOrdered t) h.
 
 Hint Unfold validTree isHeap : core.
 
 Lemma empty_isHeap :
-  forall A : LinDec, isHeap (@empty A).
+  forall A : TrichDec, isHeap (@empty A).
 Proof.
   intro. unfold isHeap, empty. constructor.
 Qed.
@@ -521,22 +524,22 @@ Qed.
 Require Import Max.
 
 Lemma link_validTree' :
-  forall (A : LinDec) (t1 t2 : Tree A) (r : nat),
+  forall (A : TrichDec) (t1 t2 : Tree A) (r : nat),
     validTree' r t1 -> validTree' r t2 ->
       validTree' (S r) (link t1 t2).
 Proof.
-  do 2 inv 1; dec.
+  do 2 inv 1; trich.
 Admitted.
 
 Lemma rank_link :
-  forall (A : LinDec) (t1 t2 : Tree A),
+  forall (A : TrichDec) (t1 t2 : Tree A),
     rank (link t1 t2) = 1 + rank t1.
 Proof.
-  destruct t1, t2. cbn. dec.
+  destruct t1, t2. cbn. trich.
 Admitted.
 
 Lemma insTree_isHeap :
-  forall (A : LinDec) (t : Tree A) (h : Heap A),
+  forall (A : TrichDec) (t : Tree A) (h : Heap A),
     validTree t -> heapOrdered t -> isHeap h ->
       isHeap (insTree t h).
 Proof.

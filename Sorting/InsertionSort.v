@@ -2,17 +2,17 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Fixpoint ins (A : LinDec) (x : A) (l : list A) : list A :=
+Fixpoint ins (A : TrichDec) (x : A) (l : list A) : list A :=
 match l with
     | [] => [x]
-    | h :: t => if x <=? h then x :: h :: t else h :: (ins A x t)
+    | h :: t => if x ≤? h then x :: h :: t else h :: (ins A x t)
 end.
 
-Definition insertionSort (A : LinDec) (l : list A)
+Definition insertionSort (A : TrichDec) (l : list A)
   : list A := fold_right (ins A) [] l.
 
 Lemma perm_ins :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     perm (x :: l) (ins A x l).
 Proof.
   unfold perm; intros. induction l.
@@ -24,25 +24,25 @@ Proof.
 Qed.
 
 Lemma Permutation_ins :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Permutation (ins A x l) (x :: l).
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
-    destruct (x <=? h).
+    destruct (x ≤? h).
       reflexivity.
       rewrite IHt. constructor.
 Qed.
 
 Lemma Sorted_ins :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Sorted A l -> Sorted A (ins A x l).
 Proof.
-  induction 1; cbn in *; dec.
+  induction 1; cbn in *; trich.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort (A : LinDec) : Sort A :=
+Instance Sort_insertionSort (A : TrichDec) : Sort A :=
 {
     sort := insertionSort A
 }.
@@ -68,18 +68,18 @@ Definition insertionSort'
     fold_right (ins' cmp) [] l.
 
 Lemma perm_ins' :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     perm (x :: l) (ins' (@leqb A) x l).
 Proof.
   unfold perm. induction l; cbn; intros.
     reflexivity.
     unfold ins'; destruct (leqb x a); fold (@ins' A).
       reflexivity.
-      dec; rewrite <- IHl; cbn. destruct (p a), (p x); reflexivity.
+      trich; rewrite <- IHl; cbn. destruct (p a), (p x); reflexivity.
 Qed.
 
 Lemma Permutation_ins' :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Permutation (ins' (@leqb A) x l) (x :: l).
 Proof.
   unfold perm. induction l; cbn; intros.
@@ -90,14 +90,14 @@ Proof.
 Qed.
 
 Lemma Sorted_ins' :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Sorted A l -> Sorted A (ins' (@leqb A) x l).
 Proof.
-  induction 1; cbn in *; dec.
+  induction 1; cbn in *; trich.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort' (A : LinDec) : Sort A :=
+Instance Sort_insertionSort' (A : TrichDec) : Sort A :=
 {
     sort := insertionSort' (@leqb A)
 }.

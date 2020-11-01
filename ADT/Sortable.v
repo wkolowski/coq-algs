@@ -1,7 +1,7 @@
 Require Import Recdef Div2.
 
 Require Import RCCBase.
-Require Import Structures.LinDec.
+Require Import Structures.TrichDec.
 Require Import Sorting.Sort.
 Require Import Sorting.MergeSort.
 
@@ -11,49 +11,49 @@ Require Import CoqMTL.Control.Monad.Lazy.
 
 Module Type Sortable.
 
-Parameter Sortable : LinDec -> Type.
+Parameter Sortable : TrichDec -> Type.
 
 Parameter empty :
-  forall {A : LinDec}, Sortable A.
+  forall {A : TrichDec}, Sortable A.
 
 Parameter add :
-  forall {A : LinDec}, A -> Sortable A -> Sortable A.
+  forall {A : TrichDec}, A -> Sortable A -> Sortable A.
 
 Parameter sort :
-  forall {A : LinDec}, Sortable A -> list A.
+  forall {A : TrichDec}, Sortable A -> list A.
 
 Parameter Sorted_sort :
-  forall {A : LinDec} (s : Sortable A),
+  forall {A : TrichDec} (s : Sortable A),
     Sorted A (sort s).
 
 End Sortable.
 
 Module Sortable_BottomUpMergesortWithSharing.
 
-Definition Sortable (A : LinDec) : Type :=
+Definition Sortable (A : TrichDec) : Type :=
   nat * Lazy (list (list A)).
 
-Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
+Definition isValid {A : TrichDec} (s : Sortable A) : Prop :=
   Forall (Sorted A) (force (snd s)).
 
-Definition empty {A : LinDec} : Sortable A :=
+Definition empty {A : TrichDec} : Sortable A :=
   (0, delay []).
 
-Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
+Definition merge {A : TrichDec} (l1 l2 : list A) : list A :=
   Sorting.MergeSort.merge A (l1, l2).
 
-Definition lt_Sortable {A : LinDec} (s1 s2 : Sortable A) : Prop :=
+Definition lt_Sortable {A : TrichDec} (s1 s2 : Sortable A) : Prop :=
   fst s1 < fst s2.
 
 Lemma lt_Sortable_wf :
-  forall A : LinDec, well_founded (@lt_Sortable A).
+  forall A : TrichDec, well_founded (@lt_Sortable A).
 Proof.
   intro. red. apply well_founded_lt_compat with fst.
   unfold lt_Sortable. auto.
 Defined.
 
 Function addSeg'
-  {A : LinDec} (s : Sortable A) (seg : list A) {measure fst s} : Sortable A :=
+  {A : TrichDec} (s : Sortable A) (seg : list A) {measure fst s} : Sortable A :=
 match fst s, force (snd s), even (fst s) with
     | _, [], _ => (1, delay [seg])
     | _, seg' :: segs', true => (length seg + fst s, delay (seg :: seg' :: segs'))
@@ -70,32 +70,32 @@ Definition addSeg {A} s seg := @addSeg' A seg s.
 Arguments addSeg {A} _ _.
 
 Definition add
-  {A : LinDec} (x : A) (s : Sortable A) : Sortable A :=
+  {A : TrichDec} (x : A) (s : Sortable A) : Sortable A :=
     addSeg [x] s.
 
 Fixpoint sort_aux
-  {A : LinDec} (seg : list A) (segs : list (list A)) : list A :=
+  {A : TrichDec} (seg : list A) (segs : list (list A)) : list A :=
 match segs with
     | [] => seg
     | seg' :: segs' => sort_aux (merge seg seg') segs'
 end.
 
-Definition sort {A : LinDec} (s : Sortable A) : list A :=
+Definition sort {A : TrichDec} (s : Sortable A) : list A :=
   let '(_, segs) := s in sort_aux [] (force segs).
 
 Lemma length_merge' :
-  forall (A : LinDec) (p : list A * list A),
+  forall (A : TrichDec) (p : list A * list A),
     length (merge (fst p) (snd p)) = length (fst p) + length (snd p).
 Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. dec.
-    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. lia.
+    rewrite MergeSort.merge_equation. trich.
+    rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 
 Lemma length_merge :
-  forall (A : LinDec) (l1 l2 : list A),
+  forall (A : TrichDec) (l1 l2 : list A),
     length (merge l1 l2) = length l1 + length l2.
 Proof.
   intros. pose (length_merge' _ (l1, l2)). cbn in e.
@@ -105,14 +105,14 @@ Qed.
 (** Lemmas for [isValid]. *)
 
 Lemma empty_isValid :
-  forall A : LinDec,
+  forall A : TrichDec,
     isValid (@empty A).
 Proof.
   intro. compute. constructor.
 Qed.
 
 Lemma addSeg_isValid :
-  forall (A : LinDec) (seg : list A) (s : Sortable A),
+  forall (A : TrichDec) (seg : list A) (s : Sortable A),
     Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. unfold addSeg. functional induction @addSeg' A s seg.
@@ -126,7 +126,7 @@ Proof.
 Qed.
 
 Lemma add_isValid :
-  forall (A : LinDec) (x : A) (s : Sortable A),
+  forall (A : TrichDec) (x : A) (s : Sortable A),
     isValid s -> isValid (add x s).
 Proof.
   intros. destruct s. cbn.
@@ -134,7 +134,7 @@ Proof.
 Qed.
 
 Lemma Sorted_sort_aux :
-  forall (A : LinDec) (seg : list A) (segs : list (list A)),
+  forall (A : TrichDec) (seg : list A) (segs : list (list A)),
     Sorted A seg -> Forall (Sorted A) segs ->
       Sorted A (sort_aux seg segs).
 Proof.
@@ -149,7 +149,7 @@ Proof.
 Qed.
 
 Theorem Sorted_sort :
-  forall (A : LinDec) (s : Sortable A),
+  forall (A : TrichDec) (s : Sortable A),
     isValid s -> Sorted A (sort s).
 Proof.
   destruct s. cbn. apply Sorted_sort_aux.
@@ -161,19 +161,19 @@ End Sortable_BottomUpMergesortWithSharing.
 
 Module Sortable_BottomUpMergesortWithSharing'.
 
-Definition Sortable (A : LinDec) : Type :=
+Definition Sortable (A : TrichDec) : Type :=
   nat * list (list A).
 
-Definition isValid {A : LinDec} (s : Sortable A) : Prop :=
+Definition isValid {A : TrichDec} (s : Sortable A) : Prop :=
   Forall (Sorted A) (snd s).
 
-Definition empty {A : LinDec} : Sortable A := (0, []).
+Definition empty {A : TrichDec} : Sortable A := (0, []).
 
-Definition merge {A : LinDec} (l1 l2 : list A) : list A :=
+Definition merge {A : TrichDec} (l1 l2 : list A) : list A :=
   Sorting.MergeSort.merge A (l1, l2).
 
 Function addSeg
-  {A : LinDec} (seg : list A) (s : Sortable A)
+  {A : TrichDec} (seg : list A) (s : Sortable A)
   {measure fst s} : Sortable A :=
 match s with
     | (_, []) => (1, [seg])
@@ -192,32 +192,32 @@ Defined.
 Arguments addSeg {x} _ _.
 
 Definition add
-  {A : LinDec} (x : A) (s : Sortable A) : Sortable A :=
+  {A : TrichDec} (x : A) (s : Sortable A) : Sortable A :=
     addSeg [x] s.
 
 Fixpoint sort_aux
-  {A : LinDec} (seg : list A) (segs : list (list A)) : list A :=
+  {A : TrichDec} (seg : list A) (segs : list (list A)) : list A :=
 match segs with
     | [] => seg
     | seg' :: segs' => sort_aux (merge seg seg') segs'
 end.
 
-Definition sort {A : LinDec} (s : Sortable A) : list A :=
+Definition sort {A : TrichDec} (s : Sortable A) : list A :=
   let '(_, segs) := s in sort_aux [] segs.
 
 Lemma length_merge' :
-  forall (A : LinDec) (p : list A * list A),
+  forall (A : TrichDec) (p : list A * list A),
     length (merge (fst p) (snd p)) = length (fst p) + length (snd p).
 Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. dec.
-    rewrite MergeSort.merge_equation. dec. cbn in *. rewrite IHl. lia.
+    rewrite MergeSort.merge_equation. trich.
+    rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 
 Lemma length_merge :
-  forall (A : LinDec) (l1 l2 : list A),
+  forall (A : TrichDec) (l1 l2 : list A),
     length (merge l1 l2) = length l1 + length l2.
 Proof.
   intros. pose (length_merge' _ (l1, l2)). cbn in e.
@@ -227,14 +227,14 @@ Qed.
 (** Lemmas for [isValid]. *)
 
 Lemma empty_isValid :
-  forall A : LinDec,
+  forall A : TrichDec,
     isValid (@empty A).
 Proof.
   intro. compute. constructor.
 Qed.
 
 Lemma addSeg_isValid :
-  forall (A : LinDec) (seg : list A) (s : Sortable A),
+  forall (A : TrichDec) (seg : list A) (s : Sortable A),
     Sorted A seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. functional induction @addSeg A seg s.
@@ -246,7 +246,7 @@ Proof.
 Qed.
 
 Lemma add_isValid :
-  forall (A : LinDec) (x : A) (s : Sortable A),
+  forall (A : TrichDec) (x : A) (s : Sortable A),
     isValid s -> isValid (add x s).
 Proof.
   intros. destruct s. cbn.
@@ -254,7 +254,7 @@ Proof.
 Qed.
 
 Lemma Sorted_sort_aux :
-  forall (A : LinDec) (seg : list A) (segs : list (list A)),
+  forall (A : TrichDec) (seg : list A) (segs : list (list A)),
     Sorted A seg -> Forall (Sorted A) segs ->
       Sorted A (sort_aux seg segs).
 Proof.
@@ -269,7 +269,7 @@ Proof.
 Qed.
 
 Theorem Sorted_sort :
-  forall (A : LinDec) (s : Sortable A),
+  forall (A : TrichDec) (s : Sortable A),
     isValid s -> Sorted A (sort s).
 Proof.
   destruct s. cbn. apply Sorted_sort_aux.

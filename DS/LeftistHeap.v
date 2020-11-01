@@ -1,4 +1,4 @@
-Require Export LinDec.
+Require Export TrichDec.
 Require Import Sorting.Sort.
 
 Set Implicit Arguments.
@@ -18,7 +18,7 @@ end.
 
 Definition balance
   {A : Type} (v : A) (l r : LTree A) : LTree A :=
-    if right_spine r <=? right_spine l
+    if right_spine r ≤? right_spine l
     then N (1 + right_spine r) v l r
     else N (1 + right_spine l) v r l.
 
@@ -36,12 +36,12 @@ Definition sum_of_sizes
     size (fst p) + size (snd p).
 
 Function merge
-  {A : LinDec} (p : LTree A * LTree A) {measure sum_of_sizes p} : LTree A :=
+  {A : TrichDec} (p : LTree A * LTree A) {measure sum_of_sizes p} : LTree A :=
 match p with
     | (E, t2) => t2
     | (t1, E) => t1
     | (N _ v l r as t1, N _ v' l' r' as t2) =>
-        if v <=? v'
+        if v ≤? v'
         then balance v l (merge (r, t2))
         else balance v' l' (merge (t1, r'))
 end.
@@ -51,7 +51,7 @@ Defined.
 
 Arguments merge [x] _.
 
-Definition empty {A : LinDec} (x : A) : LTree A := E.
+Definition empty {A : TrichDec} (x : A) : LTree A := E.
 
 Definition isEmpty {A : Type} (t : LTree A) : bool :=
 match t with
@@ -61,7 +61,7 @@ end.
 
 Definition singleton {A : Type} (x : A) : LTree A := N 1 x E E.
 
-Definition insert {A : LinDec} (x : A) (t : LTree A) : LTree A :=
+Definition insert {A : TrichDec} (x : A) (t : LTree A) : LTree A :=
   merge (singleton x, t).
 
 Definition findMin {A : Type} (t : LTree A) : option A :=
@@ -70,14 +70,14 @@ match t with
     | N _ v _ _ => Some v
 end.
 
-Definition deleteMin {A : LinDec} (t : LTree A) : option A * LTree A :=
+Definition deleteMin {A : TrichDec} (t : LTree A) : option A * LTree A :=
 match t with
     | E => (None, E)
     | N _ v l r => (Some v, merge (l, r))
 end.
 
 Definition extractMin
-  {A : LinDec} (t : LTree A) : option (A * LTree A) :=
+  {A : TrichDec} (t : LTree A) : option (A * LTree A) :=
 match t with
     | E => None
     | N _ v l r => Some (v, merge (l, r))
@@ -101,7 +101,7 @@ Inductive Elem {A : Type} (x : A) : LTree A -> Prop :=
         forall (n : nat) (v : A) (l r : LTree A),
           Elem x r -> Elem x (N n v l r).
 
-Inductive isHeap {A : LinDec} : LTree A -> Prop :=
+Inductive isHeap {A : TrichDec} : LTree A -> Prop :=
     | isHeap_E : isHeap E
     | isHeap_N :
         forall (v : A) (l r : LTree A),
@@ -115,9 +115,9 @@ Hint Constructors LTree LeftBiased Elem isHeap : core.
 
 Ltac balance := unfold balance, id in *; intros;
 match goal with
-    | H : context [right_spine ?r <=? right_spine ?l] |- _ =>
+    | H : context [right_spine ?r ≤? right_spine ?l] |- _ =>
         destruct (@leqb_spec natle (right_spine r) (right_spine l))
-    | |- context [right_spine ?r <=? right_spine ?l] =>
+    | |- context [right_spine ?r ≤? right_spine ?l] =>
         destruct (@leqb_spec natle (right_spine r) (right_spine l))
 end; cbn; try reflexivity.
 
@@ -135,12 +135,12 @@ end; auto.
 (** Properties of [isEmpty]. *)
 
 Lemma isEmpty_balance :
-  forall (A : LinDec) (v : A) (l r : LTree A),
+  forall (A : TrichDec) (v : A) (l r : LTree A),
     isEmpty (balance v l r) = false.
 Proof. balance. Qed.
 
 Lemma isEmpty_merge :
-  forall (A : LinDec) (t1 t2 : LTree A),
+  forall (A : TrichDec) (t1 t2 : LTree A),
     isEmpty (merge (t1, t2)) = isEmpty t1 && isEmpty t2.
 Proof.
   intros. remember (t1, t2) as p.
@@ -151,7 +151,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_merge' :
-  forall (A : LinDec) (t1 t2 : LTree A),
+  forall (A : TrichDec) (t1 t2 : LTree A),
     isEmpty (merge (t1, t2)) = true
       <->
     isEmpty t1 = true /\ isEmpty t2 = true.
@@ -164,21 +164,21 @@ Proof.
 Qed.
 
 Lemma isEmpty_insert :
-  forall (A : LinDec) (x : A) (t : LTree A),
+  forall (A : TrichDec) (x : A) (t : LTree A),
     isEmpty (insert x t) = false.
 Proof.
   intros. unfold insert. rewrite isEmpty_merge. cbn. reflexivity.
 Qed.
 
 Lemma isEmpty_extractMin_false :
-  forall (A : LinDec) (t : LTree A),
+  forall (A : TrichDec) (t : LTree A),
     isEmpty t = true <-> extractMin t = None.
 Proof.
   split; destruct t; cbn; congruence.
 Qed.
 
 Lemma isEmpty_extractMin_true :
-  forall (A : LinDec) (t : LTree A),
+  forall (A : TrichDec) (t : LTree A),
     isEmpty t = false <->
     exists (m : A) (t' : LTree A), extractMin t = Some (m, t').
 Proof.
@@ -188,7 +188,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_isEmpty :
-  forall (A : LinDec) (t : LTree A),
+  forall (A : TrichDec) (t : LTree A),
     isEmpty t = true -> LeftBiased t.
 Proof.
   destruct t; intro.
@@ -199,7 +199,7 @@ Qed.
 (** Properties of [singleton]. *)
 
 Lemma LeftBiased_singleton :
-  forall (A : LinDec) (x : A),
+  forall (A : TrichDec) (x : A),
     LeftBiased (singleton x).
 Proof.
   intros. unfold singleton.
@@ -207,7 +207,7 @@ Proof.
 Qed.
 
 Lemma isHeap_singleton :
-  forall (A : LinDec) (x : A),
+  forall (A : TrichDec) (x : A),
     isHeap (singleton x).
 Proof.
   intros. unfold singleton. apply (@isHeap_N A x E E); auto; inv 1.
@@ -223,7 +223,7 @@ Proof.
 Qed.
 
 Lemma isHeap_balance :
-  forall (A : LinDec) (v : A) (l r : LTree A),
+  forall (A : TrichDec) (v : A) (l r : LTree A),
     (forall x : A, Elem x l -> v ≤ x) ->
     (forall x : A, Elem x r -> v ≤ x) ->
     isHeap l -> isHeap r -> isHeap (balance v l r).
@@ -232,11 +232,11 @@ Proof.
 Qed.
 
 Lemma LeftBiased_balance :
-  forall (A : LinDec) (v : A) (l r : LTree A),
+  forall (A : TrichDec) (v : A) (l r : LTree A),
     LeftBiased l -> LeftBiased r ->
       LeftBiased (balance v l r).
 Proof.
-  intros. balance; constructor; cbn in *; dec.
+  intros. balance; constructor; cbn in *; trich.
 Qed.
 
 Lemma size_balance :
@@ -257,13 +257,13 @@ Lemma countLT_balance :
   forall (A : Type) (p : A -> bool) (k : nat) (v : A) (l r : LTree A),
     countLT p (balance v l r) = countLT p (N k v l r).
 Proof.
-  intros. balance; dec. rewrite plus_comm. reflexivity.
+  intros. balance; trich. rewrite plus_comm. reflexivity.
 Qed.
 
 (** Properties of [merge]. *)
 
 Lemma Elem_merge_conv :
-  forall (A : LinDec) (x : A) (t1 t2 : LTree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : LTree A),
     Elem x (merge (t1, t2)) -> Elem x t1 \/ Elem x t2.
 Proof.
   intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
@@ -273,7 +273,7 @@ Proof.
 Qed.
 
 Lemma Elem_merge :
-  forall (A : LinDec) (x : A) (t1 t2 : LTree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : LTree A),
     Elem x t1 \/ Elem x t2 -> Elem x (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
@@ -289,7 +289,7 @@ Proof.
 Qed.
 
 Lemma Elem_merge' :
-  forall (A : LinDec) (x : A) (t1 t2 : LTree A),
+  forall (A : TrichDec) (x : A) (t1 t2 : LTree A),
     Elem x (merge (t1, t2)) <-> Elem x t1 \/ Elem x t2.
 Proof.
   split; intros; remember (t1, t2) as p; revert x t1 t2 Heqp H;
@@ -300,20 +300,20 @@ Qed.
 Arguments Elem_merge_conv {A x t1 t2}.
 
 Lemma isHeap_merge :
-  forall (A : LinDec) (t1 t2 : LTree A),
+  forall (A : TrichDec) (t1 t2 : LTree A),
     isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
   functional induction merge p; do 3 inv 1;
   apply isHeap_balance; intros; try rewrite Elem_merge' in H; elem.
-    inv H; dec.
+    inv H; trich.
     eauto.
-    inv H; dec.
+    inv H; trich.
     eauto.
 Qed.
 
 Lemma LeftBiased_merge :
-  forall (A : LinDec) (t1 t2 : LTree A),
+  forall (A : TrichDec) (t1 t2 : LTree A),
     LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
@@ -323,7 +323,7 @@ Proof.
 Qed.
 
 Lemma size_merge :
-  forall (A : LinDec) (t1 t2 : LTree A),
+  forall (A : TrichDec) (t1 t2 : LTree A),
     size (merge (t1, t2)) = size t1 + size t2.
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
@@ -337,7 +337,7 @@ Unshelve.
 Qed.
 
 Lemma countLT_merge :
-  forall (A : LinDec) (f : A -> bool) (t1 t2 : LTree A),
+  forall (A : TrichDec) (f : A -> bool) (t1 t2 : LTree A),
     countLT f (merge (t1, t2)) = countLT f t1 + countLT f t2.
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
@@ -351,7 +351,7 @@ Unshelve.
 Qed.
 
 Lemma findMin_spec :
-  forall (A : LinDec) (h : LTree A) (m : A),
+  forall (A : TrichDec) (h : LTree A) (m : A),
     isHeap h -> findMin h = Some m -> forall x : A, Elem x h -> m ≤ x.
 Proof.
   destruct h; cbn; do 3 inv 1.
@@ -360,7 +360,7 @@ Qed.
 (** Properties of [insert]. *)
 
 Lemma Elem_insert :
-  forall (A : LinDec) (x y : A) (h : LTree A),
+  forall (A : TrichDec) (x y : A) (h : LTree A),
     isHeap h -> Elem x (insert y h) <-> x = y \/ Elem x h.
 Proof.
   intros. unfold insert. rewrite Elem_merge'. split; inv 1.
@@ -369,7 +369,7 @@ Proof.
 Qed.
 
 Lemma isHeap_insert :
-  forall (A : LinDec) (x : A) (t : LTree A),
+  forall (A : TrichDec) (x : A) (t : LTree A),
     isHeap t -> isHeap (insert x t).
 Proof.
   intros. unfold insert. apply isHeap_merge.
@@ -378,7 +378,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_insert :
-  forall (A : LinDec) (x : A) (t : LTree A),
+  forall (A : TrichDec) (x : A) (t : LTree A),
     LeftBiased t -> LeftBiased (insert x t).
 Proof.
   intros. unfold insert. apply LeftBiased_merge; auto.
@@ -386,14 +386,14 @@ Proof.
 Qed.
 
 Lemma size_insert :
-  forall (A : LinDec) (x : A) (t : LTree A),
+  forall (A : TrichDec) (x : A) (t : LTree A),
     size (insert x t) = 1 + size t.
 Proof.
   intros. unfold insert. rewrite size_merge. cbn. reflexivity.
 Qed.
 
 Lemma insert_countLT :
-  forall (A : LinDec) (p : A -> bool) (x : A) (t : LTree A),
+  forall (A : TrichDec) (p : A -> bool) (x : A) (t : LTree A),
     countLT p (insert x t) =
     (if p x then S else id) (countLT p t).
 Proof.
@@ -404,14 +404,14 @@ Qed.
 (** Properties of [findMin], [deleteMin] and [extractMin]. *)
 
 Lemma Elem_deleteMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') -> Elem m t.
 Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
 Lemma isHeap_deleteMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       isHeap t'.
 Proof.
@@ -420,7 +420,7 @@ Proof.
 Qed.
 
 Lemma deleteMin_LeftBiased :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     LeftBiased t -> deleteMin t = (Some m, t') ->
       LeftBiased t'.
 Proof.
@@ -429,23 +429,23 @@ Proof.
 Qed.
 
 Lemma size_deleteMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') -> size t = S (size t').
 Proof.
   destruct t; cbn; inversion 1; subst. rewrite size_merge. trivial.
 Qed.
 
 Lemma countLT_deleteMin :
-  forall (A : LinDec) (p : A -> bool) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (p : A -> bool) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') ->
       countLT p t = (if p m then S else id) (countLT p t').
 Proof.
   destruct t; cbn; intros; inv H.
-  dec; rewrite countLT_merge; reflexivity.
+  trich; rewrite countLT_merge; reflexivity.
 Qed.
 
 Lemma deleteMin_spec :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       forall x : A, Elem x t' -> m ≤ x.
 Proof.
@@ -456,14 +456,14 @@ Qed.
 (** Properties of [extractMin]. *)
 
 Lemma Elem_extractMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     extractMin t = Some (m, t') -> Elem m t.
 Proof.
   destruct t; cbn; inv 1.
 Qed.
 
 Lemma isHeap_extractMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     isHeap t -> extractMin t = Some (m, t') ->
       isHeap t'.
 Proof.
@@ -472,7 +472,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_extractMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     LeftBiased t -> extractMin t = Some (m, t') ->
       LeftBiased t'.
 Proof.
@@ -481,23 +481,23 @@ Proof.
 Qed.
 
 Lemma size_extractMin :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     extractMin t = Some (m, t') -> size t = S (size t').
 Proof.
   destruct t; cbn; inv 1. rewrite size_merge. reflexivity.
 Qed.
 
 Lemma countLT_extactMin :
-  forall (A : LinDec) (p : A -> bool) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (p : A -> bool) (m : A) (t t' : LTree A),
     extractMin t = Some (m, t') ->
       countLT p t = (if p m then S else id) (countLT p t').
 Proof.
   destruct t; cbn; intros; inv H.
-  dec; rewrite countLT_merge; reflexivity.
+  trich; rewrite countLT_merge; reflexivity.
 Qed.
 
 Lemma extractMin_spec :
-  forall (A : LinDec) (m : A) (t t' : LTree A),
+  forall (A : TrichDec) (m : A) (t t' : LTree A),
     isHeap t -> extractMin t = Some (m, t') ->
       forall x : A, Elem x t' -> m ≤ x.
 Proof.
@@ -507,13 +507,13 @@ Qed.
 
 (** Leftist heapsort. *)
 
-Fixpoint fromList {A : LinDec} (l : list A) : LTree A :=
+Fixpoint fromList {A : TrichDec} (l : list A) : LTree A :=
 match l with
     | [] => E
     | h :: t => insert h (fromList t)
 end.
 
-Function toList {A : LinDec} (t : LTree A) {measure size t} : list A :=
+Function toList {A : TrichDec} (t : LTree A) {measure size t} : list A :=
 match extractMin t with
     | None => []
     | Some (m, t') => m :: toList t'
@@ -525,11 +525,11 @@ Defined.
 
 Arguments toList {x} _.
 
-Definition leftistHeapsort (A : LinDec) (l : list A) : list A :=
+Definition leftistHeapsort (A : TrichDec) (l : list A) : list A :=
   toList (fromList l).
 
 Lemma Sorted_toList :
-  forall (A : LinDec) (t : LTree A),
+  forall (A : TrichDec) (t : LTree A),
     isHeap t -> Sorted A (toList t).
 Proof.
   intros. functional induction @toList A t.
@@ -540,7 +540,7 @@ Proof.
 Qed.
 
 Lemma isHeap_fromList :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     isHeap (fromList l).
 Proof.
   induction l as [| h t]; cbn.
@@ -549,23 +549,23 @@ Proof.
 Qed.
 
 Lemma Sorted_leftistHeapsort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     Sorted A (leftistHeapsort A l).
 Proof.
   intros. unfold leftistHeapsort. apply Sorted_toList, isHeap_fromList.
 Qed.
 
 Lemma countLT_fromList :
-  forall (A : LinDec) (p : A -> bool) (l : list A),
+  forall (A : TrichDec) (p : A -> bool) (l : list A),
     countLT p (fromList l) = count p l.
 Proof.
-  induction l as [| h t]; cbn; dec;
+  induction l as [| h t]; cbn; trich;
   rewrite insert_countLT, IHt.
   destruct (p h); reflexivity.
 Qed.
 
 Lemma countLT_toList :
-  forall (A : LinDec) (p : A -> bool) (t : LTree A),
+  forall (A : TrichDec) (p : A -> bool) (t : LTree A),
     count p (toList t) = countLT p t.
 Proof.
   intros. functional induction @toList A t.
@@ -575,7 +575,7 @@ Proof.
 Qed.
 
 Lemma perm_leftistHeapsort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     perm l (leftistHeapsort A l).
 Proof.
   unfold perm, leftistHeapsort. intros.
@@ -583,7 +583,7 @@ Proof.
 Qed.
 
 Lemma Permutation_leftistHeapsort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     Permutation (leftistHeapsort A l) l.
 Proof.
   intros. apply perm_Permutation. rewrite <- perm_leftistHeapsort.
@@ -591,7 +591,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_leftistHeapsort (A : LinDec) : Sort A :=
+Instance Sort_leftistHeapsort (A : TrichDec) : Sort A :=
 {
     sort := @leftistHeapsort A;
 }.

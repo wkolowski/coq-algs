@@ -42,14 +42,14 @@ Definition trich_le {A : TrichDec} (x y : A) : Prop :=
 
 Infix "<?>" := cmp (at level 30).
 Infix "<?" := trich_ltb (at level 70).
-Notation "x >? y" := (trich_ltb y x) (at level 30).
+Notation "x >? y" := (trich_ltb y x) (at level 30, only parsing).
 Infix "≤?" := trich_leb (at level 30).
-Notation "x >=? y" := (trich_leb y x) (at level 30).
-Infix "==?" := trich_eqb (at level 30).
+Notation "x >=? y" := (trich_leb y x) (at level 30, only parsing).
+Infix "=?" := trich_eqb (at level 70).
 
 Infix "<" := trich_lt (at level 70).
 Notation "x > y" := (trich_lt y x) (at level 70, only parsing).
-(* Infix "≤" := trich_le (at level 30). *)
+Infix "≤" := trich_le (at level 30).
 Notation "x >= y" := (trich_le y x) (at level 70, only parsing).
 
 Lemma trich_lt_irrefl :
@@ -187,7 +187,7 @@ Qed.
 
 Lemma trich_eqb_refl :
   forall {A : TrichDec} (x : A),
-    x ==? x = true.
+    x =? x = true.
 Proof.
   intros.
   unfold trich_eqb.
@@ -199,11 +199,29 @@ Qed.
 
 Lemma trichb_Gt_to_Lt :
   forall {A : TrichDec} {x y : A},
-    x <?> y = Gt -> y <?> x = Lt.
+    x <?> y = Gt <-> y <?> x = Lt.
 Proof.
-  intros A x y Hxy.
+  intros.
   rewrite ?cmp_spec1, <- ?cmp_spec3 in *.
-  assumption.
+  reflexivity.
+Qed.
+
+Lemma trichb_not_Gt_to_not_Lt :
+  forall {A : TrichDec} {x y : A},
+    x <?> y <> Gt <-> y <?> x <> Lt.
+Proof.
+  intros.
+  rewrite ?cmp_spec1, <- ?cmp_spec3 in *.
+  reflexivity.
+Qed.
+
+Lemma trichb_not_Lt_to_not_Gt :
+  forall {A : TrichDec} {x y : A},
+    x <?> y <> Lt <-> y <?> x <> Gt.
+Proof.
+  intros.
+  rewrite ?cmp_spec1, <- ?cmp_spec3 in *.
+  reflexivity.
 Qed.
 
 Lemma trichb_trans_Lt :
@@ -215,11 +233,55 @@ Proof.
   eapply trich_lt_trans; eassumption.
 Qed.
 
+Lemma trichb_trans_Gt_neq :
+  forall {A : TrichDec} {x y z : A},
+    x <?> y <> Gt -> y <?> z <> Gt -> x <?> z <> Gt.
+Proof.
+  intros A x y z Hxy Hyz.
+  rewrite <- trichb_not_Lt_to_not_Gt in *.
+  rewrite <- trichb_not_Lt_to_not_Gt in Hxy.
+  rewrite <- trichb_not_Lt_to_not_Gt in Hyz.
+Admitted.
+
+Lemma trichb_trans_Lt_Gt :
+  forall {A : TrichDec} {x y z : A},
+    x <?> y = Lt -> y <?> z <> Gt -> x <?> z = Lt.
+Proof.
+  intros A x y z Hxy Hyz.
+  destruct (cmp_spec y z); try congruence.
+  rewrite <- cmp_spec1 in H.
+  eapply trichb_trans_Lt; eassumption.
+Qed.
+
 (* Specs *)
+
+Lemma trich_ltb_spec :
+  forall {A : TrichDec} (x y : A),
+    BoolSpec (x < y) (x >= y) (x <? y).
+Proof.
+  intros.
+  unfold trich_ltb.
+  destruct (cmp_spec x y); constructor.
+    right. symmetry. assumption.
+    assumption.
+    left. assumption.
+Qed.
+
+Lemma trich_leb_spec :
+  forall {A : TrichDec} (x y : A),
+    BoolSpec (x ≤ y) (x > y) (x ≤? y).
+Proof.
+  intros.
+  unfold trich_leb.
+  destruct (cmp_spec x y); constructor.
+    right. assumption.
+    left. assumption.
+    assumption.
+Qed.
 
 Lemma trich_eqb_spec :
   forall {A : TrichDec} (x y : A),
-    BoolSpec (x = y) (x <> y) (trich_eqb x y).
+    BoolSpec (x = y) (x <> y) (x =? y).
 Proof.
   intros.
   unfold trich_eqb.
@@ -229,10 +291,67 @@ Proof.
     inv 1. apply trich_lt_irrefl in H. assumption.
 Qed.
 
-Ltac trich :=
-  cbn;
-  unfold trich_ltb, trich_leb, trich_eqb;
-repeat match goal with
+Lemma trich_le_refl :
+  forall {A : TrichDec} (x : A),
+    x ≤ x.
+Proof.
+  intros. right. reflexivity.
+Qed.
+
+Lemma trich_le_antisym :
+  forall {A : TrichDec} (x y : A),
+    x ≤ y -> y ≤ x -> x = y.
+Proof.
+  destruct 1.
+    destruct 1.
+      contradict H. apply trich_lt_antisym. assumption.
+      symmetry. assumption.
+    intro. assumption.
+Qed.
+
+Lemma trich_le_nf :
+  forall {A : TrichDec} (x y : A),
+    x ≤ y <-> cmp x y <> Gt.
+Proof.
+  split; intros.
+    destruct (cmp_spec x y); subst.
+      inv 1.
+      inv 1.
+      destruct H.
+        apply trich_lt_antisym in H. contradiction.
+        subst. apply trich_lt_irrefl in H0. contradiction.
+    destruct (cmp_spec x y); subst.
+      apply trich_le_refl.
+      left. assumption.
+      contradiction.
+Qed.
+
+Lemma trich_leb_true :
+  forall {A : TrichDec} (x y : A),
+    x ≤? y = true -> x ≤ y.
+Proof.
+  intros.
+  unfold trich_leb in H.
+  destruct (cmp_spec x y).
+    right. assumption.
+    left. assumption.
+    congruence.
+Qed.
+
+Lemma trich_leb_false :
+  forall {A : TrichDec} (x y : A),
+    x ≤? y = false -> y < x.
+Proof.
+  intros.
+  unfold trich_leb in H.
+  destruct (cmp_spec x y).
+    congruence.
+    congruence.
+    assumption.
+Qed.
+
+Ltac trichbody :=
+match goal with
 (* General contradictions *)
     | H : False |- _ => contradiction
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
@@ -240,13 +359,25 @@ repeat match goal with
     | H : ?x < ?x |- _ => apply trich_lt_irrefl in H; contradiction
     | H : ?x < ?y, H' : ?y < ?x |- _ =>
         pose (trich_lt_antisym x y H); contradiction
+(* Easy wins from properties of [trich_le] *)
+    | |- ?x ≤ ?x => apply trich_le_refl
 (* Deduce equality and substitute *)
     | H : _ <?> _ = Eq |- _ => rewrite cmp_spec2 in H; subst
     | H : ~ ?x < ?y, H' : ~ ?y < ?x |- _ =>
         pose (trich_lt_connected H H'); subst; clear H H'
+    | Hxy : ?x ≤ ?y, Hyx : ?y ≤ ?x |- _ =>
+        pose (trich_le_antisym Hxy Hyx); subst; clear Hxy Hyx
+(* put stuff in normal form (i.e. cmp _ _ = _) *)
+    | H : ?x < ?y |- _ =>
+        rewrite <- ?cmp_spec1, <- ?cmp_spec3 in H
+    | H : ?x ≤ ?y |- _ => rewrite trich_le_nf in H
+    | |- ?x ≤ ?y => rewrite trich_le_nf
+    | H : ?x ≤? ?y = true |- _ => apply trich_leb_true in H
+    | H : ?x ≤? ?y = false |- _ => apply trich_leb_false in H
 (* Computational properties of cmp *)
-    | H : context [?x <?> ?x] |- _ =>
-        rewrite cmp_refl in H
+(*     | H : context [?x <?> ?x] |- _ => *)
+    | H : ?x <?> ?x = _ |- _ =>
+        rewrite cmp_refl in H; try congruence
     | |- context [?x <?> ?x] =>
         rewrite cmp_refl
     | H : context [CompOpp (_ <?> _)] |- _ =>
@@ -262,30 +393,65 @@ repeat match goal with
         rewrite trich_leb_refl in H
     | |- context [?x ≤? ?x] =>
         rewrite trich_leb_refl
-    | H : context [?x ==? ?x] |- _ =>
+    | H : context [?x =? ?x] |- _ =>
         rewrite trich_eqb_refl in H
-    | |- context [?x ==? ?x] =>
+    | |- context [?x =? ?x] =>
         rewrite trich_eqb_refl
+(* Normalize the order of arguments. *)
+    | H : _ <?> _  = Gt |- _ => rewrite trichb_Gt_to_Lt in H
+    | |-  _ <?> _  = Gt    _ => rewrite trichb_Gt_to_Lt
+    | H : _ <?> _ <> Lt |- _ => rewrite <- trichb_not_Gt_to_not_Lt in H
+    | |-  _ <?> _ <> Lt      => rewrite <- trichb_not_Gt_to_not_Lt
 (* Transitivity *)
-    | Hxy : ?x < ?y, Hyz : ?y < ?z |- _ =>
-        assert (x < z) by (eapply trich_lt_trans; eauto)
-    | Hxy : _ <?> _ = Gt |- _ => apply trichb_Gt_to_Lt in Hxy
-    | Hxy : ?x <?> ?y = Lt, Hyz : ?y <?> ?z = Lt |- _ =>
-        match goal with
-            | Hyz : x <?> z = Lt |- _ => idtac
-            | _ => pose (Hxz := trichb_trans_Lt Hxy Hyz); clearbody Hxz
+     | Hxy : ?x <?> ?y = Lt, Hyz : ?y <?> ?z = Lt |- _ =>
+        lazymatch goal with
+            | Hxz : x <?> z = Lt |- _ => fail
+            | _ =>
+                let Hxz := fresh "Hxz" in
+                pose (Hxz := trichb_trans_Lt Hxy Hyz); clearbody Hxz
+        end
+    | Hxy : ?x <?> ?y <> Gt, Hyz : ?y <?> ?z <> Gt |- _ =>
+        lazymatch goal with
+            | Hxz : x <?> z <> Gt |- _ => fail
+            | _ => constr_eq x z
+                     ||
+                   let Hxz := fresh "Hxz" in
+                   pose (Hxz := trichb_trans_Gt_neq Hxy Hyz); clearbody Hxz
+        end
+    | Hxy : ?x <?> ?y = Lt, Hyz : ?y <?> ?z <> Gt |- _ =>
+        lazymatch goal with
+            | Hxz : x <?> z = Lt |- _ => fail
+            | _ => 
+                let Hxz := fresh "Hxz" in
+                pose (Hxz := trichb_trans_Lt_Gt Hxy Hyz); clearbody Hxz
         end
 (* Case analysis *)
+(* <? *)
+    | |- context [match ?x <? ?y with | _ => _ end] =>
+        destruct (trich_ltb_spec x y); subst
+    | H : context [match ?x <? ?y with | _ => _ end] |- _ =>
+        destruct (trich_ltb_spec x y); subst
+(* ≤? *)
+    | |- context [match ?x ≤? ?y with | _ => _ end] =>
+        destruct (trich_leb_spec x y); subst
+    | H : context [match ?x ≤? ?y with | _ => _ end] |- _ =>
+        destruct (trich_leb_spec x y); subst
+(* =? *)
+    | |- context [match ?x =? ?y with | _ => _ end] =>
+        destruct (trich_eqb_spec x y); subst
+    | H : context [?x =? ?y] |- _ =>
+        destruct (trich_eqb_spec x y); subst
+(* <?> *)
     | H : context [match ?x <?> ?y with | _ => _ end] |- _ =>
         destruct (cmp_spec x y)
     | |- context [match ?x <?> ?y with | _ => _ end] =>
         destruct (cmp_spec x y)
-(* reverse cases *)
-(*     | H : _ <?> _ = _ |- _ =>
-        rewrite ?cmp_spec1, ?cmp_spec3 in H
- *)    | _ => subst; auto; try congruence
-end;
-  subst; auto; try congruence.
+(* try to finish somehow *)
+    | _ => subst; auto; try congruence
+end.
+
+Ltac trich :=
+  cbn; repeat trichbody; subst; auto; try congruence.
 
 Ltac trich_aggresive :=
 repeat match goal with

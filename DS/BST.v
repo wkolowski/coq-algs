@@ -1,6 +1,6 @@
 Require Export RCCBase.
 Require Import BTree.
-(* Require Export LinDec. *)
+(* Require Export TrichDec. *)
 Require Import TrichDec.
 Require Import Sorting.Sort.
 
@@ -273,7 +273,7 @@ Qed.
 Lemma elem_insert' :
   forall
     {A : TrichDec} (x y : A) (t : BTree A),
-      isBST cmp t -> elem cmp x (insert cmp y t) = x ==? y || elem cmp x t.
+      isBST cmp t -> elem cmp x (insert cmp y t) = (x =? y) || elem cmp x t.
 Proof.
   intros. destruct (elem_spec x (insert cmp y t) (isBST_insert y t H)).
     rewrite Elem_insert_ultimate in H0.
@@ -283,10 +283,8 @@ Proof.
           rewrite orb_true_r. reflexivity.
           contradiction.
       assumption.
-    trich; cbn.
+    unfold orb. trich.
       contradiction H0. apply Elem_insert_conv'; assumption.
-      destruct (elem_spec x t); auto. contradiction H0.
-        apply Elem_insert_conv; assumption.
       destruct (elem_spec x t); auto. contradiction H0.
         apply Elem_insert_conv; assumption.
 Qed.

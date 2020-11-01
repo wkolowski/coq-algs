@@ -24,20 +24,20 @@ match t with
     | h' :: t' => braunInsert h (fromList h' t')
 end.
 
-Fixpoint braunMerge {A : LinDec} (b : Braun A) : list A :=
+Fixpoint braunMerge {A : TrichDec} (b : Braun A) : list A :=
 match b with
     | Leaf a => [a]
     | Node l r => merge A (braunMerge l, braunMerge r)
 end.
 
-Definition braunSort {A : LinDec} (l : list A) : list A :=
+Definition braunSort {A : TrichDec} (l : list A) : list A :=
 match l with
     | [] => []
     | h :: t => braunMerge (fromList h t)
 end.
 
 Lemma Sorted_braunMerge :
-  forall (A : LinDec) (b : Braun A),
+  forall (A : TrichDec) (b : Braun A),
     Sorted A (braunMerge b).
 Proof.
   induction b as [a | l Hl r Hr]; cbn.
@@ -46,7 +46,7 @@ Proof.
 Qed.
 
 Lemma Sorted_braunSort :
-  forall (A : LinDec) (l : list A), Sorted A (braunSort l).
+  forall (A : TrichDec) (l : list A), Sorted A (braunSort l).
 Proof.
   destruct l as [| h t]; cbn.
     constructor.
@@ -80,16 +80,16 @@ Proof.
 Qed.
 
 Lemma count_braunMerge :
-  forall (A : LinDec) (p : A -> bool) (b : Braun A),
+  forall (A : TrichDec) (p : A -> bool) (b : Braun A),
     count p (braunMerge b) = braunCount p b.
 Proof.
   induction b as [a | l IHl r IHr]; cbn; intros.
-    dec.
+    trich.
     rewrite <- merge_perm. cbn. rewrite count_app, IHl, IHr. reflexivity.
 Defined.
 
 Lemma perm_braunSort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     perm l (braunSort l).
 Proof.
   destruct l as [| h t]; intro; cbn.
@@ -98,7 +98,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_braunSort (A : LinDec) : Sort A :=
+Instance Sort_braunSort (A : TrichDec) : Sort A :=
 {|
     sort := @braunSort A;
 |}.

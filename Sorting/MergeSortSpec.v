@@ -3,7 +3,7 @@ Require Import MergeSort.
 Set Implicit Arguments.
 
 Theorem Sorted_ghms :
-  forall (n : nat) (A : LinDec)
+  forall (n : nat) (A : TrichDec)
     (s : Sort A) (split : Split A)
       (l : list A), Sorted A (@ghms n A (@sort A A s) split l).
 Proof.
@@ -13,7 +13,7 @@ Proof.
 Qed.
 
 Theorem ghms_perm :
-  forall (n : nat) (A : LinDec)
+  forall (n : nat) (A : TrichDec)
     (s : Sort A) (split : Split A)
       (l : list A), perm l (@ghms n A (@sort A A s) split l).
 Proof.
@@ -24,7 +24,7 @@ Proof.
 Qed.
 
 Theorem Permutation_ghms :
-  forall (n : nat) (A : LinDec) (s : Sort A) (split : Split A) (l : list A),
+  forall (n : nat) (A : TrichDec) (s : Sort A) (split : Split A) (l : list A),
     Permutation (@ghms n A (@sort A A s) split l) l.
 Proof.
   intros. functional induction @ghms n A (@sort A A s) split l.
@@ -35,7 +35,7 @@ Qed.
 
 #[refine]
 Instance Sort_ghms
-  (n : nat) (A : LinDec) (sort : Sort A) (split : Split A) : Sort A :=
+  (n : nat) (A : TrichDec) (sort : Sort A) (split : Split A) : Sort A :=
 {
     sort := @ghms n A sort split
 }.

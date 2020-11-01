@@ -24,22 +24,22 @@ end.
 
 Axiom hehe : False.
 
-Require Import LinDec.
+Require Import TrichDec.
 
 #[refine]
-Instance KVP (A : TrichDec) (B : Type) : LinDec :=
+Instance KVP (A : TrichDec) (B : Type) : TrichDec :=
 {
     carrier := A * B;
     leq p1 p2 := fst p1 ≤ fst p2;
-    leqb p1 p2 := fst p1 <=? fst p2;
+    leqb p1 p2 := fst p1 ≤? fst p2;
 }.
 Proof.
   all: intros; repeat
   match goal with
       | p : _ * _ |- _ => destruct p
-  end; cbn in *; dec.
+  end; cbn in *; trich.
   f_equal.
-    dec.
+    trich.
     destruct hehe.
 Defined.
 

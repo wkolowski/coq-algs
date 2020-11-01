@@ -1,5 +1,5 @@
 Require Export RCCBase.
-(* Require Export LinDec. *)
+(* Require Export TrichDec. *)
 
 Set Implicit Arguments.
 

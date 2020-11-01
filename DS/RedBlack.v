@@ -1,7 +1,7 @@
 Require Export RCCBase.
 
 Require Export BTree.
-Require Export LinDec.
+Require Export TrichDec.
 Require Export Sorting.Sort.
 
 Inductive color : Set :=
@@ -23,11 +23,11 @@ Inductive Elem {A : Type} (x : A) : RBTree A -> Prop :=
     | Elem_right : forall  (c : color) (v : A) (l r : RBTree A),
         Elem x r -> Elem x (T c l v r).
 
-Inductive isBST {A : LinDec} : RBTree A -> Prop :=
+Inductive isBST {A : TrichDec} : RBTree A -> Prop :=
     | isBST_E : isBST E
     | isBST_T : forall (c : color) (v : A) (l r : RBTree A),
-        (forall x : A, Elem x l -> leq x v) -> isBST l ->
-        (forall x : A, Elem x r -> leq v x) -> isBST r ->
+        (forall x : A, Elem x l -> x ≤ v) -> isBST l ->
+        (forall x : A, Elem x r -> v ≤ x) -> isBST r ->
         isBST (T c l v r).
 
 Hint Constructors color RBTree Elem isBST : core.
@@ -64,16 +64,16 @@ match t with
     | T _ l v r => T Black l v r
 end.
 
-Function ins {A : LinDec} (x : A) (t : RBTree A) : RBTree A :=
+Function ins {A : TrichDec} (x : A) (t : RBTree A) : RBTree A :=
 match t with
     | E => T Red E x E
     | T c l v r =>
-        if x <=? v
+        if x ≤? v
         then balance c (ins x l) v r
         else balance c l v (ins x r)
 end.
 
-Definition insert {A : LinDec} (x : A) (t : RBTree A) : RBTree A :=
+Definition insert {A : TrichDec} (x : A) (t : RBTree A) : RBTree A :=
   makeBlack (ins x t).
 
 Fixpoint countRBT {A : Type} (p : A -> bool) (t : RBTree A) : nat :=
@@ -89,22 +89,22 @@ match t with
     | T _ l v r => toList l ++ v :: toList r
 end.
 
-Fixpoint fromList {A : LinDec} (l : list A) : RBTree A :=
+Fixpoint fromList {A : TrichDec} (l : list A) : RBTree A :=
 match l with
     | [] => E
     | h :: t => insert h (fromList t)
 end.
 
-Definition redblackSort (A : LinDec) (l : list A) : list A :=
+Definition redblackSort (A : TrichDec) (l : list A) : list A :=
   toList (fromList l).
 
-(*Definition redblackSort' (A : LinDec) (l : list A) : list A :=
+(*Definition redblackSort' (A : TrichDec) (l : list A) : list A :=
   toList' (fromList' l).*)
 
 (** Properties of [isEmpty]. *)
 
 Lemma isEmpty_balance :
-  forall (A : LinDec) (c : color) (v : A) (l r : RBTree A),
+  forall (A : TrichDec) (c : color) (v : A) (l r : RBTree A),
     isEmpty (balance c l v r) = false.
 Proof.
   intros. functional induction @balance (@carrier A) c l v r;
@@ -112,14 +112,14 @@ Proof.
 Qed.
 
 Lemma isEmpty_makeBlack :
-  forall (A : LinDec) (t : RBTree A),
+  forall (A : TrichDec) (t : RBTree A),
     isEmpty (makeBlack t) = isEmpty t.
 Proof.
   destruct t; cbn; reflexivity.
 Qed.
 
 Lemma isEmpty_ins :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     isEmpty (ins x t) = false.
 Proof.
   intros. functional induction @ins A x t;
@@ -127,7 +127,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_insert :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     isEmpty (insert x t) = false.
 Proof.
   intros. unfold insert. rewrite isEmpty_makeBlack, isEmpty_ins. reflexivity.
@@ -136,7 +136,7 @@ Qed.
 (** Properties of [singleton]. *)
 
 Lemma Elem_singleton :
-  forall (A : LinDec) (x y : A),
+  forall (A : TrichDec) (x y : A),
     Elem x (singleton y) <-> x = y.
 Proof.
   unfold singleton. split.
@@ -145,7 +145,7 @@ Proof.
 Qed.
 
 Lemma isBST_singleton :
-  forall (A : LinDec) (x : A),
+  forall (A : TrichDec) (x : A),
     isBST (singleton x).
 Proof.
   unfold singleton. intros. constructor; auto; inv 1.
@@ -161,6 +161,18 @@ Lemma Elem_inv :
       (forall x : A, Elem x r -> P x).
 Proof.
   repeat split; intros; apply H; auto.
+Qed.
+
+Lemma trich_le_trans :
+  forall {A : TrichDec} {x y z : A},
+    x ≤ y -> y ≤ z -> x ≤ z.
+Proof.
+  intros.
+  destruct H, H0.
+    left. eapply trich_lt_trans; eassumption.
+    subst. left. assumption.
+    subst. left. assumption.
+    subst. apply trich_le_refl.
 Qed.
 
 Ltac aux := intros;
@@ -185,25 +197,26 @@ end;
 repeat match goal with
     | H : forall _, Elem _ _ -> _, H' : Elem _ _ |- _ =>
         specialize (H _ H')
-end;
+end. (* ;
 try match goal with
     | H : ?a ≤ ?b |- ?a ≤ ?b => assumption
     | H : ?a ≤ ?b, H' : ?b≤ ?c |- ?a ≤ ?c =>
-        apply leq_trans with b; assumption
-end.
+        pose (Ht := trich_le_trans H H'); clearbody Ht
+end. *)
 
 Lemma Elem_balance :
-  forall (A : LinDec) (c : color) (x v : A) (l r : RBTree A),
+  forall (A : TrichDec) (c : color) (x v : A) (l r : RBTree A),
     Elem x (T c l v r) <-> Elem x (balance c l v r).
 Proof.
   split; functional induction @balance (@carrier A) c l v r; aux.
 Qed.
 
 Lemma isBST_balance :
-  forall (A : LinDec) (c : color) (v : A) (l r : RBTree A),
+  forall (A : TrichDec) (c : color) (v : A) (l r : RBTree A),
     isBST (T c l v r) -> isBST (balance c l v r).
 Proof.
-  intros; functional induction @balance (@carrier A) c l v r; aux.
+  intros.
+  functional induction balance c l v r; aux; trich.
 Qed.
 
 Ltac destruct_if := repeat
@@ -223,14 +236,14 @@ Qed.
 (** Properties of [makeBlack]. *)
 
 Lemma Elem_makeBlack :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     Elem x (makeBlack t) <-> Elem x t.
 Proof.
   split; destruct t; cbn; auto; inv 1.
 Qed.
 
 Lemma isBST_makeBlack :
-  forall (A : LinDec) (t : RBTree A),
+  forall (A : TrichDec) (t : RBTree A),
     isBST t -> isBST (makeBlack t).
 Proof.
   destruct t; cbn; inv 1.
@@ -246,37 +259,35 @@ Qed.
 (** Properties of [ins]. *)
 
 Lemma Elem_ins :
-  forall (A : LinDec) (x y : A) (t : RBTree A),
+  forall (A : TrichDec) (x y : A) (t : RBTree A),
     Elem x (ins y t) <-> x = y \/ Elem x t.
 Proof.
   split.
     induction t; cbn; intros.
       inv H.
-      dec; rewrite <- Elem_balance in H; inv H; firstorder.
+      trich; rewrite <- Elem_balance in H; inv H; firstorder.
     induction t; cbn; intros.
       inv H.
-      dec; rewrite <- Elem_balance; inv H.
-        inv H0.
-        inv H2.
+      trich; rewrite <- Elem_balance; inv H; inv H1.
 Qed.
 
 Lemma isBST_ins :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     isBST t -> isBST (ins x t).
 Proof.
   intros. functional induction ins x t.
     constructor; auto; inv 1.
     apply isBST_balance. inv H. constructor; auto.
-      intros. rewrite Elem_ins in H. destruct H; subst; dec.
+      intros. rewrite Elem_ins in H. inv H. trich.
     apply isBST_balance. inv H. constructor; auto.
-      intros. rewrite Elem_ins in H. destruct H; subst; dec.
+      intros. rewrite Elem_ins in H. inv H. trich.
 Qed.
 
 Lemma countRBT_ins :
-  forall (A : LinDec) (p : A -> bool) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (p : A -> bool) (x : A) (t : RBTree A),
     countRBT p (ins x t) = (if p x then S else id) (countRBT p t).
 Proof.
-  induction t; cbn; dec;
+  induction t; cbn; trich;
   rewrite countRBT_balance; cbn; rewrite ?IHt1, ?IHt2;
   destruct_if; unfold id; lia.
 Qed.
@@ -284,21 +295,21 @@ Qed.
 (** Properties of [insert]. *)
 
 Lemma Elem_insert :
-  forall (A : LinDec) (x y : A) (t : RBTree A),
+  forall (A : TrichDec) (x y : A) (t : RBTree A),
     Elem x (insert y t) <-> x = y \/ Elem x t.
 Proof.
   unfold insert. intros. rewrite Elem_makeBlack, Elem_ins. reflexivity.
 Qed.
 
 Lemma isBST_insert :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     isBST t -> isBST (insert x t).
 Proof.
   intros. unfold insert. apply isBST_makeBlack, isBST_ins. assumption.
 Qed.
 
 Lemma countRBT_insert :
-  forall (A : LinDec) (p : A -> bool) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (p : A -> bool) (x : A) (t : RBTree A),
     countRBT p (insert x t) = (if p x then S else id) (countRBT p t).
 Proof.
   intros. unfold insert.
@@ -309,17 +320,15 @@ Lemma Permutation_toList_balance :
   forall (A : Type) (c : color) (v : A) (l r : RBTree A),
     Permutation (toList (balance c l v r)) (toList (T c l v r)).
 Proof.
-  intros. functional induction @balance A c l v r; cbn.
-    reflexivity.
+  intros.
+  functional induction balance c l v r;
+  cbn; rewrite <- ?app_assoc; cbn;
+  try reflexivity.
     rewrite <- !app_assoc. cbn. reflexivity.
-    rewrite <- !app_assoc. cbn. rewrite <- !app_assoc. cbn. reflexivity.
-    rewrite <- !app_assoc. cbn. reflexivity.
-    rewrite <- !app_assoc. cbn. reflexivity.
-    reflexivity.
 Qed.
 
 Lemma Permutation_toList_ins :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     Permutation (toList (ins x t)) (x :: toList t).
 Proof.
   intros. functional induction @ins A x t.
@@ -332,7 +341,7 @@ Proof.
 Qed.
 
 Lemma Permutation_toList_insert :
-  forall (A : LinDec) (x : A) (t : RBTree A),
+  forall (A : TrichDec) (x : A) (t : RBTree A),
     Permutation (toList (insert x t)) (x :: toList t).
 Proof.
   intros. unfold insert. destruct (ins x t) eqn: Heq; cbn.
@@ -365,8 +374,8 @@ Proof.
 Qed.
 
 Lemma Sorted_toList :
-  forall (A : LinDec) (t : RBTree A),
-    isBST t -> Sorted A (toList t).
+  forall (A : TrichDec) (t : RBTree A),
+    isBST t -> Sorted trich_le (toList t).
 Proof.
   induction t as [| c l Hl v r Hr]; cbn; intros.
     constructor.
@@ -380,7 +389,7 @@ Qed.
 (** Properties of [fromList]. *)
 
 Lemma Elem_fromList :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     Elem x (fromList l) <-> In x l.
 Proof.
   split.
@@ -393,7 +402,7 @@ Proof.
 Qed.
 
 Lemma isBST_fromList :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     isBST (fromList l).
 Proof.
   induction l as [| h t]; cbn.
@@ -402,10 +411,10 @@ Proof.
 Qed.
 
 Lemma countRBT_fromList :
-  forall (A : LinDec) (p : A -> bool) (l : list A),
+  forall (A : TrichDec) (p : A -> bool) (l : list A),
     countRBT p (fromList l) = count p l.
 Proof.
-  induction l as [| h t]; cbn; dec;
+  induction l as [| h t]; cbn; trich;
   rewrite countRBT_insert, IHt.
   destruct (p h); reflexivity.
 Qed.
@@ -413,14 +422,14 @@ Qed.
 (** Properties of [redblackSort]. *)
 
 Lemma Sorted_redblackSort :
-  forall (A : LinDec) (l : list A),
-    Sorted A (redblackSort A l).
+  forall (A : TrichDec) (l : list A),
+    Sorted trich_le (redblackSort A l).
 Proof.
   intros. unfold redblackSort. apply Sorted_toList, isBST_fromList.
 Qed.
 
 Lemma perm_redblackSort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     perm l (redblackSort A l).
 Proof.
   unfold perm, redblackSort. intros.
@@ -428,7 +437,7 @@ Proof.
 Qed.
 
 Lemma Permutation_redblackSort :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     Permutation (redblackSort A l) l.
 Proof.
   intros. unfold redblackSort.

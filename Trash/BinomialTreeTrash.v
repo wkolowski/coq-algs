@@ -44,22 +44,22 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : LinDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y | y r f].
-    clear - x y. case_eq (x =? y); intros; dec.
+    clear - x y. case_eq (x =? y); intros; trich.
       right. inv 1.
     case_eq (x =? y); intros.
-      clear - x y H. dec.
+      clear - x y H. trich.
       destruct (elemForest_dec A x r f).
         left. constructor. assumption.
         right. inv 1.
-          dec.
+          trich.
           apply inj_pair2 in H4. subst. contradiction.
   destruct f.
     right. inv 1.
@@ -111,20 +111,20 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : LinDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].
     case_eq (x =? y); intros.
-      left. dec.
+      left. trich.
       destruct (elemForest_dec A x _ f).
         left. auto.
         right. inv 1.
-          dec.
+          trich.
           apply inj_pair2 in H4. subst. contradiction.
   destruct f as [| r t f'].
     right. inv 1.
@@ -169,20 +169,20 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : LinDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : LinDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].
     case_eq (x =? y); intros.
-      left. dec.
+      left. trich.
       destruct (elemForest_dec A x _ f).
         left. auto.
         right. inv 1.
-          dec.
+          trich.
           apply inj_pair2 in H4. inv H3.
   destruct f as [| r t f'].
     right. inv 1.

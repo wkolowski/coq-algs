@@ -1,4 +1,4 @@
-Require Export LinDec.
+Require Export TrichDec.
 Require Export Sorting.Sort.
 
 Require Export BTree.

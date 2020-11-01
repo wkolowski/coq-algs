@@ -9,14 +9,14 @@ Require Export ListLemmas.
 
 Set Implicit Arguments.
 
-Function merge (A : LinDec) (l : list A * list A)
+Function merge (A : TrichDec) (l : list A * list A)
   {measure lenSum l} : list A :=
   let (l1, l2) := l in
 match l1, l2 with
     | [], _ => l2
     | _, [] => l1
     | h :: t, h' :: t' =>
-        if h <=? h'
+        if h ≤? h'
         then h :: merge A (t, l2)
         else h' :: merge A (l1, t')
 end.
@@ -26,17 +26,17 @@ Proof.
 Defined.
 
 Theorem Sorted_merge :
-  forall (A : LinDec) (l : list A * list A),
+  forall (A : TrichDec) (l : list A * list A),
     Sorted A (fst l) -> Sorted A (snd l) -> Sorted A (merge A l).
 Proof.
   intros. functional induction merge A l; simpl in *; auto;
   rewrite merge_equation in *.
-    destruct t; cbn in *; dec. inv H.
-    destruct t'; cbn in *; dec. inv H0.
+    destruct t; cbn in *; trich. inv H.
+    destruct t'; cbn in *; trich. inv H0.
 Qed.
 
 Theorem merge_perm :
-  forall (A : LinDec) (l : list A * list A),
+  forall (A : TrichDec) (l : list A * list A),
     perm (fst l ++ snd l) (merge A l).
 Proof.
   intros. functional induction merge A l; simpl; auto; try clear y.
@@ -48,7 +48,7 @@ Proof.
 Qed.
 
 Theorem Permutation_merge :
-  forall (A : LinDec) (l : list A * list A),
+  forall (A : TrichDec) (l : list A * list A),
     Permutation (fst l ++ snd l) (merge A l).
 Proof.
   intros. functional induction merge A l; cbn in *.
@@ -60,7 +60,7 @@ Proof.
 Qed.
 
 Theorem merge_pres_perm :
-  forall (A : LinDec) (l1 l1' l2 l2' : list A),
+  forall (A : TrichDec) (l1 l1' l2 l2' : list A),
     perm l1 l1' -> perm l2 l2' ->
       perm (merge A (l1, l2)) (merge A (l1', l2')).
 Proof.
@@ -68,7 +68,7 @@ Proof.
 Qed.
 
 Theorem Permutation_merge' :
-  forall (A : LinDec) (l1 l1' l2 l2' : list A),
+  forall (A : TrichDec) (l1 l1' l2 l2' : list A),
     Permutation l1 l1' -> Permutation l2 l2' ->
       Permutation (merge A (l1, l2)) (merge A (l1', l2')).
 Proof.
@@ -76,7 +76,7 @@ Proof.
   apply Permutation_app; assumption.
 Qed.
 
-Class Split (A : LinDec) : Type :=
+Class Split (A : TrichDec) : Type :=
 {
     split' : list A -> list A * list A;
     split'_spec1 :
@@ -91,7 +91,7 @@ Class Split (A : LinDec) : Type :=
 }.
 
 Lemma Permutation_app_split :
-  forall (A : LinDec) (s : Split A) (l : list A),
+  forall (A : TrichDec) (s : Split A) (l : list A),
     Permutation (fst (split' l) ++ snd (split' l)) l.
 Proof.
   intros. apply perm_Permutation. rewrite <- perm_split_app. reflexivity.
@@ -99,7 +99,7 @@ Qed.
 
 Coercion split' : Split >-> Funclass.
 
-Function ghms (n : nat) (A : LinDec)
+Function ghms (n : nat) (A : TrichDec)
   (sort : list A -> list A) (split : Split A)
   (l : list A) {measure length l} : list A :=
     if @leqb natle (length l) (S n)
@@ -107,10 +107,10 @@ Function ghms (n : nat) (A : LinDec)
     else let (l1, l2) := split l in
       merge A (@ghms n A sort split l1, @ghms n A sort split l2).
 Proof.
-  intros. apply split'_spec2 with l1; dec.
-    dec. cbn in *. lia.
-  intros. apply split'_spec1 with l2; dec.
-    dec. cbn in *. lia.
+  intros. apply split'_spec2 with l1; trich.
+    trich. cbn in *. lia.
+  intros. apply split'_spec1 with l2; trich.
+    trich. cbn in *. lia.
 Defined.
 
 Functional Scheme div2_ind := Induction for div2 Sort Prop.
@@ -122,7 +122,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance HalfSplit (A : LinDec) : Split A :=
+Instance HalfSplit (A : TrichDec) : Split A :=
 {
     split' l :=
       let n := div2 (length l) in
@@ -167,7 +167,7 @@ Proof.
 Qed.
 
 Lemma perm_interleave :
-  forall (A : LinDec) (l1 l1' l2 l2' : list A),
+  forall (A : TrichDec) (l1 l1' l2 l2' : list A),
     perm l1 l1' -> perm l2 l2' ->
       perm (interleave l1 l2) (interleave l1' l2').
 Proof.
@@ -175,7 +175,7 @@ Proof.
 Qed.
 
 Lemma merge_perm_interleave :
-  forall (A : LinDec) (l : list A * list A),
+  forall (A : TrichDec) (l : list A * list A),
     perm (merge A l) (interleave (fst l) (snd l)).
 Proof.
   unfold perm; intros. rewrite count_interleave.
@@ -183,7 +183,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance MsSplit (A : LinDec) : Split A :=
+Instance MsSplit (A : TrichDec) : Split A :=
 {
     split' := ms_split;
 }.
@@ -200,16 +200,16 @@ Proof.
     rewrite <- merge_perm_interleave. rewrite merge_perm. reflexivity.
 Defined.
 
-Definition ms (A : LinDec) :=
+Definition ms (A : TrichDec) :=
   @ghms 0 A (fun l => l) (MsSplit A).
 
-Definition ms2 (A : LinDec) :=
+Definition ms2 (A : TrichDec) :=
   @ghms 0 A (fun l => l) (HalfSplit A).
 
 (** Time for ultimate mergesort! *)
 
 Function ums
-  (A : LinDec)
+  (A : TrichDec)
   (depth : nat) (maxdepth : nat)
   (sort : list A -> list A)
   (split : Split A)
@@ -223,13 +223,13 @@ Function ums
       merge A (@ums A (1 + depth) maxdepth sort split l1,
                @ums A (1 + depth) maxdepth sort split l2).
 Proof.
-  intros. apply split'_spec2 with l1; dec.
-  intros. apply split'_spec1 with l2; dec.
+  intros. apply split'_spec2 with l1; trich.
+  intros. apply split'_spec1 with l2; trich.
 Defined.
 
 (** Time for ultimatier mergesort. *)
 
-Class Small (A : LinDec) : Type :=
+Class Small (A : TrichDec) : Type :=
 {
     small : nat -> list A -> bool;
     small_spec :
@@ -243,7 +243,7 @@ Class Small (A : LinDec) : Type :=
 Coercion small : Small >-> Funclass.
 
 Function ums'
-  (A : LinDec)
+  (A : TrichDec)
   (recdepth : nat)
   (s : Small A)
   (sort : list A -> list A)
@@ -270,7 +270,7 @@ Defined.
 Definition ums_wut A := @ums' A 0.
 
 #[refine]
-Instance Small_recdepth (A : LinDec) (max : nat) : Small A :=
+Instance Small_recdepth (A : TrichDec) (max : nat) : Small A :=
 {
     small recdepth l :=
       match l with
@@ -281,11 +281,11 @@ Instance Small_recdepth (A : LinDec) (max : nat) : Small A :=
 Proof.
   destruct l as [| x [| y t]]; cbn.
     1-2: inv 1.
-    dec.
+    trich.
 Defined.
 
 Function trollms
-  (A : LinDec)
+  (A : TrichDec)
   (fuel : nat)
   (sort : list A -> list A)
   (split : Split A)

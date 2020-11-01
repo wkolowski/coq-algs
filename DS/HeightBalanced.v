@@ -1,7 +1,7 @@
 Require Export RCCBase.
 
 Require Export BTree.
-Require Export LinDec.
+Require Export TrichDec.
 Require Export Sorting.Sort.
 
 Require Export TrichDec.
@@ -55,11 +55,11 @@ match height' l <?> height' r with
         end
 end.
 
-Function insert {A : LinDec} (x : A) (t : Tree A) : Tree A :=
+Function insert {A : TrichDec} (x : A) (t : Tree A) : Tree A :=
 match t with
     | E => N 1 x E E
     | N _ v l r =>
-        if x <=? v
+        if x ≤? v
         then rebalance v (insert x l) r
         else rebalance v l (insert x r)
 end.
@@ -87,7 +87,7 @@ Proof.
 Qed.
 
 Lemma height_insert :
-  forall (A : LinDec) (x : A) (t : Tree A),
+  forall (A : TrichDec) (x : A) (t : Tree A),
     height' (insert x t) <= 1 + height' t.
 Proof.
   intros. functional induction insert x t;

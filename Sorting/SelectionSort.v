@@ -2,18 +2,18 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Function extractMin {A : LinDec} (l : list A) : option (A * list A) :=
+Function extractMin {A : TrichDec} (l : list A) : option (A * list A) :=
 match l with
     | [] => None
     | h :: t =>
         match extractMin t with
             | None => Some (h, [])
             | Some (m, l') =>
-                if h <=? m then Some (h, m :: l') else Some (m, h :: l')
+                if h ≤? m then Some (h, m :: l') else Some (m, h :: l')
         end
 end.
 
-Function ss {A : LinDec} (l : list A) {measure length l} : list A :=
+Function ss {A : TrichDec} (l : list A) {measure length l} : list A :=
 match extractMin l with
     | None => []
     | Some (m, l') => m :: ss l'
@@ -22,47 +22,47 @@ Proof.
   induction l as [| h t]; cbn; intros.
     inv teq.
     destruct (extractMin t) eqn: Heq.
-      destruct p0. dec; inv teq; cbn; apply lt_n_S; eapply IHt; eauto.
+      destruct p0. trich; inv teq; cbn; apply lt_n_S; eapply IHt; eauto.
       inv teq. cbn. apply le_n_S, le_0_n.
 Defined.
 
 Lemma Permutation_extractMin :
-  forall (A : LinDec) (l l' : list A) (m : A),
+  forall (A : TrichDec) (l l' : list A) (m : A),
     extractMin l = Some (m, l') -> Permutation (m :: l') l.
 Proof.
   intros A l. functional induction extractMin l; cbn; inv 1.
     destruct t; cbn in e0.
       reflexivity.
       destruct (extractMin t).
-        destruct p. 1-2: dec.
+        destruct p. 1-2: trich.
     rewrite Permutation.perm_swap. auto.
 Qed.
 
 Lemma Permutation_ss :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     Permutation (ss A l) l.
 Proof.
   intros. functional induction @ss A l.
     destruct l; cbn in e.
       reflexivity.
-      destruct (extractMin l); try destruct p; dec.
+      destruct (extractMin l); try destruct p; trich.
     apply Permutation_extractMin in e. rewrite <- e, IHl0. reflexivity.
 Qed.
 
 Lemma extractMin_spec :
-  forall (A : LinDec) (l l' : list A) (m : A),
+  forall (A : TrichDec) (l l' : list A) (m : A),
     extractMin l = Some (m, l') -> forall x : A, In x l' -> leq m x.
 Proof.
   intros A l.
-  functional induction extractMin l; inv 1; cbn; intros; destruct H; subst; dec.
+  functional induction extractMin l; inv 1; cbn; intros; destruct H; subst; trich.
 Qed.
 
 Lemma Sorted_ss :
-  forall (A : LinDec) (l : list A),
+  forall (A : TrichDec) (l : list A),
     Sorted A (ss A l).
 Proof.
   intros. functional induction @ss A l.
-    destruct l; dec.
+    destruct l; trich.
     apply Sorted_cons.
       intros. assert (In x l').
         apply Permutation_in with (ss A l').
@@ -130,7 +130,7 @@ Defined.
 
 (** Time to prove something *)
 
-Class Select (A : LinDec) : Type :=
+Class Select (A : TrichDec) : Type :=
 {
     select : list A -> list A * list A * list A;
     select_mins :
@@ -155,7 +155,7 @@ Class Select (A : LinDec) : Type :=
 Coercion select : Select >-> Funclass.
 
 Function gss
-  {A : LinDec} (s : Select A) (l : list A)
+  {A : TrichDec} (s : Select A) (l : list A)
   {measure length l} : list A :=
 match select l with
     | ([], [], []) => []
@@ -170,7 +170,7 @@ Proof.
 Defined.
 
 Lemma Permutation_gss :
-  forall (A : LinDec) (s : Select A) (l : list A),
+  forall (A : TrichDec) (s : Select A) (l : list A),
     Permutation (gss s l) l.
 Proof.
   intros. functional induction @gss A s l.
@@ -179,7 +179,7 @@ Proof.
 Qed.
 
 Lemma select_In :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A) (x : A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A) (x : A),
     select l = (mins, rest, maxes) ->
       In x mins \/ In x rest \/ In x maxes -> In x l.
 Proof.
@@ -192,7 +192,7 @@ Proof.
 Qed.
 
 Lemma select_mins_maxes :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) ->
       forall x y : A, In x mins -> In y maxes -> x ≤ y.
 Proof.
@@ -201,7 +201,7 @@ Proof.
 Qed.
 
 Lemma select_mins_same :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) ->
       forall x y : A, In x mins -> In y mins -> x = y.
 Proof.
@@ -211,7 +211,7 @@ Proof.
 Qed.
 
 Lemma select_maxes_same :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) ->
       forall x y : A, In x maxes -> In y maxes -> x = y.
 Proof.
@@ -221,7 +221,7 @@ Proof.
 Qed.
 
 Lemma same_Sorted :
-  forall (A : LinDec) (x : A) (l : list A),
+  forall (A : TrichDec) (x : A) (l : list A),
     (forall y : A, In y l -> x = y) ->
       Sorted A l.
 Proof.
@@ -238,7 +238,7 @@ Proof.
 Qed.
 
 Lemma Sorted_select_mins :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) -> Sorted A mins.
 Proof.
   destruct mins; intros.
@@ -250,7 +250,7 @@ Proof.
 Qed.
 
 Lemma Sorted_select_maxes :
-  forall (A : LinDec) (s : Select A) (l mins rest maxes : list A),
+  forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
     select l = (mins, rest, maxes) -> Sorted A maxes.
 Proof.
   destruct maxes; intros.
@@ -262,7 +262,7 @@ Proof.
 Qed.
 
 Lemma gss_In :
-  forall (A : LinDec) (s : Select A) (x : A) (l : list A),
+  forall (A : TrichDec) (s : Select A) (x : A) (l : list A),
     In x (gss s l) <-> In x l.
 Proof.
   intros. split; intros.
@@ -275,7 +275,7 @@ Proof.
 Qed.
 
 Lemma gSorted_ss :
-  forall (A : LinDec) (s : Select A) (l : list A),
+  forall (A : TrichDec) (s : Select A) (l : list A),
     Sorted A (gss s l).
 Proof.
   intros. functional induction @gss A s l; try clear y.
@@ -294,7 +294,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_gss (A : LinDec) (s : Select A) : Sort A :=
+Instance Sort_gss (A : TrichDec) (s : Select A) : Sort A :=
 {
     sort := gss s;
     Sorted_sort := gSorted_ss s;
@@ -308,32 +308,32 @@ Defined.
 
 
 Lemma min_spec :
-  forall (A : LinDec) (x h : A) (t : list A),
+  forall (A : TrichDec) (x h : A) (t : list A),
     In x (h :: t) -> min_dflt A h t ≤ x.
 Proof.
   induction t as [| h' t']; simpl in *.
-    destruct 1; subst; auto. dec.
-    destruct 1 as [H1 | [H2 | H3]]; subst; dec.
+    destruct 1; subst; auto. trich.
+    destruct 1 as [H1 | [H2 | H3]]; subst; trich.
 Qed.
 
 (*
 Lemma min_In :
-  forall (A : LinDec) (m : A) (l : list A),
+  forall (A : TrichDec) (m : A) (l : list A),
     min l = Some m -> In m l.
 Proof.
   intros. functional induction min l; cbn; inv H.
 Qed.
 
 Lemma lengthOrder_removeFirst_min :
-  forall (A : LinDec) (m : A) (l : list A),
+  forall (A : TrichDec) (m : A) (l : list A),
     min l = Some m -> lengthOrder (removeFirst m l) l.
 Proof.
-  intros. functional induction min l; inv H; dec; red; cbn; try lia.
+  intros. functional induction min l; inv H; trich; red; cbn; try lia.
     apply lt_n_S. apply IHo. assumption.
 Qed.
 
 #[refine]
-Instance Select_min (A : LinDec) : Select A :=
+Instance Select_min (A : TrichDec) : Select A :=
 {
     select l :=
       match min l with

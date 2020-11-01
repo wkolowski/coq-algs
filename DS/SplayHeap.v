@@ -166,7 +166,7 @@ Lemma isEmpty_count_BTree :
   forall (A : Type) (p : A -> bool) (t : SplayHeap A),
     isEmpty t = true -> count_BTree p t = 0.
 Proof.
-  destruct t; dec.
+  destruct t; trich.
 Qed.
 
 (** Properties of [partition]. *)
@@ -185,15 +185,15 @@ Qed.
 
 Ltac aux := intros; repeat
 match goal with
-    | H : context [?x <=? ?y] |- _ =>
-        let H' := fresh "H" in
+    | H : context [?x ≤? ?y] |- _ => trich
+(*         let H' := fresh "H" in
           destruct (leqb_spec x y) as [H' | H']; try congruence;
           clear H; rename H' into H
-    | H : ~ _ ≤ _ |- _ => apply LinDec_not_leq_lt in H
+ *)    | H : ~ _ ≤ _ |- _ => trich (* apply TrichDec_not_leq_lt in H *)
     | H : elem _ ?t, H' : forall _, elem _ ?t -> _ |- _ =>
         specialize (H' _ H)
-    | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c =>
-        apply leq_trans with b; assumption
+    | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c => trich
+(*         apply leq_trans with b; assumption *)
     | H : elem _ empty |- _ => inv H
     | H : elem _ (node _ _ _) |- _ => inv H
     | H : isBST ?x, H' : isBST ?x -> _ |- _ => specialize (H' H)
@@ -282,7 +282,7 @@ Proof.
       edestruct IHs0; eauto. right. eapply Elem_partition; eauto.
     functional induction merge p h1 h2; inv 1.
       inv H0.
-      inv H0. Check Elem_partition.
+      inv H0.
       erewrite (Elem_partition _ _ _ _ e0) in H0. inv H0.
 Qed.
 
@@ -513,6 +513,6 @@ Proof.
       inv e0.
       destruct (deleteMin2 l1); try destruct p;
       inv e0; specialize (IHo x _ _ ltac:(inv H4) eq_refl);
-      rewrite IHo; dec.
+      rewrite IHo; trich.
 *)
 Admitted.
