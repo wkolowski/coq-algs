@@ -131,44 +131,24 @@ match t with
               | empty, empty => (m, (node M l r))
               | empty, _ =>
                   let '(m', r') := sendDown M r in
-                    (min m m', node (max m m') empty r')
+                    let (m1, m2) := minmax m m' in
+                    (m1, node m2 empty r')
               | _, empty =>
                   let '(m', l') := sendDown M l in
-                    (min m m', node (max m m') l' empty)
+                    let (m1, m2) := minmax m m' in
+                    (m1, node m2 l' empty)
               | node vl _ _, node vr _ _ =>
                   if vl <=? vr
                   then
                     let '(m', l') := sendDown M l in
-                      (min m m', node (max m m') l' r)
+                    let (m1, m2) := minmax m m' in
+                      (m1, node m2 l' r)
                   else
                     let '(m', r') := sendDown M r in
-                      (min m m', node (max m m') l r')
+                    let (m1, m2) := minmax m m' in
+                      (m1, node m2 l r')
           end
 end.
-
-Ltac dec' := cbn;
-repeat match goal with
-    | |- context [?x =? ?y] =>
-        try destruct (LinDec_eqb_spec natle x y);
-        try destruct (LinDec_eqb_spec _ x y); subst; intros
-    | |- context [?x <=? ?y] =>
-        try destruct (@leqb_spec natle x y);
-        try destruct (leqb_spec x y); intros
-    | H : context [?x =? ?y] |- _ =>
-        try destruct (LinDec_eqb_spec natle x y);
-        try destruct (LinDec_eqb_spec _ x y); subst; intros
-    | H : context [?x <=? ?y] |- _ =>
-        try destruct (@leqb_spec natle x y);
-        try destruct (leqb_spec x y); intros
-    | H : ?a ≤ ?b, H' : ?b ≤ ?a |- _ =>
-        let H'' := fresh "H" in
-          assert (H'' := leq_antisym _ _ H H'); clear H H'; subst
-end; cbn;
-repeat match goal with
-    | H : ?x <> ?x |- _ => contradiction H; reflexivity
-    | H : True |- _ => clear H
-    | H : ?x = ?x |- _ => clear H
-end; try congruence.
 
 Lemma minmax_spec :
   forall (A : LinDec) (a b x y : A),
@@ -181,7 +161,20 @@ Lemma minmax_spec' :
   forall (A : LinDec) (a b x y : A),
     minmax x y = (a, b) -> leq a b.
 Proof.
-  intros. unfold minmax in H. dec; inv H.
+  intros. unfold minmax in H. dec.
+Qed.
+
+Lemma minmax_spec'' :
+  forall (A : LinDec) (a b x y : A),
+    minmax x y = (a, b) ->
+      leq a b /\ (
+        (a = x /\ b = y)
+          \/
+        (a = y /\ b = x)).
+Proof.
+  split.
+    eapply minmax_spec'; eassumption.
+    eapply minmax_spec. assumption.
 Qed.
 
 Ltac wut :=
@@ -195,12 +188,14 @@ repeat match goal with
     | H : Elem _ empty |- _ => inv H
     | H : Elem _ (node _ empty empty) |- _ => inv H
     | H : (_, _) = (_, _) |- _ => inv H
-    | H : context [_ <=? _] |- _ => dec'
+    | H : context [_ <=? _] |- _ => dec
+    | H : (_, _) = (_, _) |- _ => inv H
+    | _ => subst; dec
 end.
 
 Ltac wut2 :=
 repeat match goal with
-    | H : minmax _ _ = (_, _) |- _ => apply minmax_spec in H; decompose [and or] H; clear H; subst; auto
+    | H : minmax _ _ = (_, _) |- _ => apply minmax_spec'' in H; decompose [and or] H; clear H; subst; auto
     | _ => wut
 end.
 
@@ -212,27 +207,24 @@ Lemma Elem_sendDown :
       x = m \/ Elem x t'.
 Proof.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; inv 1; dec;
-  repeat match goal with
-      | H : match ?x with _ => _ end |- _ => destruct x
-      | H : False |- _ => contradiction
-      | IH : forall _ _, _ -> _, H : sendDown _ _ = _ |- _ =>
-          destruct (IH _ _ H); clear IH; subst
-  end;
-  unfold min, max, minmax in *; dec; inv e0.
+  functional induction @sendDown A x t; inv 1;
+  wut2; edestruct IHp; wut.
 Qed.
 
 (* TODO *)Lemma Elem_sendDown2 :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
-      (x = m /\ t = t') \/ Elem x t'.
+      (x = m (*/\ t = t'*)) \/ Elem x t'.
 Proof.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; inv 1; dec.
-    wut2.
-    specialize (IHp _ _ e3). decompose [and or] IHp; clear IHp; subst. wut.
-      (* The problem stems from a discrepancy between minmax and separate uses of min/max. *)
-Abort.
+  functional induction sendDown x t; inv 1; dec;
+  try
+  match goal with
+      | H : sendDown _ _ = _ |- _ =>
+          specialize (IHp _ _ H); apply Elem_sendDown in H
+  end;
+  wut2; inv IHp.
+Qed.
 
 Lemma Elem_sendDown' :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
@@ -242,23 +234,20 @@ Lemma Elem_sendDown' :
 Proof.
   intros A x m t. revert m.
   functional induction @sendDown A x t; cbn; intros; wut.
-    m.
+    wut2.
     1-4: inv H0; [edestruct Elem_sendDown | edestruct IHp]; subst; eauto; m.
 Qed.
 
 (* TODO *) Lemma Elem_sendDown'' :
   forall (A : LinDec) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> Elem y t ->
-      (x = m /\ t = t') \/
+      (x = m (*/\ t = t' TODO *)) \/
       (y = m /\ Elem x t').
 Proof.
 (*
   intros A x m y t. revert m y.
-  functional induction @sendDown A x t; cbn; intros; wut.
+  functional induction sendDown x t; cbn; intros; wut.
     m.
-    inv H0; wut.
-      apply Elem_sendDown in e3. destruct e3; subst; m.
-      destruct (IHp _ _ _ e3 H1); subst; m.
     inv H0.
       apply Elem_sendDown in e3. destruct e3; subst; m.
       destruct (IHp _ _ e3 _ H1); subst; m.
@@ -292,7 +281,7 @@ Lemma minmax_leq :
   forall (A : LinDec) (x y m M : A),
     minmax x y = (m, M) -> m ≤ M.
 Proof.
-  unfold minmax. intros. dec. inv H.
+  unfold minmax. intros. dec.
 Qed.
 
 Lemma leq_min_max :
@@ -355,7 +344,7 @@ Proof.
   end.
 
 (*   try assumption;
-  unfold max, minmax in *; dec'; inv e0; dec.  dec. clear H4.
+  unfold max, minmax in *; dec; inv e0; dec.  dec. clear H4.
  *)
 Admitted.
 
@@ -386,37 +375,9 @@ Proof.
           tryif is_var y then fail else inv H
   end.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; intros; wut'.
-    inv H1; try inv H0. unfold minmax in e0; dec'; inv e0.
-    inv H1.
-      unfold minmax, min in *; dec'; inv e0; dec.
-      inv H0.
-      unfold min; dec'.
-        apply leq_trans with m'.
-          assumption.
-          eapply IHp; eauto.
-        eapply IHp; eauto.
-    inv H1.
-      unfold minmax, min in *; dec'; inv e0; dec.
-      unfold min; dec'.
-        apply leq_trans with m'.
-          assumption.
-          eapply IHp; eauto.
-        eapply IHp; eauto.
-      admit. (* inv H0. *)
-    inv H1.
-      unfold minmax, min in *; dec'; inv e0; dec.
-      unfold min; dec'.
-        apply leq_trans with m'.
-          assumption.
-          eapply IHp; eauto.
-        eapply IHp; eauto.
-      admit.
-(*       apply (isHeap_Elem _ _ _ _ _ _ H H6).
-        unfold minmax, min in *; dec'; inv e0; dec. *)
-    inv H1.
-      unfold minmax, min in *; dec'; inv e0; dec.
-Admitted.
+  functional induction @sendDown A x t; intros;
+  wut'; inv H1; wut2; dec.
+Qed.
 
 Lemma sendDown_spec2' :
   forall (A : LinDec) (x m : A) (t t' : BTree A),
@@ -428,7 +389,7 @@ Proof.
   inv 1; inv 1; isHeap2.
     inv H4.
       contradiction.
-      admit.
+      constructor; auto; admit.
     inv H3.
       contradiction.
       isHeap2. constructor; auto.
@@ -445,8 +406,6 @@ Proof.
   repeat match goal with
       | H : Elem _ empty |- _            => inv H
       |                  |- isHeap empty => constructor
-  end;
-  repeat match goal with
       | H : match ?x with _ => _ end |- _ => destruct x eqn: Hx
       | H : False |- _ => contradiction
       | H : True |- _ => clear H
@@ -461,13 +420,13 @@ Proof.
           decompose [and or ex] H'; clear H'; subst
   end;
   constructor; try assumption; try congruence; auto;
-  intros.
-(*     inv H1. inv H. inv IHb0.
-    eapply leq_trans with vl.
-      eapply sendDown_spec2; eauto.
-      dec'.
-    eapply leq_trans with vr.
-      eapply sendDown_spec2; eauto.
-      dec.
- *)
+  intros;
+  repeat match goal with
+      | H : Elem _ empty |- _ => inv H
+      | H : sendDown  _ _ = _ |- _ => apply Elem_sendDown in H
+      | H : isHeap (node _ _ _) |- _ => inv H
+  end.
+    inv e2; inv H; dec.
+    inv e2; inv H; dec.
+    inv e2; inv H; dec.
 Admitted.

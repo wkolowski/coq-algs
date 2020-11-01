@@ -304,12 +304,12 @@ Lemma isHeap_merge :
     isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
-  functional induction @merge A p; do 3 inv 1;
+  functional induction merge p; do 3 inv 1;
   apply isHeap_balance; intros; try rewrite Elem_merge' in H; elem.
-    2, 4: eapply (IHl _ _ eq_refl).
-    all: destruct (leqb_spec v v'); inv e0.
-      eapply leq_trans with v'; inv H.
-      eapply leq_trans with v; inv H.
+    inv H; dec.
+    eauto.
+    inv H; dec.
+    eauto.
 Qed.
 
 Lemma LeftBiased_merge :

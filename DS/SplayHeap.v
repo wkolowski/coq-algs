@@ -189,7 +189,7 @@ match goal with
         let H' := fresh "H" in
           destruct (leqb_spec x y) as [H' | H']; try congruence;
           clear H; rename H' into H
-    | H : ~ _ ≤ _ |- _ => apply LinDec_not_leq in H
+    | H : ~ _ ≤ _ |- _ => apply LinDec_not_leq_lt in H
     | H : elem _ ?t, H' : forall _, elem _ ?t -> _ |- _ =>
         specialize (H' _ H)
     | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c =>
@@ -200,8 +200,6 @@ match goal with
     | H : isBST empty |- _ => inv H
     | H : isBST (node _ _ _) |- _ => inv H
 end; auto.
-
-Check LinDec_not_leq.
 
 Lemma isBST_partition :
   forall (A : Type) (p : A -> A -> comparison) (x : A) (h l r : SplayHeap A),

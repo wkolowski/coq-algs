@@ -23,11 +23,6 @@ Coercion leq : LinDec >-> Funclass.
 Infix "≤" := leq (at level 70).
 Infix "<=?" := leqb (at level 70).
 
-(*Definition LinDec_lt
-  {A : LinDec} (x y : A) : Prop := x ≤ y /\ x <> y.
-
-Infix "<" := LinDec_lt (at level 70).*)
-
 Hint Resolve leq_refl leq_antisym leq_trans leq_total : core.
 Hint Constructors reflect : core.
 
@@ -36,26 +31,25 @@ Definition LinDec_eqb {A : LinDec} (x y : A) : bool :=
 
 Infix "=?" := LinDec_eqb (at level 70).
 
-Definition LinDec_eq_dec : forall {A : LinDec} (x y : A),
-    {x = y} + {x <> y}.
-Proof.
-  intros. destruct (leqb_spec x y) as [H1 | H1], (leqb_spec y x) as [H2 | H2].
-    left; apply leq_antisym; auto.
-    right. intro. apply H2. subst. auto.
-    right. intro. apply H1. subst. auto.
-    cut False.
-      inversion 1.
-      destruct (leq_total x y); contradiction.
-Defined.
-
 Theorem LinDec_eqb_spec :
   forall (A : LinDec) (x y : A), reflect (x = y) (x =? y).
 Proof.
   unfold LinDec_eqb. intros.
-  destruct (LinDec_eq_dec x y); subst.
-    destruct (leqb_spec y y); simpl; auto.
-    destruct (leqb_spec x y); simpl; auto.
-      destruct (leqb_spec y x); simpl; auto.
+  destruct (leqb_spec x y); cbn.
+    destruct (leqb_spec y x); constructor.
+      apply leq_antisym; assumption.
+      intro. subst. contradiction.
+    constructor. intro. subst. apply n, leq_refl.
+Defined.
+
+Require Import RCCBase.
+
+Lemma LinDec_not_leq_lt :
+  forall (A : LinDec) (x y : A), ~ leq x y -> y ≤ x /\ x <> y.
+Proof.
+  intros. destruct (leq_total x y).
+    contradiction.
+    split; [assumption | inv 1].
 Defined.
 
 #[refine]
@@ -91,60 +85,17 @@ match goal with
     | H : context [?x <=? ?y] |- _ =>
         try destruct (@leqb_spec natle x y);
         try destruct (leqb_spec x y); intros
+    | H : ?a ≤ ?b, H' : ?b ≤ ?a |- _ =>
+        let H'' := fresh "H" in
+          assert (H'' := leq_antisym _ _ H H'); clear H H'; subst
+    | H : ~ ?x ≤ ?y |- _ =>
+        apply LinDec_not_leq_lt in H; destruct H
+    | |- ?x ≤ ?x => apply leq_refl
 end; cbn; try
 match goal with
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
+    | H : True |- _ => clear H
+    | H : ?x = ?x |- _ => clear H
 end; eauto; try lia; try congruence.
 
-Lemma LinDec_not_leq :
-  forall (A : LinDec) (x y : A), ~ leq x y -> leq y x.
-Proof.
-  intros. destruct (leqb_spec y x).
-    assumption.
-    cut False.
-      inversion 1.
-      destruct (leq_total x y); contradiction.
-Defined.
-
-Lemma LinDec_not_leq_lt :
-  forall (A : LinDec) (x y : A), ~ leq x y -> y ≤ x /\ x <> y.
-Proof.
-  intros. destruct (leqb_spec y x).
-    split.
-      assumption.
-      intro. subst. contradiction.
-    cut False.
-      inversion 1.
-      destruct (leq_total x y); contradiction.
-Defined.
-
-Hint Resolve LinDec_not_leq : core.
-
 Definition testl := [3; 0; 1; 42; 34; 19; 44; 21; 42; 65; 5].
-
-Definition min_dflt (A : LinDec) (d : A) (l : list A) : A :=
-    fold_right (fun x y => if x <=? y then x else y) d l.
-
-Lemma min_spec :
-  forall (A : LinDec) (x h : A) (t : list A),
-    In x (h :: t) -> min_dflt A h t ≤ x.
-Proof.
-  induction t as [| h' t']; simpl in *.
-    destruct 1; subst; auto.
-    destruct 1 as [H1 | [H2 | H3]]; subst; dec.
-Qed.
-
-Theorem min_In :
-  forall (A : LinDec) (h : A) (t : list A),
-    In (min_dflt A h t) (h :: t).
-Proof.
-  induction t as [| h' t'].
-    simpl. left. reflexivity.
-    inversion IHt'.
-      simpl. destruct (h' <=? _).
-        right. left. reflexivity.
-        left. assumption.
-      simpl. destruct (h' <=? _).
-        right. left. reflexivity.
-        right. right. assumption.
-Qed.

@@ -170,9 +170,8 @@ Instance Partition_filter (A : LinDec) : Partition A :=
 Proof.
   all: intros; inv H.
     rewrite filter_In in H0. firstorder dec.
-    rewrite filter_In in H0. dec.
-      destruct H0. inv H0.
-      destruct H0. apply LinDec_not_leq_lt in n. firstorder.
+    inv H0.
+    rewrite filter_In in H0. destruct H0. dec. inv H0.
     cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
@@ -189,9 +188,8 @@ Instance Partition_bifilter (A : LinDec) : Partition A :=
 Proof.
   all: intros; rewrite bifilter_spec in H; inv H.
     apply filter_In in H0. firstorder dec.
-    apply filter_In in H0. dec.
-      destruct H0. inv H0.
-      destruct H0. apply LinDec_not_leq_lt in n. firstorder.
+    inv H0.
+    apply filter_In in H0. destruct H0. dec. inv H0.
     cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.

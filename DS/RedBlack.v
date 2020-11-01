@@ -255,7 +255,9 @@ Proof.
       dec; rewrite <- Elem_balance in H; inv H; firstorder.
     induction t; cbn; intros.
       inv H.
-      dec; rewrite <- Elem_balance; inv H; inv H0.
+      dec; rewrite <- Elem_balance; inv H.
+        inv H0.
+        inv H2.
 Qed.
 
 Lemma isBST_ins :

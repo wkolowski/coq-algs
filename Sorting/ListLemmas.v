@@ -82,6 +82,9 @@ Proof.
     induction l; firstorder (subst; auto).
 Qed.
 
+Definition min_dflt (A : LinDec) (d : A) (l : list A) : A :=
+    fold_right (fun x y => if x <=? y then x else y) d l.
+
 Lemma min_split :
   forall (A : LinDec) (h : A) (t : list A),
     exists l1 l2 : list A,
@@ -94,12 +97,11 @@ Proof.
       exists [h'], t'. dec.
       exists [], (h' :: t'). rewrite <- e. dec.
       exists [h], t'. cbn. dec.
-      exists [h], t'. dec.
-      destruct IHt' as [l1 [l2 [H H']]]. destruct l1.
-        inv H.
+      destruct IHt' as [l1 [l2 [IH IH']]]. destruct l1.
+        inv IH.
         exists (h :: h' :: l1), l2. split.
-          inv H. dec.
-          cbn in H'. dec.
+          inv IH. dec.
+          cbn in IH'. dec.
 Qed.
 
 (* Quicksort lemmas *)

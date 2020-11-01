@@ -232,9 +232,9 @@ Proof.
       apply Sorted_app.
         constructor.
         assumption.
-        assert (x = h) by auto. inv 1. intro. rewrite (H y).
-          dec.
-          right. assumption.
+        assert (x = h) by auto; subst. inv 1.
+          intro. erewrite H; eauto.
+          inv H1.
 Qed.
 
 Lemma Sorted_select_mins :
@@ -304,6 +304,17 @@ Proof.
 Defined.
 
 (*Require Import SortSpec.*)
+
+
+
+Lemma min_spec :
+  forall (A : LinDec) (x h : A) (t : list A),
+    In x (h :: t) -> min_dflt A h t ≤ x.
+Proof.
+  induction t as [| h' t']; simpl in *.
+    destruct 1; subst; auto. dec.
+    destruct 1 as [H1 | [H2 | H3]]; subst; dec.
+Qed.
 
 (*
 Lemma min_In :

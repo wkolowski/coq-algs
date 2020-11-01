@@ -290,17 +290,23 @@ Proof.
   split.
     destruct t1, t2; cbn; intro; dec.
       inv H. inv H4. eauto.
-      inv H. inv H4. eauto.
+      inv H. inv H6. eauto.
     inv 1.
       destruct t1, t2; cbn; dec.
         inv H0. eapply elemTree_child; cbn; eauto.
         inv H0.
           eapply elemTree_child; cbn; eauto.
-          eapply elemTree_child.
-            exact H2.
-            cbn.
-
-Abort.
+          eapply elemTree_child with (T n c l).
+            econstructor; eauto.
+            left. reflexivity.
+      destruct t1, t2; cbn; dec.
+        inv H0.
+          eapply elemTree_child; cbn; eauto.
+          eapply elemTree_child with (T n0 c0 l0).
+            econstructor; eauto.
+            left. reflexivity.
+        inv H0. eapply elemTree_child; cbn; eauto.
+Qed.
 
 Ltac tree :=
 repeat match goal with

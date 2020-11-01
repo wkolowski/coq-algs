@@ -215,6 +215,20 @@ Proof.
   eapply trich_lt_trans; eassumption.
 Qed.
 
+(* Specs *)
+
+Lemma trich_eqb_spec :
+  forall {A : TrichDec} (x y : A),
+    BoolSpec (x = y) (x <> y) (trich_eqb x y).
+Proof.
+  intros.
+  unfold trich_eqb.
+  destruct (cmp_spec x y); constructor.
+    assumption.
+    inv 1. apply trich_lt_irrefl in H. assumption.
+    inv 1. apply trich_lt_irrefl in H. assumption.
+Qed.
+
 Ltac trich :=
   cbn;
   unfold trich_ltb, trich_leb, trich_eqb;
@@ -302,3 +316,6 @@ Proof.
     1-3: constructor; lia.
     destruct (IHx' y'); constructor; lia.
 Defined.
+
+
+Definition testl := [3; 0; 1; 42; 34; 19; 44; 21; 42; 65; 5].

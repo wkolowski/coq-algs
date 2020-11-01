@@ -101,6 +101,5 @@ Lemma link_comm :
   forall (A : LinDec) (r : nat) (t1 t2 : BinomialTree A r),
     link t1 t2 = link t2 t1.
 Proof.
-  destruct t1, t2. dec; assert (c = c0) by dec; subst.
-    repeat f_equal.
+  destruct t1, t2. dec; repeat f_equal.
 Abort.

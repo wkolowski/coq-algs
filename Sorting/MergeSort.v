@@ -224,9 +224,7 @@ Function ums
                @ums A (1 + depth) maxdepth sort split l2).
 Proof.
   intros. apply split'_spec2 with l1; dec.
-    cbn in *. lia.
   intros. apply split'_spec1 with l2; dec.
-    cbn in *. lia.
 Defined.
 
 (** Time for ultimatier mergesort. *)
