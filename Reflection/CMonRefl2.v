@@ -1,5 +1,3 @@
-
-
 Require Export Sorting.InsertionSort.
 Require Export Sorting.SortSpec.
 
@@ -71,7 +69,7 @@ Proof.
 Qed.
 
 Theorem sort_correct :
-  forall (X : CMon) (env : Env X) (l : list nat) (s : Sort natle),
+  forall (X : CMon) (env : Env X) (l : list nat) (s : Sort trich_le),
     expDenoteL env (s l) = expDenoteL env l.
 Proof.
   intros. apply expDenoteL_Permutation. rewrite Permutation_sort.
@@ -96,7 +94,7 @@ Proof.
 Qed.
 
 Definition simplify {X : CMon} (e : exp elem) : exp elem :=
-  list_to_exp (insertionSort natle (flatten e)).
+  list_to_exp (insertionSort natlt (flatten e)).
 
 Theorem simplify_correct :
   forall (X : CMon) (env : Env X) (e : exp elem),
@@ -104,7 +102,7 @@ Theorem simplify_correct :
 Proof.
   unfold simplify. intros.
   rewrite !list_to_exp_correct.
-  pose (sort_correct _ env (flatten e) (Sort_insertionSort natle)).
+  pose (sort_correct _ env (flatten e) (Sort_insertionSort natlt)).
   cbn in e0. rewrite e0.
   erewrite !flatten_correct.
   reflexivity.

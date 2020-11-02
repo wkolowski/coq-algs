@@ -67,7 +67,7 @@ Proof.
   inversion 1; subst; clear H.
     induction rest as [| h t]; cbn in *.
       constructor.
-      destruct (h ≤? pivot); cbn.
+      destruct (h <=? pivot); cbn.
         eapply Permutation_trans.
           apply Permutation_swap.
           apply Permutation_cons. assumption.

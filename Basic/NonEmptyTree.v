@@ -56,7 +56,7 @@ with specF :
     acc <= k -> auxF f k acc = (f', acc') -> acc' <= S k.
 Proof.
   destruct t; simpl; intros. case_eq (auxF f k acc); intros.
-  case_eq (n ≤? k); intro; rewrite H1, H2 in H0;
+  case_eq (n <=? k); intro; rewrite H1, H2 in H0;
   inversion H0; subst; clear H0.
     apply leb_complete in H2. apply le_n_S. assumption.
     apply (specF A _ _ _ _ _ H H1).
@@ -93,7 +93,7 @@ with auxF_spec2 :
 Proof.
   destruct t; simpl; intros.
   case_eq (auxF f k acc); intros. rewrite H2 in *.
-  case_eq (n ≤? k); intros; rewrite H3 in *; inv H0.
+  case_eq (n <=? k); intros; rewrite H3 in *; inv H0.
     inv H1. destruct H4.
       right. exists n. split; auto. apply leb_complete. assumption.
       eapply auxF_spec2; eauto.

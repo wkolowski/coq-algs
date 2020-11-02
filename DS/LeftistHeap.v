@@ -116,9 +116,9 @@ Hint Constructors LTree LeftBiased Elem isHeap : core.
 Ltac balance := unfold balance, id in *; intros;
 match goal with
     | H : context [right_spine ?r ≤? right_spine ?l] |- _ =>
-        destruct (@leqb_spec natle (right_spine r) (right_spine l))
+        destruct (@trich_leb_spec natlt (right_spine r) (right_spine l))
     | |- context [right_spine ?r ≤? right_spine ?l] =>
-        destruct (@leqb_spec natle (right_spine r) (right_spine l))
+        destruct (@trich_leb_spec natlt (right_spine r) (right_spine l))
 end; cbn; try reflexivity.
 
 Ltac elem :=
@@ -130,6 +130,8 @@ match goal with
     | H : Elem _ (N _ _ empty empty) |- _ => inv H
     | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
     | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
+    | H1 : forall _, Elem _ _ -> _,
+      H2 : Elem _ _ |- _ => specialize (H1 _ H2)
 end; auto.
 
 (** Properties of [isEmpty]. *)
@@ -215,11 +217,18 @@ Defined.
 
 (** Properties of [balance]. *)
 
+Lemma Elem_N :
+  forall {A : Type} (x : A) (n : nat) (v : A) (l r : LTree A),
+    Elem x (N n v l r) <-> x = v \/ Elem x l \/ Elem x r.
+Proof.
+  intros. split; inv 1. inv H0.
+Qed.
+
 Lemma Elem_balance :
   forall (A : Type) (x v : A) (l r : LTree A),
     Elem x (balance v l r) <-> Elem x (N (1 + right_spine r) v l r).
 Proof.
-  intros. balance. firstorder (inv H).
+  intros. balance. rewrite ?Elem_N. firstorder.
 Qed.
 
 Lemma isHeap_balance :
@@ -237,6 +246,8 @@ Lemma LeftBiased_balance :
       LeftBiased (balance v l r).
 Proof.
   intros. balance; constructor; cbn in *; trich.
+    rewrite <- trich_le_nf in H1. destruct H1; cbn in *; lia.
+    cbn in H1. lia.
 Qed.
 
 Lemma size_balance :
@@ -304,12 +315,11 @@ Lemma isHeap_merge :
     isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
-  functional induction merge p; do 3 inv 1;
-  apply isHeap_balance; intros; try rewrite Elem_merge' in H; elem.
-    inv H; trich.
-    eauto.
-    inv H; trich.
-    eauto.
+  functional induction merge p;
+  do 3 inv 1; apply isHeap_balance;
+  intros; rewrite ?Elem_merge' in *; elem; eauto.
+    inv H; elem; trich.
+    inv H; elem; trich.
 Qed.
 
 Lemma LeftBiased_merge :
@@ -354,7 +364,7 @@ Lemma findMin_spec :
   forall (A : TrichDec) (h : LTree A) (m : A),
     isHeap h -> findMin h = Some m -> forall x : A, Elem x h -> m ≤ x.
 Proof.
-  destruct h; cbn; do 3 inv 1.
+  destruct h; cbn; do 3 inv 1. trich.
 Qed.
 
 (** Properties of [insert]. *)
@@ -530,7 +540,7 @@ Definition leftistHeapsort (A : TrichDec) (l : list A) : list A :=
 
 Lemma Sorted_toList :
   forall (A : TrichDec) (t : LTree A),
-    isHeap t -> Sorted A (toList t).
+    isHeap t -> Sorted trich_le (toList t).
 Proof.
   intros. functional induction @toList A t.
     constructor.
@@ -550,7 +560,7 @@ Qed.
 
 Lemma Sorted_leftistHeapsort :
   forall (A : TrichDec) (l : list A),
-    Sorted A (leftistHeapsort A l).
+    Sorted trich_le (leftistHeapsort A l).
 Proof.
   intros. unfold leftistHeapsort. apply Sorted_toList, isHeap_fromList.
 Qed.
@@ -591,7 +601,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_leftistHeapsort (A : TrichDec) : Sort A :=
+Instance Sort_leftistHeapsort (A : TrichDec) : Sort trich_le :=
 {
     sort := @leftistHeapsort A;
 }.

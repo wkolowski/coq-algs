@@ -67,7 +67,7 @@ Lemma Sorted_uqs :
   forall
     (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
-      Sorted A (uqs adhoc choosePivot partition l).
+      Sorted trich_le (uqs adhoc choosePivot partition l).
 Proof.
   intros.
   functional induction @uqs A small adhoc choosePivot partition l.
@@ -77,24 +77,24 @@ Proof.
       apply Sorted_app_all; auto.
         apply Sorted_cons.
           intros. apply in_app_or in H. destruct H.
-            erewrite spec_eq; eauto.
+            erewrite spec_eq; eauto. trich.
             eapply spec_hi; eauto. eapply uqs_In; eauto.
           apply Sorted_app; auto.
             assert (forall x : A, In x eq -> x = pivot).
               eapply spec_eq; eauto.
               clear e1. induction eq; auto. destruct eq; auto. constructor.
-                rewrite (H a), (H c); cbn; auto.
+                rewrite (H a), (H c); cbn; auto. trich.
                 apply IHeq. intro. inv 1; apply H; cbn; auto.
             intros. apply uqs_In in H0.
               erewrite (spec_eq pivot) at 1; eauto.
                 eapply spec_hi; eauto.
-          intros. apply uqs_In in H. eapply spec_lo; eauto.
+        intros. apply uqs_In in H. eapply spec_lo; eauto.
 Qed.
 
 #[refine]
 Instance Sort_uqs
   (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
-  (choosePivot : Pivot A) (partition : Partition A) : Sort A :=
+  (choosePivot : Pivot A) (partition : Partition A) : Sort trich_le :=
 {
     sort := uqs adhoc choosePivot partition
 }.
@@ -104,7 +104,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_qs (A : TrichDec) : Sort A :=
+Instance Sort_qs (A : TrichDec) : Sort trich_le :=
 {
     sort := qs A
 }.
@@ -115,7 +115,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_qs2 (A : TrichDec) : Sort A :=
+Instance Sort_qs2 (A : TrichDec) : Sort trich_le :=
 {
     sort := qs2 A
 }.
@@ -126,9 +126,9 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_hqs (A : TrichDec) (n : nat) (s : Sort A) : Sort A :=
+Instance Sort_hqs (A : TrichDec) (n : nat) (s : Sort trich_le) : Sort trich_le :=
 {
-    sort := hqs n A s
+    sort := hqs n s
 }.
 Proof.
   apply Sorted_uqs.

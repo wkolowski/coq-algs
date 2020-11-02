@@ -102,15 +102,15 @@ end.
 
 Ltac aux := intros; repeat
 match goal with
-    | H : context [?x ≤? ?y] |- _ =>
-        let H' := fresh "H" in
+    | H : context [?x ≤? ?y] |- _ => trich
+(*         let H' := fresh "H" in
           destruct (leqb_spec x y) as [H' | H']; try congruence;
           clear H; rename H' into H
-    | H : ~ _ ≤ _ |- _ => destruct (TrichDec_not_leq_lt _ _ _ H); clear H
+ *)    | H : ~ _ ≤ _ |- _ => trich (* destruct (TrichDec_not_leq_lt _ _ _ H); clear H *)
     | H : elem _ ?t, H' : forall _, elem _ ?t -> _ |- _ =>
         specialize (H' _ H)
-    | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c =>
-        apply leq_trans with b; assumption
+    | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c => trich
+(*         apply leq_trans with b; assumption *)
     | H : elem _ empty |- _ => inv H
     | H : elem _ (node _ _ _) |- _ => inv H
     | H : isBST ?x, H' : isBST ?x -> _ |- _ => specialize (H' H)

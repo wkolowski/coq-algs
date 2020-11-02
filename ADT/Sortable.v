@@ -24,7 +24,7 @@ Parameter sort :
 
 Parameter Sorted_sort :
   forall {A : TrichDec} (s : Sortable A),
-    Sorted A (sort s).
+    Sorted trich_le (sort s).
 
 End Sortable.
 
@@ -34,7 +34,7 @@ Definition Sortable (A : TrichDec) : Type :=
   nat * Lazy (list (list A)).
 
 Definition isValid {A : TrichDec} (s : Sortable A) : Prop :=
-  Forall (Sorted A) (force (snd s)).
+  Forall (Sorted trich_le) (force (snd s)).
 
 Definition empty {A : TrichDec} : Sortable A :=
   (0, delay []).
@@ -43,7 +43,7 @@ Definition merge {A : TrichDec} (l1 l2 : list A) : list A :=
   Sorting.MergeSort.merge A (l1, l2).
 
 Definition lt_Sortable {A : TrichDec} (s1 s2 : Sortable A) : Prop :=
-  fst s1 < fst s2.
+  Nat.lt (fst s1) (fst s2).
 
 Lemma lt_Sortable_wf :
   forall A : TrichDec, well_founded (@lt_Sortable A).
@@ -90,7 +90,7 @@ Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. trich.
+    rewrite MergeSort.merge_equation. trich. cbn in *. lia.
     rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 
@@ -113,7 +113,7 @@ Qed.
 
 Lemma addSeg_isValid :
   forall (A : TrichDec) (seg : list A) (s : Sortable A),
-    Sorted A seg -> isValid s -> isValid (addSeg seg s).
+    Sorted trich_le seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. unfold addSeg. functional induction @addSeg' A s seg.
     constructor; auto.
@@ -135,8 +135,8 @@ Qed.
 
 Lemma Sorted_sort_aux :
   forall (A : TrichDec) (seg : list A) (segs : list (list A)),
-    Sorted A seg -> Forall (Sorted A) segs ->
-      Sorted A (sort_aux seg segs).
+    Sorted trich_le seg -> Forall (Sorted trich_le) segs ->
+      Sorted trich_le (sort_aux seg segs).
 Proof.
   intros. gen seg.
   induction segs as [| seg' segs']; cbn; intros.
@@ -150,7 +150,7 @@ Qed.
 
 Theorem Sorted_sort :
   forall (A : TrichDec) (s : Sortable A),
-    isValid s -> Sorted A (sort s).
+    isValid s -> Sorted trich_le (sort s).
 Proof.
   destruct s. cbn. apply Sorted_sort_aux.
     constructor.
@@ -165,7 +165,7 @@ Definition Sortable (A : TrichDec) : Type :=
   nat * list (list A).
 
 Definition isValid {A : TrichDec} (s : Sortable A) : Prop :=
-  Forall (Sorted A) (snd s).
+  Forall (Sorted trich_le) (snd s).
 
 Definition empty {A : TrichDec} : Sortable A := (0, []).
 
@@ -212,7 +212,7 @@ Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. trich.
+    rewrite MergeSort.merge_equation. trich. cbn in *. lia.
     rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 
@@ -235,7 +235,7 @@ Qed.
 
 Lemma addSeg_isValid :
   forall (A : TrichDec) (seg : list A) (s : Sortable A),
-    Sorted A seg -> isValid s -> isValid (addSeg seg s).
+    Sorted trich_le seg -> isValid s -> isValid (addSeg seg s).
 Proof.
   intros. functional induction @addSeg A seg s.
     compute. auto.
@@ -255,8 +255,8 @@ Qed.
 
 Lemma Sorted_sort_aux :
   forall (A : TrichDec) (seg : list A) (segs : list (list A)),
-    Sorted A seg -> Forall (Sorted A) segs ->
-      Sorted A (sort_aux seg segs).
+    Sorted trich_le seg -> Forall (Sorted trich_le) segs ->
+      Sorted trich_le (sort_aux seg segs).
 Proof.
   intros. gen seg.
   induction segs as [| seg' segs']; cbn; intros.
@@ -270,7 +270,7 @@ Qed.
 
 Theorem Sorted_sort :
   forall (A : TrichDec) (s : Sortable A),
-    isValid s -> Sorted A (sort s).
+    isValid s -> Sorted trich_le (sort s).
 Proof.
   destruct s. cbn. apply Sorted_sort_aux.
     constructor.

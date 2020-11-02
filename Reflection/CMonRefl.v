@@ -70,7 +70,7 @@ Proof.
 Qed.
 
 Theorem sort_correct :
-  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort natle),
+  forall (X : CMon) (envX : Env X) (l : list nat) (s : Sort trich_le),
     expDenoteL envX (s l) = expDenoteL envX l.
 Proof.
   intros. apply expDenoteL_Permutation. rewrite Permutation_sort.
@@ -78,7 +78,7 @@ Proof.
 Qed.
 
 Definition simplify {X : CMon} (e : exp X) : exp X :=
-  list_to_exp (insertionSort natle (flatten e)).
+  list_to_exp (insertionSort natlt (flatten e)).
 
 Theorem simplify_correct :
   forall (X : CMon) (envX : Env X) (e : exp X),
@@ -86,7 +86,7 @@ Theorem simplify_correct :
 Proof.
   unfold simplify. intros.
   rewrite !list_to_exp_correct.
-  pose (sort_correct _ envX (flatten e) (Sort_insertionSort natle)).
+  pose (sort_correct _ envX (flatten e) (Sort_insertionSort natlt)).
   cbn in e0. rewrite e0.
   erewrite ?flatten_correct.
   reflexivity.
@@ -98,7 +98,7 @@ Theorem simplify_idempotent :
 Proof.
   intros. unfold simplify.
   rewrite ?flatten_lte.
-  pose (sort_idempotent (Sort_insertionSort natle)). simpl in e0.
+  pose (sort_idempotent (Sort_insertionSort natlt)). simpl in e0.
   rewrite e0. reflexivity.
 Qed.
 
@@ -258,8 +258,8 @@ Function simplifyEq {X : CMon} (f : formula X) : formula X :=
 match f with
     | fEq e1 e2 =>
         (* fEq (simplify e1) (simplify e2) *)
-        let l1 := insertionSort natle (flatten e1) in
-        let l2 := insertionSort natle (flatten e2) in
+        let l1 := insertionSort natlt (flatten e1) in
+        let l2 := insertionSort natlt (flatten e2) in
           if list_eq Nat.eqb l1 l2
           then fTrue
           else fEq (simplify e1) (simplify e2)
@@ -289,8 +289,8 @@ Proof.
     {
       apply reflectEq. unfold simplify.
       destruct (list_eq_spec _ Nat.eqb_spec
-                (insertionSort natle (flatten e1))
-                (insertionSort natle (flatten e2))).
+                (insertionSort natlt (flatten e1))
+                (insertionSort natlt (flatten e2))).
         rewrite e. reflexivity.
         congruence.
     }
@@ -315,7 +315,7 @@ match f with
 end.
 
 Lemma size_gt_0 :
-  forall (X : CMon) (f : formula X), 0 < size f.
+  forall (X : CMon) (f : formula X), Nat.lt 0 (size f).
 Proof.
   induction f; cbn; lia.
 Qed.
@@ -334,8 +334,8 @@ Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
 match f with
     | fEq e1 e2 =>
         (* fEq (simplify e1) (simplify e2) *)
-        let l1 := insertionSort natle (flatten e1) in
-        let l2 := insertionSort natle (flatten e2) in
+        let l1 := insertionSort natlt (flatten e1) in
+        let l2 := insertionSort natlt (flatten e2) in
           if list_eq Nat.eqb l1 l2
           then fTrue
           else fEq (simplify e1) (simplify e2)
@@ -355,11 +355,10 @@ Proof.
   repeat multimatch goal with
       | f : formula _ |- _ =>
           match goal with
-              | H : 0 < size f |- _ => idtac
+              | H : Nat.lt 0 (size f) |- _ => idtac
               | _ => pose (size_gt_0 f)
           end
   end; try lia.
-(*     rewrite size_substF. lia. *)
 Defined.
 
 Theorem simplifyEq'_correct :
@@ -385,8 +384,8 @@ Proof.
     {
       apply reflectEq. unfold simplify.
       destruct (list_eq_spec _ Nat.eqb_spec
-                (insertionSort natle (flatten e1))
-                (insertionSort natle (flatten e2))).
+                (insertionSort natlt (flatten e1))
+                (insertionSort natlt (flatten e2))).
         rewrite e. reflexivity.
         congruence.
     }
@@ -410,8 +409,8 @@ Proof.
     {
       apply reflectEq. unfold simplify.
       destruct (list_eq_spec _ Nat.eqb_spec
-                (insertionSort natle (flatten e1))
-                (insertionSort natle (flatten e2))).
+                (insertionSort natlt (flatten e1))
+                (insertionSort natlt (flatten e2))).
         rewrite e. reflexivity.
         congruence.
     }

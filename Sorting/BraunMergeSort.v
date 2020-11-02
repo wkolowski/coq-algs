@@ -38,7 +38,7 @@ end.
 
 Lemma Sorted_braunMerge :
   forall (A : TrichDec) (b : Braun A),
-    Sorted A (braunMerge b).
+    Sorted trich_le (braunMerge b).
 Proof.
   induction b as [a | l Hl r Hr]; cbn.
     constructor.
@@ -46,7 +46,7 @@ Proof.
 Qed.
 
 Lemma Sorted_braunSort :
-  forall (A : TrichDec) (l : list A), Sorted A (braunSort l).
+  forall (A : TrichDec) (l : list A), Sorted trich_le (braunSort l).
 Proof.
   destruct l as [| h t]; cbn.
     constructor.
@@ -98,7 +98,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_braunSort (A : TrichDec) : Sort A :=
+Instance Sort_braunSort (A : TrichDec) : Sort trich_le :=
 {|
     sort := @braunSort A;
 |}.
@@ -108,6 +108,6 @@ Proof.
 Defined.
 
 (*
-Time Compute @braunSort natle (cycle 200 testl).
-Time Compute @ums' natle 1 (Small_recdepth natle 5) (braunSort) (HalfSplit natle) (cycle 200 testl).
+Time Compute @braunSort natlt (cycle 200 testl).
+Time Compute @ums' natlt 1 (Small_recdepth natle 5) (braunSort) (HalfSplit natle) (cycle 200 testl).
 *)

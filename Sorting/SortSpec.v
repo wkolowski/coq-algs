@@ -14,7 +14,7 @@ match l with
     | h :: t =>
         match min' t with
             | None => Some h
-            | Some m => Some (if leqb h m then h else m)
+            | Some m => Some (if h ≤? m then h else m)
         end
 end.
 
@@ -31,16 +31,16 @@ Qed.
 
 Lemma Sorted_min' :
   forall (A : TrichDec) (l : list A),
-    Sorted A l -> min' l = head l.
+    Sorted trich_le l -> min' l = head l.
 Proof.
   induction 1; cbn.
     1-2: reflexivity.
-    cbn in *. destruct (min' l); trich.
+    cbn in *. destruct (min' l); trich. inv IHSorted. trich.
 Qed.
 
 Lemma Permutation_Sorted_aux :
   forall (A : TrichDec) (l1 l2 : list A),
-    Permutation l1 l2 -> Sorted A l1 -> Sorted A l2 -> l1 = l2.
+    Permutation l1 l2 -> Sorted trich_le l1 -> Sorted trich_le l2 -> l1 = l2.
 Proof.
   intros until 2. revert l2 H.
   induction H0; intros.
@@ -59,7 +59,7 @@ Proof.
 Qed.
 
 Lemma sort_unique :
-  forall (A : TrichDec) (s1 s2 : Sort A) (l : list A),
+  forall (A : TrichDec) (s1 s2 : Sort trich_le) (l : list A),
     s1 l = s2 l.
 Proof.
   intros. apply Permutation_Sorted_aux.
@@ -68,7 +68,7 @@ Proof.
 Qed.
 
 Lemma sort_idempotent :
-  forall {A : TrichDec} (s : Sort A) (l : list A),
+  forall {A : TrichDec} (s : Sort trich_le) (l : list A),
     sort (sort l) = sort l.
 Proof.
   intros. apply Permutation_Sorted_aux.
@@ -79,7 +79,7 @@ Qed.
 (** [Permutation] can be decided by sorting. *)
 
 Lemma iff_Permutation_eq_sort :
-  forall (A : TrichDec) (s : Sort A) (l1 l2 : list A),
+  forall (A : TrichDec) (s : Sort trich_le) (l1 l2 : list A),
     Permutation l1 l2 <-> sort l1 = sort l2.
 Proof.
   split.

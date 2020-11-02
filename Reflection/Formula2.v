@@ -1,5 +1,3 @@
-
-
 Require Import RCCBase.
 
 Set Implicit Arguments.

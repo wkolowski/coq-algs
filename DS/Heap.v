@@ -115,71 +115,35 @@ Qed.
 
 (** * The rest *)
 
-Definition minmax {A : TrichDec} (x y : A) : A * A :=
-  if x ≤? y then (x, y) else (y, x).
-
-Definition min {A : TrichDec} (x y : A) : A :=
-  if x ≤? y then x else y.
-
-Definition max {A : TrichDec} (x y : A) : A :=
-  if y ≤? x then x else y.
-
 Function sendDown {A : TrichDec} (x : A) (t : BTree A) : A * BTree A :=
 match t with
     | empty => (x, empty)
     | node v l r =>
         let
-          '(m, M) := minmax x v
+          '(m, M) := trich_minmax x v
         in
           match l, r with
               | empty, empty => (m, (node M l r))
               | empty, _ =>
                   let '(m', r') := sendDown M r in
-                    let (m1, m2) := minmax m m' in
+                    let (m1, m2) := trich_minmax m m' in
                     (m1, node m2 empty r')
               | _, empty =>
                   let '(m', l') := sendDown M l in
-                    let (m1, m2) := minmax m m' in
+                    let (m1, m2) := trich_minmax m m' in
                     (m1, node m2 l' empty)
               | node vl _ _, node vr _ _ =>
                   if vl ≤? vr
                   then
                     let '(m', l') := sendDown M l in
-                    let (m1, m2) := minmax m m' in
+                    let (m1, m2) := trich_minmax m m' in
                       (m1, node m2 l' r)
                   else
                     let '(m', r') := sendDown M r in
-                    let (m1, m2) := minmax m m' in
+                    let (m1, m2) := trich_minmax m m' in
                       (m1, node m2 l r')
           end
 end.
-
-Lemma minmax_spec :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) -> (a = x /\ b = y) \/ (a = y /\ b = x).
-Proof.
-  intros. unfold minmax in H. trich; inv H.
-Qed.
-
-Lemma minmax_spec' :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) -> leq a b.
-Proof.
-  intros. unfold minmax in H. trich.
-Qed.
-
-Lemma minmax_spec'' :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) ->
-      leq a b /\ (
-        (a = x /\ b = y)
-          \/
-        (a = y /\ b = x)).
-Proof.
-  split.
-    eapply minmax_spec'; eassumption.
-    eapply minmax_spec. assumption.
-Qed.
 
 Ltac wut :=
 repeat match goal with
@@ -194,28 +158,22 @@ repeat match goal with
     | H : (_, _) = (_, _) |- _ => inv H
     | H : context [_ ≤? _] |- _ => trich
     | H : (_, _) = (_, _) |- _ => inv H
-    | _ => subst; dec
+    | _ => subst; trich
 end.
 
-Ltac wut2 :=
-repeat match goal with
-    | H : minmax _ _ = (_, _) |- _ => apply minmax_spec'' in H; decompose [and or] H; clear H; subst; auto
-    | _ => wut
-end.
-
-Ltac m := unfold min, max, minmax in *; wut.
+Ltac m := unfold trich_min, trich_max, trich_minmax in *; wut.
 
 Lemma Elem_sendDown :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall {A : TrichDec} {x m : A} {t t' : BTree A},
     sendDown x t = (m, t') ->
       x = m \/ Elem x t'.
 Proof.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; inv 1;
-  wut2; edestruct IHp; wut.
+  functional induction sendDown x t;
+  inv 1; wut; edestruct IHp; eauto; trich.
 Qed.
 
-(* TODO *)Lemma Elem_sendDown2 :
+Lemma Elem_sendDown2 :
   forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       (x = m (*/\ t = t'*)) \/ Elem x t'.
@@ -227,19 +185,28 @@ Proof.
       | H : sendDown _ _ = _ |- _ =>
           specialize (IHp _ _ H); apply Elem_sendDown in H
   end;
-  wut2; inv IHp.
+  wut; inv IHp.
 Qed.
 
 Lemma Elem_sendDown' :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall {A : TrichDec} {x m : A} {t t' : BTree A},
     sendDown x t = (m, t') ->
       forall y : A, Elem y t ->
         y = m \/ Elem y t'.
 Proof.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; cbn; intros; wut.
-    wut2.
-    1-4: inv H0; [edestruct Elem_sendDown | edestruct IHp]; subst; eauto; m.
+  functional induction sendDown x t;
+  inv 1; inv 1.
+    trich.
+    all: try
+    match goal with
+        | IH : forall _ _, sendDown _ _ = _ -> _,
+          e  : sendDown _ _ = _ 
+          |- _ => specialize (IH _ _ e);
+                  destruct (Elem_sendDown e);
+                  trich;
+                  edestruct IHp; eauto; trich
+    end.
 Qed.
 
 (* TODO *) Lemma Elem_sendDown'' :
@@ -281,9 +248,9 @@ match t with
         end
 end.
 
-Lemma minmax_leq :
+(* Lemma minmax_leq :
   forall (A : TrichDec) (x y m M : A),
-    minmax x y = (m, M) -> m ≤ M.
+    trminmax x y = (m, M) -> m ≤ M.
 Proof.
   unfold minmax. intros. trich.
 Qed.
@@ -294,7 +261,7 @@ Lemma leq_min_max :
 Proof.
   unfold min, max. intros. trich.
 Qed.
-
+ *)
 Lemma isHeap_Elem :
   forall (A : TrichDec) (x y v : A) (l r : BTree A),
     Elem y (node v l r) -> isHeap (node v l r) ->
@@ -304,10 +271,10 @@ Proof.
   induction H; intros; inv Heqt.
     destruct l0.
       inv H.
-      inv H0; eapply IHElem; trich.
+      inv H0. eapply IHElem; eauto. specialize (H5 c ltac:(constructor)). trich.
     destruct r0.
       inv H.
-      inv H0; eapply IHElem; trich.
+      inv H0; eapply IHElem; eauto. specialize (H7 c ltac:(constructor)). trich.
 Qed.
 
 Lemma sendDown_spec1 :
@@ -321,7 +288,7 @@ Proof.
   functional induction sendDown x t; inv 1; inv 1; right.
     do 3 eexists. split; try reflexivity. split.
       apply isHeap_singleton.
-      apply minmax_spec' in e0. assumption. 
+      trich.
     do 3 eexists. split; try reflexivity.
   Ltac aa := match goal with
       | H : isHeap empty        |- _ => inv H
@@ -338,7 +305,7 @@ Proof.
       | |- exists _, _ => eexists
       | |- _ /\ _ => split
       | |- _ = _ => reflexivity
-      | |- min _ _ ≤ max _ _ => apply leq_min_max
+      | |- trich_min _ _ ≤ trich_max _ _ => trich
       | |- isHeap _ => constructor
       | H : sendDown ?M _ = _ |- _ =>
           let H' := fresh "H" in
@@ -346,10 +313,6 @@ Proof.
           decompose [and or] H'; clear H H'; subst
       | H : node _ _ _ = node _ _ _ |- _ => inv H
   end.
-
-(*   try assumption;
-  unfold max, minmax in *; trich; inv e0; trich.  dec. clear H4.
- *)
 Admitted.
 
 Lemma Elem_node :
@@ -377,16 +340,24 @@ Proof.
       | H : isHeap (node _ ?x ?y) |- _ =>
           tryif is_var x then fail else
           tryif is_var y then fail else inv H
+      | IH : forall _, Elem _ _ -> _,
+         H : Elem _ _
+        |- _ => specialize (IH _ H)
   end.
   intros A x m t. revert m.
-  functional induction @sendDown A x t; intros;
-  wut'; inv H1; wut2; trich.
+  functional induction @sendDown A x t;
+  inv 1; inv 1; inv 1;
+  try match goal with
+    | IH : forall _, Elem _ _ -> _,
+       H : Elem _ _
+      |- _ => specialize (IH _ H)
+  end; trich.
 Qed.
 
 Lemma sendDown_spec2' :
   forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
-      isHeap2 A t -> isHeap2 A t'.
+      isHeap2 trich_le t -> isHeap2 trich_le t'.
 Proof.
   intros until t. revert m.
   functional induction sendDown x t;
@@ -430,7 +401,5 @@ Proof.
       | H : sendDown  _ _ = _ |- _ => apply Elem_sendDown in H
       | H : isHeap (node _ _ _) |- _ => inv H
   end.
-    inv e2; inv H; trich.
-    inv e2; inv H; trich.
-    inv e2; inv H; trich.
+    inv e2. inv H; trich.
 Admitted.

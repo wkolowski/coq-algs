@@ -67,8 +67,7 @@ Fixpoint insTree {A : TrichDec} (t : Tree A) (h : Heap A) : Heap A :=
 match h with
     | [] => [t]
     | t' :: h' =>
-        (* if rank t <? rank t' *)
-        if @trich_ltb natlt (rank t) (rank t')
+        if Nat.ltb (rank t) (rank t')
         then t :: h
         else insTree (link t t') h'
 end.
@@ -85,12 +84,10 @@ match h1 with
           match h2 with
               | [] => h1
               | t2 :: h2' =>
-                  (* if rank t1 <? rank t2 *)
-                  if @trich_ltb natlt (rank t1) (rank t2)
+                  if Nat.ltb (rank t1) (rank t2)
                   then t1 :: merge h1' h2
                   else
-                    (* if rank t2 <? rank t1 *)
-                    if @trich_ltb natlt (rank t2) (rank t1)
+                    if Nat.ltb (rank t2) (rank t1)
                     then t2 :: aux h2'
                     else insTree (link t1 t2) (merge h1' h2')
           end
@@ -139,10 +136,10 @@ Lemma merge_spec :
         | [], _ => h2
         | _, [] => h1
         | t1 :: h1', t2 :: h2' =>
-            if rank t1 <? rank t2
+            if Nat.ltb (rank t1) (rank t2)
             then t1 :: merge h1' h2
             else
-              if rank t2 <? rank t1
+              if Nat.ltb (rank t2) (rank t1)
               then t2 :: merge h1 h2'
               else insTree (link t1 t2) (merge h1' h2')
     end.
@@ -292,8 +289,8 @@ Lemma link_elemTree :
 Proof.
   split.
     destruct t1, t2; cbn; intro; trich.
-      inv H. inv H4. eauto.
-      inv H. inv H6. eauto.
+      inv H. inv H5. eauto.
+      inv H. inv H5. eauto.
     inv 1.
       destruct t1, t2; cbn; trich.
         inv H0. eapply elemTree_child; cbn; eauto.

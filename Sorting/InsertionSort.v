@@ -17,7 +17,7 @@ Lemma perm_ins :
 Proof.
   unfold perm; intros. induction l.
     reflexivity.
-    unfold ins; destruct (leqb x a); fold ins.
+    unfold ins. destruct (trich_leb_spec x a); fold ins.
       reflexivity.
       rewrite (perm_swap A x a l l (perm_refl A l)).
         cbn. rewrite <- IHl. reflexivity.
@@ -36,13 +36,14 @@ Qed.
 
 Lemma Sorted_ins :
   forall (A : TrichDec) (x : A) (l : list A),
-    Sorted A l -> Sorted A (ins A x l).
+    Sorted trich_le l -> Sorted trich_le (ins A x l).
 Proof.
-  induction 1; cbn in *; trich.
+  induction 1; cbn in *; trich; constructor; trich. cbn in *.
+    inv IHSorted. constructor; trich.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort (A : TrichDec) : Sort A :=
+Instance Sort_insertionSort (A : TrichDec) : Sort trich_le :=
 {
     sort := insertionSort A
 }.
@@ -69,37 +70,38 @@ Definition insertionSort'
 
 Lemma perm_ins' :
   forall (A : TrichDec) (x : A) (l : list A),
-    perm (x :: l) (ins' (@leqb A) x l).
+    perm (x :: l) (ins' trich_leb x l).
 Proof.
   unfold perm. induction l; cbn; intros.
     reflexivity.
-    unfold ins'; destruct (leqb x a); fold (@ins' A).
+    unfold ins'; destruct (trich_leb_spec x a); fold (@ins' A).
       reflexivity.
       trich; rewrite <- IHl; cbn. destruct (p a), (p x); reflexivity.
 Qed.
 
 Lemma Permutation_ins' :
   forall (A : TrichDec) (x : A) (l : list A),
-    Permutation (ins' (@leqb A) x l) (x :: l).
+    Permutation (ins' trich_leb x l) (x :: l).
 Proof.
   unfold perm. induction l; cbn; intros.
     reflexivity.
-    unfold ins'; destruct (leqb x a); fold (@ins' A).
+    unfold ins'; destruct (trich_leb_spec x a); fold (@ins' A).
       reflexivity.
       rewrite Permutation.perm_swap. constructor. assumption.
 Qed.
 
 Lemma Sorted_ins' :
   forall (A : TrichDec) (x : A) (l : list A),
-    Sorted A l -> Sorted A (ins' (@leqb A) x l).
+    Sorted trich_le l -> Sorted trich_le (ins' trich_leb x l).
 Proof.
-  induction 1; cbn in *; trich.
+  induction 1; cbn in *; trich; constructor; trich.
+    inv IHSorted. constructor; trich.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort' (A : TrichDec) : Sort A :=
+Instance Sort_insertionSort' (A : TrichDec) : Sort trich_le :=
 {
-    sort := insertionSort' (@leqb A)
+    sort := insertionSort' trich_leb
 }.
 Proof.
   induction l as [| h t]; cbn; auto.

@@ -32,7 +32,7 @@ Qed.
 Require Import ListLemmas.
 
 #[refine]
-Instance Sort_redblackSort (A : TrichDec) : Sort A :=
+Instance Sort_redblackSort (A : TrichDec) : Sort trich_le :=
 {
     sort := @redblackSort A;
     Sorted_sort := @Sorted_redblackSort A;

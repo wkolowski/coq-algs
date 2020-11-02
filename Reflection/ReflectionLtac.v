@@ -1,5 +1,3 @@
-
-
 Require Import RCCBase.
 
 Inductive formula : Set :=

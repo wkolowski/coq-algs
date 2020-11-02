@@ -36,7 +36,7 @@ Class AdHocSort {A : TrichDec} (small : Small A) : Type :=
     adhoc : list A -> list A;
     Sorted_adhoc :
       forall l l' : list A,
-        small l = inl l' -> Sorted A (adhoc l');
+        small l = inl l' -> Sorted trich_le (adhoc l');
     adhoc_perm :
       forall l l' : list A,
         small l = inl l' -> perm l' (adhoc l');
@@ -171,7 +171,7 @@ Proof.
   all: intros; inv H.
     rewrite filter_In in H0. firstorder trich.
     inv H0.
-    rewrite filter_In in H0. destruct H0. trich. inv H0.
+    rewrite filter_In in H0. destruct H0. split; try inv 1; trich.
     cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
@@ -190,6 +190,7 @@ Proof.
     apply filter_In in H0. firstorder trich.
     inv H0.
     apply filter_In in H0. destruct H0. trich. inv H0.
+    cbn. split; try inv 1; trich.
     cbn. lia.
     cbn. unfold perm. intros. rewrite count_app. apply count_filter.
 Defined.
@@ -204,7 +205,7 @@ Instance Small_length (A : TrichDec) (n : nat) : Small A :=
     match l with
         | [] => inl []
         | h :: t =>
-            if @leqb natle (length l) n then inl l else inr (h, t)
+            if Nat.leb (length l) n then inl l else inr (h, t)
     end
 }.
 Proof.
@@ -218,7 +219,7 @@ Defined.
 
 #[refine]
 Instance AdHocSort_Sort
-  {A : TrichDec} (small : Small A) (sort : Sort A) : AdHocSort small :=
+  {A : TrichDec} (small : Small A) (sort : Sort trich_le) : AdHocSort small :=
 {
     adhoc := sort
 }.
@@ -228,6 +229,6 @@ Proof.
 Defined.
 
 Definition hqs
-  (n : nat) (A : TrichDec) (sort : Sort A) (l : list A) : list A :=
+  (n : nat) (A : TrichDec) (sort : Sort trich_le) (l : list A) : list A :=
     uqs (AdHocSort_Sort (Small_length A n) sort)
         (Pivot_head A) (Partition_bifilter A) l.

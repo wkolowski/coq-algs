@@ -69,15 +69,15 @@ end.
 
 Lemma elem_decb_spec :
   forall (A : TrichDec) (x : A) (r : nat) (t : BinomialTree A r),
-    reflect (elem x t) (elem_decb x t)
+    BoolSpec (elem x t) (~ elem x t) (elem_decb x t)
 
 with elemForest_decb_spec :
   forall (A : TrichDec) (x : A) (r : nat) (ts : BinomialForest A r),
-    reflect (elemForest x ts) (elemForest_decb x ts).
+    BoolSpec (elemForest x ts) (~ elemForest x ts) (elemForest_decb x ts).
 Proof.
-  destruct t as [x' r ts]. simpl. trich.
-    destruct (elemForest_decb_spec A x r ts). auto.
-      constructor. inv 1. inj. firstorder.
+  destruct t as [x' r ts]; cbn. unfold orb. trich.
+    destruct (elemForest_decb_spec A x r ts); auto.
+      constructor. inv 1. inj. destruct H4; contradiction.
   destruct ts as [| r t ts']; simpl.
     constructor. inv 1.
     destruct (elem_decb_spec A x r t); auto.

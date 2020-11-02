@@ -51,15 +51,18 @@ Qed.
 
 Lemma extractMin_spec :
   forall (A : TrichDec) (l l' : list A) (m : A),
-    extractMin l = Some (m, l') -> forall x : A, In x l' -> leq m x.
+    extractMin l = Some (m, l') -> forall x : A, In x l' -> m ≤ x.
 Proof.
   intros A l.
-  functional induction extractMin l; inv 1; cbn; intros; destruct H; subst; trich.
+  functional induction extractMin l;
+  inv 1; inv 1; trich.
+    specialize (IHo _ _ e0 _ H0). trich.
+    specialize (IHo _ _ e0 _ H0). trich.
 Qed.
 
 Lemma Sorted_ss :
   forall (A : TrichDec) (l : list A),
-    Sorted A (ss A l).
+    Sorted trich_le (ss A l).
 Proof.
   intros. functional induction @ss A l.
     destruct l; trich.
@@ -149,7 +152,7 @@ Class Select (A : TrichDec) : Type :=
       forall l mins rest maxes : list A,
         select l = (mins, rest, maxes) ->
           mins = [] /\ rest = [] /\ maxes = [] \/
-          length rest < length l;
+          lt (length rest) (length l);
 }.
 
 Coercion select : Select >-> Funclass.
@@ -205,7 +208,7 @@ Lemma select_mins_same :
     select l = (mins, rest, maxes) ->
       forall x y : A, In x mins -> In y mins -> x = y.
 Proof.
-  intros. apply leq_antisym.
+  intros. apply trich_le_antisym.
     eapply select_mins; eauto. eapply select_In; eauto.
     eapply select_mins; eauto. eapply select_In; eauto.
 Qed.
@@ -215,7 +218,7 @@ Lemma select_maxes_same :
     select l = (mins, rest, maxes) ->
       forall x y : A, In x maxes -> In y maxes -> x = y.
 Proof.
-  intros. apply leq_antisym.
+  intros. apply trich_le_antisym.
     eapply select_maxes; eauto. eapply select_In; eauto.
     eapply select_maxes; eauto. eapply select_In; eauto.
 Qed.
@@ -223,23 +226,23 @@ Qed.
 Lemma same_Sorted :
   forall (A : TrichDec) (x : A) (l : list A),
     (forall y : A, In y l -> x = y) ->
-      Sorted A l.
+      Sorted trich_le l.
 Proof.
   intros A x.
   induction l as [| h t]; cbn; intros.
     constructor.
-    specialize (IHt ltac:(auto)). change (Sorted A ([h] ++ t)).
+    specialize (IHt ltac:(auto)). change (Sorted trich_le ([h] ++ t)).
       apply Sorted_app.
         constructor.
         assumption.
         assert (x = h) by auto; subst. inv 1.
-          intro. erewrite H; eauto.
+          intro. right. apply H. auto.
           inv H1.
 Qed.
 
 Lemma Sorted_select_mins :
   forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
-    select l = (mins, rest, maxes) -> Sorted A mins.
+    select l = (mins, rest, maxes) -> Sorted trich_le mins.
 Proof.
   destruct mins; intros.
     constructor.
@@ -251,7 +254,7 @@ Qed.
 
 Lemma Sorted_select_maxes :
   forall (A : TrichDec) (s : Select A) (l mins rest maxes : list A),
-    select l = (mins, rest, maxes) -> Sorted A maxes.
+    select l = (mins, rest, maxes) -> Sorted trich_le maxes.
 Proof.
   destruct maxes; intros.
     constructor.
@@ -276,7 +279,7 @@ Qed.
 
 Lemma gSorted_ss :
   forall (A : TrichDec) (s : Select A) (l : list A),
-    Sorted A (gss s l).
+    Sorted trich_le (gss s l).
 Proof.
   intros. functional induction @gss A s l; try clear y.
     constructor.
@@ -294,7 +297,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_gss (A : TrichDec) (s : Select A) : Sort A :=
+Instance Sort_gss (A : TrichDec) (s : Select A) : Sort trich_le :=
 {
     sort := gss s;
     Sorted_sort := gSorted_ss s;
@@ -303,23 +306,23 @@ Proof.
   intros. apply Permutation_gss.
 Defined.
 
-(*Require Import SortSpec.*)
-
-
-
-Lemma min_spec :
+Lemma min_dflt_spec :
   forall (A : TrichDec) (x h : A) (t : list A),
     In x (h :: t) -> min_dflt A h t ≤ x.
 Proof.
+  intros until t. revert x h.
   induction t as [| h' t']; simpl in *.
-    destruct 1; subst; auto. trich.
-    destruct 1 as [H1 | [H2 | H3]]; subst; trich.
+    inv 1; trich.
+    destruct 1 as [H1 | [H2 | H3]]; subst.
+      trich. specialize (IHt' x x ltac:(left; reflexivity)). trich.
+      trich. specialize (IHt' x x ltac:(left; reflexivity)). trich.
+      trich. pose (IH1 := IHt' h h ltac:(auto)). pose (IH2 := IHt' x h ltac:(auto)). trich.
 Qed.
 
 (*
 Lemma min_In :
   forall (A : TrichDec) (m : A) (l : list A),
-    min l = Some m -> In m l.
+    trich_min l = Some m -> In m l.
 Proof.
   intros. functional induction min l; cbn; inv H.
 Qed.

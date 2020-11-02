@@ -140,13 +140,13 @@ Time Eval cbn in head
 Time Eval cbn in lhead
   ((((((ll +++ ll) +++ ll) +++ ll) +++ ll) +++ ll) +++ ll).
 
-Time Eval cbv in take 10 (insertionSort natle (to0 300)).
+Time Eval cbv in take 10 (insertionSort natlt (to0 300)).
 Time Eval cbv in ltake 10 (lazyInsertionSort (lazy_to0 300)).
 
-(*Time Eval cbn in take 10 (insertionSort natle (to0 300)).*)
+(*Time Eval cbn in take 10 (insertionSort natlt (to0 300)).*)
 (*Time Eval cbn in ltake 10 (lazyInsertionSort (lazy_to0 300)).*)
 
-Time Eval lazy in take 10 (insertionSort natle (to0 300)).
+Time Eval lazy in take 10 (insertionSort natlt (to0 300)).
 Time Eval lazy in ltake 10 (lazyInsertionSort (lazy_to0 300)).
 *)
 

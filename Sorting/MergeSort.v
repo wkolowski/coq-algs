@@ -27,12 +27,19 @@ Defined.
 
 Theorem Sorted_merge :
   forall (A : TrichDec) (l : list A * list A),
-    Sorted A (fst l) -> Sorted A (snd l) -> Sorted A (merge A l).
+    Sorted trich_le (fst l) -> Sorted trich_le (snd l) -> Sorted trich_le (merge A l).
 Proof.
-  intros. functional induction merge A l; simpl in *; auto;
-  rewrite merge_equation in *.
-    destruct t; cbn in *; trich. inv H.
-    destruct t'; cbn in *; trich. inv H0.
+  intros.
+  functional induction merge A l; cbn in *.
+    assumption.
+    assumption.
+    1-2: rewrite merge_equation in *.
+      inv H.
+        constructor; trich.
+        trich; constructor; trich.
+      inv H0.
+        constructor; trich.
+        trich; constructor; trich.
 Qed.
 
 Theorem merge_perm :
@@ -81,10 +88,10 @@ Class Split (A : TrichDec) : Type :=
     split' : list A -> list A * list A;
     split'_spec1 :
       forall l l1 l2 : list A,
-        split' l = (l1, l2) -> 2 <= length l -> length l1 < length l;
+        split' l = (l1, l2) -> 2 <= length l -> Nat.lt (length l1) (length l);
     split'_spec2 :
       forall l l1 l2 : list A,
-        split' l = (l1, l2) -> 2 <= length l -> length l2 < length l;
+        split' l = (l1, l2) -> 2 <= length l -> Nat.lt (length l2) (length l);
     perm_split_app :
       forall (l : list A),
         perm l (fst (split' l) ++ snd (split' l))
@@ -102,23 +109,23 @@ Coercion split' : Split >-> Funclass.
 Function ghms (n : nat) (A : TrichDec)
   (sort : list A -> list A) (split : Split A)
   (l : list A) {measure length l} : list A :=
-    if @leqb natle (length l) (S n)
+    if Nat.leb (length l) (S n)
     then sort l
     else let (l1, l2) := split l in
       merge A (@ghms n A sort split l1, @ghms n A sort split l2).
 Proof.
-  intros. apply split'_spec2 with l1; trich.
-    trich. cbn in *. lia.
-  intros. apply split'_spec1 with l2; trich.
-    trich. cbn in *. lia.
+  intros. apply split'_spec2 with l1; auto.
+    apply leb_complete_conv in teq. lia.
+  intros. apply split'_spec1 with l2; auto.
+    apply leb_complete_conv in teq. lia.
 Defined.
 
 Functional Scheme div2_ind := Induction for div2 Sort Prop.
 
 Lemma div2_lt_S :
-  forall n : nat, div2 n < S n.
+  forall n : nat, Nat.lt (div2 n) (S n).
 Proof.
-  intros. functional induction @div2 n; lia.
+  intros. functional induction div2 n; lia.
 Qed.
 
 #[refine]
@@ -215,16 +222,18 @@ Function ums
   (split : Split A)
   (l : list A)
   {measure length l} : list A :=
-    if @leqb natle maxdepth depth
+    if Nat.leb maxdepth depth
     then sort l
-    else if @leqb natle (length l) 2
+    else if Nat.leb (length l) 2
     then sort l
     else let (l1, l2) := split l in
       merge A (@ums A (1 + depth) maxdepth sort split l1,
                @ums A (1 + depth) maxdepth sort split l2).
 Proof.
-  intros. apply split'_spec2 with l1; trich.
-  intros. apply split'_spec1 with l2; trich.
+  intros. apply split'_spec2 with l1; auto.
+    apply leb_complete_conv in teq0. lia.
+  intros. apply split'_spec1 with l2; auto.
+    apply leb_complete_conv in teq0. lia.
 Defined.
 
 (** Time for ultimatier mergesort. *)
@@ -275,13 +284,13 @@ Instance Small_recdepth (A : TrichDec) (max : nat) : Small A :=
     small recdepth l :=
       match l with
           | [] | [_] => true
-          | _ => @leqb natle max recdepth
+          | _ => Nat.leb max recdepth
       end
 }.
 Proof.
   destruct l as [| x [| y t]]; cbn.
     1-2: inv 1.
-    trich.
+    intros. apply leb_complete_conv in H. lia.
 Defined.
 
 Function trollms

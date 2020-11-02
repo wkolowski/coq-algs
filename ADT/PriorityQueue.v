@@ -150,7 +150,7 @@ Parameter unMin_elem :
     unMin q = Some (m, q') -> elem x q <-> x = m \/ elem x q'.
 
 Lemma Sorted_toList :
-  forall (A : TrichDec) (q : PQ A), Sorted A (toList q).
+  forall (A : TrichDec) (q : PQ A), Sorted trich_le (toList q).
 Proof.
   intros. functional induction @toList A q.
     constructor.
@@ -167,7 +167,7 @@ Qed.
 
 Lemma Sorted_priorityQueueSort :
   forall (A : TrichDec) (l : list A),
-    Sorted A (priorityQueueSort A l).
+    Sorted trich_le (priorityQueueSort A l).
 Proof.
   intros. unfold priorityQueueSort. apply Sorted_toList.
 Qed.
@@ -202,7 +202,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_priorityQueueSort (A : TrichDec) : Sort A :=
+Instance Sort_priorityQueueSort (A : TrichDec) : Sort trich_le :=
 {
     sort := @priorityQueueSort A;
 }.

@@ -309,6 +309,16 @@ Proof.
     intro. assumption.
 Qed.
 
+Lemma trich_le_antisym' :
+  forall {A : TrichDec} {x y : A},
+    x <?> y <> Gt -> y <?> x <> Gt -> x = y.
+Proof.
+  intros.
+  rewrite cmp_spec3 in H.
+  rewrite cmp_spec3 in H0.
+  apply trich_lt_connected; assumption.
+Qed.
+
 Lemma trich_le_nf :
   forall {A : TrichDec} (x y : A),
     x ≤ y <-> cmp x y <> Gt.
@@ -350,6 +360,99 @@ Proof.
     assumption.
 Qed.
 
+Lemma trich_ltb_true :
+  forall {A : TrichDec} (x y : A),
+    x <? y = true -> x < y.
+Proof.
+  intros.
+  unfold trich_ltb in H.
+  destruct (cmp_spec x y).
+    congruence.
+    assumption.
+    congruence.
+Qed.
+
+Lemma trich_ltb_false :
+  forall {A : TrichDec} (x y : A),
+    x <? y = false -> y ≤ x.
+Proof.
+  intros.
+  unfold trich_ltb in H.
+  destruct (cmp_spec x y).
+    right. symmetry. assumption.
+    congruence.
+    left. assumption.
+Qed.
+
+(* [min], [max] and [minmax] *)
+
+Definition trich_min {A : TrichDec} (x y : A) : A :=
+  if x ≤? y then x else y.
+
+Definition trich_max {A : TrichDec} (x y : A) : A :=
+  if y ≤? x then x else y.
+
+Definition trich_minmax {A : TrichDec} (x y : A) : A * A :=
+  if x ≤? y then (x, y) else (y, x).
+
+Lemma trich_min_spec :
+  forall {A : TrichDec} {x y a : A},
+    trich_min x y = a ->
+      a ≤ x /\ a ≤ y.
+Proof.
+Admitted.
+
+Lemma trich_max_spec :
+  forall {A : TrichDec} {x y a : A},
+    trich_max x y = a ->
+      x ≤ a /\ y ≤ a.
+Proof.
+Admitted.
+
+(* Lemma trich_minmax_spec :
+  forall {A : TrichDec} {x y a b : A},
+    trich_minmax x y = (a, b) ->
+      a ≤ x /\ a ≤ y /\ x ≤ b /\ y ≤ b.
+Proof.
+Admitted.
+ *)
+
+Lemma trich_minmax_spec :
+  forall {A : TrichDec} {x y a b : A},
+    trich_minmax x y = (a, b) ->
+      x ≤ y /\ (a = x /\ b = y) \/
+      x > y /\ (a = y /\ b = x).
+Proof.
+Admitted.
+
+(* Lemma minmax_spec :
+  forall (A : TrichDec) (a b x y : A),
+    minmax x y = (a, b) -> (a = x /\ b = y) \/ (a = y /\ b = x).
+Proof.
+  intros. unfold minmax in H. trich; inv H.
+Qed.
+
+Lemma minmax_spec' :
+  forall (A : TrichDec) (a b x y : A),
+    minmax x y = (a, b) -> a ≤ b.
+Proof.
+  intros. unfold minmax in H. trich.
+Qed.
+ 
+Lemma minmax_spec'' :
+  forall (A : TrichDec) (a b x y : A),
+    minmax x y = (a, b) ->
+      a ≤ b /\ (
+        (a = x /\ b = y)
+          \/
+        (a = y /\ b = x)).
+Proof.
+  split.
+    eapply minmax_spec'; eassumption.
+    eapply minmax_spec. assumption.
+Qed.
+*)
+
 Ltac trichbody :=
 match goal with
 (* General contradictions *)
@@ -374,8 +477,9 @@ match goal with
     | |- ?x ≤ ?y => rewrite trich_le_nf
     | H : ?x ≤? ?y = true |- _ => apply trich_leb_true in H
     | H : ?x ≤? ?y = false |- _ => apply trich_leb_false in H
+    | H : ?x <? ?y = true |- _ => apply trich_ltb_true in H
+    | H : ?x <? ?y = false |- _ => apply trich_ltb_false in H
 (* Computational properties of cmp *)
-(*     | H : context [?x <?> ?x] |- _ => *)
     | H : ?x <?> ?x = _ |- _ =>
         rewrite cmp_refl in H; try congruence
     | |- context [?x <?> ?x] =>
@@ -385,6 +489,10 @@ match goal with
     | |- context [CompOpp (_ <?> _)] =>
         rewrite CompOpp_cmp
 (* Computational properties of derived operations *)
+    | H : context [negb (_ ≤? _)] |- _ => rewrite negb_trich_leb in H
+    | |-  context [negb (_ ≤? _)]      => rewrite negb_trich_leb
+    | H : context [negb (_ <? _)] |- _ => rewrite negb_trich_ltb in H
+    | |-  context [negb (_ <? _)]      => rewrite negb_trich_ltb
     | H : context [?x <? ?x] |- _ =>
         rewrite trich_ltb_irrefl in H
     | |- context [?x <? ?x] =>
@@ -402,6 +510,10 @@ match goal with
     | |-  _ <?> _  = Gt    _ => rewrite trichb_Gt_to_Lt
     | H : _ <?> _ <> Lt |- _ => rewrite <- trichb_not_Gt_to_not_Lt in H
     | |-  _ <?> _ <> Lt      => rewrite <- trichb_not_Gt_to_not_Lt
+(* Antisymmetry *)
+    | Hxy : ?x <?> ?y <> Gt, Hyx : ?y <?> ?x <> Gt |- _ =>
+        let H := fresh "H" in
+          pose (H := trich_le_antisym' Hxy Hyx); clearbody H; clear Hxy Hyx; subst
 (* Transitivity *)
      | Hxy : ?x <?> ?y = Lt, Hyz : ?y <?> ?z = Lt |- _ =>
         lazymatch goal with
@@ -446,6 +558,10 @@ match goal with
         destruct (cmp_spec x y)
     | |- context [match ?x <?> ?y with | _ => _ end] =>
         destruct (cmp_spec x y)
+(* [min], [max] and [minmax] *)
+    | H : trich_min _ _    = _      |- _ => apply trich_min_spec in H; destruct H
+    | H : trich_max _ _    = _      |- _ => apply trich_max_spec in H; destruct H
+    | H : trich_minmax _ _ = (_, _) |- _ => apply trich_minmax_spec in H; decompose [and or] H; clear H 
 (* try to finish somehow *)
     | _ => subst; auto; try congruence
 end.
