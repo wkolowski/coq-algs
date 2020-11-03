@@ -4,22 +4,22 @@ Require Import BST.
 Require Export TrichDec.
 Require Import Sorting.Sort.
 
-(** * Various heap property definitions and their relations. *)
+(** * Various definitions of binary heaps. *)
 
-Inductive isHeap {A : TrichDec} : BTree A -> Prop :=
-    | isHeap_empty : isHeap empty
-    | isHeap_node :
+Inductive isBHeap {A : TrichDec} : BTree A -> Prop :=
+    | isBHeap_empty : isBHeap empty
+    | isBHeap_node :
         forall (v : A) (l r : BTree A),
-          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
-          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
-            isHeap (node v l r).
+          (forall x : A, Elem x l -> v ≤ x) -> isBHeap l ->
+          (forall x : A, Elem x r -> v ≤ x) -> isBHeap r ->
+            isBHeap (node v l r).
 
-Hint Constructors isHeap : core.
+Hint Constructors isBHeap : core.
 
-Ltac isHeap :=
+Ltac isBHeap :=
 repeat match goal with
-    | H : isHeap empty        |- _ => inv H
-    | H : isHeap (node _ _ _) |- _ => inv H
+    | H : isBHeap empty        |- _ => inv H
+    | H : isBHeap (node _ _ _) |- _ => inv H
 end.
 
 Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : BTree A -> Prop :=
@@ -28,14 +28,14 @@ Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : BTree A -> Prop :=
         forall (v : A) (l r : BTree A),
           R x v -> OK R x (node v l r).
 
-Inductive isHeap2 {A : Type} (R : A -> A -> Prop) : BTree A -> Prop :=
-    | isHeap2_empty : isHeap2 R empty
-    | isHeap2_node :
+Inductive isBHeap2 {A : Type} (R : A -> A -> Prop) : BTree A -> Prop :=
+    | isBHeap2_empty : isBHeap2 R empty
+    | isBHeap2_node :
         forall (v : A) (l r : BTree A),
           OK R v l -> OK R v r ->
-            isHeap2 R l -> isHeap2 R r -> isHeap2 R (node v l r).
+            isBHeap2 R l -> isBHeap2 R r -> isBHeap2 R (node v l r).
 
-Hint Constructors OK isHeap2 : core.
+Hint Constructors OK isBHeap2 : core.
 
 Ltac ok :=
 repeat match goal with
@@ -43,70 +43,70 @@ repeat match goal with
     | H : OK _ _ (node _ _ _) |- _ => inv H
 end.
 
-Ltac isHeap2 :=
+Ltac isBHeap2 :=
 repeat match goal with
-    | H : isHeap2 _ empty        |- _ => inv H
-    | H : isHeap2 _ (node _ _ _) |- _ => inv H
+    | H : isBHeap2 _ empty        |- _ => inv H
+    | H : isBHeap2 _ (node _ _ _) |- _ => inv H
     | _ => ok
 end.
 
-Inductive isHeap3 {A : TrichDec} : BTree A -> Prop :=
-    | isHeap3_empty : isHeap3 empty
-    | isHeap3_singl : forall v : A, isHeap3 (node v empty empty)
-    | isHeap3_l :
+Inductive isBHeap3 {A : TrichDec} : BTree A -> Prop :=
+    | isBHeap3_empty : isBHeap3 empty
+    | isBHeap3_singl : forall v : A, isBHeap3 (node v empty empty)
+    | isBHeap3_l :
         forall (v x : A) (l r : BTree A),
-          v ≤ x -> isHeap3 (node x l r) -> isHeap3 (node v (node x l r) empty)
-    | isHeap3_r :
+          v ≤ x -> isBHeap3 (node x l r) -> isBHeap3 (node v (node x l r) empty)
+    | isBHeap3_r :
         forall (v x : A) (l r : BTree A),
-          v ≤ x -> isHeap3 (node x l r) -> isHeap3 (node v empty (node x l r))
-    | isHeap3_lr :
+          v ≤ x -> isBHeap3 (node x l r) -> isBHeap3 (node v empty (node x l r))
+    | isBHeap3_lr :
         forall (v lv rv : A) (ll lr rl rr : BTree A),
-          v ≤ lv -> isHeap3 (node lv ll lr) ->
-          v ≤ rv -> isHeap3 (node rv rl rr) ->
-            isHeap3 (node v (node lv ll lr) (node rv rl rr)).
+          v ≤ lv -> isBHeap3 (node lv ll lr) ->
+          v ≤ rv -> isBHeap3 (node rv rl rr) ->
+            isBHeap3 (node v (node lv ll lr) (node rv rl rr)).
 
-Hint Constructors isHeap3 : core.
+Hint Constructors isBHeap3 : core.
 
-Lemma isHeap2_isHeap :
+Lemma isBHeap2_isBHeap :
   forall {A : TrichDec} (t : BTree A),
-    isHeap2 (@trich_le A) t <-> isHeap t.
+    isBHeap2 (@trich_le A) t <-> isBHeap t.
 Proof.
   split.
     induction 1; constructor; auto.
-      inv IHisHeap2_1; isHeap2; inv 1; trich.
+      inv IHisBHeap2_1; isBHeap2; inv 1; trich.
         specialize (H3 _ H8). trich.
         specialize (H5 _ H8). trich.
-      inv IHisHeap2_2; isHeap2; inv 1; trich.
+      inv IHisBHeap2_2; isBHeap2; inv 1; trich.
         specialize (H3 _ H8). trich.
         specialize (H5 _ H8). trich.
     induction 1; constructor; auto.
-      inv IHisHeap1.
-      inv IHisHeap2.
+      inv IHisBHeap1.
+      inv IHisBHeap2.
 Qed.
 
-Lemma isHeap2_isHeap3 :
+Lemma isBHeap2_isBHeap3 :
   forall {A : TrichDec} (t : BTree A),
-    isHeap2 (@trich_le A) t <-> isHeap3 t.
+    isBHeap2 (@trich_le A) t <-> isBHeap3 t.
 Proof.
   split.
     induction 1.
       constructor.
-      inv IHisHeap2_1; inv IHisHeap2_2; isHeap2; constructor; auto.
+      inv IHisBHeap2_1; inv IHisBHeap2_2; isBHeap2; constructor; auto.
     induction 1; constructor; auto.
 Qed.
 
-(** * Relations between [isHeap] and various [BTree] functions. *)
+(** * Relations between [isBHeap] and various [BTree] functions. *)
 
-Lemma isHeap_singleton :
+Lemma isBHeap_singleton :
   forall (A : TrichDec) (x : A),
-    isHeap (singleton x).
+    isBHeap (singleton x).
 Proof.
   intros. unfold singleton. constructor; auto; inv 1.
 Qed.
 
-Lemma isHeap_isEmpty :
+Lemma isBHeap_isEmpty :
   forall (A : TrichDec) (t : BTree A),
-    isEmpty t = true -> isHeap t.
+    isEmpty t = true -> isBHeap t.
 Proof.
   destruct t; intro.
     constructor.
@@ -262,9 +262,9 @@ Proof.
   unfold min, max. intros. trich.
 Qed.
  *)
-Lemma isHeap_Elem :
+Lemma isBHeap_Elem :
   forall (A : TrichDec) (x y v : A) (l r : BTree A),
-    Elem y (node v l r) -> isHeap (node v l r) ->
+    Elem y (node v l r) -> isBHeap (node v l r) ->
       x ≤ v -> x ≤ y.
 Proof.
   intros. remember (node v l r) as t. revert v l r Heqt x H1 H0.
@@ -279,26 +279,26 @@ Qed.
 
 Lemma sendDown_spec1 :
   forall (A : TrichDec) (x m : A) (t t' : BTree A),
-    sendDown x t = (m, t') -> isHeap t ->
+    sendDown x t = (m, t') -> isBHeap t ->
       t = empty /\ t' = empty \/
       exists (v : A) (l r : BTree A),
-        t' = node v l r /\ isHeap t' /\ m ≤ v.
+        t' = node v l r /\ isBHeap t' /\ m ≤ v.
 Proof.
   intros A x m t. revert m.
   functional induction sendDown x t; inv 1; inv 1; right.
     do 3 eexists. split; try reflexivity. split.
-      apply isHeap_singleton.
+      apply isBHeap_singleton.
       trich.
     do 3 eexists. split; try reflexivity.
   Ltac aa := match goal with
-      | H : isHeap empty        |- _ => inv H
-      | H : isHeap (node _ _ _) |- _ => inv H
+      | H : isBHeap empty        |- _ => inv H
+      | H : isBHeap (node _ _ _) |- _ => inv H
       | H : match ?x with _ => _ end |- _ => destruct x
       | H : False |- _ => contradiction
       | H : True |- _ => clear H
-      | IH : forall _ _ , sendDown _ _ = _ -> ?isHeap -> _,
+      | IH : forall _ _ , sendDown _ _ = _ -> ?isBHeap -> _,
         H1 : sendDown _ _ = _,
-        H2 : ?isHeap |- _ =>
+        H2 : ?isBHeap |- _ =>
             specialize (IH _ _ H1 H2);
             decompose [and or ex] IH; clear IH; subst
       | H : node _ _ _ = empty |- _ => inv H
@@ -306,7 +306,7 @@ Proof.
       | |- _ /\ _ => split
       | |- _ = _ => reflexivity
       | |- trich_min _ _ ≤ trich_max _ _ => trich
-      | |- isHeap _ => constructor
+      | |- isBHeap _ => constructor
       | H : sendDown ?M _ = _ |- _ =>
           let H' := fresh "H" in
           assert (H' := Elem_sendDown'' _ M _ _ _ _ H ltac:(constructor));
@@ -326,7 +326,7 @@ Qed.
 
 Lemma sendDown_spec2 :
   forall (A : TrichDec) (x m : A) (t t' : BTree A),
-    sendDown x t = (m, t') -> isHeap t ->
+    sendDown x t = (m, t') -> isBHeap t ->
       forall a : A, Elem a t -> m ≤ a.
 Proof.
   Ltac wut' := 
@@ -336,8 +336,8 @@ Proof.
       | H : True |- _ => clear H
       | H : (_, _) = _ |- _ => inv H
       | H : Elem _ empty |- _ => inv H
-      | H : isHeap empty |- _ => clear H
-      | H : isHeap (node _ ?x ?y) |- _ =>
+      | H : isBHeap empty |- _ => clear H
+      | H : isBHeap (node _ ?x ?y) |- _ =>
           tryif is_var x then fail else
           tryif is_var y then fail else inv H
       | IH : forall _, Elem _ _ -> _,
@@ -357,39 +357,39 @@ Qed.
 Lemma sendDown_spec2' :
   forall (A : TrichDec) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
-      isHeap2 trich_le t -> isHeap2 trich_le t'.
+      isBHeap2 trich_le t -> isBHeap2 trich_le t'.
 Proof.
   intros until t. revert m.
   functional induction sendDown x t;
-  inv 1; inv 1; isHeap2.
+  inv 1; inv 1; isBHeap2.
     inv H4.
       contradiction.
       constructor; auto; admit.
     inv H3.
       contradiction.
-      isHeap2. constructor; auto.
+      isBHeap2. constructor; auto.
         admit.
         eapply IHp; eauto.
     constructor; eauto.
 Admitted.
 
-Lemma isHeap_makeHeap :
+Lemma isBHeap_makeHeap :
   forall (A : TrichDec) (t : BTree A),
-    isHeap (makeHeap t).
+    isBHeap (makeHeap t).
 Proof.
   intros. functional induction makeHeap t;
   repeat match goal with
       | H : Elem _ empty |- _            => inv H
-      |                  |- isHeap empty => constructor
+      |                  |- isBHeap empty => constructor
       | H : match ?x with _ => _ end |- _ => destruct x eqn: Hx
       | H : False |- _ => contradiction
       | H : True |- _ => clear H
       | H : Elem _ empty |- _ => inv H
       | H : makeHeap _ = _ |- _ => rewrite ?H in *; clear H
-      | H : isHeap empty |- _ => clear H
+      | H : isBHeap empty |- _ => clear H
   end;
   try match goal with
-      | H : sendDown _ _ = _, H0 : isHeap _ |- _ =>
+      | H : sendDown _ _ = _, H0 : isBHeap _ |- _ =>
           let H' := fresh "H" in 
           assert (H' := sendDown_spec1 _ _ _ _ _ H H0);
           decompose [and or ex] H'; clear H'; subst
@@ -399,7 +399,7 @@ Proof.
   repeat match goal with
       | H : Elem _ empty |- _ => inv H
       | H : sendDown  _ _ = _ |- _ => apply Elem_sendDown in H
-      | H : isHeap (node _ _ _) |- _ => inv H
+      | H : isBHeap (node _ _ _) |- _ => inv H
   end.
     inv e2. inv H; trich.
 Admitted.

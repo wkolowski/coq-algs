@@ -253,6 +253,16 @@ Proof.
   eapply trichb_trans_Lt; eassumption.
 Qed.
 
+Lemma trichb_trans_Gt_Lt :
+  forall {A : TrichDec} {x y z : A},
+    cmp x y <> Gt -> cmp y z = Lt -> cmp x z = Lt.
+Proof.
+  intros A x y z Hxy Hyz.
+  destruct (cmp_spec x y); try congruence.
+  rewrite <- cmp_spec1 in H.
+  eapply trichb_trans_Lt; eassumption.
+Qed.
+
 (* Specs *)
 
 Lemma trich_ltb_spec :
@@ -425,34 +435,6 @@ Lemma trich_minmax_spec :
 Proof.
 Admitted.
 
-(* Lemma minmax_spec :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) -> (a = x /\ b = y) \/ (a = y /\ b = x).
-Proof.
-  intros. unfold minmax in H. trich; inv H.
-Qed.
-
-Lemma minmax_spec' :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) -> a ≤ b.
-Proof.
-  intros. unfold minmax in H. trich.
-Qed.
- 
-Lemma minmax_spec'' :
-  forall (A : TrichDec) (a b x y : A),
-    minmax x y = (a, b) ->
-      a ≤ b /\ (
-        (a = x /\ b = y)
-          \/
-        (a = y /\ b = x)).
-Proof.
-  split.
-    eapply minmax_spec'; eassumption.
-    eapply minmax_spec. assumption.
-Qed.
-*)
-
 Ltac trichbody :=
 match goal with
 (* General contradictions *)
@@ -473,12 +455,15 @@ match goal with
 (* put stuff in normal form (i.e. cmp _ _ = _) *)
     | H : ?x < ?y |- _ =>
         rewrite <- ?cmp_spec1, <- ?cmp_spec3 in H
+    | |- ?x < ?y =>
+        rewrite <- ?cmp_spec1, <- ?cmp_spec3
     | H : ?x ≤ ?y |- _ => rewrite trich_le_nf in H
     | |- ?x ≤ ?y => rewrite trich_le_nf
     | H : ?x ≤? ?y = true |- _ => apply trich_leb_true in H
     | H : ?x ≤? ?y = false |- _ => apply trich_leb_false in H
     | H : ?x <? ?y = true |- _ => apply trich_ltb_true in H
     | H : ?x <? ?y = false |- _ => apply trich_ltb_false in H
+    | |- _ <> _ => intro; subst
 (* Computational properties of cmp *)
     | H : ?x <?> ?x = _ |- _ =>
         rewrite cmp_refl in H; try congruence
@@ -536,6 +521,13 @@ match goal with
             | _ => 
                 let Hxz := fresh "Hxz" in
                 pose (Hxz := trichb_trans_Lt_Gt Hxy Hyz); clearbody Hxz
+        end
+    | Hxy : ?x <?> ?y <> Gt, Hyz : ?y <?> ?z = Lt |- _ =>
+        lazymatch goal with
+            | Hxz : x <?> z = Lt |- _ => fail
+            | _ =>
+                let Hxz := fresh "Hxz" in
+                pose (Hxz := trichb_trans_Gt_Lt Hxy Hyz); clearbody Hxz
         end
 (* Case analysis *)
 (* <? *)

@@ -20,6 +20,14 @@ Arguments isBST {A} _ _.
 
 Hint Constructors Elem isBST : core.
 
+Ltac isBST :=
+repeat match goal with
+    |                          |- isBST _ empty  => constructor
+    |                          |- isBST _ _ -> _ => intro
+    | H : isBST _ empty        |- _              => clear H
+    | H : isBST _ (node _ _ _) |- _              => inv H
+end.
+
 Inductive isBST2
   {A : Type} {cmp : A -> A -> comparison} : BTree A -> Prop :=
     | isBST2_empty : isBST2 empty

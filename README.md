@@ -1,4 +1,4 @@
-# Random Coq Code
+# coq-algs
 
 Hello. This repository contains some random Coq code which is going to be the basis of my Master's Thesis.
 
@@ -49,3 +49,4 @@ Memoization/ has verified memoized Fibonacci and nothing besides. Trash/ is usel
 * Prove general facts about sorting algorithms.
 * Make everything work without LinDec/TrichDec, so that these are needed only for the proofs.
 * Find a way to do modular memoization.
+* Ternary Search Tree, whichi is a data structure for storing finite collections of strings: https://www.drdobbs.com/database/ternary-search-trees/184410528

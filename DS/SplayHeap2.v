@@ -219,21 +219,27 @@ Qed.
 
 (** Properties [bigger]. *)
 
-(* TODO: fix elem
 Lemma bigger_spec :
   forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
-    isBST h -> forall x : A, elem x (bigger pivot h) ->
-      pivot ≤ x /\ pivot <> x.
+    isBST cmp h -> forall x : A, elem cmp x (bigger pivot h) ->
+      pivot < x.
 Proof.
-  intros. functional induction @bigger A pivot h; aux;
-  (split; [eauto | intro; subst; dec]).
+  intros until h.
+  functional induction bigger pivot h;
+  isBST; cbn; intros; trich.
+    specialize (IHs H8 _ H). trich.
+    specialize (IHs H2 _ H). trich.
 Qed.
 
 Lemma bigger_elem :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
-    isBST h -> elem x (bigger pivot h) -> elem x h.
+    isBST cmp h -> Elem x (bigger pivot h) -> Elem x h.
 Proof.
-  intros. functional induction @bigger A pivot h; aux.
+  intros until h.
+  functional induction bigger pivot h;
+  isBST.
+  inv 1.
+  inv 1. inv 1. inv H1.
 Qed.
 
 Lemma bigger_elem' :
@@ -258,7 +264,6 @@ Qed.
 
 (* wut *)
 
-(*
 Lemma not_elem_count_BTree :
   forall (A : Type) (p : A -> bool) (t : BTree A),
     ~ elem x t -> count_BTree p t = 0.
@@ -266,7 +271,6 @@ Proof.
   induction t; cbn; intros; rewrite ?IHt1, ?IHt2; trich.
   contradiction H. constructor.
 Qed.
-*)
 
 Lemma elem_lt_not_r :
   forall (A : TrichDec) (x v : A) (l r : BTree A),
@@ -280,7 +284,6 @@ match goal with
     | H : elem _ empty |- _ => inv H
 end.
 
-(*
 Lemma count_BTree_node :
   forall (A : TrichDec) (p : A -> bool) (x v : A) (l r : BTree A),
     isBST (node v l r) -> x ≤ v -> x <> v ->
@@ -293,9 +296,7 @@ Proof.
       reflexivity.
       intro. inv H.
 Qed.
-*)
 
-(*
 Lemma bigger_count_BTree :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
     isBST h -> pivot ≤ x -> x <> pivot ->
@@ -328,7 +329,6 @@ Restart.
           eapply leq_trans; eauto.
     trich.
 Abort.
-*)
 
 (** Properties of [smaller]. *)
 Lemma smaller_spec :
@@ -460,4 +460,3 @@ Proof.
         apply merge_elem in H; firstorder.
         apply merge_elem in H; firstorder.
 Qed.
-*)

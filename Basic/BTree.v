@@ -351,7 +351,7 @@ Qed.
 
 (** [takeWhileBT] *)
 
-Fixpoint takeWhileBT {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
+Function takeWhileBT {A : Type} (p : A -> bool) (t : BTree A) : BTree A :=
 match t with
     | empty => empty
     | node v l r =>
@@ -359,6 +359,15 @@ match t with
         then node v (takeWhileBT p l) (takeWhileBT p r)
         else empty
 end.
+
+Lemma Elem_takeWhileBT :
+  forall {A : Type} (p : A -> bool) (t : BTree A) (x : A),
+    Elem x (takeWhileBT p t) -> Elem x t /\ p x = true.
+Proof.
+  intros until t.
+  functional induction takeWhileBT p t;
+  inv 1; firstorder.
+Qed.
 
 Lemma size_takeWhileBT :
   forall (A : Type) (p : A -> bool) (t : BTree A),

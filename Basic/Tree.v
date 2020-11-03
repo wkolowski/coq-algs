@@ -28,7 +28,7 @@ Inductive isHeap {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
     | isHeap_T :
         forall (v : A) (l : list (Tree A)),
           Forall (fun t : Tree A => forall x : A, Elem x t -> R v x) l ->
-          Forall (fun t : Tree A => isHeap R t) l ->
+          Forall (isHeap R) l ->
             isHeap R (T v l).
 
 Inductive All {A : Type} (P : A -> Prop) : Tree A -> Prop :=
@@ -194,12 +194,10 @@ Qed.
 
 (** Properties of [height]. *)
 
-(*
 Lemma height_fmap :
   forall (A B : Type) (f : A -> B) (t : Tree A),
-    height (fmap f t) = height t.
+    height (fmap_Tree f t) = height t.
 Proof. Tree_ind. Qed.
-*)
 
 Lemma height_isEmpty_true :
   forall (A : Type) (t : Tree A),

@@ -1,19 +1,19 @@
-Inductive Tree (A : Type) : Type :=
-    | T : A -> Forest A -> Tree A
+Require Import FunInd.
+Require Import Arith.
+
+Inductive NETree (A : Type) : Type :=
+    | T : A -> Forest A -> NETree A
 
 with Forest (A : Type) : Type :=
     | E : Forest A
-    | F : Tree A -> Forest A -> Forest A.
+    | F : NETree A -> Forest A -> Forest A.
 
 Arguments T {A} _ _.
 Arguments E {A}.
 Arguments F {A} _ _ .
 
-Require Import Arith.
-Require Import FunInd.
-
-Function auxT {A : Type} (t : Tree A) (k : nat) (acc : nat)
-  : Tree (option nat) * nat :=
+Function auxT {A : Type} (t : NETree A) (k : nat) (acc : nat)
+  : NETree (option nat) * nat :=
 match t with
     | T _ f =>
         let
@@ -38,7 +38,7 @@ end.
 
 (** An algorithm that colors a tree so that at most k nodes in each
     path are colored. *)
-Definition color {A : Type} (k : nat) (t : Tree A) : Tree (option nat) :=
+Definition color {A : Type} (k : nat) (t : NETree A) : NETree (option nat) :=
   fst (auxT t k 1).
 
 Require Import Lia.
@@ -47,7 +47,7 @@ Definition wut :=
   T 1 (F (T 2 (F (T 5 E) E)) (F (T 3 E) (F (T 4 E) E))).
 
 Lemma specT :
-  forall (A : Type) (t : Tree A) (t' : Tree (option nat)) (k acc acc' : nat),
+  forall (A : Type) (t : NETree A) (t' : NETree (option nat)) (k acc acc' : nat),
     acc <= k -> auxT t k acc = (t', acc') -> acc' <= S k
 
 with specF :
@@ -62,25 +62,25 @@ Proof.
     apply (specF A _ _ _ _ _ H H1).
   destruct f; simpl; intros; inversion H0; subst; clear H0.
     apply le_S. assumption.
-    case_eq (auxT t k acc); intros; case_eq (auxF f k acc); intros.
+    case_eq (auxT n k acc); intros; case_eq (auxF f k acc); intros.
       rewrite H0, H1 in H2. inversion H2; subst; clear H2.
         apply Max.max_lub; [eapply specT | eapply specF]; eauto.
 Qed.
 
-Inductive elem {A : Type} (x : A) : Tree A -> Prop :=
+Inductive elem {A : Type} (x : A) : NETree A -> Prop :=
     | elem0 :
         forall (y : A) (f : Forest A),
           x = y \/ elemF x f -> elem x (T y f)
 
 with elemF {A : Type} (x : A) : Forest A -> Prop :=
     | elemF0 :
-        forall (t : Tree A) (f : Forest A),
+        forall (t : NETree A) (f : Forest A),
           elem x t \/ elemF x f -> elemF x (F t f).
 
 Ltac inv H := inversion H; subst; clear H.
 
 Lemma auxT_spec2 :
-  forall (A : Type) (x : option nat) (t : Tree A) (t' : Tree (option nat))
+  forall (A : Type) (x : option nat) (t : NETree A) (t' : NETree (option nat))
   (k acc acc' : nat),
     acc <= k -> auxT t k acc = (t', acc') -> elem x t' ->
       x = None \/ exists k' : nat, x = Some k' /\ k' <= k
@@ -102,7 +102,7 @@ Proof.
       eapply auxF_spec2; eauto.
   destruct f; simpl; intros; inv H0.
     inv H1.
-    case_eq (auxT t k acc); intros; rewrite H0 in *.
+    case_eq (auxT n k acc); intros; rewrite H0 in *.
     case_eq (auxF f k acc); intros; rewrite H2 in *.
       inv H3. inv H1. destruct H4.
         eapply auxT_spec2; eauto.
