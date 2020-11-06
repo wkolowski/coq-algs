@@ -435,6 +435,15 @@ Lemma trich_minmax_spec :
 Proof.
 Admitted.
 
+Lemma trich_neq_nf :
+  forall {A : TrichDec} {x y : A},
+    x <> y -> cmp x y <> Eq.
+Proof.
+  intros A x y H H'.
+  rewrite cmp_spec2 in H'.
+  contradiction.
+Qed.
+
 Ltac trichbody :=
 match goal with
 (* General contradictions *)
@@ -464,8 +473,14 @@ match goal with
     | H : ?x <? ?y = true |- _ => apply trich_ltb_true in H
     | H : ?x <? ?y = false |- _ => apply trich_ltb_false in H
     | |- _ <> _ => intro; subst
+(* more normal forms *)
+    | H1 : ?x <?> ?y = _, H2 : ?x <?> ?y <> _ |- _ => try contradiction; clear H2
+(*     | H : _ <> _ |- _ => apply trich_neq_nf in H
+    | H : _ = _ |- _ => subst + rewrite <- cmp_spec2 in H *)
 (* Computational properties of cmp *)
     | H : ?x <?> ?x = _ |- _ =>
+        rewrite cmp_refl in H; try congruence
+    | H : ?x <?> ?x <> _ |- _ =>
         rewrite cmp_refl in H; try congruence
     | |- context [?x <?> ?x] =>
         rewrite cmp_refl
@@ -492,7 +507,7 @@ match goal with
         rewrite trich_eqb_refl
 (* Normalize the order of arguments. *)
     | H : _ <?> _  = Gt |- _ => rewrite trichb_Gt_to_Lt in H
-    | |-  _ <?> _  = Gt    _ => rewrite trichb_Gt_to_Lt
+    | |-  _ <?> _  = Gt      => rewrite trichb_Gt_to_Lt
     | H : _ <?> _ <> Lt |- _ => rewrite <- trichb_not_Gt_to_not_Lt in H
     | |-  _ <?> _ <> Lt      => rewrite <- trichb_not_Gt_to_not_Lt
 (* Antisymmetry *)
@@ -510,6 +525,7 @@ match goal with
     | Hxy : ?x <?> ?y <> Gt, Hyz : ?y <?> ?z <> Gt |- _ =>
         lazymatch goal with
             | Hxz : x <?> z <> Gt |- _ => fail
+            | Hxz : x <?> z =  _  |- _ => fail
             | _ => constr_eq x z
                      ||
                    let Hxz := fresh "Hxz" in

@@ -103,14 +103,10 @@ end.
 Ltac aux := intros; repeat
 match goal with
     | H : context [?x ≤? ?y] |- _ => trich
-(*         let H' := fresh "H" in
-          destruct (leqb_spec x y) as [H' | H']; try congruence;
-          clear H; rename H' into H
- *)    | H : ~ _ ≤ _ |- _ => trich (* destruct (TrichDec_not_leq_lt _ _ _ H); clear H *)
+    | H : ~ _ ≤ _ |- _ => trich
     | H : elem _ ?t, H' : forall _, elem _ ?t -> _ |- _ =>
         specialize (H' _ H)
     | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c => trich
-(*         apply leq_trans with b; assumption *)
     | H : elem _ empty |- _ => inv H
     | H : elem _ (node _ _ _) |- _ => inv H
     | H : isBST ?x, H' : isBST ?x -> _ |- _ => specialize (H' H)
@@ -237,36 +233,40 @@ Lemma bigger_elem :
 Proof.
   intros until h.
   functional induction bigger pivot h;
-  isBST.
-  inv 1.
-  inv 1. inv 1. inv H1.
+  isBST; inv 1.
+    inv H1.
 Qed.
 
 Lemma bigger_elem' :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
-    isBST h -> elem x h -> pivot ≤ x -> pivot <> x ->
-      elem x (bigger pivot h).
+    isBST cmp h -> elem cmp x h -> pivot ≤ x -> pivot <> x ->
+      elem cmp x (bigger pivot h).
 Proof.
-  intros. functional induction @bigger A pivot h; aux;
-  contradiction H2; trich.
-Qed.
+  intros until h. revert x.
+  functional induction bigger pivot h.
+    Elem.
+    Elem. apply IHs; isBST. trich.
+    Elem.
+    Elem. trich. apply IHs; isBST. trich.
+    intros until 2.
+Admitted.
 
-Lemma bigger_isBST :
+Lemma isBST_bigger :
   forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
-    isBST h -> isBST (bigger pivot h).
+    isBST cmp h -> isBST cmp (bigger pivot h).
 Proof.
-  intros. functional induction @bigger A pivot h; aux.
-    repeat constructor; auto; intros. apply bigger_elem in H; auto.
-    repeat constructor; auto; intros.
+  intros until h.
+  functional induction bigger pivot h;
+  isBST.
+    constructor; auto; intros. apply bigger_elem in H; auto.
+    constructor; auto; intros.
       apply bigger_elem in H; auto.
-      inv H. eauto.
-Qed.
+Admitted.
 
-(* wut *)
-
+(*
 Lemma not_elem_count_BTree :
-  forall (A : Type) (p : A -> bool) (t : BTree A),
-    ~ elem x t -> count_BTree p t = 0.
+  forall (A : TrichDec) (p : A -> bool) (x : A) (t : BTree A),
+    ~ elem cmp x t -> count_BTree p t = 0.
 Proof.
   induction t; cbn; intros; rewrite ?IHt1, ?IHt2; trich.
   contradiction H. constructor.
@@ -297,7 +297,7 @@ Proof.
       intro. inv H.
 Qed.
 
-Lemma bigger_count_BTree :
+Lemma count_BTree_bigger :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
     isBST h -> pivot ≤ x -> x <> pivot ->
       count_BTree x (bigger pivot h) = count_BTree x h.
@@ -355,7 +355,7 @@ Proof.
   contradiction H3; trich.
 Qed.
 
-Lemma smaller_isBST :
+Lemma isBST_smaller :
   forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
     isBST h -> isBST (smaller pivot h).
 Proof.
@@ -386,7 +386,7 @@ Proof.
       eapply bigger_elem; eauto.
 Qed.
 
-Lemma partition_isBST :
+Lemma isBST_partition :
   forall (A : TrichDec) (x : A) (h l r : SplayHeap A),
     partition x h = (l, r) -> isBST h -> isBST (node x l r).
 Proof.
@@ -397,7 +397,7 @@ Proof.
     apply bigger_is_bst. assumption.
 Qed.
 
-Lemma partition_size :
+Lemma size_partition :
   forall (A : TrichDec) (pivot : A) (h h1 h2 : SplayHeap A),
     partition pivot h = (h1, h2) -> size h = size h1 + size h2.
 Proof.
@@ -410,14 +410,14 @@ Abort.
 
 (** Properties of [insert]. *)
 
-Lemma insert_elem :
+Lemma elem_insert :
   forall (A : TrichDec) (x : A) (h : SplayHeap A),
     elem x (insert x h).
 Proof.
   intros. unfold insert. destruct (partition x h). constructor.
 Qed.
 
-Lemma insert_isBST :
+Lemma isBST_insert :
   forall (A : TrichDec) (x : A) (h : SplayHeap A),
     isBST h -> isBST (insert x h).
 Proof.
@@ -427,7 +427,7 @@ Qed.
 
 (** Properties of [merge]. *)
 
-Lemma merge_elem :
+Lemma elem_merge :
   forall (A : TrichDec) (x : A) (h1 h2 : SplayHeap A),
     isBST h1 -> isBST h2 ->
       elem x (merge h1 h2) <-> elem x h1 \/ elem x h2.
@@ -449,7 +449,7 @@ Proof.
           apply partition_is_bst in e0; inv H; eauto.
 Qed.
 
-Lemma merge_isBST :
+Lemma isBST_merge :
   forall (A : TrichDec) (h1 h2 : SplayHeap A),
     isBST h1 -> isBST h2 -> isBST (merge h1 h2).
 Proof.
@@ -457,6 +457,7 @@ Proof.
     assumption.
     unfold merge. case_eq (partition v h2); intros small big Hp; fold merge.
       apply partition_is_bst in Hp; aux. constructor; intros; auto.
-        apply merge_elem in H; firstorder.
-        apply merge_elem in H; firstorder.
+        apply elem_merge in H; firstorder.
+        apply elem_merge in H; firstorder.
 Qed.
+*)
