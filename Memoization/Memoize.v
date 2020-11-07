@@ -2,7 +2,7 @@
 
 Require Import BTree.
 Require Import BST.
-Require Import TrichDec.
+Require Import Ord.
 
 Set Implicit Arguments.
 
@@ -24,10 +24,10 @@ end.
 
 Axiom hehe : False.
 
-Require Import TrichDec.
+Require Import Ord.
 
 #[refine]
-Instance KVP (A : TrichDec) (B : Type) : TrichDec :=
+Instance KVP (A : Ord) (B : Type) : Ord :=
 {
     carrier := A * B;
     leq p1 p2 := fst p1 ≤ fst p2;
@@ -43,7 +43,7 @@ Proof.
     destruct hehe.
 Defined.
 
-Fixpoint find {A : TrichDec} {B : Type} (k : A) (t : BTree (KVP A B))
+Fixpoint find {A : Ord} {B : Type} (k : A) (t : BTree (KVP A B))
   : option B :=
 match t with
     | empty => None
@@ -125,12 +125,12 @@ end.
 Definition fibM (n : nat) : nat :=
   fibM_aux n (fromList FibAcc' [(0, 0); (1, 1)]).
 
-Definition acc_correct {A : TrichDec} {B : Type}
+Definition acc_correct {A : Ord} {B : Type}
   (f : A -> B) (acc : BTree (KVP A B)) : Prop :=
     forall (k : A) (v : B), Elem (k, v) acc -> v = f k.
 
 Lemma find_elem :
-  forall (A : TrichDec) (B : Type) (k : A) (v : B) (t : BTree (KVP A B)),
+  forall (A : Ord) (B : Type) (k : A) (v : B) (t : BTree (KVP A B)),
     find k t = Some v -> Elem (k, v) t.
 Proof.
   intros. revert v H.
@@ -202,7 +202,7 @@ Proof.
   red. intros. inv H; inv H1; inv H0.
 Qed.
 
-Definition bind {A : TrichDec} {B : Type} (a : A)
+Definition bind {A : Ord} {B : Type} (a : A)
   (f : A -> BTree (KVP A B) -> B) (acc : BTree (KVP A B))
   : B * BTree (KVP A B) :=
 match find a acc with

@@ -2,7 +2,7 @@ Require Import RCCBase.
 
 Require Import CoqMTL.Control.Monad.Lazy.
 
-Require Import Structures.TrichDec.
+Require Import Structures.Ord.
 
 Definition Queue (A : Type) : Type :=
   list A * nat * Lazy (list A) * nat * list A.

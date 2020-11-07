@@ -1,6 +1,6 @@
 Require Import RCCBase.
 
-Require Import TrichDec.
+Require Import Ord.
 Require Import ListLemmas.
 Require Import Sorting.Sort.
 
@@ -34,7 +34,7 @@ Definition singleton {A : Type} (x : A) : BTree A :=
   node x empty empty.
 
 Fixpoint Elem_decb
-  {A : TrichDec} (x : A) (t : BTree A) : bool :=
+  {A : Ord} (x : A) (t : BTree A) : bool :=
 match t with
     | empty => false
     | node v l r =>
@@ -61,13 +61,13 @@ match t with
 end.
 
 Function BTree_toList'_aux
-  {A : TrichDec} (t : BTree A) (acc : list A) : list A :=
+  {A : Ord} (t : BTree A) (acc : list A) : list A :=
 match t with
     | empty => acc
     | node v l r => BTree_toList'_aux l (v :: BTree_toList'_aux r acc)
 end.
 
-Definition BTree_toList' {A : TrichDec} (t : BTree A) : list A :=
+Definition BTree_toList' {A : Ord} (t : BTree A) : list A :=
   BTree_toList'_aux t [].
 
 (** [size] and counting. *)
@@ -110,7 +110,7 @@ end; auto.
 (** Properties of [Elem] and [Elem_decb]. *)
 
 Lemma Elem_decb_reflect :
-  forall (A : TrichDec) (x : A) (t : BTree A),
+  forall (A : Ord) (x : A) (t : BTree A),
     BoolSpec (Elem x t) (~ Elem x t) (Elem_decb x t).
 Proof.
   induction t as [| v l IHl r IHr]; cbn.
@@ -122,7 +122,7 @@ Qed.
 (** Properties of casts to/from list. *)
 
 Lemma BTree_toList'_aux_spec :
-  forall (A : TrichDec) (t : BTree A) (acc : list A),
+  forall (A : Ord) (t : BTree A) (acc : list A),
     BTree_toList'_aux t acc = BTree_toList t ++ acc.
 Proof.
   intros. functional induction @BTree_toList'_aux A t acc; cbn.
@@ -177,11 +177,11 @@ Qed.
 
 (** Properties of [empty]. *)
 Lemma Elem_empty :
-  forall (A : TrichDec) (x : A), ~ Elem x empty.
+  forall (A : Ord) (x : A), ~ Elem x empty.
 Proof. inv 1. Qed.
 
 Lemma size_empty :
-  forall A : TrichDec, size (@empty A) = 0.
+  forall A : Ord, size (@empty A) = 0.
 Proof. reflexivity. Qed.
 
 Lemma countBT_empty :
@@ -192,14 +192,14 @@ Proof. reflexivity. Qed.
 (** Properties of [singleton]. *)
 
 Lemma Elem_singleton :
-  forall (A : TrichDec) (x y : A),
+  forall (A : Ord) (x y : A),
     Elem x (singleton y) <-> x = y.
 Proof.
   split; Elem.
 Qed.
 
 Lemma size_singleton :
-  forall (A : TrichDec) (x : A),
+  forall (A : Ord) (x : A),
     size (singleton x) = 1.
 Proof. reflexivity. Qed.
 
@@ -213,7 +213,7 @@ Qed.
 (** Properties of [isEmpty]. *)
 
 Lemma isEmpty_Elem_false :
-  forall (A : TrichDec) (t : BTree A),
+  forall (A : Ord) (t : BTree A),
     isEmpty t = false <-> exists x : A, Elem x t.
 Proof.
   split; destruct t; cbn; intros.
@@ -224,7 +224,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_Elem_true :
-  forall (A : TrichDec) (t : BTree A),
+  forall (A : Ord) (t : BTree A),
     isEmpty t = true <-> forall x : A, ~ Elem x t.
 Proof.
   split; destruct t; cbn; firstorder.

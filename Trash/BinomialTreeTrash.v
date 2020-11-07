@@ -44,11 +44,11 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : Ord} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y | y r f].
@@ -111,11 +111,11 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : Ord} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].
@@ -169,11 +169,11 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : Ord} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].

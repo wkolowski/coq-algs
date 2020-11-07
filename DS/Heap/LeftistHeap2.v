@@ -1,4 +1,4 @@
-Require Export TrichDec.
+Require Export Ord.
 Require Import Sorting.Sort.
 
 Set Implicit Arguments.
@@ -24,7 +24,7 @@ Inductive Elem {A : Type} (x : A) : RSTree A -> Prop :=
     | Elem_right : forall  (n : nat) (v : A) (l r : RSTree A),
         Elem x r -> Elem x (node n v l r).
 
-Inductive isHeap {A : TrichDec} : RSTree A -> Prop :=
+Inductive isHeap {A : Ord} : RSTree A -> Prop :=
     | isHeap_empty : isHeap empty
     | isHeap_node :
         forall  (n : nat) (v : A) (l r : RSTree A),
@@ -33,21 +33,21 @@ Inductive isHeap {A : TrichDec} : RSTree A -> Prop :=
             isHeap (node n v l r).
 
 Lemma isHeap_inv_l :
-  forall (A : TrichDec) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
     isHeap (node n v l r) -> isHeap l.
 Proof.
   inversion 1; eauto.
 Qed.
 
 Lemma isHeap_inv_r :
-  forall (A : TrichDec) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
     isHeap (node n v l r) -> isHeap r.
 Proof.
   inversion 1; eauto.
 Qed.
 
 Lemma isHeap_inv_leq :
-  forall (A : TrichDec) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
     isHeap (node n v l r) -> forall x : A,
       Elem x (node n v l r) -> v ≤ x.
 Proof.
@@ -56,7 +56,7 @@ Qed.
 
 Hint Resolve isHeap_inv_l isHeap_inv_r : core.
 
-Inductive LeftBiased {A : TrichDec} : RSTree A -> Prop :=
+Inductive LeftBiased {A : Ord} : RSTree A -> Prop :=
     | LeftBiased_empty : LeftBiased empty
     | LeftBiased_node :
         forall (v : A) (l r : RSTree A),
@@ -80,7 +80,7 @@ Ltac lh x :=
     destruct x as [t H H']; destruct t;
     try inversion H; try inversion H'; subst; cbn.
 
-Definition getMin {A : TrichDec} (t : RSTree A) : option A :=
+Definition getMin {A : Ord} (t : RSTree A) : option A :=
 match t with
     | empty => None
     | node _ v _ _ => Some v
@@ -140,7 +140,7 @@ Proof.
 Qed.
 
 Lemma isHeap_balance :
-  forall (A : TrichDec) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
     (forall x : A, Elem x l -> v ≤ x) ->
     (forall x : A, Elem x r -> v ≤ x) ->
       isHeap l -> isHeap r -> isHeap (balance v l r).
@@ -149,7 +149,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_balance :
-  forall (A : TrichDec) (v : A) (l r : RSTree A),
+  forall (A : Ord) (v : A) (l r : RSTree A),
     LeftBiased l -> LeftBiased r ->
       LeftBiased (balance v l r).
 Proof.
@@ -161,7 +161,7 @@ Require Import Recdef.
 Definition sum_of_sizes {A : Type} (p : RSTree A * RSTree A) : nat :=
   size (fst p) + size (snd p).
 
-Function merge' {A : TrichDec} (p : RSTree A * RSTree A)
+Function merge' {A : Ord} (p : RSTree A * RSTree A)
   {measure sum_of_sizes p} : RSTree A :=
 match p with
     | (empty, t2) => t2
@@ -178,7 +178,7 @@ Defined.
 Arguments merge' [x] _.
 
 Lemma Elem_merge' :
-  forall (A : TrichDec) (x : A) (t1 t2 : RSTree A),
+  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
     Elem x (merge' (t1, t2)) -> Elem x t1 \/ Elem x t2.
 Proof.
   intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
@@ -189,7 +189,7 @@ Proof.
 Qed.
 
 Lemma Elem_merge'_v2 :
-  forall (A : TrichDec) (x : A) (t1 t2 : RSTree A),
+  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
     Elem x t1 \/ Elem x t2 -> Elem x (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
@@ -207,7 +207,7 @@ Proof.
 Qed.
 
 Lemma merge'_spec :
-  forall (A : TrichDec) (x : A) (t1 t2 : RSTree A),
+  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
     Elem x (merge' (t1, t2)) <-> Elem x t1 \/ Elem x t2.
 Proof.
   split; intros. elem.
@@ -218,7 +218,7 @@ Qed.
 Arguments Elem_merge' [A x t1 t2] _.
 
 Lemma size_merge':
-  forall (A : TrichDec) (t1 t2 : RSTree A),
+  forall (A : Ord) (t1 t2 : RSTree A),
     size (merge' (t1, t2)) = size t1 + size t2.
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
@@ -231,7 +231,7 @@ Proof.
 Qed.
 
 Lemma isHeap_merge' :
-  forall (A : TrichDec) (t1 t2 : RSTree A),
+  forall (A : Ord) (t1 t2 : RSTree A),
     isHeap t1 -> isHeap t2 -> isHeap (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
@@ -249,7 +249,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_merge' :
-  forall (A : TrichDec) (t1 t2 : RSTree A),
+  forall (A : Ord) (t1 t2 : RSTree A),
     LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge' (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
@@ -257,10 +257,10 @@ Proof.
   apply LeftBiased_balance; try eapply IHr; auto.
 Qed.
 
-Definition insert' {A : TrichDec} (x : A) (t : RSTree A) : RSTree A :=
+Definition insert' {A : Ord} (x : A) (t : RSTree A) : RSTree A :=
   merge' (singleton' x, t).
 
-Definition deleteMin {A : TrichDec} (t : RSTree A)
+Definition deleteMin {A : Ord} (t : RSTree A)
   : option A * RSTree A :=
 match t with
     | empty => (None, empty)
@@ -268,7 +268,7 @@ match t with
 end.
 
 Lemma deleteMin_spec :
-  forall (A : TrichDec) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : RSTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       forall x : A, Elem x t' -> m ≤ x.
 Proof.
@@ -277,21 +277,21 @@ Proof.
 Qed.
 
 Lemma size_deleteMin:
-  forall (A : TrichDec) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : RSTree A),
     deleteMin t = (Some m, t') -> size t = S (size t').
 Proof.
   destruct t; cbn; inversion 1; subst. rewrite size_merge'. trivial.
 Qed.
 
 Lemma Elem_deleteMin :
-  forall (A : TrichDec) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : RSTree A),
     deleteMin t = (Some m, t') -> Elem m t.
 Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
 Lemma isHeap_deleteMin :
-  forall (A : TrichDec) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : RSTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       isHeap t'.
 Proof.
@@ -300,7 +300,7 @@ Proof.
 Qed.
 
 Lemma LeftBiased_deleteMin :
-  forall (A : TrichDec) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : RSTree A),
     LeftBiased t -> deleteMin t = (Some m, t') ->
       LeftBiased t'.
 Proof.
@@ -309,13 +309,13 @@ Proof.
 Qed.
 
 (* Leftist heapsort *)
-Function fromList {A : TrichDec} (l : list A) : RSTree A :=
+Function fromList {A : Ord} (l : list A) : RSTree A :=
 match l with
     | [] => empty
     | h :: t => insert' h (fromList t)
 end.
 
-Function toList {A : TrichDec} (t : RSTree A)
+Function toList {A : Ord} (t : RSTree A)
   {measure size t} : list A :=
 match deleteMin t with
     | (None, _) => []
@@ -328,5 +328,5 @@ Defined.
 
 Arguments toList [x] _.
 
-Definition leftistHeapsort (A : TrichDec) (l : list A)
+Definition leftistHeapsort (A : Ord) (l : list A)
   : list A := toList (fromList l).

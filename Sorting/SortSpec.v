@@ -8,7 +8,7 @@ Require Export Sorting.SelectionSort.
 Set Implicit Arguments.
 
 (* Properties of sorting *)
-Fixpoint min' {A : TrichDec} (l : list A) : option A :=
+Fixpoint min' {A : Ord} (l : list A) : option A :=
 match l with
     | [] => None
     | h :: t =>
@@ -19,7 +19,7 @@ match l with
 end.
 
 Lemma Permutation_min' :
-  forall (A : TrichDec) (l1 l2 : list A),
+  forall (A : Ord) (l1 l2 : list A),
     Permutation l1 l2 -> min' l1 = min' l2.
 Proof.
   induction 1; cbn.
@@ -30,7 +30,7 @@ Proof.
 Qed.
 
 Lemma Sorted_min' :
-  forall (A : TrichDec) (l : list A),
+  forall (A : Ord) (l : list A),
     Sorted trich_le l -> min' l = head l.
 Proof.
   induction 1; cbn.
@@ -39,7 +39,7 @@ Proof.
 Qed.
 
 Lemma Permutation_Sorted_aux :
-  forall (A : TrichDec) (l1 l2 : list A),
+  forall (A : Ord) (l1 l2 : list A),
     Permutation l1 l2 -> Sorted trich_le l1 -> Sorted trich_le l2 -> l1 = l2.
 Proof.
   intros until 2. revert l2 H.
@@ -59,7 +59,7 @@ Proof.
 Qed.
 
 Lemma sort_unique :
-  forall (A : TrichDec) (s1 s2 : Sort trich_le) (l : list A),
+  forall (A : Ord) (s1 s2 : Sort trich_le) (l : list A),
     s1 l = s2 l.
 Proof.
   intros. apply Permutation_Sorted_aux.
@@ -68,7 +68,7 @@ Proof.
 Qed.
 
 Lemma sort_idempotent :
-  forall {A : TrichDec} (s : Sort trich_le) (l : list A),
+  forall {A : Ord} (s : Sort trich_le) (l : list A),
     sort (sort l) = sort l.
 Proof.
   intros. apply Permutation_Sorted_aux.
@@ -79,7 +79,7 @@ Qed.
 (** [Permutation] can be decided by sorting. *)
 
 Lemma iff_Permutation_eq_sort :
-  forall (A : TrichDec) (s : Sort trich_le) (l1 l2 : list A),
+  forall (A : Ord) (s : Sort trich_le) (l1 l2 : list A),
     Permutation l1 l2 <-> sort l1 = sort l2.
 Proof.
   split.

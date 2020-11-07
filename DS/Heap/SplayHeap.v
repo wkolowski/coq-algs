@@ -1,7 +1,7 @@
 Require Export RCCBase.
 Require Export BTree.
 Require Import BST.
-Require Import TrichDec.
+Require Import Ord.
 Require Export Sorting.Sort.
 
 Set Implicit Arguments.
@@ -189,7 +189,7 @@ match goal with
 (*         let H' := fresh "H" in
           destruct (leqb_spec x y) as [H' | H']; try congruence;
           clear H; rename H' into H
- *)    | H : ~ _ ≤ _ |- _ => trich (* apply TrichDec_not_leq_lt in H *)
+ *)    | H : ~ _ ≤ _ |- _ => trich (* apply Ord_not_leq_lt in H *)
     | H : elem _ ?t, H' : forall _, elem _ ?t -> _ |- _ =>
         specialize (H' _ H)
     | H : ?a ≤ ?b, H' : ?b ≤ ?c |- ?a ≤ ?c => trich
@@ -350,7 +350,7 @@ Proof.
 Qed.
 
 Lemma findMin_spec :
-  forall {A : TrichDec} {h : SplayHeap A} {m : A},
+  forall {A : Ord} {h : SplayHeap A} {m : A},
     findMin h = Some m ->
       isBST cmp h -> forall x : A, Elem x h -> cmp m x <> Gt.
 Proof.

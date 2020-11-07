@@ -1,6 +1,6 @@
 Require Export RCCBase.
 Require Import Data.BTree.
-Require Import TrichDec.
+Require Import Ord.
 Require Import Sorting.Sort.
 
 (** * Definitions of the bst property. *)
@@ -120,7 +120,7 @@ end.
 
 Lemma Elem_insert :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp y t) -> x = y \/ Elem x t.
 Proof.
   intros A x y t H.
@@ -131,7 +131,7 @@ Qed.
 
 Lemma Elem_insert_conv :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x t -> Elem x (insert cmp y t).
 Proof.
   intros A x y t H1 H2. revert x H2 H1.
@@ -141,7 +141,7 @@ Qed.
 
 Lemma Elem_insert_conv' :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp x t).
 Proof.
   intros A x t.
@@ -152,7 +152,7 @@ Qed.
 
 Lemma Elem_insert_ultimate :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (insert cmp y t) <-> x = y \/ Elem x t.
 Proof.
   intros A x y t. revert x.
@@ -163,7 +163,7 @@ Qed.
 
 Lemma Elem_remove :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x (remove cmp y t) -> Elem x t.
 Proof.
   intros A x y t. revert x.
@@ -174,7 +174,7 @@ Qed.
 
 Lemma Elem_remove_conv :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> Elem x t -> cmp y x = Eq \/ Elem x (remove cmp y t).
 Proof.
   intros A x y t. revert x.
@@ -197,7 +197,7 @@ Hint Resolve isBST_singleton : core.
 
 Lemma isBST_insert :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (insert cmp x t).
 Proof.
   intros until t.
@@ -210,7 +210,7 @@ Qed.
 
 Lemma isBST_removeMin :
   forall
-    {A : TrichDec} (t t' : BTree A) (x : A),
+    {A : Ord} (t t' : BTree A) (x : A),
       isBST cmp t -> removeMin t = Some (x, t') -> isBST cmp t'.
 Proof.
   intros. revert t' x H0 H.
@@ -221,7 +221,7 @@ Proof.
 Qed.
 
 Lemma isBST_remove :
-  forall {A : TrichDec} (x : A) (t : BTree A),
+  forall {A : Ord} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (remove cmp x t).
 Proof.
   intros until t.
@@ -248,7 +248,7 @@ Admitted.
 
 Lemma elem_spec :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
       isBST cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
 Proof.
   intros A x t H.
@@ -269,7 +269,7 @@ Qed.
 
 Lemma elem_insert :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
       isBST cmp t -> elem cmp x (insert cmp x t) = true.
 Proof.
   intros. destruct (elem_spec x (insert cmp x t) (isBST_insert x t H)).
@@ -279,7 +279,7 @@ Qed.
 
 Lemma elem_insert' :
   forall
-    {A : TrichDec} (x y : A) (t : BTree A),
+    {A : Ord} (x y : A) (t : BTree A),
       isBST cmp t -> elem cmp x (insert cmp y t) = (x =? y) || elem cmp x t.
 Proof.
   intros. destruct (elem_spec x (insert cmp y t) (isBST_insert y t H)).
@@ -540,7 +540,7 @@ Qed.
 
 Lemma All_insert :
   forall
-    {A : TrichDec} (P : A -> Prop)
+    {A : Ord} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P (insert cmp x t) <-> P x /\ All P t.
 Proof.
@@ -565,7 +565,7 @@ Qed.
 
 Lemma All_remove :
   forall
-    {A : TrichDec} (P : A -> Prop)
+    {A : Ord} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P t -> All P (remove cmp x t).
 Proof.
@@ -578,7 +578,7 @@ Qed.
 
 Lemma All_remove_conv :
   forall
-    {A : TrichDec} (P : A -> Prop)
+    {A : Ord} (P : A -> Prop)
     (x : A) (t : BTree A),
       isBST2 cmp t -> All P (remove cmp x t) -> (P x -> All P t).
 Proof.
@@ -595,7 +595,7 @@ Hint Resolve All_insert All_removeMin All_remove All_remove_conv : core.
 
 Lemma isBST2_insert :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
     isBST2 cmp t -> isBST2 cmp (insert cmp x t).
 Proof.
   intros.
@@ -605,7 +605,7 @@ Qed.
 
 Lemma isBST2_removeMin :
   forall
-    {A : TrichDec} (t t' : BTree A) (x : A),
+    {A : Ord} (t t' : BTree A) (x : A),
       isBST2 cmp t -> removeMin t = Some (x, t') -> isBST2 cmp t'.
 Proof.
   intros. revert t' x H0 H.
@@ -615,7 +615,7 @@ Proof.
 Qed.
 
 Lemma isBST2_remove :
-  forall {A : TrichDec} (x : A) (t : BTree A),
+  forall {A : Ord} (x : A) (t : BTree A),
     isBST2 cmp t -> isBST2 cmp (remove cmp x t).
 Proof.
   intros. revert H.
@@ -626,7 +626,7 @@ Admitted.
 
 Lemma elem_spec :
   forall
-    {A : TrichDec} (x : A) (t : BTree A),
+    {A : Ord} (x : A) (t : BTree A),
       isBST2 cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
 Proof.
   intros A x t H.

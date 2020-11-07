@@ -1,4 +1,4 @@
-Require Export TrichDec.
+Require Export Ord.
 Require Export Sorting.Sort.
 
 Require Export BTree.

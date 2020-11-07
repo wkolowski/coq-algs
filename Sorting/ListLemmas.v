@@ -1,6 +1,6 @@
 (*Require Import Sorting.Sort.*)
 Require Export RCCBase.
-Require Export TrichDec.
+Require Export Ord.
 
 Require Import Div2.
 
@@ -85,11 +85,11 @@ Proof.
     induction l; firstorder (subst; auto).
 Qed.
 
-Definition min_dflt (A : TrichDec) (d : A) (l : list A) : A :=
+Definition min_dflt (A : Ord) (d : A) (l : list A) : A :=
     fold_right (fun x y => if x ≤? y then x else y) d l.
 
 Lemma min_split :
-  forall (A : TrichDec) (h : A) (t : list A),
+  forall (A : Ord) (h : A) (t : list A),
     exists l1 l2 : list A,
       h :: t = l1 ++ min_dflt A h t :: l2 /\
       l1 ++ l2 = removeFirst (fun x => x =? min_dflt A h t) (h :: t).
@@ -155,9 +155,9 @@ Proof.
   rewrite ?e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
 Qed.
 
-Require Import TrichDec.
+Require Import Ord.
 
-Fixpoint trifilter {A : TrichDec} (x : A) (l : list A)
+Fixpoint trifilter {A : Ord} (x : A) (l : list A)
   : list A * list A * list A :=
 match l with
     | [] => ([], [], [])
@@ -171,7 +171,7 @@ match l with
 end.
 
 Lemma trifilter_spec :
-  forall (A : TrichDec) (pivot : A) (l : list A),
+  forall (A : Ord) (pivot : A) (l : list A),
     trifilter pivot l =
       (filter (fun x : A => x <? pivot) l,
        filter (fun x : A => x =? pivot) l,

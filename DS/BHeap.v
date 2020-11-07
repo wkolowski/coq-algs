@@ -1,12 +1,12 @@
 Require Export RCCBase.
 Require Import BTree.
 Require Import BST.
-Require Export TrichDec.
+Require Export Ord.
 Require Import Sorting.Sort.
 
 (** * Various definitions of binary heaps. *)
 
-Inductive isBHeap {A : TrichDec} : BTree A -> Prop :=
+Inductive isBHeap {A : Ord} : BTree A -> Prop :=
     | isBHeap_empty : isBHeap empty
     | isBHeap_node :
         forall (v : A) (l r : BTree A),
@@ -50,7 +50,7 @@ repeat match goal with
     | _ => ok
 end.
 
-Inductive isBHeap3 {A : TrichDec} : BTree A -> Prop :=
+Inductive isBHeap3 {A : Ord} : BTree A -> Prop :=
     | isBHeap3_empty : isBHeap3 empty
     | isBHeap3_singl : forall v : A, isBHeap3 (node v empty empty)
     | isBHeap3_l :
@@ -68,7 +68,7 @@ Inductive isBHeap3 {A : TrichDec} : BTree A -> Prop :=
 Hint Constructors isBHeap3 : core.
 
 Lemma isBHeap2_isBHeap :
-  forall {A : TrichDec} (t : BTree A),
+  forall {A : Ord} (t : BTree A),
     isBHeap2 (@trich_le A) t <-> isBHeap t.
 Proof.
   split.
@@ -85,7 +85,7 @@ Proof.
 Qed.
 
 Lemma isBHeap2_isBHeap3 :
-  forall {A : TrichDec} (t : BTree A),
+  forall {A : Ord} (t : BTree A),
     isBHeap2 (@trich_le A) t <-> isBHeap3 t.
 Proof.
   split.
@@ -98,14 +98,14 @@ Qed.
 (** * Relations between [isBHeap] and various [BTree] functions. *)
 
 Lemma isBHeap_singleton :
-  forall (A : TrichDec) (x : A),
+  forall (A : Ord) (x : A),
     isBHeap (singleton x).
 Proof.
   intros. unfold singleton. constructor; auto; inv 1.
 Qed.
 
 Lemma isBHeap_isEmpty :
-  forall (A : TrichDec) (t : BTree A),
+  forall (A : Ord) (t : BTree A),
     isEmpty t = true -> isBHeap t.
 Proof.
   destruct t; intro.
@@ -115,7 +115,7 @@ Qed.
 
 (** * The rest *)
 
-Function sendDown {A : TrichDec} (x : A) (t : BTree A) : A * BTree A :=
+Function sendDown {A : Ord} (x : A) (t : BTree A) : A * BTree A :=
 match t with
     | empty => (x, empty)
     | node v l r =>
@@ -164,7 +164,7 @@ end.
 Ltac m := unfold trich_min, trich_max, trich_minmax in *; wut.
 
 Lemma Elem_sendDown :
-  forall {A : TrichDec} {x m : A} {t t' : BTree A},
+  forall {A : Ord} {x m : A} {t t' : BTree A},
     sendDown x t = (m, t') ->
       x = m \/ Elem x t'.
 Proof.
@@ -174,7 +174,7 @@ Proof.
 Qed.
 
 Lemma Elem_sendDown2 :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall (A : Ord) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       (x = m (*/\ t = t'*)) \/ Elem x t'.
 Proof.
@@ -189,7 +189,7 @@ Proof.
 Qed.
 
 Lemma Elem_sendDown' :
-  forall {A : TrichDec} {x m : A} {t t' : BTree A},
+  forall {A : Ord} {x m : A} {t t' : BTree A},
     sendDown x t = (m, t') ->
       forall y : A, Elem y t ->
         y = m \/ Elem y t'.
@@ -210,7 +210,7 @@ Proof.
 Qed.
 
 (* TODO *) Lemma Elem_sendDown'' :
-  forall (A : TrichDec) (x m y : A) (t t' : BTree A),
+  forall (A : Ord) (x m y : A) (t t' : BTree A),
     sendDown x t = (m, t') -> Elem y t ->
       (x = m (*/\ t = t' TODO *)) \/
       (y = m /\ Elem x t').
@@ -231,7 +231,7 @@ Proof.
 *)
 Admitted.
 
-Function makeHeap {A : TrichDec} (t : BTree A) : BTree A :=
+Function makeHeap {A : Ord} (t : BTree A) : BTree A :=
 match t with
     | empty => empty
     | node v l r =>
@@ -249,21 +249,21 @@ match t with
 end.
 
 (* Lemma minmax_leq :
-  forall (A : TrichDec) (x y m M : A),
+  forall (A : Ord) (x y m M : A),
     trminmax x y = (m, M) -> m ≤ M.
 Proof.
   unfold minmax. intros. trich.
 Qed.
 
 Lemma leq_min_max :
-  forall (A : TrichDec) (x y : A),
+  forall (A : Ord) (x y : A),
     min x y ≤ max x y.
 Proof.
   unfold min, max. intros. trich.
 Qed.
  *)
 Lemma isBHeap_Elem :
-  forall (A : TrichDec) (x y v : A) (l r : BTree A),
+  forall (A : Ord) (x y v : A) (l r : BTree A),
     Elem y (node v l r) -> isBHeap (node v l r) ->
       x ≤ v -> x ≤ y.
 Proof.
@@ -278,7 +278,7 @@ Proof.
 Qed.
 
 Lemma sendDown_spec1 :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall (A : Ord) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> isBHeap t ->
       t = empty /\ t' = empty \/
       exists (v : A) (l r : BTree A),
@@ -325,7 +325,7 @@ Proof.
 Qed.
 
 Lemma sendDown_spec2 :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall (A : Ord) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') -> isBHeap t ->
       forall a : A, Elem a t -> m ≤ a.
 Proof.
@@ -355,7 +355,7 @@ Proof.
 Qed.
 
 Lemma sendDown_spec2' :
-  forall (A : TrichDec) (x m : A) (t t' : BTree A),
+  forall (A : Ord) (x m : A) (t t' : BTree A),
     sendDown x t = (m, t') ->
       isBHeap2 trich_le t -> isBHeap2 trich_le t'.
 Proof.
@@ -374,7 +374,7 @@ Proof.
 Admitted.
 
 Lemma isBHeap_makeHeap :
-  forall (A : TrichDec) (t : BTree A),
+  forall (A : Ord) (t : BTree A),
     isBHeap (makeHeap t).
 Proof.
   intros. functional induction makeHeap t;

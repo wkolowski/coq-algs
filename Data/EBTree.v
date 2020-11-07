@@ -27,15 +27,46 @@ Proof.
   split; inv 1. inv H0.
 Qed.
 
-(* 
+Lemma Elem_inv :
+  forall (M A : Type) (P : A -> Prop) (m : M) (v : A) (l r : EBTree M A),
+    (forall x : A, Elem x (N m l v r) -> P x) ->
+      P v /\
+      (forall x : A, Elem x l -> P x) /\
+      (forall x : A, Elem x r -> P x).
+Proof.
+  repeat split; intros; apply H; auto.
+Qed.
 
-Inductive isBST {A : TrichDec} : EBTree M A -> Prop :=
+Ltac Elem :=
+repeat match goal with
+    | |- Elem ?x (N _ _ ?x _) => constructor
+    | H : Elem _ E |- _ => inv H
+    | H : Elem _ (N _ E _ E) |- _ => inv H
+    | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
+    | H : forall _, Elem _ (N _ _ _ _) -> _ |- _ =>
+            apply Elem_inv in H; decompose [and] H; clear H
+end; auto.
+
+Ltac Elem' :=
+repeat match goal with
+    | |- Elem ?x (N _ _ ?x _) => constructor
+    | H : Elem _ E             |- _ => inv H
+    | H : Elem _ (N _ _ _ _)   |- _ => inv H
+    | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
+    | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
+    | H : forall _, Elem _ (N _ _ _ _) -> _ |- _ =>
+            apply Elem_inv in H; decompose [and] H; clear H
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2)
+end; auto.
+
+(* Inductive isBST {A : Ord} : EBTree M A -> Prop :=
     | isBST_E : isBST E
     | isBST_T : forall (c : color) (v : A) (l r : EBTree M A),
         (forall x : A, Elem x l -> x ≤ v) -> isBST l ->
         (forall x : A, Elem x r -> v ≤ x) -> isBST r ->
-        isBST (T c l v r). *)
-
+        isBST (T c l v r).
+ *)
 Definition isEmpty {M A : Type} (t : EBTree M A) : bool :=
 match t with
     | E => true

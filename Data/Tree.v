@@ -1,4 +1,4 @@
-Require Export TrichDec.
+Require Export Ord.
 
 Require Export RCCBase.
 
@@ -174,7 +174,7 @@ Lemma isEmpty_size_false :
 Proof. Tree_ind. Qed.
 
 Lemma isEmpty_size_true :
-  forall (A : TrichDec) (t : Tree A),
+  forall (A : Ord) (t : Tree A),
     isEmpty t = true -> size t = 0.
 Proof. Tree_ind. Qed.
 

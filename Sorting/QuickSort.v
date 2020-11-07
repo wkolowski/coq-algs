@@ -18,7 +18,7 @@ Local Hint Resolve le_n_S filter_length : core.
       element of the list and the rest of the list)
 *)
 
-Class Small (A : TrichDec) : Type :=
+Class Small (A : Ord) : Type :=
 {
     small : list A -> list A + A * list A;
     small_inl :
@@ -31,7 +31,7 @@ Class Small (A : TrichDec) : Type :=
 
 Coercion small : Small >-> Funclass.
 
-Class AdHocSort {A : TrichDec} (small : Small A) : Type :=
+Class AdHocSort {A : Ord} (small : Small A) : Type :=
 {
     adhoc : list A -> list A;
     Sorted_adhoc :
@@ -44,7 +44,7 @@ Class AdHocSort {A : TrichDec} (small : Small A) : Type :=
 
 Coercion adhoc : AdHocSort >-> Funclass.
 
-Class Pivot (A : TrichDec) : Type :=
+Class Pivot (A : Ord) : Type :=
 {
     pivot : A -> list A -> A * list A;
     pivot_spec :
@@ -54,7 +54,7 @@ Class Pivot (A : TrichDec) : Type :=
 
 Coercion pivot : Pivot >-> Funclass.
 
-Class Partition (A : TrichDec) : Type :=
+Class Partition (A : Ord) : Type :=
 {
     partition : A -> list A -> list A * list A * list A;
     spec_lo :
@@ -88,7 +88,7 @@ Class Partition (A : TrichDec) : Type :=
 }.
 
 Lemma Permutation_partition :
-  forall (A : TrichDec) (p : Partition A) (pivot : A) (l lo eq hi : list A),
+  forall (A : Ord) (p : Partition A) (pivot : A) (l lo eq hi : list A),
     partition pivot l = (lo, eq, hi) -> Permutation (lo ++ eq ++ hi) l.
 Proof.
   intros. apply perm_Permutation. symmetry.
@@ -98,7 +98,7 @@ Qed.
 Coercion partition : Partition >-> Funclass.
 
 Function uqs
-  (A : TrichDec)
+  (A : Ord)
   (small : Small A)
   (adhoc : AdHocSort small)
   (choosePivot : Pivot A)
@@ -130,7 +130,7 @@ Defined.
 (** Ordinary quicksort using [uqs] *)
 
 #[refine]
-Instance Small_head (A : TrichDec) : Small A :=
+Instance Small_head (A : Ord) : Small A :=
 {
     small :=
       fun l : list A =>
@@ -144,7 +144,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance AdHocSort_id (A : TrichDec) : AdHocSort (Small_head A) :=
+Instance AdHocSort_id (A : Ord) : AdHocSort (Small_head A) :=
 {
     adhoc := id;
 }.
@@ -153,7 +153,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Pivot_head (A : TrichDec) : Pivot A :=
+Instance Pivot_head (A : Ord) : Pivot A :=
 {
     pivot :=
       fun (h : A) (t : list A) => (h, t)
@@ -161,7 +161,7 @@ Instance Pivot_head (A : TrichDec) : Pivot A :=
 Proof. inv 1. Defined.
 
 #[refine]
-Instance Partition_filter (A : TrichDec) : Partition A :=
+Instance Partition_filter (A : Ord) : Partition A :=
 {
     partition x l :=
       (filter (fun y => y ≤? x) l, [],
@@ -180,7 +180,7 @@ Definition qs A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_filter A).
 
 #[refine]
-Instance Partition_bifilter (A : TrichDec) : Partition A :=
+Instance Partition_bifilter (A : Ord) : Partition A :=
 {
     partition x l :=
       let '(lo, hi) := bifilter (fun y => y ≤? x) l in (lo, [], hi)
@@ -199,7 +199,7 @@ Definition qs2 A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_bifilter A).
 
 #[refine]
-Instance Small_length (A : TrichDec) (n : nat) : Small A :=
+Instance Small_length (A : Ord) (n : nat) : Small A :=
 {
     small l :=
     match l with
@@ -219,7 +219,7 @@ Defined.
 
 #[refine]
 Instance AdHocSort_Sort
-  {A : TrichDec} (small : Small A) (sort : Sort trich_le) : AdHocSort small :=
+  {A : Ord} (small : Small A) (sort : Sort trich_le) : AdHocSort small :=
 {
     adhoc := sort
 }.
@@ -229,6 +229,6 @@ Proof.
 Defined.
 
 Definition hqs
-  (n : nat) (A : TrichDec) (sort : Sort trich_le) (l : list A) : list A :=
+  (n : nat) (A : Ord) (sort : Sort trich_le) (l : list A) : list A :=
     uqs (AdHocSort_Sort (Small_length A n) sort)
         (Pivot_head A) (Partition_bifilter A) l.

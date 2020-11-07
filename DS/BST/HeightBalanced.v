@@ -1,5 +1,5 @@
 Require Export RCCBase.
-Require Export TrichDec.
+Require Export Ord.
 Require Export Data.EBTree.
 
 Definition Tree (A : Type) : Type := EBTree nat A.
@@ -40,7 +40,7 @@ match height l <?> height r with
         end
 end.
 
-Function insert {A : TrichDec} (x : A) (t : Tree A) : Tree A :=
+Function insert {A : Ord} (x : A) (t : Tree A) : Tree A :=
 match t with
     | E => N 1 E x E
     | N _ l v r =>
@@ -72,7 +72,7 @@ Proof.
 Qed.
 
 Lemma height_insert :
-  forall (A : TrichDec) (x : A) (t : Tree A),
+  forall (A : Ord) (x : A) (t : Tree A),
     height (insert x t) <= 1 + height t.
 Proof.
   intros. functional induction insert x t;

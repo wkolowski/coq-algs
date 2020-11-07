@@ -24,20 +24,20 @@ match t with
     | h' :: t' => braunInsert h (fromList h' t')
 end.
 
-Fixpoint braunMerge {A : TrichDec} (b : Braun A) : list A :=
+Fixpoint braunMerge {A : Ord} (b : Braun A) : list A :=
 match b with
     | Leaf a => [a]
     | Node l r => merge A (braunMerge l, braunMerge r)
 end.
 
-Definition braunSort {A : TrichDec} (l : list A) : list A :=
+Definition braunSort {A : Ord} (l : list A) : list A :=
 match l with
     | [] => []
     | h :: t => braunMerge (fromList h t)
 end.
 
 Lemma Sorted_braunMerge :
-  forall (A : TrichDec) (b : Braun A),
+  forall (A : Ord) (b : Braun A),
     Sorted trich_le (braunMerge b).
 Proof.
   induction b as [a | l Hl r Hr]; cbn.
@@ -46,7 +46,7 @@ Proof.
 Qed.
 
 Lemma Sorted_braunSort :
-  forall (A : TrichDec) (l : list A), Sorted trich_le (braunSort l).
+  forall (A : Ord) (l : list A), Sorted trich_le (braunSort l).
 Proof.
   destruct l as [| h t]; cbn.
     constructor.
@@ -80,7 +80,7 @@ Proof.
 Qed.
 
 Lemma count_braunMerge :
-  forall (A : TrichDec) (p : A -> bool) (b : Braun A),
+  forall (A : Ord) (p : A -> bool) (b : Braun A),
     count p (braunMerge b) = braunCount p b.
 Proof.
   induction b as [a | l IHl r IHr]; cbn; intros.
@@ -89,7 +89,7 @@ Proof.
 Defined.
 
 Lemma perm_braunSort :
-  forall (A : TrichDec) (l : list A),
+  forall (A : Ord) (l : list A),
     perm l (braunSort l).
 Proof.
   destruct l as [| h t]; intro; cbn.
@@ -98,7 +98,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_braunSort (A : TrichDec) : Sort trich_le :=
+Instance Sort_braunSort (A : Ord) : Sort trich_le :=
 {|
     sort := @braunSort A;
 |}.

@@ -9,7 +9,7 @@ Require Export SplayHeap.
 Set Implicit Arguments.
 
 Lemma size_deleteMin :
-  forall (A : TrichDec) (h : SplayHeap A),
+  forall (A : Ord) (h : SplayHeap A),
     size (deleteMin h) = pred (size h).
 Proof.
   intros. functional induction deleteMin h; cbn; try reflexivity.
@@ -19,7 +19,7 @@ Proof.
 Qed.
 
 Lemma size_deleteMin' :
-  forall (A : TrichDec) (t t' : SplayHeap A),
+  forall (A : Ord) (t t' : SplayHeap A),
     t' = snd (deleteMin' t) -> size t' = pred (size t).
 Proof.
   intros. revert t' H.
@@ -73,7 +73,7 @@ Proof.
 Qed.
 
 Lemma Permutation_partition :
-  forall (A : TrichDec) (p : A -> A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
+  forall (A : Ord) (p : A -> A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
     partition p pivot h = (h1, h2) ->
       Permutation (BTree_toList h) (BTree_toList h1 ++ BTree_toList h2).
 Proof.
@@ -94,7 +94,7 @@ Proof.
 Qed.
 
 Lemma Permutation_BTree_toList_insert :
-  forall (A : TrichDec) (p : A -> A -> bool) (x : A) (t : BTree A),
+  forall (A : Ord) (p : A -> A -> bool) (x : A) (t : BTree A),
     Permutation (BTree_toList (insert p x t)) (x :: BTree_toList t).
 Proof.
   induction t as [| v l r]; cbn.
@@ -106,7 +106,7 @@ Proof.
 Qed.
 
 Lemma Permutation_splaySort :
-  forall (A : TrichDec) (p : A -> A -> bool) (l : list A),
+  forall (A : Ord) (p : A -> A -> bool) (l : list A),
     Permutation (splaySort p l) l.
 Proof.
   intros. unfold splaySort.

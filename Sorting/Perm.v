@@ -1,9 +1,9 @@
 Require Export RCCBase.
 
-Require Export TrichDec.
+Require Export Ord.
 
 Require Export Sorting.ListLemmas.
-Require Import TrichDec.
+Require Import Ord.
 
 Require Import Classes.RelationClasses.
 Require Import Permutation.
@@ -170,7 +170,7 @@ Proof.
 Qed.
 
 Lemma Exists_dec :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     Exists (fun y => y = x) l <->
     Exists (fun y => y =? x = true) l.
 Proof.
@@ -180,7 +180,7 @@ Proof.
 Qed.
 
 Lemma perm_In :
-  forall (A : TrichDec) (x : A) (l l' : list A),
+  forall (A : Ord) (x : A) (l l' : list A),
     In x l -> perm l l' -> In x l'.
 Proof.
   intros. rewrite In_Exists, Exists_dec in *.
@@ -194,7 +194,7 @@ Proof.
 Defined.
 
 Lemma perm_singl :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     perm [x] l -> l = [x].
 Proof.
   unfold perm; destruct l as [| h1 [| h2 t]]; cbn; intros.
@@ -219,7 +219,7 @@ Proof.
 Qed.
 
 Lemma removeFirst_In_perm :
-  forall (A : TrichDec) (p : A -> bool) (x : A) (l : list A),
+  forall (A : Ord) (p : A -> bool) (x : A) (l : list A),
     In x l -> p x = true ->
       perm l (x :: removeFirst (fun y => y =? x) l).
 Proof.
@@ -230,14 +230,14 @@ Proof.
 Qed.
 
 Lemma perm_In' :
-  forall (A : TrichDec) (h : A) (t l : list A),
+  forall (A : Ord) (h : A) (t l : list A),
     perm (h :: t) l -> In h l.
 Proof.
   intros. rewrite In_Exists, Exists_dec, count_In, <- H. cbn. trich.
 Qed.
 
 Lemma count_removeFirst_neq :
-  forall (A : TrichDec) (x y : A) (l : list A),
+  forall (A : Ord) (x y : A) (l : list A),
     x <> y -> count (fun z => z =? x) (removeFirst (fun z => z =? y) l) =
               count (fun z => z =? x) l.
 Proof.
@@ -257,7 +257,7 @@ Proof.
 Qed.
 
 Lemma perm_removeFirst :
-  forall (A : TrichDec) (h h' : A) (t t' : list A),
+  forall (A : Ord) (h h' : A) (t t' : list A),
     h <> h' -> perm (h :: t) (h' :: t') ->
       perm (h :: removeFirst (fun x => x =? h') t) t'.
 Proof.
@@ -335,7 +335,7 @@ Print Assumptions perm_Permutation.
 (** Moved from ListLemmas to avoid circularity. *)
 
 Lemma perm_min_front :
-  forall (A : TrichDec) (h : A) (t : list A),
+  forall (A : Ord) (h : A) (t : list A),
     let m := min_dflt A h t in
       perm (m :: removeFirst (fun x => x =? m) (h :: t)) (h :: t).
 Proof.
@@ -344,7 +344,7 @@ Proof.
 Qed.
 
 (* TODO *) Theorem trifilter_spec' :
-  forall (A : TrichDec) (pivot : A) (l lo eq hi : list A),
+  forall (A : Ord) (pivot : A) (l lo eq hi : list A),
     trifilter pivot l = (lo, eq, hi) ->
       perm (lo ++ eq) (filter (fun x : A => x ≤? pivot) l) /\
       hi = filter (fun x : A => pivot <? x) l.

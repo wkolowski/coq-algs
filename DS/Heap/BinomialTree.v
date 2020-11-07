@@ -1,4 +1,4 @@
-Require Export TrichDec.
+Require Export Ord.
 Require Export RCCBase.
 
 Inductive BinomialTree (A : Type) : nat -> Type :=
@@ -29,11 +29,11 @@ with elemForest {A : Type} (x : A)
 Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
-  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) :
+  {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
     {elem x t} + {~ elem x t}
 
 with elemForest_dec
-  {A : TrichDec} (x : A) {r : nat} (f : BinomialForest A r) :
+  {A : Ord} (x : A) {r : nat} (f : BinomialForest A r) :
     {elemForest x f} + {~ elemForest x f}.
 Proof.
   destruct t as [y r f].
@@ -55,24 +55,24 @@ Proof.
 Defined.
 
 Fixpoint elem_decb
-  {A : TrichDec} (x : A) {r : nat} (t : BinomialTree A r) : bool :=
+  {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) : bool :=
 match t with
     | node x' ts =>
         (x =? x') || elemForest_decb x ts
 end
 with elemForest_decb
-  {A : TrichDec} (x : A) {r : nat} (ts : BinomialForest A r) : bool :=
+  {A : Ord} (x : A) {r : nat} (ts : BinomialForest A r) : bool :=
 match ts with
     | bfnil => false
     | bfcons h ts' => elem_decb x h || elemForest_decb x ts'
 end.
 
 Lemma elem_decb_spec :
-  forall (A : TrichDec) (x : A) (r : nat) (t : BinomialTree A r),
+  forall (A : Ord) (x : A) (r : nat) (t : BinomialTree A r),
     BoolSpec (elem x t) (~ elem x t) (elem_decb x t)
 
 with elemForest_decb_spec :
-  forall (A : TrichDec) (x : A) (r : nat) (ts : BinomialForest A r),
+  forall (A : Ord) (x : A) (r : nat) (ts : BinomialForest A r),
     BoolSpec (elemForest x ts) (~ elemForest x ts) (elemForest_decb x ts).
 Proof.
   destruct t as [x' r ts]; cbn. unfold orb. trich.
@@ -88,7 +88,7 @@ Qed.
 Definition BinomialHeap (A : Type) : Type :=
   list {r : nat & BinomialTree A r}.
 
-Definition link {A : TrichDec} {r : nat} (t1 t2 : BinomialTree A r)
+Definition link {A : Ord} {r : nat} (t1 t2 : BinomialTree A r)
   : BinomialTree A (S r).
 Proof.
   destruct t1 as [x r ts], t2 as [x' r ts'].
@@ -98,7 +98,7 @@ Proof.
 Defined.
 
 Lemma link_comm :
-  forall (A : TrichDec) (r : nat) (t1 t2 : BinomialTree A r),
+  forall (A : Ord) (r : nat) (t1 t2 : BinomialTree A r),
     link t1 t2 = link t2 t1.
 Proof.
   destruct t1, t2. trich; repeat f_equal.

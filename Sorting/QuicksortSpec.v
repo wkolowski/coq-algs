@@ -6,7 +6,7 @@ Set Implicit Arguments.
 
 Lemma uqs_perm :
   forall
-    (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
+    (A : Ord) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
       perm l (uqs adhoc choosePivot partition l).
 Proof.
@@ -27,7 +27,7 @@ Qed.
 
 Lemma Permutation_uqs :
   forall
-    (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
+    (A : Ord) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
       Permutation (uqs adhoc choosePivot partition l) l.
 Proof.
@@ -51,7 +51,7 @@ Qed.
 
 Lemma uqs_In :
   forall
-    (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
+    (A : Ord) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A)
     (l : list A) (x : A),
       In x (uqs adhoc choosePivot partition l) <->
@@ -65,7 +65,7 @@ Qed.
 
 Lemma Sorted_uqs :
   forall
-    (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
+    (A : Ord) (small : Small A) (adhoc : AdHocSort small)
     (choosePivot : Pivot A) (partition : Partition A) (l : list A),
       Sorted trich_le (uqs adhoc choosePivot partition l).
 Proof.
@@ -93,7 +93,7 @@ Qed.
 
 #[refine]
 Instance Sort_uqs
-  (A : TrichDec) (small : Small A) (adhoc : AdHocSort small)
+  (A : Ord) (small : Small A) (adhoc : AdHocSort small)
   (choosePivot : Pivot A) (partition : Partition A) : Sort trich_le :=
 {
     sort := uqs adhoc choosePivot partition
@@ -104,7 +104,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_qs (A : TrichDec) : Sort trich_le :=
+Instance Sort_qs (A : Ord) : Sort trich_le :=
 {
     sort := qs A
 }.
@@ -115,7 +115,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_qs2 (A : TrichDec) : Sort trich_le :=
+Instance Sort_qs2 (A : Ord) : Sort trich_le :=
 {
     sort := qs2 A
 }.
@@ -126,7 +126,7 @@ Proof.
 Defined.
 
 #[refine]
-Instance Sort_hqs (A : TrichDec) (n : nat) (s : Sort trich_le) : Sort trich_le :=
+Instance Sort_hqs (A : Ord) (n : nat) (s : Sort trich_le) : Sort trich_le :=
 {
     sort := hqs n s
 }.

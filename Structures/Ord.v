@@ -2,7 +2,7 @@ Require Export RCCBase.
 
 Set Implicit Arguments.
 
-Class TrichDec : Type :=
+Class Ord : Type :=
 {
     carrier : Type;
     trich_lt : carrier -> carrier -> Prop;
@@ -15,29 +15,29 @@ Class TrichDec : Type :=
       forall x y : carrier, CompareSpec (x = y) (trich_lt x y) (trich_lt y x) (cmp x y);
 }.
 
-Coercion carrier : TrichDec >-> Sortclass.
+Coercion carrier : Ord >-> Sortclass.
 
 (* Hint Resolve trich_lt_trans : core. *)
 
-Definition trich_ltb {A : TrichDec} (x y : A) : bool :=
+Definition trich_ltb {A : Ord} (x y : A) : bool :=
 match cmp x y with
     | Lt => true
     | _ => false
 end.
 
-Definition trich_leb {A : TrichDec} (x y : A) : bool :=
+Definition trich_leb {A : Ord} (x y : A) : bool :=
 match cmp x y with
     | Lt | Eq => true
     | Gt      => false
 end.
 
-Definition trich_eqb {A : TrichDec} (x y : A) : bool :=
+Definition trich_eqb {A : Ord} (x y : A) : bool :=
 match cmp x y with
     | Eq => true
     | _  => false
 end.
 
-Definition trich_le {A : TrichDec} (x y : A) : Prop :=
+Definition trich_le {A : Ord} (x y : A) : Prop :=
   trich_lt x y \/ x = y.
 
 Infix "<?>" := cmp (at level 30).
@@ -53,14 +53,14 @@ Infix "≤" := trich_le (at level 30).
 Notation "x >= y" := (trich_le y x) (at level 70, only parsing).
 
 Lemma trich_lt_irrefl :
-  forall {A : TrichDec} {x : A},
+  forall {A : Ord} {x : A},
     ~ trich_lt x x.
 Proof.
   intros A x H. eapply trich_lt_antisym; eassumption.
 Qed.
 
 Lemma trich_lt_connected :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     ~ trich_lt x y -> ~ trich_lt y x -> x = y.
 Proof.
   intros. destruct (cmp_spec x y).
@@ -70,7 +70,7 @@ Proof.
 Qed.
 
 Lemma trich_lt_comparison :
-  forall {A : TrichDec} {x z : A},
+  forall {A : Ord} {x z : A},
     trich_lt x z -> forall y : A, trich_lt x y \/ trich_lt y z.
 Proof.
   intros. destruct (cmp_spec x y).
@@ -82,7 +82,7 @@ Qed.
 (** comparison properties *)
 
 Lemma cmp_spec1 :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     cmp x y = Lt <-> trich_lt x y.
 Proof.
   intros. destruct (cmp_spec x y).
@@ -96,7 +96,7 @@ Proof.
 Qed.
 
 Lemma cmp_spec2 :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     cmp x y = Eq <-> x = y.
 Proof.
   intros. destruct (cmp_spec x y).
@@ -106,7 +106,7 @@ Proof.
 Qed.
 
 Lemma cmp_spec3 :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     cmp x y = Gt <-> trich_lt y x.
 Proof.
   intros. destruct (cmp_spec x y);
@@ -116,7 +116,7 @@ Proof.
 Qed.
 
 Lemma CompOpp_cmp :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     CompOpp (x <?> y) = (y <?> x).
 Proof.
   intros.
@@ -129,7 +129,7 @@ Proof.
 Qed.
 
 Lemma cmp_refl :
-  forall {A : TrichDec} (x : A),
+  forall {A : Ord} (x : A),
     x <?> x = Eq.
 Proof.
   intros.
@@ -140,7 +140,7 @@ Proof.
 Qed.
 
 Lemma trich_ltb_irrefl :
-  forall {A : TrichDec} (x : A),
+  forall {A : Ord} (x : A),
     x <? x = false.
 Proof.
   intros.
@@ -150,7 +150,7 @@ Proof.
 Qed.
 
 Lemma negb_trich_ltb :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     negb (x <? y) = x >=? y.
 Proof.
   intros.
@@ -163,7 +163,7 @@ Proof.
 Qed.
 
 Lemma trich_leb_refl :
-  forall {A : TrichDec} (x : A),
+  forall {A : Ord} (x : A),
     x ≤? x = true.
 Proof.
   intros.
@@ -173,7 +173,7 @@ Proof.
 Qed.
 
 Lemma negb_trich_leb :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     negb (x ≤? y) = x >? y.
 Proof.
   intros.
@@ -186,7 +186,7 @@ Proof.
 Qed.
 
 Lemma trich_eqb_refl :
-  forall {A : TrichDec} (x : A),
+  forall {A : Ord} (x : A),
     x =? x = true.
 Proof.
   intros.
@@ -198,7 +198,7 @@ Qed.
 (* Newest lemmas *)
 
 Lemma trichb_Gt_to_Lt :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     x <?> y = Gt <-> y <?> x = Lt.
 Proof.
   intros.
@@ -207,7 +207,7 @@ Proof.
 Qed.
 
 Lemma trichb_not_Gt_to_not_Lt :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     x <?> y <> Gt <-> y <?> x <> Lt.
 Proof.
   intros.
@@ -216,7 +216,7 @@ Proof.
 Qed.
 
 Lemma trichb_not_Lt_to_not_Gt :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     x <?> y <> Lt <-> y <?> x <> Gt.
 Proof.
   intros.
@@ -225,7 +225,7 @@ Proof.
 Qed.
 
 Lemma trichb_trans_Lt :
-  forall {A : TrichDec} {x y z : A},
+  forall {A : Ord} {x y z : A},
     x <?> y = Lt -> y <?> z = Lt -> x <?> z = Lt.
 Proof.
   intros A x y z Hxy Hyz.
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Lemma trichb_trans_Gt_neq :
-  forall {A : TrichDec} {x y z : A},
+  forall {A : Ord} {x y z : A},
     x <?> y <> Gt -> y <?> z <> Gt -> x <?> z <> Gt.
 Proof.
   intros A x y z Hxy Hyz.
@@ -244,7 +244,7 @@ Proof.
 Admitted.
 
 Lemma trichb_trans_Lt_Gt :
-  forall {A : TrichDec} {x y z : A},
+  forall {A : Ord} {x y z : A},
     x <?> y = Lt -> y <?> z <> Gt -> x <?> z = Lt.
 Proof.
   intros A x y z Hxy Hyz.
@@ -254,7 +254,7 @@ Proof.
 Qed.
 
 Lemma trichb_trans_Gt_Lt :
-  forall {A : TrichDec} {x y z : A},
+  forall {A : Ord} {x y z : A},
     cmp x y <> Gt -> cmp y z = Lt -> cmp x z = Lt.
 Proof.
   intros A x y z Hxy Hyz.
@@ -266,7 +266,7 @@ Qed.
 (* Specs *)
 
 Lemma trich_ltb_spec :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     BoolSpec (x < y) (x >= y) (x <? y).
 Proof.
   intros.
@@ -278,7 +278,7 @@ Proof.
 Qed.
 
 Lemma trich_leb_spec :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     BoolSpec (x ≤ y) (x > y) (x ≤? y).
 Proof.
   intros.
@@ -290,7 +290,7 @@ Proof.
 Qed.
 
 Lemma trich_eqb_spec :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     BoolSpec (x = y) (x <> y) (x =? y).
 Proof.
   intros.
@@ -302,14 +302,14 @@ Proof.
 Qed.
 
 Lemma trich_le_refl :
-  forall {A : TrichDec} (x : A),
+  forall {A : Ord} (x : A),
     x ≤ x.
 Proof.
   intros. right. reflexivity.
 Qed.
 
 Lemma trich_le_antisym :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x ≤ y -> y ≤ x -> x = y.
 Proof.
   destruct 1.
@@ -320,7 +320,7 @@ Proof.
 Qed.
 
 Lemma trich_le_antisym' :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     x <?> y <> Gt -> y <?> x <> Gt -> x = y.
 Proof.
   intros.
@@ -330,7 +330,7 @@ Proof.
 Qed.
 
 Lemma trich_le_nf :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x ≤ y <-> cmp x y <> Gt.
 Proof.
   split; intros.
@@ -347,7 +347,7 @@ Proof.
 Qed.
 
 Lemma trich_leb_true :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x ≤? y = true -> x ≤ y.
 Proof.
   intros.
@@ -359,7 +359,7 @@ Proof.
 Qed.
 
 Lemma trich_leb_false :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x ≤? y = false -> y < x.
 Proof.
   intros.
@@ -371,7 +371,7 @@ Proof.
 Qed.
 
 Lemma trich_ltb_true :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x <? y = true -> x < y.
 Proof.
   intros.
@@ -383,7 +383,7 @@ Proof.
 Qed.
 
 Lemma trich_ltb_false :
-  forall {A : TrichDec} (x y : A),
+  forall {A : Ord} (x y : A),
     x <? y = false -> y ≤ x.
 Proof.
   intros.
@@ -396,31 +396,31 @@ Qed.
 
 (* [min], [max] and [minmax] *)
 
-Definition trich_min {A : TrichDec} (x y : A) : A :=
+Definition trich_min {A : Ord} (x y : A) : A :=
   if x ≤? y then x else y.
 
-Definition trich_max {A : TrichDec} (x y : A) : A :=
+Definition trich_max {A : Ord} (x y : A) : A :=
   if y ≤? x then x else y.
 
-Definition trich_minmax {A : TrichDec} (x y : A) : A * A :=
+Definition trich_minmax {A : Ord} (x y : A) : A * A :=
   if x ≤? y then (x, y) else (y, x).
 
 Lemma trich_min_spec :
-  forall {A : TrichDec} {x y a : A},
+  forall {A : Ord} {x y a : A},
     trich_min x y = a ->
       a ≤ x /\ a ≤ y.
 Proof.
 Admitted.
 
 Lemma trich_max_spec :
-  forall {A : TrichDec} {x y a : A},
+  forall {A : Ord} {x y a : A},
     trich_max x y = a ->
       x ≤ a /\ y ≤ a.
 Proof.
 Admitted.
 
 (* Lemma trich_minmax_spec :
-  forall {A : TrichDec} {x y a b : A},
+  forall {A : Ord} {x y a b : A},
     trich_minmax x y = (a, b) ->
       a ≤ x /\ a ≤ y /\ x ≤ b /\ y ≤ b.
 Proof.
@@ -428,7 +428,7 @@ Admitted.
  *)
 
 Lemma trich_minmax_spec :
-  forall {A : TrichDec} {x y a b : A},
+  forall {A : Ord} {x y a b : A},
     trich_minmax x y = (a, b) ->
       x ≤ y /\ (a = x /\ b = y) \/
       x > y /\ (a = y /\ b = x).
@@ -436,7 +436,7 @@ Proof.
 Admitted.
 
 Lemma trich_neq_nf :
-  forall {A : TrichDec} {x y : A},
+  forall {A : Ord} {x y : A},
     x <> y -> cmp x y <> Eq.
 Proof.
   intros A x y H H'.
@@ -449,7 +449,7 @@ match goal with
 (* General contradictions *)
     | H : False |- _ => contradiction
     | H : ?x <> ?x |- _ => contradiction H; reflexivity
-(* Easy contradictions from TrichDec properties *)
+(* Easy contradictions from Ord properties *)
     | H : ?x < ?x |- _ => apply trich_lt_irrefl in H; contradiction
     | H : ?x < ?y, H' : ?y < ?x |- _ =>
         pose (trich_lt_antisym x y H); contradiction
@@ -594,7 +594,7 @@ match n, m with
 end.
 
 #[refine]
-Instance natlt : TrichDec :=
+Instance natlt : Ord :=
 {
     carrier := nat;
     trich_lt := Peano.lt;

@@ -2,17 +2,17 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Fixpoint ins (A : TrichDec) (x : A) (l : list A) : list A :=
+Fixpoint ins (A : Ord) (x : A) (l : list A) : list A :=
 match l with
     | [] => [x]
     | h :: t => if x ≤? h then x :: h :: t else h :: (ins A x t)
 end.
 
-Definition insertionSort (A : TrichDec) (l : list A)
+Definition insertionSort (A : Ord) (l : list A)
   : list A := fold_right (ins A) [] l.
 
 Lemma perm_ins :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     perm (x :: l) (ins A x l).
 Proof.
   unfold perm; intros. induction l.
@@ -24,7 +24,7 @@ Proof.
 Qed.
 
 Lemma Permutation_ins :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     Permutation (ins A x l) (x :: l).
 Proof.
   induction l as [| h t]; cbn.
@@ -35,7 +35,7 @@ Proof.
 Qed.
 
 Lemma Sorted_ins :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     Sorted trich_le l -> Sorted trich_le (ins A x l).
 Proof.
   induction 1; cbn in *; trich; constructor; trich. cbn in *.
@@ -43,7 +43,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort (A : TrichDec) : Sort trich_le :=
+Instance Sort_insertionSort (A : Ord) : Sort trich_le :=
 {
     sort := insertionSort A
 }.
@@ -69,7 +69,7 @@ Definition insertionSort'
     fold_right (ins' cmp) [] l.
 
 Lemma perm_ins' :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     perm (x :: l) (ins' trich_leb x l).
 Proof.
   unfold perm. induction l; cbn; intros.
@@ -80,7 +80,7 @@ Proof.
 Qed.
 
 Lemma Permutation_ins' :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     Permutation (ins' trich_leb x l) (x :: l).
 Proof.
   unfold perm. induction l; cbn; intros.
@@ -91,7 +91,7 @@ Proof.
 Qed.
 
 Lemma Sorted_ins' :
-  forall (A : TrichDec) (x : A) (l : list A),
+  forall (A : Ord) (x : A) (l : list A),
     Sorted trich_le l -> Sorted trich_le (ins' trich_leb x l).
 Proof.
   induction 1; cbn in *; trich; constructor; trich.
@@ -99,7 +99,7 @@ Proof.
 Qed.
 
 #[refine]
-Instance Sort_insertionSort' (A : TrichDec) : Sort trich_le :=
+Instance Sort_insertionSort' (A : Ord) : Sort trich_le :=
 {
     sort := insertionSort' trich_leb
 }.

@@ -1,14 +1,14 @@
 Require Export BTree.
 Require Import BST.
-Require Export TrichDec.
+Require Export Ord.
 Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Definition SplayHeap (A : TrichDec) : Type := BTree A.
+Definition SplayHeap (A : Ord) : Type := BTree A.
 
 Function bigger
-  {A : TrichDec} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
+  {A : Ord} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
 match h with
     | empty => empty
     | node v l r =>
@@ -29,7 +29,7 @@ end.
 (* Compute bigger 2 (node 5 (node 2 empty empty) empty). *)
 
 Function smaller
-  {A : TrichDec} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
+  {A : Ord} (pivot : A) (h : SplayHeap A) : SplayHeap A :=
 match h with
     | empty => empty
     | node v l r =>
@@ -50,23 +50,23 @@ end.
 (* Compute smaller 4 (node 5 (node 2 empty empty) empty). *)
 
 Definition partition
-  {A : TrichDec} (x : A) (h : SplayHeap A) : SplayHeap A * SplayHeap A:=
+  {A : Ord} (x : A) (h : SplayHeap A) : SplayHeap A * SplayHeap A:=
     (smaller x h, bigger x h).
 
 Definition isEmpty
-  {A : TrichDec} (h : SplayHeap A) : bool :=
+  {A : Ord} (h : SplayHeap A) : bool :=
 match h with
     | empty => true
     | _ => false
 end.
 
 Definition insert
-  {A : TrichDec} (x : A) (h : SplayHeap A) : SplayHeap A :=
+  {A : Ord} (x : A) (h : SplayHeap A) : SplayHeap A :=
     let (smaller, bigger) := partition x h
     in node x smaller bigger.
 
 Function findMin
-  {A : TrichDec} (h : SplayHeap A) : option A :=
+  {A : Ord} (h : SplayHeap A) : option A :=
 match h with
     | empty => None
     | node m empty _ => Some m
@@ -74,7 +74,7 @@ match h with
 end.
 
 Function deleteMin
-  {A : TrichDec} (h : SplayHeap A) : SplayHeap A :=
+  {A : Ord} (h : SplayHeap A) : SplayHeap A :=
 match h with
     | empty => empty
     | node _ empty r => r
@@ -82,7 +82,7 @@ match h with
 end.
 
 Function deleteMin'
-  {A : TrichDec} (h : SplayHeap A) : option A * SplayHeap A :=
+  {A : Ord} (h : SplayHeap A) : option A * SplayHeap A :=
 match h with
     | empty => (None, empty)
     | node m empty r => (Some m, r)
@@ -90,7 +90,7 @@ match h with
         let '(min, l') := deleteMin' l in (min, node v l' r)
 end.
 
-Function merge {A : TrichDec} (h1 h2 : SplayHeap A) : SplayHeap A :=
+Function merge {A : Ord} (h1 h2 : SplayHeap A) : SplayHeap A :=
 match h1 with
     | empty => h2
     | node v l r =>
@@ -117,35 +117,35 @@ end; auto.
 (** Properties of [isEmpty] *)
 
 Lemma isEmpty_smaller_true :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isEmpty h = true -> isEmpty (smaller x h) = true.
 Proof.
   intros. functional induction @smaller A x h; cbn in *; aux.
 Qed.
 
 Lemma isEmpty_smaller_false :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isEmpty (smaller x h) = false -> isEmpty h = false.
 Proof.
   intros. functional induction @smaller A x h; cbn in *; aux.
 Qed.
 
 Lemma isEmpty_bigger_true :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isEmpty h = true -> isEmpty (bigger x h) = true.
 Proof.
   intros. functional induction @bigger A x h; cbn in *; aux.
 Qed.
 
 Lemma isEmpty_bigger_false :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isEmpty (bigger x h) = false -> isEmpty h = false.
 Proof.
   intros. functional induction @bigger A x h; cbn in *; aux.
 Qed.
 
 Lemma isEmpty_partition_true :
-  forall (A : TrichDec) (x : A) (h l r : SplayHeap A),
+  forall (A : Ord) (x : A) (h l r : SplayHeap A),
     partition x h = (l, r) ->
       isEmpty h = true <-> isEmpty l = true /\ isEmpty r = true.
 Proof.
@@ -160,7 +160,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_partition_false :
-  forall (A : TrichDec) (x : A) (h l r : SplayHeap A),
+  forall (A : Ord) (x : A) (h l r : SplayHeap A),
     partition x h = (l, r) ->
       isEmpty h = false <-> isEmpty l = false \/ isEmpty r = false.
 Proof.
@@ -174,7 +174,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_insert :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isEmpty (insert x h) = false.
 Proof.
   intros. unfold insert. case_eq (partition x h); intros small big H.
@@ -182,7 +182,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_merge_true :
-  forall (A : TrichDec) (h1 h2 : SplayHeap A),
+  forall (A : Ord) (h1 h2 : SplayHeap A),
     isEmpty (merge h1 h2) = true <->
       isEmpty h1 = true /\ isEmpty h2 = true.
 Proof.
@@ -191,7 +191,7 @@ Proof.
 Qed.
 
 Lemma isEmpty_merge_false :
-  forall (A : TrichDec) (h1 h2 : SplayHeap A),
+  forall (A : Ord) (h1 h2 : SplayHeap A),
     isEmpty (merge h1 h2) = false <->
       isEmpty h1 = false \/ isEmpty h2 = false.
 Proof.
@@ -200,14 +200,14 @@ Proof.
 Qed.
 
 Lemma isEmpty_size :
-  forall (A : TrichDec) (h : SplayHeap A),
+  forall (A : Ord) (h : SplayHeap A),
     isEmpty h = true <-> size h = 0.
 Proof.
   split; destruct h; cbn in *; intros; congruence.
 Qed.
 
 Lemma isEmpty_countBT :
-  forall (A : TrichDec) (p : A -> bool) (h : SplayHeap A),
+  forall (A : Ord) (p : A -> bool) (h : SplayHeap A),
     isEmpty h = true -> countBT p h = 0.
 Proof.
   destruct h; cbn; congruence.
@@ -216,7 +216,7 @@ Qed.
 (** Properties [bigger]. *)
 
 Lemma bigger_spec :
-  forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (pivot : A) (h : SplayHeap A),
     isBST cmp h -> forall x : A, elem cmp x (bigger pivot h) ->
       pivot < x.
 Proof.
@@ -228,7 +228,7 @@ Proof.
 Qed.
 
 Lemma bigger_elem :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST cmp h -> Elem x (bigger pivot h) -> Elem x h.
 Proof.
   intros until h.
@@ -238,7 +238,7 @@ Proof.
 Qed.
 
 Lemma bigger_elem' :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST cmp h -> elem cmp x h -> pivot ≤ x -> pivot <> x ->
       elem cmp x (bigger pivot h).
 Proof.
@@ -252,7 +252,7 @@ Proof.
 Admitted.
 
 Lemma isBST_bigger :
-  forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (pivot : A) (h : SplayHeap A),
     isBST cmp h -> isBST cmp (bigger pivot h).
 Proof.
   intros until h.
@@ -265,7 +265,7 @@ Admitted.
 
 (*
 Lemma not_elem_countBT :
-  forall (A : TrichDec) (p : A -> bool) (x : A) (t : BTree A),
+  forall (A : Ord) (p : A -> bool) (x : A) (t : BTree A),
     ~ elem cmp x t -> countBT p t = 0.
 Proof.
   induction t; cbn; intros; rewrite ?IHt1, ?IHt2; trich.
@@ -273,7 +273,7 @@ Proof.
 Qed.
 
 Lemma elem_lt_not_r :
-  forall (A : TrichDec) (x v : A) (l r : BTree A),
+  forall (A : Ord) (x v : A) (l r : BTree A),
     isBST (node v l r) -> x ≤ v -> x <> v -> ~ elem x r.
 Proof.
   unfold not. intros. inv H.
@@ -285,7 +285,7 @@ match goal with
 end.
 
 Lemma countBT_node :
-  forall (A : TrichDec) (p : A -> bool) (x v : A) (l r : BTree A),
+  forall (A : Ord) (p : A -> bool) (x v : A) (l r : BTree A),
     isBST (node v l r) -> x ≤ v -> x <> v ->
       countBT p (node v l r) = countBT p (node v l empty).
 Proof.
@@ -298,7 +298,7 @@ Proof.
 Qed.
 
 Lemma countBT_bigger :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST h -> pivot ≤ x -> x <> pivot ->
       countBT x (bigger pivot h) = countBT x h.
 Proof.
@@ -332,7 +332,7 @@ Abort.
 
 (** Properties of [smaller]. *)
 Lemma smaller_spec :
-  forall (A : TrichDec) (pivot : A) (h h' : SplayHeap A),
+  forall (A : Ord) (pivot : A) (h h' : SplayHeap A),
     isBST h -> smaller pivot h = h' ->
       forall x : A, elem x h' -> x ≤ pivot.
 Proof.
@@ -340,14 +340,14 @@ Proof.
 Qed.
 
 Lemma smaller_elem :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST h -> elem x (smaller pivot h) -> elem x h.
 Proof.
   intros. functional induction @smaller A pivot h; aux.
 Qed.
 
 Lemma smaller_elem' :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST h -> elem x h -> x ≤ pivot ->
       elem x (smaller pivot h).
 Proof.
@@ -356,7 +356,7 @@ Proof.
 Qed.
 
 Lemma isBST_smaller :
-  forall (A : TrichDec) (pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (pivot : A) (h : SplayHeap A),
     isBST h -> isBST (smaller pivot h).
 Proof.
   intros. functional induction @smaller A pivot h; aux.
@@ -367,13 +367,13 @@ Proof.
 Qed.
 
 (*Lemma smaller_countBT :
-  forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h : SplayHeap A),
     isBST h -> x ≤ pivot *)
 
 (** Properties of [partition]. *)
 
 Lemma partition_elem :
-  forall (A : TrichDec) (x pivot : A) (h l r : SplayHeap A),
+  forall (A : Ord) (x pivot : A) (h l r : SplayHeap A),
     isBST h -> partition pivot h = (l, r) ->
       elem x h <-> elem x l \/ elem x r.
 Proof.
@@ -387,7 +387,7 @@ Proof.
 Qed.
 
 Lemma isBST_partition :
-  forall (A : TrichDec) (x : A) (h l r : SplayHeap A),
+  forall (A : Ord) (x : A) (h l r : SplayHeap A),
     partition x h = (l, r) -> isBST h -> isBST (node x l r).
 Proof.
   unfold partition. inversion 1; subst; clear H. constructor.
@@ -398,7 +398,7 @@ Proof.
 Qed.
 
 Lemma size_partition :
-  forall (A : TrichDec) (pivot : A) (h h1 h2 : SplayHeap A),
+  forall (A : Ord) (pivot : A) (h h1 h2 : SplayHeap A),
     partition pivot h = (h1, h2) -> size h = size h1 + size h2.
 Proof.
   unfold partition. intros. inv H.
@@ -411,14 +411,14 @@ Abort.
 (** Properties of [insert]. *)
 
 Lemma elem_insert :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     elem x (insert x h).
 Proof.
   intros. unfold insert. destruct (partition x h). constructor.
 Qed.
 
 Lemma isBST_insert :
-  forall (A : TrichDec) (x : A) (h : SplayHeap A),
+  forall (A : Ord) (x : A) (h : SplayHeap A),
     isBST h -> isBST (insert x h).
 Proof.
   intros. unfold insert. case_eq (partition x h); intros l r H'.
@@ -428,7 +428,7 @@ Qed.
 (** Properties of [merge]. *)
 
 Lemma elem_merge :
-  forall (A : TrichDec) (x : A) (h1 h2 : SplayHeap A),
+  forall (A : Ord) (x : A) (h1 h2 : SplayHeap A),
     isBST h1 -> isBST h2 ->
       elem x (merge h1 h2) <-> elem x h1 \/ elem x h2.
 Proof.
@@ -450,7 +450,7 @@ Proof.
 Qed.
 
 Lemma isBST_merge :
-  forall (A : TrichDec) (h1 h2 : SplayHeap A),
+  forall (A : Ord) (h1 h2 : SplayHeap A),
     isBST h1 -> isBST h2 -> isBST (merge h1 h2).
 Proof.
   induction h1 as [| v l IHl r IHr]; intros.

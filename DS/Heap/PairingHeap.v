@@ -1,5 +1,5 @@
 Require Export RCCBase.
-(* Require Export TrichDec. *)
+(* Require Export Ord. *)
 
 Set Implicit Arguments.
 
