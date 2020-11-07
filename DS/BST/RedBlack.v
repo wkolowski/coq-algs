@@ -2,72 +2,54 @@ Require Export RCCBase.
 
 Require Export BTree.
 Require Export TrichDec.
-Require Export Sorting.Sort.
+
+Require Export EBTree.
 
 Inductive color : Set :=
     | Red : color
     | Black : color.
 
-Inductive RBTree (A : Type) : Type :=
-    | E : RBTree A
-    | T : color -> RBTree A -> A -> RBTree A -> RBTree A.
-
-Arguments E {A}.
-Arguments T {A} _ _ _.
-
-Inductive Elem {A : Type} (x : A) : RBTree A -> Prop :=
-    | Elem_root : forall (c : color) (l r : RBTree A),
-        Elem x (T c l x r)
-    | Elem_left : forall (c : color) (v : A) (l r : RBTree A),
-        Elem x l -> Elem x (T c l v r)
-    | Elem_right : forall  (c : color) (v : A) (l r : RBTree A),
-        Elem x r -> Elem x (T c l v r).
+Definition RBTree (A : Type) : Type := EBTree color A.
 
 Inductive isBST {A : TrichDec} : RBTree A -> Prop :=
     | isBST_E : isBST E
     | isBST_T : forall (c : color) (v : A) (l r : RBTree A),
         (forall x : A, Elem x l -> x ≤ v) -> isBST l ->
         (forall x : A, Elem x r -> v ≤ x) -> isBST r ->
-        isBST (T c l v r).
+        isBST (N c l v r).
 
-Hint Constructors color RBTree Elem isBST : core.
+Hint Constructors color EBTree Elem isBST : core.
 
 (** [empty], [isEmpty] and [singleton] are my own. *)
 Definition empty {A : Type} : RBTree A := E.
 
-Definition isEmpty {A : Type} (t : RBTree A) : bool :=
-match t with
-    | E => true
-    | _ => false
-end.
-
-Definition singleton {A : Type} (x : A) : RBTree A := T Red E x E.
+Definition singleton {A : Type} (x : A) : RBTree A := N Red E x E.
 
 Function balance {A : Type} (c : color)
   (l : RBTree A) (v : A) (r : RBTree A) : RBTree A :=
 match c with
-    | Red => T Red l v r
+    | Red => N Red l v r
     | Black =>
         match l, v, r with
-            | T Red (T Red a xv b) yv c, zv, d
-            | T Red a xv (T Red b yv c), zv, d
-            | a, xv, T Red (T Red b yv c) zv d
-            | a, xv, T Red b yv (T Red c zv d) =>
-                T Red (T Black a xv b) yv (T Black c zv d)
-            | l, v, r => T Black l v r
+            | N Red (N Red a xv b) yv c, zv, d
+            | N Red a xv (N Red b yv c), zv, d
+            | a, xv, N Red (N Red b yv c) zv d
+            | a, xv, N Red b yv (N Red c zv d) =>
+                N Red (N Black a xv b) yv (N Black c zv d)
+            | l, v, r => N Black l v r
         end
 end.
 
 Definition makeBlack {A : Type} (t : RBTree A) :=
 match t with
     | E => E
-    | T _ l v r => T Black l v r
+    | N _ l v r => N Black l v r
 end.
 
 Function ins {A : TrichDec} (x : A) (t : RBTree A) : RBTree A :=
 match t with
-    | E => T Red E x E
-    | T c l v r =>
+    | E => N Red E x E
+    | N c l v r =>
         if x ≤? v
         then balance c (ins x l) v r
         else balance c l v (ins x r)
@@ -75,19 +57,6 @@ end.
 
 Definition insert {A : TrichDec} (x : A) (t : RBTree A) : RBTree A :=
   makeBlack (ins x t).
-
-Fixpoint countRBT {A : Type} (p : A -> bool) (t : RBTree A) : nat :=
-match t with
-    | E => 0
-    | T _ l v r =>
-        (if p v then S else id) (countRBT p l + countRBT p r)
-end.
-
-Function toList {A : Type} (t : RBTree A) : list A :=
-match t with
-    | E => []
-    | T _ l v r => toList l ++ v :: toList r
-end.
 
 Fixpoint fromList {A : TrichDec} (l : list A) : RBTree A :=
 match l with
@@ -155,7 +124,7 @@ Qed.
 
 Lemma Elem_inv :
   forall (A : Type) (P : A -> Prop) (c : color) (v : A) (l r : RBTree A),
-    (forall x : A, Elem x (T c l v r) -> P x) ->
+    (forall x : A, Elem x (N c l v r) -> P x) ->
       P v /\
       (forall x : A, Elem x l -> P x) /\
       (forall x : A, Elem x r -> P x).
@@ -163,7 +132,7 @@ Proof.
   repeat split; intros; apply H; auto.
 Qed.
 
-Lemma trich_le_trans :
+(* Lemma trich_le_trans :
   forall {A : TrichDec} {x y z : A},
     x ≤ y -> y ≤ z -> x ≤ z.
 Proof.
@@ -174,6 +143,7 @@ Proof.
     subst. left. assumption.
     subst. apply trich_le_refl.
 Qed.
+ *)
 
 Ltac aux := intros;
 repeat match goal with
@@ -183,15 +153,15 @@ try match goal with
     | H : False |- _ => destruct H
 end;
 repeat match goal with
-    | H : isBST (T _ _ _ _) |- _ => inv H
+    | H : isBST (N _ _ _ _) |- _ => inv H
     | H : Elem _ E |- _ => destruct H
-    | H : Elem _ (T _ _ _ _) |- _ => inv H
+    | H : Elem _ (N _ _ _ _) |- _ => inv H
     | |- isBST _ => constructor; auto
     | |- forall _, Elem _ _ -> _ => inv 1
 end;
 repeat match goal with
     | H : _ /\ _ |- _ => destruct H
-    | H : forall _, Elem _ (T _ _ _ _) -> _ |- _ =>
+    | H : forall _, Elem _ (N _ _ _ _) -> _ |- _ =>
         apply Elem_inv in H
 end;
 repeat match goal with
@@ -206,14 +176,14 @@ end. *)
 
 Lemma Elem_balance :
   forall (A : TrichDec) (c : color) (x v : A) (l r : RBTree A),
-    Elem x (T c l v r) <-> Elem x (balance c l v r).
+    Elem x (N c l v r) <-> Elem x (balance c l v r).
 Proof.
   split; functional induction @balance (@carrier A) c l v r; aux.
 Qed.
 
 Lemma isBST_balance :
   forall (A : TrichDec) (c : color) (v : A) (l r : RBTree A),
-    isBST (T c l v r) -> isBST (balance c l v r).
+    isBST (N c l v r) -> isBST (balance c l v r).
 Proof.
   intros.
   functional induction balance c l v r; aux; trich.
@@ -224,9 +194,9 @@ match goal with
     | |- context [if ?p then _ else _] => destruct p
 end.
 
-Lemma countRBT_balance :
+Lemma countEBT_balance :
   forall (A : Type) (p : A -> bool) (c : color) (v : A) (l r : RBTree A),
-    countRBT p (balance c l v r) = countRBT p (T c l v r).
+    countEBT p (balance c l v r) = countEBT p (N c l v r).
 Proof.
   intros. functional induction @balance A c l v r;
   cbn; destruct_if;
@@ -249,9 +219,9 @@ Proof.
   destruct t; cbn; inv 1.
 Qed.
 
-Lemma makeBlack_countRBT :
+Lemma countEBT_makeBlack :
   forall (A : Type) (p : A -> bool) (t : RBTree A),
-    countRBT p (makeBlack t) = countRBT p t.
+    countEBT p (makeBlack t) = countEBT p t.
 Proof.
   destruct t; reflexivity.
 Qed.
@@ -269,6 +239,11 @@ Proof.
     induction t; cbn; intros.
       inv H.
       trich; rewrite <- Elem_balance; inv H; inv H1.
+Restart.
+  intros until t. revert x.
+  functional induction ins y t;
+  intros; rewrite <- ?Elem_balance, ?Elem_N, ?IHl, ?IHr;
+  firstorder.
 Qed.
 
 Lemma isBST_ins :
@@ -283,12 +258,12 @@ Proof.
       intros. rewrite Elem_ins in H. inv H. trich.
 Qed.
 
-Lemma countRBT_ins :
+Lemma countEBT_ins :
   forall (A : TrichDec) (p : A -> bool) (x : A) (t : RBTree A),
-    countRBT p (ins x t) = (if p x then S else id) (countRBT p t).
+    countEBT p (ins x t) = (if p x then 1 else 0) + countEBT p t.
 Proof.
   induction t; cbn; trich;
-  rewrite countRBT_balance; cbn; rewrite ?IHt1, ?IHt2;
+  rewrite countEBT_balance; cbn; rewrite ?IHt1, ?IHt2;
   destruct_if; unfold id; lia.
 Qed.
 
@@ -308,17 +283,17 @@ Proof.
   intros. unfold insert. apply isBST_makeBlack, isBST_ins. assumption.
 Qed.
 
-Lemma countRBT_insert :
+Lemma countEBT_insert :
   forall (A : TrichDec) (p : A -> bool) (x : A) (t : RBTree A),
-    countRBT p (insert x t) = (if p x then S else id) (countRBT p t).
+    countEBT p (insert x t) = (if p x then 1 else 0) + countEBT p t.
 Proof.
   intros. unfold insert.
-  rewrite makeBlack_countRBT, countRBT_ins. reflexivity.
+  rewrite countEBT_makeBlack, countEBT_ins. reflexivity.
 Qed.
 
 Lemma Permutation_toList_balance :
   forall (A : Type) (c : color) (v : A) (l r : RBTree A),
-    Permutation (toList (balance c l v r)) (toList (T c l v r)).
+    Permutation (toList (balance c l v r)) (toList (N c l v r)).
 Proof.
   intros.
   functional induction balance c l v r;
@@ -345,8 +320,8 @@ Lemma Permutation_toList_insert :
     Permutation (toList (insert x t)) (x :: toList t).
 Proof.
   intros. unfold insert. destruct (ins x t) eqn: Heq; cbn.
-    apply (f_equal (countRBT (fun _ => true))) in Heq.
-      rewrite countRBT_ins in Heq. cbn in Heq. inv Heq.
+    apply (f_equal (countEBT (fun _ => true))) in Heq.
+      rewrite countEBT_ins in Heq. cbn in Heq. inv Heq.
     rewrite <- (Permutation_toList_ins _ x t). rewrite Heq.
       cbn. reflexivity.
 Qed.
@@ -363,14 +338,16 @@ Proof.
     induction 1; cbn; apply in_or_app; firstorder.
 Qed.
 
-Lemma toList_countRBT :
+Require Export Sorting.Sort.
+
+Lemma toList_countEBT :
   forall (A : Type) (p : A -> bool) (t : RBTree A),
-    countRBT p t = count p (toList t).
+    countEBT p t = count p (toList t).
 Proof.
   induction t; cbn.
     reflexivity.
     rewrite count_app, IHt1, IHt2.
-      cbn. destruct (p a); auto.
+      cbn. destruct (p a); lia.
 Qed.
 
 Lemma Sorted_toList :
@@ -410,12 +387,12 @@ Proof.
     apply isBST_insert. assumption.
 Qed.
 
-Lemma countRBT_fromList :
+Lemma countEBT_fromList :
   forall (A : TrichDec) (p : A -> bool) (l : list A),
-    countRBT p (fromList l) = count p l.
+    countEBT p (fromList l) = count p l.
 Proof.
   induction l as [| h t]; cbn; trich;
-  rewrite countRBT_insert, IHt.
+  rewrite countEBT_insert, IHt.
   destruct (p h); reflexivity.
 Qed.
 
@@ -433,7 +410,7 @@ Lemma perm_redblackSort :
     perm l (redblackSort A l).
 Proof.
   unfold perm, redblackSort. intros.
-  rewrite <- toList_countRBT, countRBT_fromList. reflexivity.
+  rewrite <- toList_countEBT, countEBT_fromList. reflexivity.
 Qed.
 
 Lemma Permutation_redblackSort :

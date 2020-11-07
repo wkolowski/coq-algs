@@ -1,7 +1,7 @@
 Require Import MergeSort.
 
 Set Implicit Arguments.
-Check @ghms.
+
 Theorem Sorted_ghms :
   forall (n : nat) (A : TrichDec)
     (s : Sort trich_le) (split : Split A)

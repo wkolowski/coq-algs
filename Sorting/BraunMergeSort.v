@@ -62,7 +62,7 @@ end.
 Lemma braunCount_braunInsert :
   forall (A : Type) (p : A -> bool) (x : A) (b : Braun A),
     braunCount p (braunInsert x b) =
-      (if p x then S else id) (braunCount p b).
+      (if p x then 1 else 0) + braunCount p b.
 Proof.
   induction b as [a | l IHl r IHr]; cbn.
     destruct (p x); reflexivity.
@@ -74,7 +74,7 @@ Lemma braunCount_fromList :
     braunCount p (fromList h t) = count p (h :: t).
 Proof.
   induction t as [| h' t']; cbn; intros.
-    reflexivity.
+    rewrite plus_0_r. reflexivity.
     rewrite braunCount_braunInsert, IHt'. cbn.
       destruct (p h), (p h'); reflexivity.
 Qed.

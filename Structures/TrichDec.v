@@ -571,7 +571,7 @@ match goal with
     | H : trich_max _ _    = _      |- _ => apply trich_max_spec in H; destruct H
     | H : trich_minmax _ _ = (_, _) |- _ => apply trich_minmax_spec in H; decompose [and or] H; clear H 
 (* try to finish somehow *)
-    | _ => subst; auto; try congruence
+    | _ => subst; auto; try (cbn in *; congruence)
 end.
 
 Ltac trich :=

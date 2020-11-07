@@ -3,7 +3,7 @@ Require Export RCCBase.
 
 Set Implicit Arguments.
 
-Require Export Basic.Tree.
+Require Export Data.Tree.
 Require Export Sorting.Sort.
 
 Print size.
@@ -407,7 +407,7 @@ Qed.
 Lemma countTree_insert :
   forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (x : A) (h : PairingHeap A),
     countTree p (insert cmp x h) =
-      (if p x then S else id) (countTree p h).
+      (if p x then 1 else 0) + countTree p h.
 Proof.
   intros. unfold insert.
   rewrite countTree_merge, countTree_singleton.

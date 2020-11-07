@@ -8,7 +8,7 @@ Inductive Tree (A : Type) : Type :=
 
 Arguments E {A}.
 Arguments T {A} _ _.
-
+ 
 Inductive Elem {A : Type} (x : A) : Tree A -> Prop :=
     | Elem0 : forall l : list (Tree A), Elem x (T x l)
     | Elem1 : forall (a : A) (l : list (Tree A)),
@@ -153,7 +153,7 @@ Fixpoint countTree {A : Type} (p : A -> bool) (t : Tree A) : nat :=
 match t with
     | E => 0
     | T x ts =>
-        (if p x then S else id) (sum (map (countTree p) ts))
+        (if p x then 1 else 0) + sum (map (countTree p) ts)
 end.
 
 (** Properties of [isEmpty]. *)

@@ -162,9 +162,9 @@ Proof.
   split; destruct h; cbn in *; intros; congruence.
 Qed.
 
-Lemma isEmpty_count_BTree :
+Lemma isEmpty_countBT :
   forall (A : Type) (p : A -> bool) (t : SplayHeap A),
-    isEmpty t = true -> count_BTree p t = 0.
+    isEmpty t = true -> countBT p t = 0.
 Proof.
   destruct t; trich.
 Qed.
@@ -221,15 +221,15 @@ Proof.
   erewrite IHp0; eauto; lia.
 Qed.
 
-Lemma count_BTree_partition :
+Lemma countBT_partition :
   forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
     partition cmp pivot h = (h1, h2) ->
-      count_BTree p h = count_BTree p h1 + count_BTree p h2.
+      countBT p h = countBT p h1 + countBT p h2.
 Proof.
   intros until h. revert p.
   functional induction partition cmp pivot h;
   inv 1; cbn; erewrite IHp; eauto;
-  destruct (p x), (p y); cbn; lia.
+  destruct (p x), (p y); cbn; unfold id; lia.
 Qed.
 
 (** Properties of [insert]. *)
@@ -259,14 +259,14 @@ Proof.
   eapply size_partition. eassumption.
 Qed.
 
-Lemma count_BTree_insert :
+Lemma countBT_insert :
   forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (x : A) (h : SplayHeap A),
-    count_BTree p (insert cmp x h) =
-    (if p x then S else id) (count_BTree p h).
+    countBT p (insert cmp x h) =
+    (if p x then 1 else 0) + countBT p h.
 Proof.
   intros. unfold insert.
   destruct (partition cmp x h) eqn: Heq.
-  apply (count_BTree_partition cmp p) in Heq.
+  apply (countBT_partition cmp p) in Heq.
   rewrite Heq. cbn. destruct (p x); reflexivity.
 Qed.
 
@@ -310,15 +310,15 @@ Proof.
     apply size_partition in e0. lia.
 Qed.
 
-Lemma count_BTree_merge :
+Lemma countBT_merge :
   forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (h1 h2 : SplayHeap A),
-    count_BTree p (merge cmp h1 h2) = count_BTree p h1 + count_BTree p h2.
+    countBT p (merge cmp h1 h2) = countBT p h1 + countBT p h2.
 Proof.
   intros until h2.
   functional induction (merge cmp h1 h2); cbn.
     reflexivity.
-    apply (count_BTree_partition cmp p) in e0.
-      destruct (p v); lia.
+    apply (countBT_partition cmp p) in e0.
+      destruct (p v); unfold id; lia.
 Qed.
 
 (** Properties of [findMin] *)
@@ -497,11 +497,11 @@ Proof.
         specialize (H6 _ H1). apply deleteMin2_elem in e0. specialize (H4 _ e0). admit. (* transitivity *)
 Admitted.
 
-Lemma deleteMin2_count_BTree :
+Lemma deleteMin2_countBT :
   forall (A : Type) (cmp : A -> A -> comparison) (p : A -> bool) (m : A) (h h' : SplayHeap A),
     isBST cmp h -> deleteMin2 h = Some (m, h') ->
-      count_BTree p h =
-      (if p m then S else id) (count_BTree p h').
+      countBT p h =
+      (if p m then 1 else 0) + countBT p h'.
 Proof.
 (* TODO
   intros A p m h. revert p m.

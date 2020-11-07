@@ -39,7 +39,7 @@ Class ssArgs : Type :=
     countS_extractMin_Some :
       forall (p : A -> bool) (a : A) (s s' : S),
         extractMin s = Some (a, s') ->
-          countS p s = if p a then 1 + countS p s' else countS p s';
+          countS p s = (if p a then 1 else 0) + countS p s';
 }.
 
 Function toList (args : ssArgs) (s : S) {measure size s} : list A :=

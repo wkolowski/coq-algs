@@ -56,7 +56,7 @@ Proof.
   all: intros.
     apply split_spec_r in teq. rewrite teq0 in teq. cbn in teq. assumption.
     apply split_spec_l in teq. rewrite teq0 in teq. cbn in teq. assumption.
-Time Defined.
+Defined.
 
 
 Theorem Sorted_ms :

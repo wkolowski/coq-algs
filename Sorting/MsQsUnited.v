@@ -53,5 +53,4 @@ Instance MsArgs_nat : MsArgs :=
     join := @concat nat
 }.
 
-Compute qms MsArgs_nat [3; 2; 1; 0].
-
+(* Compute qms MsArgs_nat [3; 2; 1; 0]. *)

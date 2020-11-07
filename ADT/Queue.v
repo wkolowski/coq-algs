@@ -73,7 +73,9 @@ Hint Rewrite isEmpty_empty isEmpty_snoc head_empty head_singl
 End Queue.
 
 (* [fmap] and its properties. *)
-(*Parameter fmap :
+
+(*
+Parameter fmap :
   forall {A B : Type}, (A -> B) -> Queue A -> Queue B.
 
 Parameter fmap_empty :

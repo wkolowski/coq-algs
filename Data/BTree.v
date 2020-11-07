@@ -77,13 +77,21 @@ match bt with
     | node _ l r => S (size l + size r)
 end.
 
-Fixpoint count_BTree {A : Type} (p : A -> bool) (t : BTree A) : nat :=
+(* Fixpoint countBT {A : Type} (p : A -> bool) (t : BTree A) : nat :=
 match t with
     | empty => 0
     | node v l r =>
-        let n := count_BTree p l in
-        let m := count_BTree p r in
+        let n := countBT p l in
+        let m := countBT p r in
         if p v then S (n + m) else n + m
+end.
+ *)
+
+Fixpoint countBT {A : Type} (p : A -> bool) (t : BTree A) : nat :=
+match t with
+    | empty => 0
+    | node v l r =>
+        (if p v then 1 else 0) + countBT p l + countBT p r
 end.
 
 (** * Tactics *)
@@ -158,7 +166,7 @@ Qed.
 
 Lemma count_toList :
   forall (A : Type) (p : A -> bool) (t : BTree A),
-    count p (BTree_toList t) = count_BTree p t.
+    count p (BTree_toList t) = countBT p t.
 Proof.
   induction t; cbn; rewrite ?count_app.
     reflexivity.
@@ -176,9 +184,9 @@ Lemma size_empty :
   forall A : TrichDec, size (@empty A) = 0.
 Proof. reflexivity. Qed.
 
-Lemma count_BTree_empty :
+Lemma countBT_empty :
   forall (A : Type) (p : A -> bool),
-    count_BTree p empty = 0.
+    countBT p empty = 0.
 Proof. reflexivity. Qed.
 
 (** Properties of [singleton]. *)
@@ -195,10 +203,12 @@ Lemma size_singleton :
     size (singleton x) = 1.
 Proof. reflexivity. Qed.
 
-Lemma count_BTree_singleton :
+Lemma countBT_singleton :
   forall (A : Type) (p : A -> bool) (x : A),
-    count_BTree p (singleton x) = if p x then 1 else 0.
-Proof. reflexivity. Qed.
+    countBT p (singleton x) = if p x then 1 else 0.
+Proof.
+  intros. unfold singleton. cbn. destruct (p x); reflexivity.
+Qed.
 
 (** Properties of [isEmpty]. *)
 
@@ -249,9 +259,9 @@ Proof.
   split; destruct t; cbn; congruence.
 Qed.
 
-Lemma isEmpty_count_BT :
+Lemma isEmpty_countBT :
   forall (A : Type) (t : BTree A),
-    isEmpty t = true <-> forall p : A -> bool, count_BTree p t = 0.
+    isEmpty t = true <-> forall p : A -> bool, countBT p t = 0.
 Proof.
   split; destruct t; cbn; try congruence.
     intro. specialize (H (fun _ => true)). cbn in H. inversion H.
@@ -801,18 +811,11 @@ Proof.
     change 0 with (0 + 0). constructor; try intro; assumption.
 Qed.
 
-Fixpoint count {A : Type} (p : A -> bool) (t : BTree A) : nat :=
-match t with
-    | empty => 0
-    | node v l r =>
-        (if p v then S else id) (count p l + count p r)
-end.
-
 Lemma Exactly_count :
   forall
     (A : Type) (P : A -> Prop) (p : A -> bool) (n : nat) (t : BTree A),
       (forall x : A, reflect (P x) (p x)) ->
-        Exactly P n t <-> count p t = n.
+        Exactly P n t <-> countBT p t = n.
 Proof.
   split.
     induction 1; cbn.
@@ -837,7 +840,7 @@ Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
 
 Lemma count_size :
   forall (A : Type) (p : A -> bool) (t : BTree A),
-    count p t <= size t.
+    countBT p t <= size t.
 Proof.
   induction t; cbn.
     reflexivity.
@@ -848,8 +851,8 @@ Qed.
 
 Lemma count_size_aux :
   forall (A : Type) (p : A -> bool) (t1 t2 : BTree A),
-    count p t1 + count p t2 = size t1 + size t2 ->
-      count p t1 = size t1 /\ count p t2 = size t2.
+    countBT p t1 + countBT p t2 = size t1 + size t2 ->
+      countBT p t1 = size t1 /\ countBT p t2 = size t2.
 Proof.
   induction t1; cbn; intros.
     split; [reflexivity | assumption].
@@ -867,7 +870,7 @@ Qed.
 Lemma All_count :
   forall (A : Type) (P : A -> Prop) (p : A -> bool) (t : BTree A),
     (forall x : A, reflect (P x) (p x)) ->
-      All P t <-> count p t = size t.
+      All P t <-> countBT p t = size t.
 Proof.
   split.
     induction 1; cbn.
@@ -1058,12 +1061,12 @@ Qed.
 Lemma count_PermutationBT :
   forall {A : Type} {t1 t2 : BTree A},
     PermutationBT t1 t2 ->
-      forall p : A -> bool, count_BTree p t1 = count_BTree p t2.
+      forall p : A -> bool, countBT p t1 = countBT p t2.
 Proof.
   induction 1; cbn; intro;
   rewrite ?IHPermutationBT1, ?IHPermutationBT2;
   try reflexivity;
-  destruct (p x), (p y); lia.
+  destruct (p x), (p y); unfold id; lia.
 Qed.
 
 Inductive AtLeast {A : Type} (P : A -> Prop) : BTree A -> nat -> Prop :=

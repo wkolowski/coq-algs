@@ -41,10 +41,10 @@ Proof.
       inv H. constructor; auto. intros. apply Elem_insertBT in H. destruct H; auto.
 Admitted.
 
-(* Lemma count_BTree_insert :
+(* Lemma countBT_insert :
   forall (A : Type) (cmp : cmp_spec A) (p : A -> bool) (x : A) (t : BTree A),
-    count_BTree p (insert cmp x t) =
-      if p x then 1 + count_BTree p t else count_BTree p t.
+    countBT p (insert cmp x t) =
+      if p x then 1 + countBT p t else countBT p t.
 Proof.
   induction t; cbn.
     reflexivity.
@@ -70,13 +70,13 @@ Proof.
   unfold treeSort. intros. apply Sorted_BTree_toList, isBST_fromList.
 Qed.
 
-Lemma count_BTree_insertBT :
+Lemma countBT_insertBT :
   forall {A : Type} (cmp : A -> A -> bool) (p : A -> bool) (x : A) (t : BTree A),
-    count_BTree p (insertBT cmp x t) =
-      if p x then 1 + count_BTree p t else count_BTree p t.
+    countBT p (insertBT cmp x t) =
+      (if p x then 1 else 0) + countBT p t.
 Proof.
   induction t as [| v l r]; cbn.
-    reflexivity.
+    destruct (p x); reflexivity.
     destruct (cmp x v); cbn; destruct (p v), (p x); lia.
 Qed.
 
@@ -86,7 +86,7 @@ Lemma perm_treeSort :
 Proof.
   induction l as [| h t]; intro; cbn.
     reflexivity.
-    rewrite count_toList, count_BTree_insertBT, <- count_toList, <- IHt. reflexivity.
+    rewrite count_toList, countBT_insertBT, <- count_toList, <- IHt. reflexivity.
 Qed.
 
 Lemma Permutation_treeSort_aux :

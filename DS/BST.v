@@ -1,6 +1,5 @@
 Require Export RCCBase.
-Require Import BTree.
-(* Require Export TrichDec. *)
+Require Import Data.BTree.
 Require Import TrichDec.
 Require Import Sorting.Sort.
 

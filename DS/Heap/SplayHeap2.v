@@ -206,9 +206,9 @@ Proof.
   split; destruct h; cbn in *; intros; congruence.
 Qed.
 
-Lemma isEmpty_count_BTree :
+Lemma isEmpty_countBT :
   forall (A : TrichDec) (p : A -> bool) (h : SplayHeap A),
-    isEmpty h = true -> count_BTree p h = 0.
+    isEmpty h = true -> countBT p h = 0.
 Proof.
   destruct h; cbn; congruence.
 Qed.
@@ -245,7 +245,7 @@ Proof.
   intros until h. revert x.
   functional induction bigger pivot h.
     Elem.
-    Elem. apply IHs; isBST. trich.
+    Elem. cbn in *. apply IHs; isBST. cbn in *. trich.
     Elem.
     Elem. trich. apply IHs; isBST. trich.
     intros until 2.
@@ -264,9 +264,9 @@ Proof.
 Admitted.
 
 (*
-Lemma not_elem_count_BTree :
+Lemma not_elem_countBT :
   forall (A : TrichDec) (p : A -> bool) (x : A) (t : BTree A),
-    ~ elem cmp x t -> count_BTree p t = 0.
+    ~ elem cmp x t -> countBT p t = 0.
 Proof.
   induction t; cbn; intros; rewrite ?IHt1, ?IHt2; trich.
   contradiction H. constructor.
@@ -284,27 +284,27 @@ match goal with
     | H : elem _ empty |- _ => inv H
 end.
 
-Lemma count_BTree_node :
+Lemma countBT_node :
   forall (A : TrichDec) (p : A -> bool) (x v : A) (l r : BTree A),
     isBST (node v l r) -> x ≤ v -> x <> v ->
-      count_BTree p (node v l r) = count_BTree p (node v l empty).
+      countBT p (node v l r) = countBT p (node v l empty).
 Proof.
   intros. destruct (elem_decb_reflect A x (node v l r)).
-    Focus 2. rewrite !not_elem_count_BTree; auto.
+    Focus 2. rewrite !not_elem_countBT; auto.
       intro. apply n. inv H2.
-    cbn. trich. rewrite (@not_elem_count_BTree _ _ r).
+    cbn. trich. rewrite (@not_elem_countBT _ _ r).
       reflexivity.
       intro. inv H.
 Qed.
 
-Lemma count_BTree_bigger :
+Lemma countBT_bigger :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
     isBST h -> pivot ≤ x -> x <> pivot ->
-      count_BTree x (bigger pivot h) = count_BTree x h.
+      countBT x (bigger pivot h) = countBT x h.
 Proof.
   intros.
   destruct (elem_decb_reflect _ x h).
-    Focus 2. rewrite !not_elem_count_BTree; auto.
+    Focus 2. rewrite !not_elem_countBT; auto.
       intro. apply n. eapply bigger_elem; eauto.
     functional induction bigger pivot h; cbn.
       reflexivity.
@@ -314,7 +314,7 @@ Proof.
         inv H. inv e.
           contradiction H1. apply leq_antisym; auto.
             eapply leq_trans; eauto.
-          rewrite (@not_elem_count_BTree _ _ l).
+          rewrite (@not_elem_countBT _ _ l).
             rewrite IHs; auto.
             intro. trich.
       Focus 2. aux; trich.
@@ -323,7 +323,7 @@ Restart.
   functional induction bigger pivot h; cbn; aux.
     trich; rewrite IHs; auto.
       contradiction H1. apply leq_antisym; auto.
-      rewrite (@not_elem_count_BTree _ _ l).
+      rewrite (@not_elem_countBT _ _ l).
         lia.
         intro. contradiction H1. apply leq_antisym; auto.
           eapply leq_trans; eauto.
@@ -366,7 +366,7 @@ Proof.
     repeat constructor; auto; intros. apply smaller_elem in H; auto.
 Qed.
 
-(*Lemma smaller_count_BTree :
+(*Lemma smaller_countBT :
   forall (A : TrichDec) (x pivot : A) (h : SplayHeap A),
     isBST h -> x ≤ pivot *)
 

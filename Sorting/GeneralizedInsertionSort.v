@@ -28,7 +28,8 @@ Class ISArgs : Type :=
 
     countS_insert :
       forall (p : A -> bool) (x : A) (s : S),
-        countS p (insert x s) = if p x then 1 + countS p s else countS p s;
+        countS p (insert x s) =
+          (if p x then 1 else 0) + countS p s;
 
     countS_toList :
       forall (p : A -> bool) (s : S),

@@ -121,7 +121,7 @@ match removeMinTree h with
     | Some (T _ x h1, h2) => Some (merge (rev h1) h2)
 end.
 
-Definition unMin {A : TrichDec} (h : Heap A) : option (A * Heap A) :=
+Definition extractMin {A : TrichDec} (h : Heap A) : option (A * Heap A) :=
 match removeMinTree h with
     | None => None
     | Some (T _ x h1, h2) => Some (x, merge h1 h2)
@@ -256,12 +256,12 @@ Proof.
     destruct h; cbn; congruence.
 Qed.
 
-Lemma isEmpty_unMin_false :
+Lemma isEmpty_extractMin_false :
   forall (A : TrichDec) (h : Heap A),
     isEmpty h = false <->
-    exists (m : A) (h' : Heap A), unMin h = Some (m, h').
+    exists (m : A) (h' : Heap A), extractMin h = Some (m, h').
 Proof.
-  split; unfold unMin; intros.
+  split; unfold extractMin; intros.
     apply isEmpty_removeMinTree_false' in H. destruct H as [t [h' H]].
       destruct t as [r x h'']. exists x, (merge h'' h'). rewrite H. auto.
     destruct H as [m [h' H]]. apply isEmpty_removeMinTree_false'.
@@ -270,11 +270,11 @@ Proof.
         rewrite H0 in H. congruence.
 Qed.
 
-Lemma isEmpty_unMin_true :
+Lemma isEmpty_extractMin_true :
   forall (A : TrichDec) (h : Heap A),
-    isEmpty h = true <-> unMin h = None.
+    isEmpty h = true <-> extractMin h = None.
 Proof.
-  unfold unMin; split; intros.
+  unfold extractMin; split; intros.
     apply isEmpty_removeMinTree_true in H. rewrite H. reflexivity.
     case_eq (removeMinTree h); intros.
       rewrite H0 in H. destruct p, t. inv H.
@@ -342,14 +342,14 @@ Proof.
       apply IHh'; rewrite link_elemTree'; auto.
 Qed.
 
-Lemma insert_elemTree' :
+Lemma elemTree'_insert :
   forall (A : TrichDec) (x : A) (h : Heap A),
     elemHeap x (insert x h).
 Proof.
   intros. unfold insert. rewrite insTree_elemHeap. auto.
 Qed.
 
-Lemma merge_elemHeap :
+Lemma elemHeap_merge :
   forall (A : TrichDec) (x : A) (h1 h2 : Heap A),
     elemHeap x (merge h1 h2) <-> elemHeap x h1 \/ elemHeap x h2.
 Proof.
@@ -376,19 +376,19 @@ Proof.
       inv H0. specialize (IHo x _ _ e0 ltac:(auto)). inv IHo.
 Qed.
 
-Lemma unMin_elemHeap :
+Lemma elemHeap_extractMin :
   forall (A : TrichDec) (x m : A) (h h' : Heap A),
-    unMin h = Some (m, h') ->
+    extractMin h = Some (m, h') ->
       elemHeap x h <-> x = m \/ elemHeap x h'.
 Proof.
-  unfold unMin. split.
+  unfold extractMin. split.
     case_eq (removeMinTree h); intros; rewrite H0 in *.
       destruct p, t. inv H.
         apply removeMinTree_elemHeap with (x := x) in H0.
-        rewrite merge_elemHeap. firstorder. inv H.
+        rewrite elemHeap_merge. firstorder. inv H.
       congruence.
     case_eq (removeMinTree h); intros; rewrite H0 in *.
-      destruct p, t. inv H. rewrite merge_elemHeap in *.
+      destruct p, t. inv H. rewrite elemHeap_merge in *.
         apply removeMinTree_elemHeap with (x := x) in H0.
         firstorder; subst; auto.
       congruence.
@@ -402,56 +402,56 @@ Proof.
   rewrite isEmpty_insTree in H. congruence.
 Qed.
 
-Lemma unMin_insTree :
+Lemma extractMin_insTree :
   forall (A : TrichDec) (t : Tree A) (h : Heap A),
-    unMin (insTree t h) <> None.
+    extractMin (insTree t h) <> None.
 Proof.
-  intros. unfold unMin.
+  intros. unfold extractMin.
   case_eq (removeMinTree (insTree t h)); intros.
     destruct p, t0. inv 1.
     apply removeMinTree_insTree in H. contradiction.
 Qed.
 
-Lemma unMin_insert :
+Lemma extractMin_insert :
   forall (A : TrichDec) (x : A) (h : Heap A),
-    unMin (insert x h) <> None.
+    extractMin (insert x h) <> None.
 Proof.
-  intros. unfold insert. apply unMin_insTree.
+  intros. unfold insert. apply extractMin_insTree.
 Qed.
 
-Lemma unMin_merge :
+Lemma extractMin_merge :
   forall (A : TrichDec) (h1 h2 : Heap A),
-    unMin (merge h1 h2) = None <->
-    unMin h1 = None /\ unMin h2 = None.
+    extractMin (merge h1 h2) = None <->
+    extractMin h1 = None /\ extractMin h2 = None.
 Proof.
-  intros. rewrite <- !isEmpty_unMin_true, isEmpty_merge.
+  intros. rewrite <- !isEmpty_extractMin_true, isEmpty_merge.
   destruct h1, h2; cbn; firstorder congruence.
 Qed.
 
 (** Counting shiet. *)
 
-Fixpoint count_Tree {A : TrichDec} (x : A) (t : Tree A) : nat :=
+Fixpoint countTree {A : TrichDec} (x : A) (t : Tree A) : nat :=
 match t with
     | T _ x' l =>
-        (if x =? x' then S else id)
-          (fold_right (fun t ts => count_Tree x t + ts) 0 l)
+        (if x =? x' then 1 else 0) +
+          fold_right (fun t ts => countTree x t + ts) 0 l
 end.
 
 Definition count_Heap {A : TrichDec} (x : A) (h : Heap A) : nat :=
-  fold_right (fun t ts => count_Tree x t + ts) 0 h.
+  fold_right (fun t ts => countTree x t + ts) 0 h.
 
-Lemma isEmpty_count_Tree :
+Lemma isEmpty_countTree :
   forall (A : TrichDec) (t : Tree A),
-    isEmpty [t] = true <-> forall x : A, count_Tree x t = 0.
+    isEmpty [t] = true <-> forall x : A, countTree x t = 0.
 Proof.
   split; cbn; intros.
     congruence.
     specialize (H (root t)). destruct t. cbn in H. trich.
 Qed.
 
-Lemma count_Tree_link :
+Lemma countTree_link :
   forall (A : TrichDec) (x : A) (t1 t2 : Tree A),
-    count_Tree x (link t1 t2) = count_Tree x t1 + count_Tree x t2.
+    countTree x (link t1 t2) = countTree x t1 + countTree x t2.
 Proof.
   destruct t1, t2. cbn. do 2 trich; unfold id; lia.
 Qed.
@@ -466,19 +466,19 @@ Qed.
 
 Lemma count_Heap_insTree :
   forall (A : TrichDec) (x : A) (t : Tree A) (h : Heap A),
-    count_Heap x (insTree t h) = count_Tree x t + count_Heap x h.
+    count_Heap x (insTree t h) = countTree x t + count_Heap x h.
 Proof.
   intros A x t h; gen t; gen x.
   induction h as [| t' h']; cbn; intros.
     reflexivity.
     tree'. unfold count_Heap in *. rewrite IHh'.
-      rewrite count_Tree_link. lia.
+      rewrite countTree_link. lia.
 Qed.
 
 Lemma count_Heap_insert :
   forall (A : TrichDec) (x y : A) (h : Heap A),
     count_Heap x (insert y h) =
-    (if x =? y then S else id) (count_Heap x h).
+      (if x =? y then 1 else 0) + count_Heap x h.
 Proof.
   intros. unfold insert. rewrite count_Heap_insTree. cbn. trich.
 Qed.

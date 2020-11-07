@@ -90,7 +90,7 @@ Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. trich. cbn in *. lia.
+    rewrite MergeSort.merge_equation. trich.
     rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 
@@ -212,7 +212,7 @@ Proof.
   intros. unfold merge.
   functional induction @MergeSort.merge A p; cbn; auto.
     destruct l1; auto.
-    rewrite MergeSort.merge_equation. trich. cbn in *. lia.
+    rewrite MergeSort.merge_equation. trich.
     rewrite MergeSort.merge_equation. trich. cbn in *. rewrite IHl. lia.
 Qed.
 

@@ -1,16 +1,16 @@
 # coq-algs
 
-Hello. This repository contains some random Coq code which is going to be the basis of my Master's Thesis.
+Hello. This repository contains some random Coq code, most of which is concerned with purely functional algorithms and data structures. It also contains my Master's Thesis, which is also concerned with algorithms.
 
 The structure of the development is as follows:
 
 * RCCBase.v contains some basic tactics and auxiliary stuff.
-* ADT/ contains definitions of abstract data types.
-* Basic/ contains implementations of basic data types (various trees etc.) which can then be reused for the purposes of different data structures.
-* DS/ contains data structures.
+* ADT/ contains interfaces of abstract data types like queues, priority queues, sets, finite maps etc.
+* Data/ contains implementations of basic inductive data types, most of which are trees. These basic trees are then used to implement data structures.
+* DS/ contains data structures, like BSTs, heaps, sequences etc.
 * Memoization/ is a lame attempt at memoizing functions. Nothing worth looking at.
 * Reflection/ has some code on proof by reflection, also quite lame.
-* Sorting/ uses stuff from DS/ to implement and verify sorting algorithms.
+* Sorting/ contains implementations of various sorting algorithms.
 * Structures/ has implementations of algebraic and order-theoretic structures needed for sorting and doing reflection.
 * Trash/ is, well, trash. Don't even look at it.
 

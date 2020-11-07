@@ -261,14 +261,14 @@ Fixpoint countLT {A : Type} (p : A -> bool) (t : LTree A) : nat :=
 match t with
     | E => 0
     | N _ v l r =>
-        (if p v then S else id) (countLT p l + countLT p r)
+        (if p v then 1 else 0) + countLT p l + countLT p r
 end.
 
 Lemma countLT_balance :
   forall (A : Type) (p : A -> bool) (k : nat) (v : A) (l r : LTree A),
     countLT p (balance v l r) = countLT p (N k v l r).
 Proof.
-  intros. balance; trich. rewrite plus_comm. reflexivity.
+  intros. balance; trich. lia.
 Qed.
 
 (** Properties of [merge]. *)
@@ -405,7 +405,7 @@ Qed.
 Lemma insert_countLT :
   forall (A : TrichDec) (p : A -> bool) (x : A) (t : LTree A),
     countLT p (insert x t) =
-    (if p x then S else id) (countLT p t).
+    (if p x then 1 else 0) + countLT p t.
 Proof.
   intros. unfold insert. rewrite countLT_merge. cbn.
   destruct (p x); reflexivity.
@@ -448,10 +448,10 @@ Qed.
 Lemma countLT_deleteMin :
   forall (A : TrichDec) (p : A -> bool) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') ->
-      countLT p t = (if p m then S else id) (countLT p t').
+      countLT p t = (if p m then 1 else 0) + countLT p t'.
 Proof.
   destruct t; cbn; intros; inv H.
-  trich; rewrite countLT_merge; reflexivity.
+  trich; rewrite countLT_merge; lia.
 Qed.
 
 Lemma deleteMin_spec :
@@ -500,10 +500,10 @@ Qed.
 Lemma countLT_extactMin :
   forall (A : TrichDec) (p : A -> bool) (m : A) (t t' : LTree A),
     extractMin t = Some (m, t') ->
-      countLT p t = (if p m then S else id) (countLT p t').
+      countLT p t = (if p m then 1 else 0) + countLT p t'.
 Proof.
   destruct t; cbn; intros; inv H.
-  trich; rewrite countLT_merge; reflexivity.
+  trich; rewrite countLT_merge. lia.
 Qed.
 
 Lemma extractMin_spec :

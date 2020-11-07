@@ -15,7 +15,7 @@ Require Import Permutation.
 Fixpoint count {A : Type} (p : A -> bool) (l : list A) : nat :=
 match l with
     | [] => 0
-    | h :: t => if p h then S (count p t) else count p t
+    | h :: t => (if p h then 1 else 0) + count p t
 end.
 
 Definition perm {A : Type} (l1 l2 : list A) : Prop :=
@@ -198,9 +198,13 @@ Lemma perm_singl :
     perm [x] l -> l = [x].
 Proof.
   unfold perm; destruct l as [| h1 [| h2 t]]; cbn; intros.
-    specialize (H (fun _ => true)). cbn in H. inversion H.
+    specialize (H (fun _ => true)). cbn in H. inv H.
     specialize (H (fun y => y =? h1)). cbn in H. trich.
-    assert (H1 := H (fun y => y =? h1)). assert (H2 := H (fun y => y =? h2)). cbn in *. trich.
+    {
+      assert (H1 := H (fun y => y =? h1)).
+      assert (H2 := H (fun y => y =? h2)).
+      cbn in *. trich.
+    }
 Qed.
 
 Lemma perm_cons_inv :

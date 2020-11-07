@@ -54,13 +54,13 @@ Proof.
   intros. unfold splaySort. apply Sorted_BTree_toList, isBST_fromList.
 Qed.
 
-Lemma count_BTree_fromList :
+Lemma countBT_fromList :
   forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (l : list A),
-    count_BTree p (fromList cmp l) = Perm.count p l.
+    countBT p (fromList cmp l) = Perm.count p l.
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
-    rewrite count_BTree_insert. rewrite IHt.
+    rewrite countBT_insert. rewrite IHt.
       destruct (p h); reflexivity.
 Qed.
 
@@ -69,7 +69,7 @@ Theorem splaySort_perm :
     perm l (splaySort cmp l).
 Proof.
   unfold splaySort, perm. intros.
-  rewrite count_toList. rewrite count_BTree_fromList. reflexivity.
+  rewrite count_toList. rewrite countBT_fromList. reflexivity.
 Qed.
 
 Lemma Permutation_partition :

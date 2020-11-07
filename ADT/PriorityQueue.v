@@ -175,12 +175,12 @@ Qed.
 (*Parameter count_toList_insert :
   forall (A : TrichDec) (x h : A) (l : list A),
     count (fun y => y =? x) (toList (insert h (fromList l))) =
-    (if x =? h then S else id) (count (fun y => y =? x) l).*)
+    (if x =? h then 1 else 0) + count (fun y => y =? x) l. *)
 
 Parameter count_toList_insert :
   forall (A : TrichDec) (p : A -> bool) (h : A) (l : list A),
     count p (toList (insert h (fromList l))) =
-    (if p h then S else id) (count p l).
+    (if p h then 1 else 0) + count p l.
 
 Lemma priorityQueueSort_perm :
   forall (A : TrichDec) (l : list A),

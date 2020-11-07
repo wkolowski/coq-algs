@@ -1,9 +1,10 @@
 Require Export RedBlack.
+Require Import ListLemmas.
 
 Fixpoint toList'_aux {A : Type} (t : RBTree A) (acc : list A) : list A :=
 match t with
     | E => acc
-    | T _ l v r => toList'_aux l (v :: toList'_aux r acc)
+    | N _ l v r => toList'_aux l (v :: toList'_aux r acc)
 end.
 
 Definition toList' {A : Type} (t : RBTree A) : list A := toList'_aux t [].
@@ -23,13 +24,11 @@ Proof.
     rewrite IHt1, IHt2, <- app_assoc, <- app_comm_cons. trivial.
 Qed.
 
-Theorem toList'_spec : @toList' = @toList.
+Theorem toList'_spec : @toList' = @toList color.
 Proof.
-  ext A.  ext t. unfold toList'.
+  ext A. ext t. unfold toList'.
   rewrite toList'_aux_spec, app_nil_r. trivial.
 Qed.
-
-Require Import ListLemmas.
 
 #[refine]
 Instance Sort_redblackSort (A : TrichDec) : Sort trich_le :=
