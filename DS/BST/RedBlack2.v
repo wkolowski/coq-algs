@@ -11,7 +11,10 @@ Inductive color : Set :=
 
 Definition RBTree (A : Type) : Type := EBTree color A.
 
+Hint Constructors color EBTree Elem isBST2 : core.
+
 (** [empty], [isEmpty] and [singleton] are my own. *)
+
 Definition empty {A : Type} : RBTree A := E.
 
 Definition singleton {A : Type} (x : A) : RBTree A := N Red E x E.
@@ -104,11 +107,11 @@ Proof.
     intros ->. auto.
 Qed.
 
-Lemma isBST_singleton :
-  forall (A : Ord) (x : A),
-    isBST (singleton x).
+Lemma isBST2_singleton :
+  forall {A : Ord} (x : A),
+    isBST2 (singleton x).
 Proof.
-  unfold singleton. intros. constructor; auto; inv 1.
+  constructor; auto.
 Qed.
 
 (** Properties of [balance]. *)
@@ -122,13 +125,26 @@ Proof.
   auto; intros; Elem'.
 Qed.
 
-Lemma isBST_balance :
-  forall (A : Ord) (c : color) (v : A) (l r : RBTree A),
-    isBST (N c l v r) -> isBST (balance c l v r).
+Lemma All_balance :
+  forall {A : Ord} (P : A -> Prop) (c : color) (v : A) (l r : RBTree A),
+    All P (balance c l v r) <-> All P l /\ P v /\ All P r.
 Proof.
   intros.
   functional induction balance c l v r;
-  isBST'; Elem'; trich.
+  firstorder All'.
+Qed.
+
+Lemma isBST2_balance :
+  forall (A : Ord) (c : color) (v : A) (l r : RBTree A),
+    isBST2 (N c l v r) -> isBST2 (balance c l v r).
+Proof.
+  intros.
+  functional induction balance c l v r;
+  isBST2';
+  do 2 match goal with
+      | y : match _ with | _ => _ end |- _ => clear y
+      | H : All _ ?t |- All _ ?t => induction H; constructor; isBST2; trich
+  end.
 Qed.
 
 Lemma countEBT_balance :
@@ -153,9 +169,9 @@ Proof.
   split; destruct t; cbn; auto; inv 1.
 Qed.
 
-Lemma isBST_makeBlack :
+Lemma isBST2_makeBlack :
   forall (A : Ord) (t : RBTree A),
-    isBST t -> isBST (makeBlack t).
+    isBST2 t -> isBST2 (makeBlack t).
 Proof.
   destruct t; cbn; inv 1.
 Qed.
@@ -179,16 +195,24 @@ Proof.
   firstorder.
 Qed.
 
-Lemma isBST_ins :
-  forall (A : Ord) (x : A) (t : RBTree A),
-    isBST t -> isBST (ins x t).
+Lemma All_ins :
+  forall {A : Ord} (P : A -> Prop) (x : A) (t : RBTree A),
+    All P (ins x t) <-> P x /\ All P t.
 Proof.
-  intros. functional induction ins x t.
-    constructor; auto; inv 1.
-    apply isBST_balance. inv H. constructor; auto.
-      intros. rewrite Elem_ins in H. inv H. trich.
-    apply isBST_balance. inv H. constructor; auto.
-      intros. rewrite Elem_ins in H. inv H. trich.
+  intros.
+  functional induction ins x t;
+  rewrite ?All_balance, ?IHr;
+  firstorder All'.
+Qed.
+
+Lemma isBST2_ins :
+  forall (A : Ord) (x : A) (t : RBTree A),
+    isBST2 t -> isBST2 (ins x t).
+Proof.
+  intros. functional induction ins x t; isBST.
+    auto.
+    apply isBST2_balance. isBST2'. apply All_ins. split; trich.
+    apply isBST2_balance. isBST2'. apply All_ins. split; trich.
 Qed.
 
 Lemma countEBT_ins :
@@ -205,18 +229,19 @@ Qed.
 
 (** Properties of [insert]. *)
 
-Lemma Elem_insert :
+(* Lemma Elem_insert :
   forall (A : Ord) (x y : A) (t : RBTree A),
     Elem x (insert y t) <-> x = y \/ Elem x t.
 Proof.
   unfold insert. intros. rewrite Elem_makeBlack, Elem_ins. reflexivity.
 Qed.
+ *)
 
-Lemma isBST_insert :
+Lemma isBST2_insert :
   forall (A : Ord) (x : A) (t : RBTree A),
-    isBST t -> isBST (insert x t).
+    isBST2 t -> isBST2 (insert x t).
 Proof.
-  intros. unfold insert. apply isBST_makeBlack, isBST_ins. assumption.
+  intros. unfold insert. apply isBST2_makeBlack, isBST2_ins. assumption.
 Qed.
 
 Lemma countEBT_insert :
@@ -288,20 +313,20 @@ Qed.
 
 Lemma Sorted_toList :
   forall (A : Ord) (t : RBTree A),
-    isBST t -> Sorted trich_le (toList t).
+    isBST2 t -> Sorted trich_le (toList t).
 Proof.
   induction t as [| c l Hl v r Hr]; cbn; intros.
     constructor.
     inv H. apply Sorted_app_all; auto.
       case_eq (toList r); intros; subst; auto. constructor.
-        apply H6. rewrite <- Elem_toList. rewrite H. cbn. auto.
+        eapply All_Elem; eauto. rewrite <- Elem_toList, H. cbn. auto.
         rewrite <- H. auto.
-      intros. apply Elem_toList in H. auto.
+      intros. apply Elem_toList in H. apply (All_Elem H4 _ H).
 Qed.
 
 (** Properties of [fromList]. *)
 
-Lemma Elem_fromList :
+(* Lemma Elem_fromList :
   forall (A : Ord) (x : A) (l : list A),
     Elem x (fromList l) <-> In x l.
 Proof.
@@ -313,14 +338,15 @@ Proof.
       inv H.
       rewrite Elem_insert. inv H.
 Qed.
+ *)
 
-Lemma isBST_fromList :
+Lemma isBST2_fromList :
   forall (A : Ord) (l : list A),
-    isBST (fromList l).
+    isBST2 (fromList l).
 Proof.
   induction l as [| h t]; cbn.
     constructor.
-    apply isBST_insert. assumption.
+    apply isBST2_insert. assumption.
 Qed.
 
 Lemma countEBT_fromList :
@@ -338,7 +364,7 @@ Lemma Sorted_redblackSort :
   forall (A : Ord) (l : list A),
     Sorted trich_le (redblackSort A l).
 Proof.
-  intros. unfold redblackSort. apply Sorted_toList, isBST_fromList.
+  intros. unfold redblackSort. apply Sorted_toList, isBST2_fromList.
 Qed.
 
 Lemma perm_redblackSort :

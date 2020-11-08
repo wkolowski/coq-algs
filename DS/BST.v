@@ -40,6 +40,22 @@ Arguments isBST2 {A} _ _.
 
 Hint Constructors All isBST2 : core.
 
+Ltac isBST2 :=
+repeat match goal with
+    |                          |- isBST2 _ empty  => constructor
+    |                          |- isBST2 _ _ -> _ => intro
+    | H : isBST2 _ empty        |- _              => clear H
+    | H : isBST2 _ (node _ _ _) |- _              => inv H
+end.
+
+Ltac isBST2' :=
+repeat match goal with
+    |                           |- isBST2 _ _      => constructor; auto
+    |                           |- isBST2 _ _ -> _ => intro
+    | H : isBST2 _ empty        |- _               => clear H
+    | H : isBST2 _ (node _ _ _) |- _               => inv H
+end.
+
 Module Wrong.
 
 Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : BTree A -> Prop :=
@@ -451,14 +467,15 @@ Proof.
 Qed.
 
 Lemma Elem_split' :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
     split' cmp v t = (t1, b, t2) ->
       forall x : A, Elem x t -> x = v \/ Elem x t1 \/ Elem x t2.
 Proof.
   intros until t.
   functional induction split' cmp v t;
   inv 1; inv 1; try edestruct IHp; firstorder eauto.
-Admitted.
+  left. trich.
+Qed.
 
 Lemma Elem_split'_conv :
   forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
@@ -469,6 +486,13 @@ Proof.
   functional induction split' cmp v t;
   inv 1; intro; rewrite ?Elem_node; firstorder.
 Qed.
+
+Lemma Elem_split'_rw :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      forall x : A, Elem x t <-> Elem x t1 \/ Elem x t2.
+Proof.
+Admitted.
 
 Lemma isBST_split' :
   forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A} {b : bool},
@@ -482,19 +506,16 @@ Proof.
 Qed.
 
 Lemma Elem_intersection :
-  forall {A : Type} {cmp : A -> A -> comparison} {t1 t2 : BTree A} (x : A),
+  forall {A : Ord} {t1 t2 : BTree A} (x : A),
     isBST cmp t1 -> isBST cmp t2 ->
       Elem x (intersection cmp t1 t2) <-> Elem x t1 /\ Elem x t2.
 Proof.
   intros until t2.
   functional induction intersection cmp t1 t2;
   inv 1; intros; rewrite ?Elem_node, ?IHb, ?IHb0;
-  try (edestruct (isBST_split' e0); eauto; fail);
-  try pose (H := Elem_split'_conv e0 x);
-  try pose (H' := Elem_split' e0 x).
-    firstorder.
-    firstorder; subst.
-      admit.
+  try (edestruct (isBST_split' e0); eauto; fail).
+    firstorder. Elem.
+    Focus 2. rewrite (Elem_split'_rw e0).
 Abort.
 
 Fixpoint fromList {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
@@ -614,15 +635,37 @@ Proof.
   erewrite All_removeMin in H3; firstorder eauto.
 Qed.
 
+Lemma removeMin_spec :
+  forall {A : Ord} {t t' : BTree A} (m : A),
+    removeMin t = Some (m, t') ->
+      isBST2 cmp t -> All (fun x : A => m <?> x = Lt) t'.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; isBST2.
+    induction H4; constructor; trich; isBST2.
+    specialize (IHo _ _ e0 H5).
+    assert (m0 <?> x = Lt).
+      apply (All_Elem H3). rewrite (Elem_removeMin e0). left. reflexivity.
+      constructor; auto. induction H4; constructor; trich; isBST2.
+Qed.
+
 Lemma isBST2_remove :
   forall {A : Ord} (x : A) (t : BTree A),
     isBST2 cmp t -> isBST2 cmp (remove cmp x t).
 Proof.
-  intros. revert H.
-  functional induction (remove cmp x t).
-    1-4: inv 1.
-    inv 1. constructor; auto.
-Admitted.
+  intros until t.
+  functional induction (remove cmp x t);
+  isBST2.
+    constructor; auto.
+      Focus 3. eapply isBST2_removeMin; eassumption.
+      assert (m <?> v = Gt).
+        apply (All_Elem H4). rewrite (Elem_removeMin e1). left. reflexivity.
+        induction H3; constructor; trich; isBST2.
+      apply removeMin_spec in e1.
+        2: assumption.
+        induction e1; constructor; trich.
+Qed.
 
 Lemma elem_spec :
   forall
