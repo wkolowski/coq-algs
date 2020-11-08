@@ -494,6 +494,38 @@ Lemma Elem_split'_rw :
 Proof.
 Admitted.
 
+Lemma Elem_split'_rw' :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      forall x : A,
+        Elem x t
+          <->
+        (if b
+         then x = v \/ Elem x t1 \/ Elem x t2
+         else Elem x t1 \/ Elem x t2).
+Proof.
+Admitted.
+
+Lemma Elem_split'_rw'' :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      forall x : A,
+        Elem x t
+          <->
+        (if b
+         then x = v \/ Elem x t1 \/ Elem x t2
+         else (Elem x t1 /\ ~ Elem x t2) \/ (~ Elem x t1 /\ Elem x t2)).
+Proof.
+Admitted.
+
+Lemma split'_spec :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) ->
+      (forall x : A, Elem x t1 -> cmp x v = Lt) /\
+      (forall x : A, Elem x t2 -> cmp x v = Gt).
+Proof.
+Admitted.
+
 Lemma isBST_split' :
   forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A} {b : bool},
     split' cmp v t = (l, b, r) ->
@@ -505,6 +537,12 @@ Proof.
   [apply H4 | apply H6]; eapply Elem_split'_conv; eauto.
 Qed.
 
+Ltac Elems :=
+repeat match goal with
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2); trich
+end.
+
 Lemma Elem_intersection :
   forall {A : Ord} {t1 t2 : BTree A} (x : A),
     isBST cmp t1 -> isBST cmp t2 ->
@@ -515,8 +553,48 @@ Proof.
   inv 1; intros; rewrite ?Elem_node, ?IHb, ?IHb0;
   try (edestruct (isBST_split' e0); eauto; fail).
     firstorder. Elem.
-    Focus 2. rewrite (Elem_split'_rw e0).
-Abort.
+    {
+      rewrite (Elem_split'_rw'' e0). firstorder.
+        destruct (split'_spec e0). Elems.
+        destruct (split'_spec e0). Elems.
+    }
+    rewrite (Elem_split'_rw'' e0). split.
+      firstorder. left. split.
+        assumption.
+        intro. destruct (split'_spec e0). Elems.
+      {
+        destruct (isBST_split' e0 H), (split'_spec e0).
+        firstorder; Elems.
+          functional inversion e2; subst. cut (Elem x empty).
+            inv 1.
+            rewrite H11, IHb0; auto.
+          functional inversion e2; subst. cut (Elem x empty).
+            inv 1.
+            rewrite H11, IHb0; auto.
+      }
+    assert (Elem m r1 /\ Elem m r).
+      rewrite <- IHb0; auto.
+        rewrite (Elem_removeMin e2). left. reflexivity.
+        destruct (isBST_split' e0); auto.
+      {
+        destruct (split'_spec e0).
+        rewrite (Elem_split'_rw'' e0). destruct H0. split.
+          intro. decompose [and or] H8; clear H8; subst; auto.
+            split; auto. right; split; auto. intro. Elems.
+            split; auto. left; split; auto. intro. Elems.
+            assert (Elem x r1 /\ Elem x r).
+              rewrite <- IHb0, (Elem_removeMin e2); auto.
+                destruct (isBST_split' e0); auto.
+              destruct H8; auto. split; auto. right. split; auto.
+                intro. Elems.
+          intro. decompose [and or] H8; clear H8; subst.
+            1-5: Elems.
+            assert (x = m \/ Elem x r'').
+              rewrite <- (Elem_removeMin e2), IHb0; auto.
+                destruct (isBST_split' e0); auto.
+              destruct H8; auto.
+      }
+Qed.
 
 Fixpoint fromList {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
 match l with

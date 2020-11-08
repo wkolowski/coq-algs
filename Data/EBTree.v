@@ -27,6 +27,14 @@ match t with
     | N _ l v r => toList l ++ v :: toList r
 end.
 
+Fixpoint toList'_aux {M A : Type} (t : EBTree M A) (acc : list A) : list A :=
+match t with
+    | E => acc
+    | N _ l v r => toList'_aux l (v :: toList'_aux r acc)
+end.
+
+Definition toList' {M A : Type} (t : EBTree M A) : list A := toList'_aux t [].
+
 Fixpoint countEBT {M A : Type} (p : A -> bool) (t : EBTree M A) : nat :=
 match t with
     | E => 0
@@ -147,6 +155,7 @@ repeat match goal with
     | H : isBST E           |- _       => clear H
     | H : isBST (N _ _ _ _) |- _       => inv H
     |                       |- isBST E => constructor
+    |                       |- isBST _ _ -> _ => intro
 end.
 
 Ltac isBST' :=
@@ -154,6 +163,7 @@ repeat match goal with
     | H : isBST E           |- _       => clear H
     | H : isBST (N _ _ _ _) |- _       => inv H
     |                       |- isBST _ => constructor; intros; auto
+    |                       |- isBST _ _ -> _ => intro
 end.
 
 (** ** isBST2 *)
@@ -168,21 +178,23 @@ Hint Constructors isBST2 : core.
 
 Ltac isBST2 :=
 repeat match goal with
-    | H : isBST2 E           |- _       => clear H
-    | H : isBST2 (N _ _ _ _) |- _       => inv H
-    |                       |- isBST2 E => constructor
-    | H : All _ E           |- _       => clear H
-    | H : All _ (N _ _ _ _) |- _       => inv H
+    | H : isBST2 E           |- _             => clear H
+    | H : isBST2 (N _ _ _ _) |- _             => inv H
+    |                        |- isBST2 E      => constructor
+    |                        |- isBST2 _ -> _ => intro
+    | H : All _ E            |- _             => clear H
+    | H : All _ (N _ _ _ _)  |- _             => inv H
 end.
 
 Ltac isBST2' :=
 repeat match goal with
-    | H : isBST2 E           |- _       => clear H
-    | H : isBST2 (N _ _ _ _) |- _       => inv H
-    |                       |- isBST2 _ => constructor; intros; auto
-    | H : All _ E           |- _       => clear H
-    | H : All _ (N _ _ _ _) |- _       => inv H
-    |                       |- All _ _ => constructor; auto
+    | H : isBST2 E           |- _             => clear H
+    | H : isBST2 (N _ _ _ _) |- _             => inv H
+    |                        |- isBST2 _      => constructor; intros; auto
+    |                        |- isBST2 _ -> _ => intro
+    | H : All _ E            |- _             => clear H
+    | H : All _ (N _ _ _ _)  |- _             => inv H
+    |                        |- All _ _       => constructor; auto
 end.
 
 Lemma All_Elem :
@@ -190,4 +202,24 @@ Lemma All_Elem :
     All P t -> forall x : A, Elem x t -> P x.
 Proof.
   induction 1; inv 1.
+Qed.
+
+(** * Theorems *)
+
+Lemma toList'_aux_spec :
+  forall (M A : Type) (t : EBTree M A) (acc : list A),
+    toList'_aux t acc = toList t ++ acc.
+Proof.
+  induction t; cbn; intros.
+    trivial.
+    rewrite IHt1, IHt2, <- app_assoc, <- app_comm_cons. trivial.
+Qed.
+
+Lemma toList'_spec :
+  forall {M A : Type} (t : EBTree M A),
+    toList' t = toList t.
+Proof.
+  intros. unfold toList'.
+  rewrite toList'_aux_spec, app_nil_r.
+  reflexivity.
 Qed.
