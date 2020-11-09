@@ -21,10 +21,18 @@ Hint Constructors Elem isBST : core.
 
 Ltac isBST :=
 repeat match goal with
-    |                          |- isBST _ empty  => constructor
-    |                          |- isBST _ _ -> _ => intro
     | H : isBST _ empty        |- _              => clear H
     | H : isBST _ (node _ _ _) |- _              => inv H
+    |                          |- isBST _ _ -> _ => intro
+    |                          |- isBST _ empty  => constructor
+end.
+
+Ltac isBST' :=
+repeat match goal with
+    | H : isBST _ empty        |- _              => clear H
+    | H : isBST _ (node _ _ _) |- _              => inv H
+    |                          |- isBST _ _ -> _ => intro
+    |                          |- isBST _ _  => constructor
 end.
 
 Inductive isBST2
@@ -424,14 +432,17 @@ match t1 with
 end.
 
 Lemma Elem_split :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A},
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A},
     split cmp v t = (t1, t2) ->
       forall x : A, Elem x t -> x = v \/ Elem x t1 \/ Elem x t2.
 Proof.
   intros until t.
   functional induction split cmp v t;
-  inv 1; inv 1; try edestruct IHp; firstorder eauto.
-Admitted.
+  inv 1; inv 1.
+    specialize (IHp _ _ e1 _ H1). inv IHp. inv H.
+    trich.
+    specialize (IHp _ _ e1 _ H1). inv IHp. inv H.
+Qed.
 
 Lemma Elem_split_conv :
   forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A},
@@ -443,8 +454,35 @@ Proof.
   inv 1; intro; rewrite ?Elem_node; firstorder.
 Qed.
 
+Ltac Elems :=
+  Elem;
+repeat match goal with
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2)
+end; trich.
+
+Ltac Elems' :=
+  Elem';
+repeat match goal with
+    | |- _ /\ _ => split
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2)
+end; trich.
+
+Lemma split_spec :
+  forall {A : Ord} {v : A} {t l r : BTree A},
+    split cmp v t = (l, r) -> isBST cmp t ->
+      (forall x : A, Elem x l -> cmp x v = Lt)
+        /\
+      (forall x : A, Elem x r -> cmp x v = Gt).
+Proof.
+  intros until t.
+  functional induction split cmp v t;
+  inv 1; isBST; firstorder Elems'.
+Qed.
+
 Lemma Elem_union :
-  forall {A : Type} (cmp : A -> A -> comparison) (x : A) (t1 t2 : BTree A),
+  forall {A : Ord} (x : A) (t1 t2 : BTree A),
     Elem x (union cmp t1 t2) <-> Elem x t1 \/ Elem x t2.
 Proof.
   intros. revert x.
@@ -452,7 +490,20 @@ Proof.
   intro.
     firstorder. inv H.
     pose (H := Elem_split_conv e0 x). pose (H' := Elem_split e0 x).
-      rewrite ?Elem_node, IHb, IHb0. firstorder.
+      rewrite ?Elem_node, IHb, IHb0. split; Elems'. specialize (H' H0). Elems'.
+Qed.
+
+Lemma Elem_union_poor :
+  forall {A : Type} (cmp : A -> A -> comparison) (x : A) (t1 t2 : BTree A),
+    Elem x (union cmp t1 t2) -> Elem x t1 \/ Elem x t2.
+Proof.
+  intros until t2.
+  functional induction union cmp t1 t2;
+  intro.
+    right. assumption.
+    inv H.
+      specialize (IHb H1). inv IHb. right. destruct (Elem_split_conv e0 x); auto.
+      specialize (IHb0 H1). inv IHb0. right. destruct (Elem_split_conv e0 x); auto.
 Qed.
 
 Lemma isBST_split :
@@ -466,6 +517,19 @@ Proof.
   [apply H4 | apply H6]; eapply Elem_split_conv; eauto.
 Qed.
 
+Lemma isBST_union :
+  forall {A : Ord} (t1 t2 : BTree A),
+    isBST cmp t1 -> isBST cmp t2 -> isBST cmp (union cmp t1 t2).
+Proof.
+  intros until t2.
+  functional induction union cmp t1 t2;
+  isBST.
+    assumption.
+    destruct (isBST_split e0 H). constructor; intros; auto.
+      apply Elem_union_poor in H2. inv H2. destruct (split_spec e0 H). auto.
+      apply Elem_union_poor in H2. inv H2. destruct (split_spec e0 H). auto.
+Qed.
+
 Lemma Elem_split' :
   forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
     split' cmp v t = (t1, b, t2) ->
@@ -473,8 +537,7 @@ Lemma Elem_split' :
 Proof.
   intros until t.
   functional induction split' cmp v t;
-  inv 1; inv 1; try edestruct IHp; firstorder eauto.
-  left. trich.
+  inv 1; inv 1; try edestruct IHp; eauto; Elems'.
 Qed.
 
 Lemma Elem_split'_conv :
@@ -487,15 +550,23 @@ Proof.
   inv 1; intro; rewrite ?Elem_node; firstorder.
 Qed.
 
-Lemma Elem_split'_rw :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
-    split' cmp v t = (t1, b, t2) ->
-      forall x : A, Elem x t <-> Elem x t1 \/ Elem x t2.
+Lemma split'_spec :
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) -> isBST cmp t ->
+      (forall x : A, Elem x t1 -> cmp x v = Lt) /\
+      (forall x : A, Elem x t2 -> cmp x v = Gt).
 Proof.
-Admitted.
+  intros until t.
+  functional induction split' cmp v t;
+  inv 1; isBST.
+    split; Elem.
+    split; Elems.
+    edestruct IHp; eauto. split; Elems'.
+    edestruct IHp; eauto. split; Elems'.
+Qed.
 
 Lemma Elem_split'_rw' :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
     split' cmp v t = (t1, b, t2) ->
       forall x : A,
         Elem x t
@@ -504,11 +575,18 @@ Lemma Elem_split'_rw' :
          then x = v \/ Elem x t1 \/ Elem x t2
          else Elem x t1 \/ Elem x t2).
 Proof.
-Admitted.
+  intros until t.
+  functional induction split' cmp v t;
+  inv 1.
+    split; Elem.
+    split; Elems'.
+    intros. rewrite Elem_node, (IHp _ _ _ e1 x). destruct b0; split; Elems'.
+    intros. rewrite Elem_node, (IHp _ _ _ e1 x). destruct b0; split; Elems'.
+Qed.
 
 Lemma Elem_split'_rw'' :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
-    split' cmp v t = (t1, b, t2) ->
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
+    split' cmp v t = (t1, b, t2) -> isBST cmp t ->
       forall x : A,
         Elem x t
           <->
@@ -516,15 +594,13 @@ Lemma Elem_split'_rw'' :
          then x = v \/ Elem x t1 \/ Elem x t2
          else (Elem x t1 /\ ~ Elem x t2) \/ (~ Elem x t1 /\ Elem x t2)).
 Proof.
-Admitted.
-
-Lemma split'_spec :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t t1 t2 : BTree A} {b : bool},
-    split' cmp v t = (t1, b, t2) ->
-      (forall x : A, Elem x t1 -> cmp x v = Lt) /\
-      (forall x : A, Elem x t2 -> cmp x v = Gt).
-Proof.
-Admitted.
+  intros.
+  destruct (split'_spec H H0).
+  destruct (Elem_split'_rw' H x).
+  destruct b.
+    split; Elems.
+    split; Elems'. intro. firstorder Elems.
+Qed.
 
 Lemma isBST_split' :
   forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A} {b : bool},
@@ -537,12 +613,6 @@ Proof.
   [apply H4 | apply H6]; eapply Elem_split'_conv; eauto.
 Qed.
 
-Ltac Elems :=
-repeat match goal with
-    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
-        specialize (H1 _ H2); trich
-end.
-
 Lemma Elem_intersection :
   forall {A : Ord} {t1 t2 : BTree A} (x : A),
     isBST cmp t1 -> isBST cmp t2 ->
@@ -552,47 +622,44 @@ Proof.
   functional induction intersection cmp t1 t2;
   inv 1; intros; rewrite ?Elem_node, ?IHb, ?IHb0;
   try (edestruct (isBST_split' e0); eauto; fail).
-    firstorder. Elem.
+    split; Elem.
     {
-      rewrite (Elem_split'_rw'' e0). firstorder.
-        destruct (split'_spec e0). Elems.
-        destruct (split'_spec e0). Elems.
+      rewrite (Elem_split'_rw'' e0 H).
+      destruct (split'_spec e0 H).
+      split; Elems'.
     }
-    rewrite (Elem_split'_rw'' e0). split.
-      firstorder. left. split.
-        assumption.
-        intro. destruct (split'_spec e0). Elems.
+    rewrite (Elem_split'_rw'' e0 H). destruct (split'_spec e0 H). split.
+      split; Elems. left. split; try intro; Elems.
       {
-        destruct (isBST_split' e0 H), (split'_spec e0).
-        firstorder; Elems.
-          functional inversion e2; subst. cut (Elem x empty).
+        functional inversion e2; subst.
+        destruct (isBST_split' e0 H), (split'_spec e0 H).
+        Elems'.
+          cut (Elem x empty).
             inv 1.
-            rewrite H11, IHb0; auto.
-          functional inversion e2; subst. cut (Elem x empty).
+            rewrite H2, IHb0; auto.
+          cut (Elem x empty).
             inv 1.
-            rewrite H11, IHb0; auto.
+            rewrite H2, IHb0; auto.
       }
-    assert (Elem m r1 /\ Elem m r).
-      rewrite <- IHb0; auto.
-        rewrite (Elem_removeMin e2). left. reflexivity.
-        destruct (isBST_split' e0); auto.
-      {
-        destruct (split'_spec e0).
-        rewrite (Elem_split'_rw'' e0). destruct H0. split.
-          intro. decompose [and or] H8; clear H8; subst; auto.
-            split; auto. right; split; auto. intro. Elems.
-            split; auto. left; split; auto. intro. Elems.
-            assert (Elem x r1 /\ Elem x r).
-              rewrite <- IHb0, (Elem_removeMin e2); auto.
-                destruct (isBST_split' e0); auto.
-              destruct H8; auto. split; auto. right. split; auto.
-                intro. Elems.
-          intro. decompose [and or] H8; clear H8; subst.
-            1-5: Elems.
-            assert (x = m \/ Elem x r'').
-              rewrite <- (Elem_removeMin e2), IHb0; auto.
-                destruct (isBST_split' e0); auto.
-              destruct H8; auto.
+    {
+      destruct (isBST_split' e0 H).
+      destruct (split'_spec e0 H).
+
+      assert (Elem m r1 /\ Elem m r).
+        rewrite <- IHb0, (Elem_removeMin e2); auto.
+
+      rewrite (Elem_split'_rw'' e0 H). destruct H8. split.
+        intro. decompose [and or] H10; clear H10; subst; auto.
+          Elems'. right. split; Elems'.
+          split; auto. left. split; Elems'.
+          assert (Elem x r1 /\ Elem x r).
+            rewrite <- IHb0, (Elem_removeMin e2); auto.
+            Elems'. right. split; Elems'.
+        intro. decompose [and or] H10; clear H10; subst.
+          1-5: Elems.
+          assert (x = m \/ Elem x r'').
+            rewrite <- (Elem_removeMin e2), IHb0; auto.
+            destruct H10; auto.
       }
 Qed.
 

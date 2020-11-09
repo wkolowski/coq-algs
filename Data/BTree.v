@@ -98,12 +98,24 @@ end.
 Ltac Elem :=
   intros; unfold singleton in *; cbn in *; subst; repeat
 match goal with
-    | |- Elem ?x (node ?x _ _) => constructor
     | H : Elem _ empty |- _ => inv H
     | H : Elem _ (node _ empty empty) |- _ => inv H
     | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
     | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
+    | |- ~ Elem _ _ => intro
+    | |- Elem ?x (node ?x _ _) => constructor
 end; auto.
+
+Ltac Elem' :=
+  repeat (intros; subst;
+match goal with
+    | H : Elem _ empty |- _ => inv H
+    | H : Elem _ (node _ _ _) |- _ => inv H
+    | H : _ /\ _ |- _ => destruct H
+    | H : _ \/ _ |- _ => destruct H
+    | |- ~ Elem _ _ => intro
+    | |- Elem _ (node _ _ _) => try (constructor; auto; fail)
+end; auto).
 
 (** * Theorems *)
 
