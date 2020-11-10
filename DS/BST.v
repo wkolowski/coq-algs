@@ -244,6 +244,72 @@ Proof.
   apply H4. eapply Elem_removeMin; eauto.
 Qed.
 
+Ltac Elems :=
+  Elem;
+repeat match goal with
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2)
+end; trich.
+
+Ltac Elems' :=
+  Elem';
+repeat match goal with
+    | |- _ /\ _ => split
+    | H : _ \/ _ |- _ => destruct H
+    | |- ~ _    => intro
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
+        specialize (H1 _ H2)
+end; trich.
+
+Ltac Elems'' :=
+  Elem';
+repeat match goal with
+    | |- _ /\ _ => split
+    | |- ~ _    => intro
+    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>(*  idtac H1 H2; *)
+        let H1H2 := fresh H1 H2 in
+        let H1H2 := constr:(H1 _ H2) in (* idtac x; *)
+        match type of H1H2 with
+            | ?T => (* idtac T; *)
+                lazymatch goal with
+                    | t : T |- _ => (* idtac "fail" t; *) fail
+                    |       |- _ => pose H1H2
+                end
+        end
+end; trich.
+
+Lemma removeMin_spec :
+  forall {A : Ord} {t t' : BTree A} {m : A},
+    removeMin t = Some (m, t') ->
+      isBST cmp t -> forall x : A, Elem x t -> cmp m x = Lt \/ m = x.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; isBST.
+    functional inversion e0; subst.
+    intro. inv 1. inv H1. left. specialize (H6 _ H1). trich.
+    inv 1.
+      left. apply H4. apply (Elem_removeMin e0). left. reflexivity.
+      apply (IHo _ _ e0 H3). assumption.
+      left. specialize (H6 _ H1). assert (m0 <?> x = Lt).
+        apply H4. rewrite (Elem_removeMin e0). left. reflexivity.
+        trich.
+Qed.
+
+Lemma removeMin_spec' :
+  forall {A : Ord} {t1 t2 : BTree A} {m : A},
+    removeMin t1 = Some (m, t2) ->
+      isBST cmp t1 -> ~ Elem m t2.
+Proof.
+  intros until t1.
+  functional induction removeMin t1;
+  inv 1; isBST.
+    Elems.
+    specialize (IHo _ _ e0 H3). assert (Elem m0 l).
+      rewrite (Elem_removeMin e0). auto.
+      Elems'.
+Qed.
+
 Lemma isBST_remove :
   forall {A : Ord} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (remove cmp x t).
@@ -267,8 +333,13 @@ Proof.
           apply H6. erewrite Elem_removeMin.
             left. reflexivity.
             eassumption.
-          admit. (* lemma for remove min *)
-Admitted.
+          destruct (removeMin_spec e1 H5 x0).
+            rewrite (Elem_removeMin e1). auto.
+            trich.
+            trich. apply removeMin_spec' in e1.
+              contradiction.
+              assumption.
+Qed.
 
 Lemma elem_spec :
   forall
@@ -454,20 +525,16 @@ Proof.
   inv 1; intro; rewrite ?Elem_node; firstorder.
 Qed.
 
-Ltac Elems :=
-  Elem;
-repeat match goal with
-    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
-        specialize (H1 _ H2)
-end; trich.
-
-Ltac Elems' :=
-  Elem';
-repeat match goal with
-    | |- _ /\ _ => split
-    | H1 : forall _, Elem _ _ -> _, H2 : Elem _ _ |- _ =>
-        specialize (H1 _ H2)
-end; trich.
+Lemma isBST_split :
+  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A},
+    split cmp v t = (l, r) ->
+      isBST cmp t -> isBST cmp l /\ isBST cmp r.
+Proof.
+  intros until t.
+  functional induction split cmp v t;
+  inv 1; inv 1; repeat constructor; firstorder;
+  [apply H4 | apply H6]; eapply Elem_split_conv; eauto.
+Qed.
 
 Lemma split_spec :
   forall {A : Ord} {v : A} {t l r : BTree A},
@@ -504,17 +571,6 @@ Proof.
     inv H.
       specialize (IHb H1). inv IHb. right. destruct (Elem_split_conv e0 x); auto.
       specialize (IHb0 H1). inv IHb0. right. destruct (Elem_split_conv e0 x); auto.
-Qed.
-
-Lemma isBST_split :
-  forall {A : Type} {cmp : A -> A -> comparison} {v : A} {t l r : BTree A},
-    split cmp v t = (l, r) ->
-      isBST cmp t -> isBST cmp l /\ isBST cmp r.
-Proof.
-  intros until t.
-  functional induction split cmp v t;
-  inv 1; inv 1; repeat constructor; firstorder;
-  [apply H4 | apply H6]; eapply Elem_split_conv; eauto.
 Qed.
 
 Lemma isBST_union :
@@ -663,6 +719,111 @@ Proof.
       }
 Qed.
 
+Lemma isBST_intersection :
+  forall {A : Ord} {t1 t2 : BTree A},
+    isBST cmp t1 -> isBST cmp t2 ->
+      isBST cmp (intersection cmp t1 t2).
+Proof.
+  intros until t2.
+  functional induction intersection cmp t1 t2;
+  isBST; destruct (isBST_split' e0); auto.
+    isBST'; auto; intros.
+      apply Elem_intersection in H2; auto. destruct H2. Elems.
+      apply Elem_intersection in H2; auto. destruct H2. Elems.
+    specialize (IHb H3 H0). specialize (IHb0 H5 H1). isBST'; auto; intros.
+      apply Elem_intersection in H2; auto. destruct H2. assert (Elem m r1 /\ Elem m r).
+        rewrite <- Elem_intersection, (Elem_removeMin e2); auto.
+        Elems.
+      apply isBST_removeMin in e2; auto.
+      {
+        edestruct (removeMin_spec e2); auto.
+          rewrite (Elem_removeMin e2). right. eassumption.
+          trich.
+          subst. apply removeMin_spec' in e2; auto. contradiction.
+      }
+Qed.
+
+Lemma Elem_difference :
+  forall {A : Ord} {t1 t2 : BTree A},
+    isBST cmp t1 -> isBST cmp t2 ->
+      forall x : A, Elem x (difference cmp t1 t2) <-> Elem x t1 /\ ~ Elem x t2.
+Proof.
+  intros until t2.
+  functional induction difference cmp t1 t2;
+  isBST; intros.
+    split; Elems'.
+    destruct (isBST_split' e0 H). rewrite IHb; auto. split.
+      Elems'. pose (Elem_split' e0 x H8). destruct (split'_spec e0 H). Elems'.
+      {
+        functional inversion e2. inv 1.
+        rewrite (Elem_split'_rw'' e0 H) in H10.
+        split; inv H9.
+          contradiction H10. auto.
+          cut (Elem x empty).
+            inv 1.
+            rewrite H2, IHb0; auto. split; auto.
+      }
+    {
+      assert (Elem v1 t2).
+        rewrite (Elem_split'_rw' e0). left. reflexivity.
+      destruct (isBST_split' e0 H).
+      destruct (split'_spec e0 H).
+      pose (Elem_removeMin e2).
+      rewrite ?Elem_node, IHb, (Elem_split'_rw' e0); auto.
+      assert (Elem m r1 /\ ~ Elem m r).
+        rewrite <- IHb0, i; auto.
+      destruct H9.
+      split.
+        intro. decompose [and or] H11; clear H11; subst.
+          Elems'.
+          Elems'.
+          assert (Elem x r1 /\ ~ Elem x r).
+            rewrite <- IHb0, i; auto.
+            Elems'.
+        intro. decompose [and or] H11; clear H11; subst; auto.
+          contradiction H13. auto.
+          right. left. split; auto.
+          assert (x = m \/ Elem x r'').
+            rewrite <- i, IHb0; try split; auto.
+            inv H11.
+    }
+    {
+      destruct (isBST_split' e0 H).
+      destruct (split'_spec e0 H).
+      rewrite ?Elem_node, IHb, IHb0; auto.
+      rewrite (Elem_split'_rw' e0).
+      split.
+        Elems'.
+        Elems'.
+          right. left. Elems'.
+          right. right. Elems'.
+    }
+Qed.
+
+Lemma isBST_difference :
+  forall {A : Ord} {t1 t2 : BTree A},
+    isBST cmp t1 -> isBST cmp t2 ->
+      isBST cmp (difference cmp t1 t2).
+Proof.
+  intros until t2.
+  functional induction difference cmp t1 t2;
+  isBST; destruct (isBST_split' e0); auto.
+    specialize (IHb H3 H0). specialize (IHb0 H5 H1). isBST'; auto; intros.
+      apply Elem_difference in H2; auto. destruct H2. assert (Elem m r1 /\ ~ Elem m r).
+        rewrite <- Elem_difference, (Elem_removeMin e2); auto.
+        Elems''.
+      apply isBST_removeMin in e2; auto.
+      {
+        edestruct (removeMin_spec e2); auto.
+          rewrite (Elem_removeMin e2). right. eassumption.
+          trich.
+          subst. apply removeMin_spec' in e2; auto. contradiction.
+      }
+    isBST'; auto; intros.
+      apply Elem_difference in H2; auto. destruct H2. Elems.
+      apply Elem_difference in H2; auto. destruct H2. Elems.
+Qed.
+
 Fixpoint fromList {A : Type} (cmp : A -> A -> comparison) (l : list A) : BTree A :=
 match l with
     | [] => empty
@@ -780,8 +941,8 @@ Proof.
   erewrite All_removeMin in H3; firstorder eauto.
 Qed.
 
-Lemma removeMin_spec :
-  forall {A : Ord} {t t' : BTree A} (m : A),
+Lemma removeMin_spec2 :
+  forall {A : Ord} {t t' : BTree A} {m : A},
     removeMin t = Some (m, t') ->
       isBST2 cmp t -> All (fun x : A => m <?> x = Lt) t'.
 Proof.
@@ -807,7 +968,7 @@ Proof.
       assert (m <?> v = Gt).
         apply (All_Elem H4). rewrite (Elem_removeMin e1). left. reflexivity.
         induction H3; constructor; trich; isBST2.
-      apply removeMin_spec in e1.
+      apply removeMin_spec2 in e1.
         2: assumption.
         induction e1; constructor; trich.
 Qed.
