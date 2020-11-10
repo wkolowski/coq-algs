@@ -119,22 +119,17 @@ Lemma isHeap_merge :
       forall x y : A, cmp x y = false -> cmp y x = true),
         isHeap cmp h1 -> isHeap cmp h2 -> isHeap cmp (merge cmp h1 h2).
 Proof.
-  destruct h1, h2; cbn; intros; auto.
-  destruct (cmp a a0) eqn: Hcmp; do 2 constructor; try (inv H; inv H0; fail).
-    inv H0. clear H4. induction H3; intros.
-      inv H0. inv H2.
-      inv H1. inv H4. eauto.
-    inv H0. clear H4. induction H3; intros. (*
-      inv H0.
-        apply cmp_antisym. assumption.
-        inv H2.
-       inv H1. inv H4. eauto.
-*)
-Restart.
   intros A cmp h1 h2.
   functional induction (merge cmp h1 h2); cbn;
   inv 3; inv 1; do 2 constructor; auto.
+    inv 1. induction H1.
+      inv H4. inv H5. specialize (H6 _ H). trich. admit.
+      inv H4. inv H5.
     inv 1.
+      admit.
+      induction H1.
+        inv H2. inv H3. specialize (H6 _ H). trich. admit.
+        inv H2. inv H3.
 Admitted.
 
 Lemma isEmpty_merge :

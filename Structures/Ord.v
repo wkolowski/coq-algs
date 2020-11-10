@@ -238,10 +238,18 @@ Lemma trichb_trans_Gt_neq :
     x <?> y <> Gt -> y <?> z <> Gt -> x <?> z <> Gt.
 Proof.
   intros A x y z Hxy Hyz.
-  rewrite <- trichb_not_Lt_to_not_Gt in *.
-  rewrite <- trichb_not_Lt_to_not_Gt in Hxy.
-  rewrite <- trichb_not_Lt_to_not_Gt in Hyz.
-Admitted.
+  destruct (cmp_spec x y); subst.
+    assumption.
+    destruct (cmp_spec x z); subst.
+      inv 1.
+      inv 1.
+      destruct (cmp_spec y z); subst.
+        intros _. eapply trich_lt_antisym; eassumption.
+        intros _. eapply trich_lt_antisym. eassumption.
+          eapply trich_lt_trans; eassumption.
+        contradiction.
+    contradiction.
+Qed.
 
 Lemma trichb_trans_Lt_Gt :
   forall {A : Ord} {x y z : A},
@@ -410,22 +418,32 @@ Lemma trich_min_spec :
     trich_min x y = a ->
       a ≤ x /\ a ≤ y.
 Proof.
-Admitted.
+  unfold trich_min, trich_leb. intros.
+  destruct (cmp_spec x y); subst.
+    split; apply trich_le_refl.
+    split.
+      apply trich_le_refl.
+      left. assumption.
+    split.
+      left. assumption.
+      apply trich_le_refl.
+Qed.
 
 Lemma trich_max_spec :
   forall {A : Ord} {x y a : A},
     trich_max x y = a ->
       x ≤ a /\ y ≤ a.
 Proof.
-Admitted.
-
-(* Lemma trich_minmax_spec :
-  forall {A : Ord} {x y a b : A},
-    trich_minmax x y = (a, b) ->
-      a ≤ x /\ a ≤ y /\ x ≤ b /\ y ≤ b.
-Proof.
-Admitted.
- *)
+  unfold trich_max, trich_leb. intros.
+  destruct (cmp_spec y x); subst.
+    split; apply trich_le_refl.
+    split.
+      apply trich_le_refl.
+      left. assumption.
+    split.
+      left. assumption.
+      apply trich_le_refl.
+Qed.
 
 Lemma trich_minmax_spec :
   forall {A : Ord} {x y a b : A},
@@ -433,7 +451,10 @@ Lemma trich_minmax_spec :
       x ≤ y /\ (a = x /\ b = y) \/
       x > y /\ (a = y /\ b = x).
 Proof.
-Admitted.
+  unfold trich_minmax, trich_leb. intros.
+  destruct (cmp_spec x y); inv H.
+    1-2: firstorder.
+Qed.
 
 Lemma trich_neq_nf :
   forall {A : Ord} {x y : A},

@@ -348,7 +348,7 @@ Proof.
     functional inversion Heqw; inj; subst; cbn; reflexivity.
 Qed.
 
-Lemma uncons_valid :
+(* TODO *) Lemma uncons_valid :
   forall (A : Type) (h : A) (t s : Seq A),
     valid s -> uncons s = None \/ (uncons s = Some (h, t) -> valid t).
 Proof.
@@ -365,6 +365,19 @@ Proof.
       destruct p. destruct (IHs p s0 H).
         congruence.
         destruct s; cbn in *; congruence.
+Restart.
+  intros until s. revert h t.
+  functional induction uncons s;
+  cbn.
+    inv 1.
+    inv 1.
+    inv 1. right. inv 1. cbn. edestruct IHo.
+      assumption.
+      congruence.
+      apply H. eassumption.
+    intros. right. inv 1. cbn. split.
+      admit.
+      assumption.
 Abort.
 
 (** Properties of head *)

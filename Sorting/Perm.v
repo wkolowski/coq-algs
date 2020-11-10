@@ -1,9 +1,6 @@
 Require Export RCCBase.
-
 Require Export Ord.
-
-Require Export Sorting.ListLemmas.
-Require Import Ord.
+Require Export Data.ListLemmas.
 
 Require Import Classes.RelationClasses.
 Require Import Permutation.
@@ -342,19 +339,21 @@ Proof.
   intros. destruct (min_split A h t) as [l1 [l2 [H H']]].
   fold m in H, H'. rewrite H, <- H' in *. apply perm_symm, perm_front.
 Qed.
+Check trifilter_spec.
 
-(* TODO *) Theorem trifilter_spec' :
+Theorem trifilter_spec' :
   forall (A : Ord) (pivot : A) (l lo eq hi : list A),
     trifilter pivot l = (lo, eq, hi) ->
-      perm (lo ++ eq) (filter (fun x : A => x ≤? pivot) l) /\
+      perm (lo ++ eq) (filter (fun x : A => x ≤? pivot) l)
+        /\
       hi = filter (fun x : A => pivot <? x) l.
 Proof.
-(*
-  intros until hi. functional induction trifilter pivot l;
-  intros; inv H; cbn in *; trich; edestruct IHp; try split; eauto.
-    apply perm_cons; auto.
-    rewrite (perm_front A x lo l2). apply perm_cons. auto.
-    f_equal. auto.
+  intros. rewrite trifilter_spec in H.
+  inv H. split.
+    induction l as [| h t]; cbn.
+      reflexivity.
+      trich.
+        cbn. apply perm_cons. assumption.
+        rewrite perm_front. apply perm_cons. assumption.
+    reflexivity.
 Qed.
-*)
-Admitted.

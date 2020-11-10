@@ -243,13 +243,15 @@ Lemma bigger_elem' :
       elem cmp x (bigger pivot h).
 Proof.
   intros until h. revert x.
-  functional induction bigger pivot h.
+  functional induction bigger pivot h;
+  intro; isBST.
     Elem.
-    Elem. cbn in *. apply IHs; isBST. cbn in *. trich.
-    Elem.
-    Elem. trich. apply IHs; isBST. trich.
-    intros until 2.
-Admitted.
+    Elems. apply IHs; auto. trich.
+    Elem. trich. apply IHs; auto. trich.
+    Elem. trich; apply IHs; trich.
+      specialize (H4 v' ltac:(auto)). trich.
+      specialize (H4 v' ltac:(auto)). trich.
+Qed.
 
 Lemma isBST_bigger :
   forall (A : Ord) (pivot : A) (h : SplayHeap A),
@@ -257,11 +259,13 @@ Lemma isBST_bigger :
 Proof.
   intros until h.
   functional induction bigger pivot h;
-  isBST.
-    constructor; auto; intros. apply bigger_elem in H; auto.
-    constructor; auto; intros.
-      apply bigger_elem in H; auto.
-Admitted.
+  isBST'; auto; intros.
+    apply bigger_elem in H; auto.
+    apply bigger_elem in H; auto.
+    inv H.
+      trich.
+      specialize (H6 _ H1). specialize (H4 v' ltac:(auto)). trich.
+Qed.
 
 (*
 Lemma not_elem_countBT :

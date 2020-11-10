@@ -170,6 +170,8 @@ match l with
         end
 end.
 
+Functional Scheme trifilter_ind := Induction for trifilter Sort Prop.
+
 Lemma trifilter_spec :
   forall (A : Ord) (pivot : A) (l : list A),
     trifilter pivot l =
@@ -177,12 +179,10 @@ Lemma trifilter_spec :
        filter (fun x : A => x =? pivot) l,
        filter (fun x : A => pivot <? x) l).
 Proof.
-(*
-  intros. functional induction @trifilter A pivot l; cbn;
+  intros.
+  functional induction trifilter pivot l; cbn;
   try (rewrite e0 in *; clear e0; inv IHp); trich.
 Qed.
-*)
-Admitted.
 
 (* Mergesort lemmas *)
 Fixpoint take {A : Type} (n : nat) (l : list A) : list A :=

@@ -850,6 +850,31 @@ Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
         forall (v : A) (l r : BTree A),
           P v -> All P l -> All P r -> All P (node v l r).
 
+Hint Constructors All : core.
+
+Lemma All_node' :
+  forall {A : Type} {P : A -> Prop} {v : A} {l r : BTree A},
+    All P (node v l r) <-> P v /\ All P l /\ All P r.
+Proof.
+  split; inv 1. inv H1.
+Qed.
+
+Lemma All_spec :
+  forall {A : Type} {P : A -> Prop} {t : BTree A},
+    All P t <-> forall x : A, Elem x t -> P x.
+Proof.
+  split.
+    induction 1; inv 1.
+    intro H. induction t; auto.
+Qed.
+
+Lemma All_Elem :
+  forall {A : Type} {P : A -> Prop} {x : A} {t : BTree A},
+    All P t -> Elem x t -> P x.
+Proof.
+  induction 1; inv 1.
+Qed.
+
 Lemma count_size :
   forall (A : Type) (p : A -> bool) (t : BTree A),
     countBT p t <= size t.
@@ -1127,12 +1152,20 @@ Lemma PermutationBT_toList_conv :
   forall {A : Type} {t1 t2 : BTree A},
     Permutation (toList t1) (toList t2) -> PermutationBT t1 t2.
 Proof.
-  induction 1; cbn.
+  induction t1 as [| h1 t1].
+    destruct t2 as [| h2 t2]; cbn.
+      constructor.
+      intro. apply Permutation_length in H.
+        rewrite app_length in H. cbn in H. lia.
+    destruct t2 as [| h2 t2]; cbn.
+      intro. apply Permutation_length in H.
+        rewrite app_length in H. cbn in H. lia.
+      intro.
 Abort.
 
 Definition PermutationBT' {A : Type} (t1 t2 : BTree A) : Prop :=
-    forall (P : A -> Prop) (n : nat),
-      Exactly P n t1 <-> Exactly P n t2.
+  forall (P : A -> Prop) (n : nat),
+    Exactly P n t1 <-> Exactly P n t2.
 
 Lemma Permutation_PermutationBT' :
   forall {A : Type} {t1 t2 : BTree A},
@@ -1143,8 +1176,8 @@ Proof.
 Abort.
 
 Definition PermutationBT'' {A : Type} (t1 t2 : BTree A) : Prop :=
-    forall (P : A -> Prop) (n : nat),
-      AtLeast P t1 n <-> AtLeast P t2 n.
+  forall (P : A -> Prop) (n : nat),
+    AtLeast P t1 n <-> AtLeast P t2 n.
 
 Lemma Permutation_PermutationBT'' :
   forall {A : Type} {t1 t2 : BTree A},

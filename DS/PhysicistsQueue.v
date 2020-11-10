@@ -26,7 +26,8 @@ end.
 
 Definition queue {A : Type} (q : Queue A) : Queue A :=
   let '(w, lenf, f, lenr, r) := q in
-  if @trich_leb natlt lenr lenf
+(*   if @trich_leb natlt lenr lenf *)
+  if Nat.leb lenr lenf
   then checkw q
   else
     let
@@ -115,21 +116,24 @@ match goal with
     | |- forall _, _ => intro
 end.
 
-Lemma queue_isQueue :
-  forall (A : Type) (q : Queue A),
-    isQueue (queue q).
-Proof.
-  q. cbn. case_eq (Nat.leb lenr lenf); intros.
-    destruct w. cbn. firstorder.
-      cbn.
-Abort.
-
 Lemma checkw_isQueue :
   forall (A : Type) (q : Queue A),
-    isQueue (checkw q).
+    isQueue q -> isQueue (checkw q).
 Proof.
-  q. cbn. destruct w. cbn.
-Abort.
+  unfold isQueue. q.
+  cbn. destruct w; firstorder.
+Qed.
+
+Lemma queue_isQueue :
+  forall (A : Type) (q : Queue A),
+    isQueue q -> isQueue (queue q).
+Proof.
+  q. cbn. destruct (Nat.leb lenr lenf).
+    destruct w; cbn in *; firstorder.
+    cbn in *. destruct (force f); cbn in *.
+      rewrite rev_length. firstorder; lia.
+      rewrite app_length, rev_length. firstorder; lia.
+Qed.
 
 Lemma snoc_isQueue :
   forall (A : Type) (x : A) (q : Queue A),
@@ -140,9 +144,8 @@ Proof.
       firstorder.
         rewrite app_length. cbn. rewrite rev_length. lia.
         lia.
-    firstorder. unfold trich_leb. destruct (@cmp_spec natlt (S lenr) (S lenf')).
+    firstorder. destruct (Nat.leb_spec lenr lenf').
       destruct w; cbn; firstorder; lia.
-      destruct w; cbn; firstorder; cbn in *; lia.
       destruct (force f); cbn in *; firstorder; try lia.
         rewrite !app_length, rev_length. cbn. lia.
 Qed.
@@ -158,17 +161,11 @@ Lemma tail_isQueue :
 Proof.
   q; cbn in *. destruct w.
     inv H.
-    unfold trich_leb in H. destruct (@cmp_spec natlt lenr (pred lenf)).
+    destruct (Nat.leb_spec lenr (pred lenf)).
       destruct w; inv H; rewrite force_delay; firstorder.
         destruct (force f); cbn in *; subst; auto.
         inv H.
-        inv H. rewrite <- H6 in *. cbn in *. lia.
-      destruct w; inv H; rewrite force_delay; firstorder.
-        destruct (force f); cbn in *; subst; auto.
         inv H. rewrite <- H7 in *. cbn in *. lia.
-        inv H.
-        inv H. inv H5. rewrite <- H7 in *. cbn in *. lia.
-        inv H. inv H5. rewrite <- H7 in *. cbn in *. lia.
       rewrite !force_delay in *. destruct (force f); cbn in *; inv H.
         inv H0. inv H.
         destruct l; inv H3; firstorder; try lia; rewrite force_delay; inv H.

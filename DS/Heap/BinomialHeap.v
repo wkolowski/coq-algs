@@ -526,13 +526,12 @@ Lemma link_validTree' :
       validTree' (S r) (link t1 t2).
 Proof.
   do 2 inv 1; trich.
-Admitted.
+Qed.
 
 Lemma rank_link :
   forall (A : Ord) (t1 t2 : Tree A),
     rank (link t1 t2) = 1 + rank t1.
 Proof.
-  destruct t1, t2. cbn. trich.
 Admitted.
 
 Lemma insTree_isHeap :

@@ -48,8 +48,8 @@ Proof.
 Qed.
 
 Theorem Sorted_splaySort :
-  forall (A : Type) (p : A -> A -> comparison) (l : list A),
-    Sorted p (splaySort p l).
+  forall {A : Ord} (l : list A),
+    Sorted cmp (splaySort cmp l).
 Proof.
   intros. unfold splaySort. apply Sorted_BTree_toList, isBST_fromList.
 Qed.

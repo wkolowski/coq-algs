@@ -205,12 +205,14 @@ Lemma isBST_partition :
   forall (A : Type) (p : A -> A -> comparison) (x : A) (h l r : SplayHeap A),
     partition p x h = (l, r) -> isBST p h -> isBST p (node x l r).
 Proof.
-  intros A p x h.
+  intros until h.
   functional induction partition p x h;
-  inv 1; inv 1; aux. constructor; auto.
+  inv 1; isBST.
+    isBST'; Elems''. trich.
+(*   inv 1; inv 1; aux. constructor; auto.
   try specialize (IHp0 _ _ _ e3 H7); try specialize (IHp0 _ _ _ e3 H9);
   try inv IHp0; repeat constructor; aux. inv H.
-Admitted.
+ *)Admitted.
 
 Lemma size_partition :
   forall (A : Type) (p : A -> A -> bool) (x : A) (h h1 h2 : SplayHeap A),

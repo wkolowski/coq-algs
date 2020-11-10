@@ -96,13 +96,20 @@ Qed.
 Lemma minus_zero :
   forall X : UCRing, -0 = 0.
 Proof.
-Admitted.
+  intro.
+  rewrite <- (neg_l zero) at 2.
+  rewrite zero_r.
+  reflexivity.
+Qed.
 
 Lemma minus_one_l :
   forall (X : UCRing) (a : X), -(1) * a = -a.
 Proof.
   intros.
-Admitted.
+  apply (add_cancel_l X (1 * a)).
+  rewrite <- distr_r, one_l, 2!minus_a_a, mul_0_l.
+  reflexivity.
+Qed.
 
 Lemma minus_one_r :
   forall (X : UCRing) (a : X), a * -(1) = -a.

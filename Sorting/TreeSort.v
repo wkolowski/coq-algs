@@ -6,7 +6,7 @@ Require Export BST.
 
 Require Export ListLemmas.
 
-Fixpoint insertBT {A : Type} (cmp : A -> A -> bool) (x : A) (t : BTree A) : BTree A :=
+Function insertBT {A : Type} (cmp : A -> A -> bool) (x : A) (t : BTree A) : BTree A :=
 match t with
     | empty => node x empty empty
     | node v l r =>
@@ -28,34 +28,38 @@ Definition treeSort
 
 Lemma Elem_insertBT :
   forall {A : Type} (cmp : A -> A -> comparison) (x y : A) (t : BTree A),
-    Elem x (insertBT cmp y t) -> cmp x y = Eq \/ Elem x t.
+    Elem x (insertBT cmp y t) -> (* cmp x y = Eq *) x = y \/ Elem x t.
 Proof.
-Admitted.
+  intros until t. revert x.
+  functional induction (insertBT cmp y t);
+  Elems'.
+Qed.
 
 Lemma isBST_insertBT :
-  forall {A : Type} (cmp :  A -> A -> comparison) (x : A) (t : BTree A),
+  forall {A : Ord} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (insertBT cmp x t).
 Proof.
-  induction t as [| v l IHl r IHr]; cbn; auto.
-    intro. destruct (cmp x v) eqn: Hcmp; cbn; auto.
-      inv H. constructor; auto. intros. apply Elem_insertBT in H. destruct H; auto.
+  intros until t.
+  functional induction insertBT cmp x t;
+  isBST'; Elems.
+    apply Elem_insertBT in H. inv H.
+      unfold comparison2bool in e0. trich.
+      specialize (IHb0 H3). admit.
+    apply Elem_insertBT in H. inv H. admit.
 Admitted.
 
-(* Lemma countBT_insert :
-  forall (A : Type) (cmp : cmp_spec A) (p : A -> bool) (x : A) (t : BTree A),
-    countBT p (insert cmp x t) =
-      if p x then 1 + countBT p t else countBT p t.
+Lemma countBT_insertBT :
+  forall (A : Type) (cmp : A -> A -> bool) (p : A -> bool) (x : A) (t : BTree A),
+    countBT p (insertBT cmp x t) =
+      (if p x then 1 else 0) + countBT p t.
 Proof.
-  induction t; cbn.
-    reflexivity.
-    destruct (cmpr_spec x a); cbn;
-      rewrite ?IHt1, ?IHt2;
-      destruct (p x) eqn: Hpx, (p a) eqn: Hpa; cbn; try lia.
-Abort.
- *)
+  intros until t.
+  functional induction insertBT cmp x t;
+  cbn; lia.
+Qed.
 
 Lemma isBST_fromList :
-  forall {A : Type} (cmp : A -> A -> comparison) (l : list A),
+  forall {A : Ord} (l : list A),
     isBST cmp (fromList cmp l).
 Proof.
   induction l as [| h t]; cbn.
@@ -64,20 +68,10 @@ Proof.
 Qed.
 
 Lemma Sorted_treeSort :
-  forall {A : Type} (cmp : A -> A -> comparison) (l : list A),
+  forall {A : Ord} (l : list A),
     Sorted cmp (treeSort cmp l).
 Proof.
   unfold treeSort. intros. apply Sorted_BTree_toList, isBST_fromList.
-Qed.
-
-Lemma countBT_insertBT :
-  forall {A : Type} (cmp : A -> A -> bool) (p : A -> bool) (x : A) (t : BTree A),
-    countBT p (insertBT cmp x t) =
-      (if p x then 1 else 0) + countBT p t.
-Proof.
-  induction t as [| v l r]; cbn.
-    destruct (p x); reflexivity.
-    destruct (cmp x v); cbn; destruct (p v), (p x); lia.
 Qed.
 
 Lemma perm_treeSort :
@@ -111,9 +105,9 @@ Proof.
     rewrite Permutation_treeSort_aux. constructor. assumption.
 Qed.
 
-Instance Sort_treeSort (A : Type) (cmp : A -> A -> comparison) : Sort cmp :=
+Instance Sort_treeSort {A : Ord} : Sort cmp :=
 {
     sort := treeSort cmp;
-    Sorted_sort := Sorted_treeSort cmp;
+    Sorted_sort := Sorted_treeSort;
     Permutation_sort := Permutation_treeSort cmp;
 }.

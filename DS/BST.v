@@ -232,6 +232,28 @@ Proof.
       rewrite Elem_insert_ultimate in H; inv H.
 Qed.
 
+Lemma All_insert :
+  forall
+    {A : Ord} (P : A -> Prop)
+    (x : A) (t : BTree A),
+      isBST2 cmp t -> All P (insert cmp x t) <-> P x /\ All P t.
+Proof.
+  intros A P x t H.
+  functional induction (insert cmp x t);
+  rewrite ?All_node', ?IHb; firstorder; inv H.
+  trich.
+Qed.
+
+Lemma isBST2_insert :
+  forall
+    {A : Ord} (x : A) (t : BTree A),
+    isBST2 cmp t -> isBST2 cmp (insert cmp x t).
+Proof.
+  intros.
+  functional induction (insert cmp x t); inv H;
+  constructor; try apply All_insert; auto.
+Qed.
+
 Lemma isBST_removeMin :
   forall
     {A : Ord} (t t' : BTree A) (x : A),
@@ -242,6 +264,30 @@ Proof.
   inv 1; inv 1.
   constructor; eauto; intros.
   apply H4. eapply Elem_removeMin; eauto.
+Qed.
+
+Lemma All_removeMin :
+  forall
+    {A : Type} {t t' : BTree A} {m : A},
+    removeMin t = Some (m, t') ->
+        forall {P : A -> Prop}, All P t <-> P m /\ All P t'.
+Proof.
+  intros until t.
+  functional induction removeMin t;
+  inv 1; intros; rewrite ?All_node'.
+    functional inversion e0. firstorder.
+    rewrite IHo; firstorder eauto.
+Qed.
+
+Lemma isBST2_removeMin :
+  forall
+    {A : Ord} (t t' : BTree A) (x : A),
+      isBST2 cmp t -> removeMin t = Some (x, t') -> isBST2 cmp t'.
+Proof.
+  intros. revert t' x H0 H.
+  functional induction (removeMin t);
+  inv 1; inv 1.
+  erewrite All_removeMin in H3; firstorder eauto.
 Qed.
 
 Ltac Elems :=
@@ -296,6 +342,21 @@ Proof.
         trich.
 Qed.
 
+Lemma removeMin_spec2 :
+  forall {A : Ord} {t t' : BTree A} {m : A},
+    removeMin t = Some (m, t') ->
+      isBST2 cmp t -> All (fun x : A => m <?> x = Lt) t'.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; isBST2.
+    induction H4; constructor; trich; isBST2.
+    specialize (IHo _ _ e0 H5).
+    assert (m0 <?> x = Lt).
+      apply (All_Elem H3). rewrite (Elem_removeMin e0). left. reflexivity.
+      constructor; auto. induction H4; constructor; trich; isBST2.
+Qed.
+
 Lemma removeMin_spec' :
   forall {A : Ord} {t1 t2 : BTree A} {m : A},
     removeMin t1 = Some (m, t2) ->
@@ -341,25 +402,81 @@ Proof.
               assumption.
 Qed.
 
+Lemma All_remove :
+  forall
+    {A : Ord} (P : A -> Prop)
+    (x : A) (t : BTree A),
+      isBST2 cmp t -> All P t -> All P (remove cmp x t).
+Proof.
+  intros until t.
+  functional induction remove cmp x t.
+    1-4: inv 1; rewrite ?All_node', ?IHb; firstorder.
+    inv 1; inv 1. rewrite ?All_node'.
+      eapply All_removeMin with P in e1; firstorder eauto.
+Qed.
+
+Lemma All_remove_conv :
+  forall
+    {A : Ord} (P : A -> Prop)
+    (x : A) (t : BTree A),
+      isBST2 cmp t -> All P (remove cmp x t) -> (P x -> All P t).
+Proof.
+  intros until t.
+  functional induction remove cmp x t;
+  inv 1; rewrite ?All_node'; firstorder.
+    trich.
+    functional inversion e1; subst. constructor.
+    trich.
+    eapply All_removeMin with P in e1; firstorder eauto.
+Qed.
+
+Lemma isBST2_remove :
+  forall {A : Ord} (x : A) (t : BTree A),
+    isBST2 cmp t -> isBST2 cmp (remove cmp x t).
+Proof.
+  intros until t.
+  functional induction (remove cmp x t);
+  isBST2.
+    constructor; auto. apply All_remove; auto.
+    constructor; auto. apply All_remove; auto.
+    constructor; auto.
+      assert (m <?> v = Gt).
+        apply (All_Elem H4). rewrite (Elem_removeMin e1). left. reflexivity.
+        induction H3; constructor; trich; isBST2.
+      apply removeMin_spec2 in e1.
+        2: assumption.
+        induction e1; constructor; trich.
+      eapply isBST2_removeMin; eassumption.
+Qed.
+
 Lemma elem_spec :
   forall
     {A : Ord} (x : A) (t : BTree A),
       isBST cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
 Proof.
-  intros A x t H.
-  functional induction (elem cmp x t).
-    constructor. inv 1.
-    inv H. specialize (IHb H3). destruct IHb.
-      auto.
-      constructor. inv 1.
-        trich.
-        specialize (H6 _ H2). trich.
+  intros A x t.
+  functional induction (elem cmp x t);
+  isBST.
+    constructor; Elems'.
+    destruct (IHb H3); constructor; Elems'.
     trich.
-    inv H. specialize (IHb H5). destruct IHb.
-      auto.
-      constructor. inv 1.
-        trich.
-        specialize (H4 _ H2). trich.
+    destruct (IHb H5); constructor; Elems'.
+Qed.
+
+Lemma elem_spec' :
+  forall
+    {A : Ord} (x : A) (t : BTree A),
+      isBST2 cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
+Proof.
+  intros A x t.
+  functional induction (elem cmp x t);
+  isBST2.
+    constructor. inv 1.
+    destruct (IHb H5); constructor; Elems'.
+      apply (All_Elem H4) in H2. trich.
+    trich.
+    destruct (IHb H6); constructor; Elems'.
+      apply (All_Elem H3) in H2. trich.
 Qed.
 
 Lemma elem_insert :
@@ -392,8 +509,8 @@ Proof.
 Qed.
 
 Lemma Sorted_BTree_toList :
-  forall (A : Type) (p : A -> A -> comparison) (t : BTree A),
-    isBST p t -> Sorted p (BTree_toList t).
+  forall {A : Ord} (t : BTree A),
+    isBST cmp t -> Sorted cmp (BTree_toList t).
 Proof.
   induction t; inv 1; cbn.
     constructor.
@@ -402,26 +519,41 @@ Proof.
       destruct (BTree_toList t2) eqn: Heq.
         constructor.
         constructor.
-          red. unfold comparison2bool. destruct (p a a0) eqn: Hp.
-            1-2: reflexivity.
-            admit. (* TODO *)
+          assert (Elem c t2).
+            rewrite <- toList_In_Elem, Heq. left. reflexivity.
+            Elems. red. rewrite H6. reflexivity.
           apply IHt2. assumption.
-      admit.
-Admitted.
+      inv 2.
+        red. rewrite H4.
+          reflexivity.
+          rewrite <- toList_In_Elem. assumption.
+        red. rewrite toList_In_Elem in H. rewrite toList_In_Elem in H1.
+          Elems'. rewrite Hxz. reflexivity.
+Qed.
 
 Hint Constructors All : core.
 
-Lemma leftmost_spec :
-  forall {A : Type} (cmp : A -> A -> comparison) (t : BTree A) (m : A),
-    isBST cmp t -> leftmost t = Some m -> All (fun x => cmp m x = Lt \/ x = m) t.
+Lemma Elem_leftmost :
+  forall {A : Type} (t : BTree A) (x : A),
+    leftmost t = Some x -> Elem x t.
 Proof.
   intros until t.
-  functional induction leftmost t; inv 1; inv 1.
-    constructor; auto. admit. (* H6 *)
+  functional induction leftmost t; inv 1.
+Qed.
+
+Lemma leftmost_spec :
+  forall {A : Ord} (t : BTree A) (m : A),
+    leftmost t = Some m ->
+      isBST cmp t -> All (fun x => cmp m x = Lt \/ x = m) t.
+Proof.
+  intros until t.
+  functional induction leftmost t;
+  inv 1; isBST.
+    constructor; auto. rewrite All_spec. Elems.
     constructor; auto.
-      left. apply H4. admit. (* Elem_leftmost *)
-      admit. (* All_spec, H4 *)
-Admitted.
+      left. apply H5. apply Elem_leftmost. assumption.
+      apply All_spec. Elems. apply Elem_leftmost in H1. Elems.
+Qed.
 
 (** [split] *)
 
@@ -838,160 +970,3 @@ Compute intersection Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromLis
 Compute difference Nat.compare (fromList Nat.compare [1; 2; 3; 4; 5]) (fromList Nat.compare [3; 4; 5; 6; 7]).
 Compute difference Nat.compare (fromList Nat.compare [3; 4; 5; 6; 7]) (fromList Nat.compare [1; 2; 3; 4; 5]).
  *)
-(** * Stuff related to [isBST2] *)
-
-Module isBST2.
-
-Lemma All_spec :
-  forall {A : Type} {P : A -> Prop} {t : BTree A},
-    All P t <-> forall x : A, Elem x t -> P x.
-Proof.
-  split.
-    induction 1; inv 1.
-    intro H. induction t; auto.
-Qed.
-
-Lemma All_Elem :
-  forall {A : Type} {P : A -> Prop} {x : A} {t : BTree A},
-    All P t -> Elem x t -> P x.
-Proof.
-  induction 1; inv 1.
-Qed.
-
-Lemma All_node' :
-  forall {A : Type} {P : A -> Prop} {v : A} {l r : BTree A},
-    All P (node v l r) <-> P v /\ All P l /\ All P r.
-Proof.
-  split; inv 1. inv H1.
-Qed.
-
-Lemma All_insert :
-  forall
-    {A : Ord} (P : A -> Prop)
-    (x : A) (t : BTree A),
-      isBST2 cmp t -> All P (insert cmp x t) <-> P x /\ All P t.
-Proof.
-  intros A P x t H.
-  functional induction (insert cmp x t);
-  rewrite ?All_node', ?IHb; firstorder; inv H.
-  trich.
-Qed.
-
-Lemma All_removeMin :
-  forall
-    {A : Type} {t t' : BTree A} {m : A},
-    removeMin t = Some (m, t') ->
-        forall {P : A -> Prop}, All P t <-> P m /\ All P t'.
-Proof.
-  intros until t.
-  functional induction removeMin t;
-  inv 1; intros; rewrite ?All_node'.
-    functional inversion e0. firstorder.
-    rewrite IHo; firstorder eauto.
-Qed.
-
-Lemma All_remove :
-  forall
-    {A : Ord} (P : A -> Prop)
-    (x : A) (t : BTree A),
-      isBST2 cmp t -> All P t -> All P (remove cmp x t).
-Proof.
-  intros until t.
-  functional induction remove cmp x t.
-    1-4: inv 1; rewrite ?All_node', ?IHb; firstorder.
-    inv 1; inv 1. rewrite ?All_node'.
-      eapply All_removeMin with P in e1; firstorder eauto.
-Qed.
-
-Lemma All_remove_conv :
-  forall
-    {A : Ord} (P : A -> Prop)
-    (x : A) (t : BTree A),
-      isBST2 cmp t -> All P (remove cmp x t) -> (P x -> All P t).
-Proof.
-  intros until t.
-  functional induction remove cmp x t;
-  inv 1; rewrite ?All_node'; firstorder.
-    trich.
-    functional inversion e1; subst. constructor.
-    trich.
-    eapply All_removeMin with P in e1; firstorder eauto.
-Qed.
-
-Hint Resolve All_insert All_removeMin All_remove All_remove_conv : core.
-
-Lemma isBST2_insert :
-  forall
-    {A : Ord} (x : A) (t : BTree A),
-    isBST2 cmp t -> isBST2 cmp (insert cmp x t).
-Proof.
-  intros.
-  functional induction (insert cmp x t); inv H;
-  constructor; try apply All_insert; auto.
-Qed.
-
-Lemma isBST2_removeMin :
-  forall
-    {A : Ord} (t t' : BTree A) (x : A),
-      isBST2 cmp t -> removeMin t = Some (x, t') -> isBST2 cmp t'.
-Proof.
-  intros. revert t' x H0 H.
-  functional induction (removeMin t);
-  inv 1; inv 1.
-  erewrite All_removeMin in H3; firstorder eauto.
-Qed.
-
-Lemma removeMin_spec2 :
-  forall {A : Ord} {t t' : BTree A} {m : A},
-    removeMin t = Some (m, t') ->
-      isBST2 cmp t -> All (fun x : A => m <?> x = Lt) t'.
-Proof.
-  intros A t.
-  functional induction removeMin t;
-  inv 1; isBST2.
-    induction H4; constructor; trich; isBST2.
-    specialize (IHo _ _ e0 H5).
-    assert (m0 <?> x = Lt).
-      apply (All_Elem H3). rewrite (Elem_removeMin e0). left. reflexivity.
-      constructor; auto. induction H4; constructor; trich; isBST2.
-Qed.
-
-Lemma isBST2_remove :
-  forall {A : Ord} (x : A) (t : BTree A),
-    isBST2 cmp t -> isBST2 cmp (remove cmp x t).
-Proof.
-  intros until t.
-  functional induction (remove cmp x t);
-  isBST2.
-    constructor; auto.
-      Focus 3. eapply isBST2_removeMin; eassumption.
-      assert (m <?> v = Gt).
-        apply (All_Elem H4). rewrite (Elem_removeMin e1). left. reflexivity.
-        induction H3; constructor; trich; isBST2.
-      apply removeMin_spec2 in e1.
-        2: assumption.
-        induction e1; constructor; trich.
-Qed.
-
-Lemma elem_spec :
-  forall
-    {A : Ord} (x : A) (t : BTree A),
-      isBST2 cmp t -> BoolSpec (Elem x t) (~ Elem x t) (elem cmp x t).
-Proof.
-  intros A x t H.
-  functional induction (elem cmp x t).
-    constructor. inv 1.
-    inv H. specialize (IHb H5). destruct IHb.
-      auto.
-      constructor. inv 1.
-        trich.
-        contradict e0. rewrite All_spec in H4. rewrite H4; [inv 1 | assumption].
-    trich.
-    inv H. specialize (IHb H6). destruct IHb.
-      auto.
-      constructor. inv 1.
-        trich.
-        contradict e0. rewrite All_spec in H3. rewrite H3; [inv 1 | assumption].
-Qed.
-
-End isBST2.
