@@ -6,8 +6,6 @@ Set Implicit Arguments.
 Require Export Data.Tree.
 Require Export Sorting.Sort.
 
-Print size.
-
 Definition PairingHeap (A : Type) : Type := Tree A.
 
 Definition empty {A : Type} : PairingHeap A := E.
@@ -195,21 +193,10 @@ Lemma Elem_insert'' :
   forall (A : Type) (p : A -> A -> bool) (x y : A) (h : PairingHeap A),
     Elem x (insert p y h) <-> x = y \/ Elem x h.
 Proof.
-  unfold insert, merge, singleton.
-  destruct h.
-    split; inv 1.
-      inv H1.
-      inv H0.
-      destruct (p y a); split; inv 1.
-        inv H1. inv H0.
-        inv H1. inv H0. inv H1.
-        inv H0.
-Restart.
-  unfold insert. split; intro.
-    apply Elem_merge in H. destruct H.
-      left. apply Elem_singleton. assumption.
-      right. assumption.
-    rewrite Elem_merge, Elem_singleton. assumption.
+  intros.
+  unfold insert.
+  rewrite Elem_merge, Elem_singleton.
+  reflexivity.
 Qed.
 
 Lemma isHeap_insert :
@@ -221,15 +208,6 @@ Proof.
     admit.
     apply isHeap_singleton.
     assumption.
-Restart.
-  unfold insert. intros A p x h.
-  remember (singleton x) as h'. revert x Heqh'.
-  functional induction (merge p h' h);
-  inv 1; inv 1.
-    do 2 constructor.
-    repeat constructor; auto. inv 1. induction H3.
-      inv H1.
-      apply IHForall.
 Admitted.
 
 Lemma isEmpty_insert :

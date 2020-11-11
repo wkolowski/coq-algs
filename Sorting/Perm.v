@@ -327,8 +327,6 @@ Proof.
         apply IHt1. symmetry. assumption.
 Qed.
 
-Print Assumptions perm_Permutation.
-
 (** Moved from ListLemmas to avoid circularity. *)
 
 Lemma perm_min_front :
@@ -339,7 +337,6 @@ Proof.
   intros. destruct (min_split A h t) as [l1 [l2 [H H']]].
   fold m in H, H'. rewrite H, <- H' in *. apply perm_symm, perm_front.
 Qed.
-Check trifilter_spec.
 
 Theorem trifilter_spec' :
   forall (A : Ord) (pivot : A) (l lo eq hi : list A),

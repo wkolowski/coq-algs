@@ -4,12 +4,12 @@ Require Export ListLemmas.
 
 Require Import BST.
 
-Require Export SplayHeap.
+Require Export SplayTree.
 
 Set Implicit Arguments.
 
 Lemma size_deleteMin :
-  forall (A : Ord) (h : SplayHeap A),
+  forall (A : Ord) (h : SplayTree A),
     size (deleteMin h) = pred (size h).
 Proof.
   intros. functional induction deleteMin h; cbn; try reflexivity.
@@ -19,7 +19,7 @@ Proof.
 Qed.
 
 Lemma size_deleteMin' :
-  forall (A : Ord) (t t' : SplayHeap A),
+  forall (A : Ord) (t t' : SplayTree A),
     t' = snd (deleteMin' t) -> size t' = pred (size t).
 Proof.
   intros. revert t' H.
@@ -29,7 +29,7 @@ Proof.
     rewrite e0 in IHp. cbn in IHp. rewrite IHp; reflexivity.
 Qed.
 
-Fixpoint fromList {A : Type} (p : A -> A -> bool) (l : list A) : SplayHeap A :=
+Fixpoint fromList {A : Type} (p : A -> A -> bool) (l : list A) : SplayTree A :=
 match l with
     | [] => empty
     | h :: t => insert p h (fromList p t)
@@ -73,7 +73,7 @@ Proof.
 Qed.
 
 Lemma Permutation_partition :
-  forall (A : Ord) (p : A -> A -> bool) (pivot : A) (h h1 h2 : SplayHeap A),
+  forall (A : Ord) (p : A -> A -> bool) (pivot : A) (h h1 h2 : SplayTree A),
     partition p pivot h = (h1, h2) ->
       Permutation (BTree_toList h) (BTree_toList h1 ++ BTree_toList h2).
 Proof.

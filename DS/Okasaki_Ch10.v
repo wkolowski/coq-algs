@@ -637,19 +637,12 @@ Lemma lookup_fupdate :
   forall (i : nat) (A : Type) (f : A -> A) (s : Seq A),
     lookup i (fupdate i f s) = fmap_Option f (lookup i s).
 Proof.
-  intros. functional induction (fupdate i f s) using fupdate_ind; cbn.
-    1, 3: reflexivity.
-    rewrite (lookup_eq i A (Zero s)). rewrite fupdate_eq, lookup_eq.
-      cbn. rewrite  1!IHs0. destruct (lookup (div2 i) s); cbn.
-        destruct p. cbn. destruct (even i); reflexivity.
-        reflexivity.
-    rewrite (lookup_eq (S i) A (One h t)), <- IHs0.
-    rewrite 2!fupdate_eq. cbn. rewrite lookup_eq. reflexivity.
-Restart.
-  intros. rewrite !lookup_index, !fupdate_lupdate.
-  gen i. induction (toList s); cbn; intros.
+  intros.
+  rewrite !lookup_index, !fupdate_lupdate.
+  gen i. gen (toList s).
+  induction l as [| h t]; cbn; intros.
     reflexivity.
     destruct i; cbn.
       reflexivity.
-      apply IHl.
+      apply IHt.
 Qed.
