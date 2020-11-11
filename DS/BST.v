@@ -508,15 +508,15 @@ Proof.
         apply Elem_insert_conv; assumption.
 Qed.
 
-Lemma Sorted_BTree_toList :
+Lemma Sorted_inorder :
   forall {A : Ord} (t : BTree A),
-    isBST cmp t -> Sorted cmp (BTree_toList t).
+    isBST cmp t -> Sorted cmp (inorder t).
 Proof.
   induction t; inv 1; cbn.
     constructor.
     apply Sorted_app.
       apply IHt1. assumption.
-      destruct (BTree_toList t2) eqn: Heq.
+      destruct (inorder t2) eqn: Heq.
         constructor.
         constructor.
           assert (Elem c t2).

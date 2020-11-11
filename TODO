@@ -1,2 +1,16 @@
-SplayHeap2
-
+1. Split definition of BSTs into unique (left subtree is <) and non-unique (left subtree is <=).
+2. Ok-based definition of Heaps (particularly for Pairing Heaps).
+3. Try to refactor BinomialTree.v.
+4. Reorder stuff in BTree.v.
+5. Split BSTs into insert-based, join-based (renamed join to partition).
+6. Get rid of TODOs.
+7. Get rid of Admitted.
+8. Get rid of Abort.
+9. Make SplayHeaps usable with just A -> A -> bool.
+10. Implement height-balanced BSTs.
+11. Implement weight-balanced BSTs (and rename them to size-balanced).
+12. Abstract self-balancing BSTs so as to have a single implementation, from which others can then be derived.
+13. Do something about perm <-> Permutation equivalence (prove, remove, whatever).
+14. Add removeMin to splay trees (using removeMin from BST.v).
+15. Refactor Ord to be more Haskell-like.
+16. Move isEmpty lemmas from the end of SplayTree.v.

@@ -53,39 +53,12 @@ match t with
     | _ => false
 end.
 
-(* [BTree_toList], [fromList] and their variants *)
-Function BTree_toList {A : Type} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => BTree_toList l ++ v :: BTree_toList r
-end.
-
-Function BTree_toList'_aux
-  {A : Ord} (t : BTree A) (acc : list A) : list A :=
-match t with
-    | empty => acc
-    | node v l r => BTree_toList'_aux l (v :: BTree_toList'_aux r acc)
-end.
-
-Definition BTree_toList' {A : Ord} (t : BTree A) : list A :=
-  BTree_toList'_aux t [].
-
 (** [size] and counting. *)
 Fixpoint size {A : Type} (bt : BTree A) : nat :=
 match bt with
     | empty => 0
     | node _ l r => S (size l + size r)
 end.
-
-(* Fixpoint countBT {A : Type} (p : A -> bool) (t : BTree A) : nat :=
-match t with
-    | empty => 0
-    | node v l r =>
-        let n := countBT p l in
-        let m := countBT p r in
-        if p v then S (n + m) else n + m
-end.
- *)
 
 Fixpoint countBT {A : Type} (p : A -> bool) (t : BTree A) : nat :=
 match t with
@@ -94,7 +67,108 @@ match t with
         (if p v then 1 else 0) + countBT p l + countBT p r
 end.
 
+(* Tree traversals. *)
+
+Fixpoint inorder {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => inorder l ++ v :: inorder r
+end.
+
+Fixpoint preorder {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => v :: (preorder l ++ preorder r)
+end.
+
+Fixpoint postorder {A : Type} (t : BTree A) : list A :=
+match t with
+    | empty => []
+    | node v l r => postorder l ++ postorder r ++ [v]
+end.
+
+(* TODO *) Definition leaf {A : Type} (x : A) : BTree A :=
+  node x empty empty.
+
+Fixpoint wut {A : Type} (t : BTree A) : nat :=
+match t with
+    | empty => 1
+    | node v l r => 2 + wut l + wut r
+end.
+
+Fixpoint sumOfWuts {A : Type} (l : list (BTree A)) : nat :=
+match l with
+    | [] => 0
+    | t :: ts => 1 + wut t + sumOfWuts ts
+end.
+
+Lemma sumOfWuts_app :
+  forall (A : Type) (l1 l2 : list (BTree A)),
+    sumOfWuts (l1 ++ l2) = sumOfWuts l1 + sumOfWuts l2.
+Proof.
+  induction l1 as [| h t]; cbn; intros.
+    reflexivity.
+    rewrite IHt. rewrite plus_assoc. reflexivity.
+Qed.
+
+Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
+match l with
+    | [] => 0
+    | h :: t => size h + sumOfSizes t
+end.
+
+Lemma sumOfSizes_app :
+  forall (A : Type) (l1 l2 : list (BTree A)),
+    sumOfSizes (l1 ++ l2) = sumOfSizes l1 + sumOfSizes l2.
+Proof.
+  induction l1 as [| h1 t1]; cbn; intros.
+    reflexivity.
+    rewrite IHt1. apply plus_assoc.
+Qed.
+
+Function bfs_aux
+  {A : Type} (ts : list (BTree A)) (acc : list A) {measure sumOfWuts ts}
+  : list A :=
+match ts with
+    | [] => acc
+    | empty :: ts' => bfs_aux ts' acc
+    | node v l r :: ts' =>
+        bfs_aux (ts' ++ [l; r]) (v :: acc)
+end.
+Proof.
+  intros. subst. cbn. apply le_S, le_n.
+  intros. subst. cbn. rewrite sumOfWuts_app. cbn. lia.
+Defined.
+
+Definition bfs {A : Type} (t : BTree A) : list A :=
+  rev (bfs_aux A [t] []).
+
+(*
+
+Definition test :=
+  node 1
+    (node 2 (leaf 4) (leaf 5))
+    (leaf 3).
+
+Compute inorder test.
+Compute preorder test.
+Compute postorder test.
+Compute bfs test.
+Compute bfs (mirror test).
+*)
+
+Function inorder'_aux
+  {A : Ord} (t : BTree A) (acc : list A) : list A :=
+match t with
+    | empty => acc
+    | node v l r => inorder'_aux l (v :: inorder'_aux r acc)
+end.
+
+Definition inorder' {A : Ord} (t : BTree A) : list A :=
+  inorder'_aux t [].
+
 (** * Tactics *)
+
 Ltac Elem :=
   intros; unfold singleton in *; cbn in *; subst; repeat
 match goal with
@@ -133,24 +207,24 @@ Qed.
 
 (** Properties of casts to/from list. *)
 
-Lemma BTree_toList'_aux_spec :
+Lemma inorder'_aux_spec :
   forall (A : Ord) (t : BTree A) (acc : list A),
-    BTree_toList'_aux t acc = BTree_toList t ++ acc.
+    inorder'_aux t acc = inorder t ++ acc.
 Proof.
-  intros. functional induction @BTree_toList'_aux A t acc; cbn.
+  intros. functional induction @inorder'_aux A t acc; cbn.
     trivial.
     rewrite <- app_assoc. cbn. rewrite <- IHl, <- IHl0. trivial.
 Qed.
 
-Theorem BTree_toList'_spec : @BTree_toList' = @BTree_toList.
+Theorem inorder'_spec : @inorder' = @inorder.
 Proof.
-  ext A. extensionality t. unfold BTree_toList'.
-  rewrite BTree_toList'_aux_spec, app_nil_r. trivial.
+  ext A. extensionality t. unfold inorder'.
+  rewrite inorder'_aux_spec, app_nil_r. trivial.
 Qed.
 
 Lemma toList_In_Elem :
   forall (A : Type) (x : A) (t : BTree A),
-    In x (BTree_toList t) <-> Elem x t.
+    In x (inorder t) <-> Elem x t.
 Proof.
   split.
     induction t; cbn; intros; try apply in_app_or in H; firstorder.
@@ -169,7 +243,7 @@ Qed.
 
 Lemma size_length :
   forall (A : Type) (t : BTree A),
-    length (BTree_toList t) = size t.
+    length (inorder t) = size t.
 Proof.
   induction t; cbn.
     reflexivity.
@@ -178,7 +252,7 @@ Qed.
 
 Lemma count_toList :
   forall (A : Type) (p : A -> bool) (t : BTree A),
-    count p (BTree_toList t) = countBT p t.
+    count p (inorder t) = countBT p t.
 Proof.
   induction t; cbn; rewrite ?count_app.
     reflexivity.
@@ -294,6 +368,33 @@ Proof.
   induction t; cbn; rewrite ?IHt1, ?IHt2; reflexivity.
 Qed.
 
+Lemma preorder_mirror :
+  forall (A : Type) (t : BTree A),
+    preorder (mirror t) = rev (postorder t).
+Proof.
+  induction t; cbn.
+    reflexivity.
+    rewrite ?rev_app_distr, IHt1, IHt2. cbn. reflexivity.
+Qed.
+
+Lemma postorder_mirror :
+  forall (A : Type) (t : BTree A),
+    postorder (mirror t) = rev (preorder t).
+Proof.
+  intros. rewrite <- rev_involutive at 1. rewrite <- preorder_mirror.
+  rewrite mirror_inv. reflexivity.
+Qed.
+
+Lemma inorder_mirror :
+  forall (A : Type) (t : BTree A),
+    inorder (mirror t) = rev (inorder t).
+Proof.
+  induction t; cbn.
+    reflexivity.
+    rewrite ?rev_app_distr, IHt1, IHt2. cbn.
+      rewrite <- app_assoc. cbn. reflexivity.
+Qed.
+
 Lemma Elem_mirror :
   forall (A : Type) (x : A) (t : BTree A),
     Elem x (mirror t) <-> Elem x t.
@@ -317,16 +418,6 @@ Lemma mirror_singleton :
   forall (A : Type) (x : A),
     mirror (singleton x) = singleton x.
 Proof. reflexivity. Qed.
-
-Lemma toList_mirror :
-  forall (A : Type) (t : BTree A),
-    BTree_toList (mirror t) = rev (BTree_toList t).
-Proof.
-  induction t; cbn.
-    reflexivity.
-    rewrite IHt1, IHt2, rev_app_distr. cbn. rewrite <- app_assoc. cbn.
-      reflexivity.
-Qed.
 
 (** [complete] *)
 
@@ -411,121 +502,6 @@ Proof.
     destruct (p a).
       rewrite IHt1, IHt2. cbn. reflexivity.
       reflexivity.
-Qed.
-
-Fixpoint inorder {A : Type} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => inorder l ++ v :: inorder r
-end.
-
-Fixpoint preorder {A : Type} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => v :: (preorder l ++ preorder r)
-end.
-
-Fixpoint postorder {A : Type} (t : BTree A) : list A :=
-match t with
-    | empty => []
-    | node v l r => postorder l ++ postorder r ++ [v]
-end.
-
-Definition leaf {A : Type} (x : A) : BTree A :=
-  node x empty empty.
-
-Definition test :=
-  node 1
-    (node 2 (leaf 4) (leaf 5))
-    (leaf 3).
-
-Lemma preorder_mirror :
-  forall (A : Type) (t : BTree A),
-    preorder (mirror t) = rev (postorder t).
-Proof.
-  induction t; cbn.
-    reflexivity.
-    rewrite ?rev_app_distr, IHt1, IHt2. cbn. reflexivity.
-Qed.
-
-Lemma postorder_mirror :
-  forall (A : Type) (t : BTree A),
-    postorder (mirror t) = rev (preorder t).
-Proof.
-  intros. rewrite <- rev_involutive at 1. rewrite <- preorder_mirror.
-  rewrite mirror_inv. reflexivity.
-Qed.
-
-Lemma inorder_mirror :
-  forall (A : Type) (t : BTree A),
-    inorder (mirror t) = rev (inorder t).
-Proof.
-  induction t; cbn.
-    reflexivity.
-    rewrite ?rev_app_distr, IHt1, IHt2. cbn.
-      rewrite <- app_assoc. cbn. reflexivity.
-Qed.
-
-Fixpoint wut {A : Type} (t : BTree A) : nat :=
-match t with
-    | empty => 1
-    | node v l r => 2 + wut l + wut r
-end.
-
-Fixpoint sumOfWuts {A : Type} (l : list (BTree A)) : nat :=
-match l with
-    | [] => 0
-    | t :: ts => 1 + wut t + sumOfWuts ts
-end.
-
-Lemma sumOfWuts_app :
-  forall (A : Type) (l1 l2 : list (BTree A)),
-    sumOfWuts (l1 ++ l2) = sumOfWuts l1 + sumOfWuts l2.
-Proof.
-  induction l1 as [| h t]; cbn; intros.
-    reflexivity.
-    rewrite IHt. rewrite plus_assoc. reflexivity.
-Qed.
-
-Function bfs_aux
-  {A : Type} (ts : list (BTree A)) (acc : list A) {measure sumOfWuts ts}
-  : list A :=
-match ts with
-    | [] => acc
-    | empty :: ts' => bfs_aux ts' acc
-    | node v l r :: ts' =>
-        bfs_aux (ts' ++ [l; r]) (v :: acc)
-end.
-Proof.
-  intros. subst. cbn. apply le_S, le_n.
-  intros. subst. cbn. rewrite sumOfWuts_app. cbn. lia.
-Defined.
-
-Definition bfs {A : Type} (t : BTree A) : list A :=
-  rev (bfs_aux A [t] []).
-
-
-(*
-Compute inorder test.
-Compute preorder test.
-Compute postorder test.
-Compute bfs test.
-Compute bfs (mirror test).
-*)
-
-Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
-match l with
-    | [] => 0
-    | h :: t => size h + sumOfSizes t
-end.
-
-Lemma sumOfSizes_app :
-  forall (A : Type) (l1 l2 : list (BTree A)),
-    sumOfSizes (l1 ++ l2) = sumOfSizes l1 + sumOfSizes l2.
-Proof.
-  induction l1 as [| h1 t1]; cbn; intros.
-    reflexivity.
-    rewrite IHt1. apply plus_assoc.
 Qed.
 
 Lemma length_bfs_aux :
@@ -973,14 +949,7 @@ Proof.
     apply lt_trans with (height t2); assumption.
 Qed.
 
-(** [removeMin] moved from BST.v *)
-
-Function leftmost {A : Type} (t : BTree A) : option A :=
-match t with
-    | empty => None
-    | node v empty _ => Some v
-    | node _ l _ => leftmost l
-end.
+(** [removeMin] *)
 
 Function removeMin
   {A : Type} (t : BTree A) : option (A * BTree A) :=
@@ -1190,3 +1159,103 @@ Proof.
     inv H5. cbn. change (S m) with (1 + m). constructor 3.
       change 1 with (1 + 0). constructor; auto. auto.
 Abort.
+
+(* Various versions of [removeMin], moved from SplayTree.v *)
+
+Function leftmost {A : Type} (t : BTree A) : option A :=
+match t with
+    | empty => None
+    | node v empty _ => Some v
+    | node _ l _ => leftmost l
+end.
+
+Function leftmost'
+  {A : Type} (h : BTree A) : option A :=
+match h with
+    | empty => None
+    | node v l r =>
+        match leftmost' l with
+            | None => Some v
+            | Some m => Some m
+        end
+end.
+
+Function removeLeftmost
+  {A : Type} (h : BTree A) : BTree A :=
+match h with
+    | empty => empty
+    | node _ empty r => r
+    | node v l r => node v (removeLeftmost l) r
+end.
+
+(** Properties of [leftmost'] *)
+
+Lemma Elem_leftmost' :
+  forall {A : Type} {t : BTree A} {x : A},
+    leftmost' t = Some x -> Elem x t.
+Proof.
+  intros A t.
+  functional induction leftmost' t;
+  inv 1.
+Qed.
+
+(** Properties of [leftmost]. *)
+
+Lemma Elem_leftmost :
+  forall {A : Type} {t : BTree A} {x : A},
+    leftmost t = Some x -> Elem x t.
+Proof.
+  intros A t.
+  functional induction leftmost t; inv 1.
+Qed.
+
+(** Properties of [removeMin]. *)
+
+Lemma size_removeMin :
+  forall {A : Type} {t t' : BTree A} {m : A},
+    removeMin t = Some (m, t') ->
+        size t = 1 + size t'.
+Proof.
+  intros until t.
+  functional induction removeMin t;
+  cbn; inv 1.
+    functional inversion e0; subst. cbn. reflexivity.
+    rewrite (IHo _ _ e0). cbn. reflexivity.
+Qed.
+
+Lemma removeMin_isEmpty_None :
+  forall (A : Type) (h : BTree A),
+    removeMin h = None -> isEmpty h = true.
+Proof.
+  intros. functional induction @removeMin A h; cbn; inv H.
+Qed.
+
+Lemma removeMin_isEmpty_Some :
+  forall (A : Type) (m : A) (h h' : BTree A),
+    removeMin h = Some (m, h') -> isEmpty h = false.
+Proof.
+  intros. functional induction @removeMin A h; cbn; inv H.
+Qed.
+
+Lemma countBT_removeMin :
+  forall {A : Type} {t t' : BTree A} {x : A},
+    removeMin t = Some (x, t') ->
+      forall p : A -> bool,
+        countBT p t = (if p x then 1 else 0) + countBT p t'.
+Proof.
+  intros A t.
+  functional induction removeMin t;
+  inv 1; cbn; intro.
+    functional inversion e0; subst. cbn. lia.
+    rewrite (IHo _ _ e0). lia.
+Qed.
+
+Lemma size_removeLeftmost :
+  forall {A : Type} (t : BTree A),
+    size (removeLeftmost t) = pred (size t).
+Proof.
+  intros.
+  functional induction removeLeftmost t;
+  cbn; try reflexivity.
+    rewrite IHb. destruct l; cbn; lia.
+Qed.

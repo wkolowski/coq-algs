@@ -24,7 +24,7 @@ end.
 
 Definition treeSort
   {A : Type} (cmp : A -> A -> bool) (l : list A) : list A :=
-    BTree_toList (fromList cmp l).
+    inorder (fromList cmp l).
 
 Lemma Elem_insertBT :
   forall {A : Type} (cmp : A -> A -> comparison) (x y : A) (t : BTree A),
@@ -71,7 +71,7 @@ Lemma Sorted_treeSort :
   forall {A : Ord} (l : list A),
     Sorted cmp (treeSort cmp l).
 Proof.
-  unfold treeSort. intros. apply Sorted_BTree_toList, isBST_fromList.
+  unfold treeSort. intros. apply Sorted_inorder, isBST_fromList.
 Qed.
 
 Lemma perm_treeSort :
@@ -85,7 +85,7 @@ Qed.
 
 Lemma Permutation_treeSort_aux :
   forall {A : Type} (cmp : A -> A -> bool) (x : A) (t : BTree A),
-    Permutation (BTree_toList (insertBT cmp x t)) (x :: BTree_toList t).
+    Permutation (inorder (insertBT cmp x t)) (x :: inorder t).
 Proof.
   induction t as [| v l r]; cbn.
     reflexivity.

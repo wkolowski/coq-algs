@@ -88,6 +88,9 @@ Qed.
 Definition BinomialHeap (A : Type) : Type :=
   list {r : nat & BinomialTree A r}.
 
+Definition BinomialHeap' (A : Type) : Type :=
+  {r : nat & BinomialForest A r}.
+
 Definition link {A : Ord} {r : nat} (t1 t2 : BinomialTree A r)
   : BinomialTree A (S r).
 Proof.
@@ -96,10 +99,3 @@ Proof.
       exact (node x (bfcons (node x' ts') ts)).
       exact (node x' (bfcons (node x ts) ts')).
 Defined.
-
-Lemma link_comm :
-  forall (A : Ord) (r : nat) (t1 t2 : BinomialTree A r),
-    link t1 t2 = link t2 t1.
-Proof.
-  destruct t1, t2. trich; repeat f_equal.
-Abort.
