@@ -176,8 +176,6 @@ Proof.
   sized. rewrite Q.isEmpty_head_true. split; trivial.
 Qed.
 
-(*  Hint Resolve Q.isEmpty_head_true : wut : core. *)
-
 Lemma isEmpty_head_false :
   forall (A : Type) (q : Queue A),
     isEmpty q = false <-> exists h : A, head q = Some h.
@@ -241,9 +239,3 @@ Lemma tail_singl :
 Proof. sized. Qed.
 
 End ConstantSizedQueue_Queue.
-
-(*Module ConstantSizedQueue (Q : Queue)
-  : SizedQueue (ConstantSizedQueue_Queue Q).
-
-End ConstantSizedQueue.
- ConstantSizedQueue_Queue.*)

@@ -1,5 +1,4 @@
 Require Import RCCBase.
-
 Require Import Ord.
 
 Module Type FinSet.

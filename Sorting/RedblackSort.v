@@ -6,35 +6,35 @@ Require Import Sorting.Sort.
 
 Definition redblackSort
   {A : Type} (leb : A -> A -> bool) (l : list A) : list A :=
-    toList (fromList leb l).
+    inorder (fromList leb l).
 
 (** Sortedness properties *)
 
-Lemma Sorted_toList :
+Lemma Sorted_inorder :
   forall (A : Ord) (t : RBTree A),
-    isBST t -> Sorted trich_le (toList t).
+    isBST t -> Sorted trich_le (inorder t).
 Proof.
   induction t as [| c l Hl v r Hr]; cbn; intros.
     constructor.
     inv H. apply Sorted_app_all; auto.
-      case_eq (toList r); intros; subst; auto. constructor.
-        apply H6. rewrite <- Elem_toList. rewrite H. cbn. auto.
+      case_eq (inorder r); intros; subst; auto. constructor.
+        apply H6. rewrite <- Elem_inorder. rewrite H. cbn. auto.
         rewrite <- H. auto.
-      intros. apply Elem_toList in H. auto.
+      intros. apply Elem_inorder in H. auto.
 Qed.
 
 Lemma Sorted_redblackSort :
   forall (A : Ord) (l : list A),
     Sorted trich_le (redblackSort trich_leb l).
 Proof.
-  intros. unfold redblackSort. apply Sorted_toList, isBST_fromList.
+  intros. unfold redblackSort. apply Sorted_inorder, isBST_fromList.
 Qed.
 
 (** Permutation properties (proved directly). *)
 
-Lemma Permutation_toList_balance :
+Lemma Permutation_inorder_balance :
   forall (A : Type) (c : color) (v : A) (l r : RBTree A),
-    Permutation (toList (balance c l v r)) (toList (N c l v r)).
+    Permutation (inorder (balance c l v r)) (inorder (N c l v r)).
 Proof.
   intros.
   functional induction balance c l v r;
@@ -43,28 +43,28 @@ Proof.
     rewrite <- !app_assoc. cbn. reflexivity.
 Qed.
 
-Lemma Permutation_toList_ins :
+Lemma Permutation_inorder_ins :
   forall {A : Type} (leb : A -> A -> bool) (x : A) (t : RBTree A),
-    Permutation (toList (ins leb x t)) (x :: toList t).
+    Permutation (inorder (ins leb x t)) (x :: inorder t).
 Proof.
   intros. functional induction ins leb x t.
     cbn. reflexivity.
-    rewrite Permutation_toList_balance. cbn. rewrite IHr. cbn. reflexivity.
-    rewrite Permutation_toList_balance. cbn. rewrite IHr.
+    rewrite Permutation_inorder_balance. cbn. rewrite IHr. cbn. reflexivity.
+    rewrite Permutation_inorder_balance. cbn. rewrite IHr.
       rewrite Permutation_middle. apply Permutation_app.
         reflexivity.
         constructor.
 Qed.
 
-Lemma Permutation_toList_insert :
+Lemma Permutation_inorder_insert :
   forall {A : Type} (leb : A -> A -> bool) (x : A) (t : RBTree A),
-    Permutation (toList (insert leb x t)) (x :: toList t).
+    Permutation (inorder (insert leb x t)) (x :: inorder t).
 Proof.
   intros. unfold insert. destruct (ins leb x t) eqn: Heq; cbn.
     apply (f_equal (Elem x)) in Heq. cut (@Elem color A x E).
       inv 1.
       rewrite <- Heq. rewrite Elem_ins. left. reflexivity.
-    rewrite <- (Permutation_toList_ins leb x t). rewrite Heq.
+    rewrite <- (Permutation_inorder_ins leb x t). rewrite Heq.
       cbn. reflexivity.
 Qed.
 
@@ -75,7 +75,7 @@ Proof.
   intros. unfold redblackSort.
   induction l as [| h t]; cbn.
     reflexivity.
-    rewrite Permutation_toList_insert, IHt. reflexivity.
+    rewrite Permutation_inorder_insert, IHt. reflexivity.
 Qed.
 
 Instance Sort_redblackSort (A : Ord) : Sort trich_le :=
@@ -128,9 +128,9 @@ Proof.
   rewrite countEBT_makeBlack, countEBT_ins. reflexivity.
 Qed.
 
-Lemma toList_countEBT :
+Lemma inorder_countEBT :
   forall (A : Type) (p : A -> bool) (t : RBTree A),
-    countEBT p t = count p (toList t).
+    countEBT p t = count p (inorder t).
 Proof.
   induction t; cbn.
     reflexivity.
@@ -152,5 +152,5 @@ Lemma perm_redblackSort :
     perm l (redblackSort leb l).
 Proof.
   unfold perm, redblackSort. intros.
-  rewrite <- toList_countEBT, countEBT_fromList. reflexivity.
+  rewrite <- inorder_countEBT, countEBT_fromList. reflexivity.
 Qed.

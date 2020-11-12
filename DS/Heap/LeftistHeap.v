@@ -24,6 +24,14 @@ Inductive LeftBiased {A : Type} : LTree A -> Prop :=
           LeftBiased l -> LeftBiased r ->
             LeftBiased (N (1 + right_spine r) v l r).
 
+Inductive LeftBiased2 {A : Type} : LTree A -> Prop :=
+    | LeftBiased2_E : LeftBiased2 E
+    | LeftBiased2_N :
+        forall (v : A) (l r : LTree A),
+          @trich_le natlt (right_spine r) (right_spine l) ->
+          LeftBiased2 l -> LeftBiased2 r ->
+            LeftBiased2 (N (1 + right_spine r) v l r).
+
 Inductive Elem {A : Type} (x : A) : LTree A -> Prop :=
     | Elem_root :
         forall (n : nat) (l r : LTree A), Elem x (N n x l r)
@@ -42,7 +50,7 @@ Inductive isHeap {A : Ord} : LTree A -> Prop :=
           (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (N n v l r).
 
-Hint Constructors LTree LeftBiased Elem isHeap : core.
+Hint Constructors LTree LeftBiased LeftBiased2 Elem isHeap : core.
 
 Definition balance
   {A : Type} (v : A) (l r : LTree A) : LTree A :=
@@ -130,10 +138,10 @@ match goal with
 end; auto.
 
 Lemma Elem_N :
-  forall {A : Type} (x : A) (n : nat) (v : A) (l r : LTree A),
+  forall (A : Type) (n : nat) (x v : A) (l r : LTree A),
     Elem x (N n v l r) <-> x = v \/ Elem x l \/ Elem x r.
 Proof.
-  intros. split; inv 1. inv H0.
+  split; inv 1. inv H0.
 Qed.
 
 (** * Properties of [isEmpty]. *)
@@ -182,12 +190,33 @@ Lemma LeftBiased_isEmpty :
   forall (A : Ord) (t : LTree A),
     isEmpty t = true -> LeftBiased t.
 Proof.
-  destruct t; intro.
-    constructor.
-    cbn in H. congruence.
+  destruct t; inv 1.
+Qed.
+
+Lemma LeftBiased2_isEmpty :
+  forall {A : Ord} {t : LTree A},
+    isEmpty t = true -> LeftBiased t.
+Proof.
+  destruct t; inv 1.
 Qed.
 
 (** * Properties of [singleton]. *)
+
+Lemma LeftBiased_singleton :
+  forall (A : Ord) (x : A),
+    LeftBiased (singleton x).
+Proof.
+  intros. unfold singleton.
+  apply (@LeftBiased_N A x E E); auto.
+Qed.
+
+Lemma LeftBiased2_singleton :
+  forall {A : Ord} (x : A),
+    LeftBiased2 (singleton x).
+Proof.
+  intros. unfold singleton.
+  apply (@LeftBiased2_N A x E E); trich.
+Qed.
 
 Lemma Elem_singleton :
   forall {A : Type} (x y : A),
@@ -196,14 +225,6 @@ Proof.
   split.
     inv 1; inv H1.
     inv 1. constructor.
-Qed.
-
-Lemma LeftBiased_singleton :
-  forall (A : Ord) (x : A),
-    LeftBiased (singleton x).
-Proof.
-  intros. unfold singleton.
-  apply (@LeftBiased_N A x E E); auto.
 Qed.
 
 Lemma isHeap_singleton :
@@ -226,9 +247,17 @@ Proof.
     cbn in H1. lia.
 Qed.
 
+Lemma LeftBiased2_balance :
+  forall (A : Ord) (v : A) (l r : LTree A),
+    LeftBiased2 l -> LeftBiased2 r ->
+      LeftBiased2 (balance v l r).
+Proof.
+  intros. balance; constructor; trich.
+Qed.
+
 Lemma Elem_balance :
   forall (A : Type) (x v : A) (l r : LTree A),
-    Elem x (balance v l r) <-> x = v \/ Elem x l \/ Elem x r. (*  (N n v l r). *)
+    Elem x (balance v l r) <-> x = v \/ Elem x l \/ Elem x r.
 Proof.
   intros. balance; split; inv 1; inv H1.
 Qed.
@@ -256,9 +285,20 @@ Lemma LeftBiased_merge :
     LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge (t1, t2)).
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
-  functional induction @merge A p; inv 1; inv 1; inv 1;
-  cbn in *; apply LeftBiased_balance; auto.
-    all: eapply (IHl _ _ eq_refl); eauto.
+  functional induction merge p;
+  do 3 inv 1; cbn in *;
+  apply LeftBiased_balance; try eapply IHl; auto.
+Qed.
+
+Lemma LeftBiased2_merge :
+  forall (A : Ord) (t1 t2 : LTree A),
+    LeftBiased2 t1 -> LeftBiased2 t2 ->
+      LeftBiased2 (merge (t1, t2)).
+Proof.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction merge p;
+  do 3 inv 1; cbn in *;
+  apply LeftBiased2_balance; try eapply IHl; auto.
 Qed.
 
 Lemma Elem_merge :
@@ -299,13 +339,6 @@ Proof.
     rewrite size_balance, (IHl _ _ eq_refl). cbn. lia.
 Qed.
 
-Lemma findMin_spec :
-  forall (A : Ord) (h : LTree A) (m : A),
-    isHeap h -> findMin h = Some m -> forall x : A, Elem x h -> m ≤ x.
-Proof.
-  destruct h; cbn; do 3 inv 1. trich.
-Qed.
-
 (** * Properties of [insert]. *)
 
 Lemma LeftBiased_insert :
@@ -314,6 +347,15 @@ Lemma LeftBiased_insert :
 Proof.
   intros. unfold insert. apply LeftBiased_merge; auto.
   apply LeftBiased_singleton.
+Qed.
+
+Lemma LeftBiased2_insert :
+  forall (A : Ord) (x : A) (t : LTree A),
+    LeftBiased2 t -> LeftBiased2 (insert x t).
+Proof.
+  intros. unfold insert.
+  apply LeftBiased2_merge; auto.
+  apply LeftBiased2_singleton.
 Qed.
 
 Lemma Elem_insert :
@@ -352,6 +394,15 @@ Proof.
   apply LeftBiased_merge; assumption.
 Qed.
 
+Lemma LeftBiased2_deleteMin :
+  forall (A : Ord) (m : A) (t t' : LTree A),
+    LeftBiased2 t -> deleteMin t = (Some m, t') ->
+      LeftBiased2 t'.
+Proof.
+  destruct t; cbn; do 2 inv 1.
+  apply LeftBiased2_merge; assumption.
+Qed.
+
 Lemma Elem_deleteMin :
   forall (A : Ord) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') -> Elem m t.
@@ -368,13 +419,6 @@ Proof.
   apply isHeap_merge; assumption.
 Qed.
 
-Lemma size_deleteMin :
-  forall (A : Ord) (m : A) (t t' : LTree A),
-    deleteMin t = (Some m, t') -> size t = S (size t').
-Proof.
-  destruct t; cbn; inversion 1; subst. rewrite size_merge. trivial.
-Qed.
-
 Lemma deleteMin_spec :
   forall (A : Ord) (m : A) (t t' : LTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
@@ -382,6 +426,13 @@ Lemma deleteMin_spec :
 Proof.
   destruct t; cbn; do 2 inv 1.
   intro. rewrite Elem_merge. inv 1.
+Qed.
+
+Lemma size_deleteMin :
+  forall (A : Ord) (m : A) (t t' : LTree A),
+    deleteMin t = (Some m, t') -> size t = S (size t').
+Proof.
+  destruct t; cbn; inversion 1; subst. rewrite size_merge. reflexivity.
 Qed.
 
 (** * Properties of [extractMin]. *)

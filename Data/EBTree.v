@@ -1,4 +1,5 @@
 Require Export RCCBase.
+Require Import Ord.
 
 Inductive EBTree (M A : Type) : Type :=
     | E : EBTree M A
@@ -21,26 +22,68 @@ match t with
     | N _ l _ r => 1 + max (height l) (height r)
 end.
 
-Fixpoint toList {M A : Type} (t : EBTree M A) : list A :=
-match t with
-    | E => []
-    | N _ l v r => toList l ++ v :: toList r
-end.
-
-Fixpoint toList'_aux {M A : Type} (t : EBTree M A) (acc : list A) : list A :=
-match t with
-    | E => acc
-    | N _ l v r => toList'_aux l (v :: toList'_aux r acc)
-end.
-
-Definition toList' {M A : Type} (t : EBTree M A) : list A := toList'_aux t [].
-
 Fixpoint countEBT {M A : Type} (p : A -> bool) (t : EBTree M A) : nat :=
 match t with
     | E => 0
     | N _ l v r =>
         (if p v then 1 else 0) + countEBT p l + countEBT p r
 end.
+
+Fixpoint inorder {M A : Type} (t : EBTree M A) : list A :=
+match t with
+    | E => []
+    | N _ l v r => inorder l ++ v :: inorder r
+end.
+
+Fixpoint inorder'_aux {M A : Type} (t : EBTree M A) (acc : list A) : list A :=
+match t with
+    | E => acc
+    | N _ l v r => inorder'_aux l (v :: inorder'_aux r acc)
+end.
+
+Definition inorder' {M A : Type} (t : EBTree M A) : list A := inorder'_aux t [].
+
+Fixpoint preorder {M A : Type} (t : EBTree M A) : list A :=
+match t with
+    | E => []
+    | N _ l v r => v :: (preorder l ++ preorder r)
+end.
+
+Fixpoint postorder {M A : Type} (t : EBTree M A) : list A :=
+match t with
+    | E => []
+    | N _ l v r => postorder l ++ postorder r ++ [v]
+end.
+
+Fixpoint preorder' {M A : Type} (t : EBTree M A) (acc : list A) : list A :=
+match t with
+    | E         => acc
+    | N _ l v r => v :: preorder' l (preorder' r acc)
+end.
+
+Fixpoint postorder' {M A : Type} (t : EBTree M A) (acc : list A) : list A :=
+match t with
+    | E         => acc
+    | N _ l v r => postorder' l (postorder' r (v :: acc))
+end.
+
+Lemma preorder'_preorder :
+  forall {M A : Type} (t : EBTree M A) (acc : list A),
+    preorder' t acc = preorder t ++ acc.
+Proof.
+  induction t; cbn; intro.
+    reflexivity.
+    rewrite IHt1, IHt2, <- !app_assoc. cbn. reflexivity.
+Qed.
+
+Lemma postorder'_postorder :
+  forall {M A : Type} (t : EBTree M A) (acc : list A),
+    postorder' t acc = postorder t ++ acc.
+Proof.
+  induction t; cbn; intro.
+    reflexivity.
+    rewrite IHt1, IHt2, <- !app_assoc. cbn. reflexivity.
+Qed.
 
 (** * Predicates and relations *)
 
@@ -138,8 +181,6 @@ end.
 
 (** ** isBST *)
 
-Require Import Ord.
-
 Inductive isBST {M : Type} {A : Ord} : EBTree M A -> Prop :=
     | isBST_E : isBST E
     | isBST_N :
@@ -206,20 +247,20 @@ Qed.
 
 (** * Theorems *)
 
-Lemma toList'_aux_spec :
+Lemma inorder'_aux_spec :
   forall (M A : Type) (t : EBTree M A) (acc : list A),
-    toList'_aux t acc = toList t ++ acc.
+    inorder'_aux t acc = inorder t ++ acc.
 Proof.
   induction t; cbn; intros.
     trivial.
     rewrite IHt1, IHt2, <- app_assoc, <- app_comm_cons. trivial.
 Qed.
 
-Lemma toList'_spec :
+Lemma inorder'_spec :
   forall {M A : Type} (t : EBTree M A),
-    toList' t = toList t.
+    inorder' t = inorder t.
 Proof.
-  intros. unfold toList'.
-  rewrite toList'_aux_spec, app_nil_r.
+  intros. unfold inorder'.
+  rewrite inorder'_aux_spec, app_nil_r.
   reflexivity.
 Qed.

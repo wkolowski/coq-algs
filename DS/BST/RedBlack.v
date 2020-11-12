@@ -1,8 +1,6 @@
 Require Export RCCBase.
-
-Require Export BTree.
 Require Export Ord.
-
+(* Require Export BTree. *)
 Require Export EBTree.
 
 Inductive color : Set :=
@@ -244,11 +242,11 @@ Proof.
   intros. unfold insert. apply isBST2_makeBlack, isBST2_ins. assumption.
 Qed.
 
-(** Properties of [toList]. *)
+(** Properties of [inorder]. *)
 
-Lemma Elem_toList :
+Lemma Elem_inorder :
   forall (A : Type) (x : A) (t : RBTree A),
-    In x (toList t) <-> Elem x t.
+    In x (inorder t) <-> Elem x t.
 Proof.
   split.
     induction t; cbn; intros; try apply in_app_or in H; firstorder.

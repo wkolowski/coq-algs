@@ -1,7 +1,6 @@
 Require Import RCCBase.
-
 Require Import Ord.
-Require Import ListLemmas.
+Require Export Data.ListLemmas.
 Require Import Sorting.Sort.
 
 Require Export Classes.EquivDec.
