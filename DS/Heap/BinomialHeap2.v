@@ -14,88 +14,120 @@ Arguments node {A} _ {r} _.
 Arguments bfnil {A}.
 Arguments bfcons {A r} _ _.
 
-Inductive elem {A : Type} (x : A)
+Inductive OK {A : Type} (R : A -> A -> Prop) (x : A) : forall {r : nat}, BinomialTree A r -> Prop :=
+    | OK_node :
+        forall (v : A) {r : nat} (f : BinomialForest A r),
+          R x v -> OK R x (node v f).
+
+Inductive OKF {A : Type} (R : A -> A -> Prop) (x : A) : forall {r : nat}, BinomialForest A r -> Prop :=
+    | OKF_bfnil : OKF R x bfnil
+    | OKF_bfcons :
+        forall {r : nat} (t : BinomialTree A r) (f : BinomialForest A r),
+          OK R x t -> OKF R x f -> OKF R x (bfcons t f).
+
+Inductive isHeap {A : Type} (R : A -> A -> Prop) : forall {r : nat}, BinomialTree A r -> Prop :=
+    | isHeap_node :
+        forall (v : A) {r : nat} (f : BinomialForest A r),
+          OKF R v f -> isHeap R (node v f)
+
+with isHeapF {A : Type} (R : A -> A -> Prop) : forall {r : nat}, BinomialForest A r -> Prop :=
+    | isHeapF_bfnil : isHeapF R bfnil
+    | isHeapF_bfcons :
+        forall {r : nat} (t : BinomialTree A r) (f : BinomialForest A r),
+          isHeap R t -> isHeapF R f -> isHeapF R (bfcons t f).
+
+Definition link {A : Ord} {r : nat} (t1 t2 : BinomialTree A r)
+  : BinomialTree A (S r).
+Proof.
+  destruct t1 as [x1 r1 ts1], t2 as [x2 r2 ts2].
+    destruct (x1 ≤? x2).
+      exact (node x1 (bfcons (node x2 ts2) ts1)).
+      exact (node x2 (bfcons (node x1 ts1) ts2)).
+Defined.
+
+Lemma isHeap_link :
+  forall {A : Ord} {r : nat} {t1 t2 : BinomialTree A r},
+    isHeap cmp t1 -> isHeap cmp t2 ->
+      isHeap cmp (link t1 t2).
+Proof.
+  destruct t1 as [x1 r1 ts1], t2 as [x2 r2 ts2].
+  inv 1. inv 1. cbn.
+  trich; repeat constructor.
+    unfold comparison2bool in *. trich.
+    inv H3.
+    unfold comparison2bool in *. trich.
+    inv H5.
+Qed.
+
+(** Elem *)
+
+Inductive Elem {A : Type} (x : A)
   : forall {r : nat}, BinomialTree A r -> Prop :=
-    | elemC :
+    | ElemC :
         forall (y : A) (r : nat) (f : BinomialForest A r),
-          x = y \/ elemForest x f -> elem x (node y f)
+          x = y \/ ElemForest x f -> Elem x (node y f)
 
-with elemForest {A : Type} (x : A)
+with ElemForest {A : Type} (x : A)
   : forall {r : nat}, BinomialForest A r -> Prop :=
-    | elemForestC :
+    | ElemForestC :
         forall (r : nat) (t : BinomialTree A r) (f : BinomialForest A r),
-          elem x t \/ elemForest x f -> elemForest x (bfcons t f).
+          Elem x t \/ ElemForest x f -> ElemForest x (bfcons t f).
 
-Hint Constructors elem elemForest : core.
+Hint Constructors Elem ElemForest : core.
 
-Fixpoint elem_dec
+Fixpoint Elem_dec
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
-    {elem x t} + {~ elem x t}
+    {Elem x t} + {~ Elem x t}
 
-with elemForest_dec
+with ElemForest_dec
   {A : Ord} (x : A) {r : nat} (f : BinomialForest A r) :
-    {elemForest x f} + {~ elemForest x f}.
+    {ElemForest x f} + {~ ElemForest x f}.
 Proof.
   destruct t as [y r f].
     case_eq (x =? y); intros.
       left. trich.
-      destruct (elemForest_dec A x _ f).
+      destruct (ElemForest_dec A x _ f).
         left. auto.
         right. inv 1.
           trich.
           apply inj_pair2 in H4. inv H3.
   destruct f as [| r t f'].
     right. inv 1.
-    destruct (elem_dec A x _ t).
+    destruct (Elem_dec A x _ t).
       left. constructor. auto.
-      destruct (elemForest_dec A x _ f').
+      destruct (ElemForest_dec A x _ f').
         left. auto.
         right. inv 1; apply inj_pair2 in H1; apply inj_pair2 in H3;
           subst; inv H2.
 Defined.
 
-Fixpoint elem_decb
+Fixpoint Elem_decb
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) : bool :=
 match t with
     | node x' ts =>
-        (x =? x') || elemForest_decb x ts
+        (x =? x') || ElemForest_decb x ts
 end
-with elemForest_decb
+with ElemForest_decb
   {A : Ord} (x : A) {r : nat} (ts : BinomialForest A r) : bool :=
 match ts with
     | bfnil => false
-    | bfcons h ts' => elem_decb x h || elemForest_decb x ts'
+    | bfcons h ts' => Elem_decb x h || ElemForest_decb x ts'
 end.
 
-Lemma elem_decb_spec :
+Lemma Elem_decb_spec :
   forall (A : Ord) (x : A) (r : nat) (t : BinomialTree A r),
-    BoolSpec (elem x t) (~ elem x t) (elem_decb x t)
+    BoolSpec (Elem x t) (~ Elem x t) (Elem_decb x t)
 
-with elemForest_decb_spec :
+with ElemForest_decb_spec :
   forall (A : Ord) (x : A) (r : nat) (ts : BinomialForest A r),
-    BoolSpec (elemForest x ts) (~ elemForest x ts) (elemForest_decb x ts).
+    BoolSpec (ElemForest x ts) (~ ElemForest x ts) (ElemForest_decb x ts).
 Proof.
   destruct t as [x' r ts]; cbn. unfold orb. trich.
-    destruct (elemForest_decb_spec A x r ts); auto.
+    destruct (ElemForest_decb_spec A x r ts); auto.
       constructor. inv 1. inj. destruct H4; contradiction.
   destruct ts as [| r t ts']; simpl.
     constructor. inv 1.
-    destruct (elem_decb_spec A x r t); auto.
-      destruct (elemForest_decb_spec A x r ts'); auto.
+    destruct (Elem_decb_spec A x r t); auto.
+      destruct (ElemForest_decb_spec A x r ts'); auto.
         constructor. inv 1. inj. firstorder.
 Qed.
-
-Definition BinomialHeap (A : Type) : Type :=
-  list {r : nat & BinomialTree A r}.
-
-Definition BinomialHeap' (A : Type) : Type :=
-  {r : nat & BinomialForest A r}.
-
-Definition link {A : Ord} {r : nat} (t1 t2 : BinomialTree A r)
-  : BinomialTree A (S r).
-Proof.
-  destruct t1 as [x r ts], t2 as [x' r ts'].
-    destruct (x ≤? x').
-      exact (node x (bfcons (node x' ts') ts)).
-      exact (node x' (bfcons (node x ts) ts')).
-Defined.

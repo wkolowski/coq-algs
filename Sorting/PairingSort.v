@@ -33,12 +33,12 @@ Lemma Elem_fromList :
 Proof.
   induction l as [| h t].
     split; inv 1.
-    simpl. rewrite Elem_insert'', IHt. firstorder.
+    simpl. rewrite Elem_insert, IHt. firstorder.
 Qed.
 
 Lemma isHeap_fromList :
-  forall (A : Type) (p : A -> A -> bool) (l : list A),
-    isHeap p (fromList p l).
+  forall (A : Ord) (l : list A),
+    isHeap cmp (fromList cmp l).
 Proof.
   induction l as [| h t]; cbn.
     constructor.
@@ -60,34 +60,29 @@ Qed.
 
 Lemma countTree_toList :
   forall (A : Type) (cmp : A -> A -> comparison) (p : A -> bool) (h : PairingHeap A),
-    isHeap cmp h -> countTree p h = count p (toList cmp h).
+    (*isHeap cmp h ->*) countTree p h = count p (toList cmp h).
 Proof.
   intros until h.
-  functional induction toList cmp h;
-  destruct h; inv e; cbn; destruct (p m); unfold id; intro.
-    rewrite <- IHl, countTree_mergePairs.
-      reflexivity.
-      apply isHeap_mergePairs. inv H.
-    rewrite <- IHl, countTree_mergePairs.
-      reflexivity.
-      apply isHeap_mergePairs. inv H.
+  functional induction toList cmp h.
+    destruct h; inv e.
+    destruct h; inv e. cbn. rewrite <- IHl, countTree_mergePairs. reflexivity.
 Qed.
 
 Lemma Sorted_toList :
-  forall (A : Type) (cmp : A -> A -> comparison) (h : PairingHeap A),
+  forall (A : Ord) (h : PairingHeap A),
     isHeap cmp h -> Sorted cmp (toList cmp h).
 Proof.
   intros. functional induction toList cmp h.
     constructor.
     rewrite toList_equation in *. destruct h'; cbn in *; constructor.
-      eapply extractMin_spec; eauto. erewrite Elem_extractMin_eq; eauto. cbn. assumption.
+      eapply extractMin_spec; eauto. erewrite Elem_extractMin; eauto. cbn. assumption.
       eapply IHl, isHeap_extractMin; eauto.
 Qed.
 
 (** Properties of [pairingSort]. *)
 
 Theorem Sorted_pairingSort :
-  forall (A : Type) (cmp : A -> A -> comparison) (l : list A),
+  forall (A : Ord) (l : list A),
     Sorted cmp (pairingSort cmp l).
 Proof.
   intros. unfold pairingSort.
@@ -101,7 +96,6 @@ Proof.
   unfold perm, pairingSort. intros.
   rewrite <- countTree_toList, countTree_fromList.
     reflexivity.
-    apply isHeap_fromList.
 Qed.
 
 Theorem Permutation_pairingSort :
@@ -111,9 +105,9 @@ Proof.
   intros. apply perm_Permutation, perm_pairingSort.
 Qed.
 
-Instance Sort_pairingSort (A : Type) (cmp : A -> A -> comparison) : Sort cmp :=
+Instance Sort_pairingSort (A : Ord) : Sort cmp :=
 {
     sort := pairingSort cmp;
-    Sorted_sort := Sorted_pairingSort cmp;
+    Sorted_sort := Sorted_pairingSort A;
     Permutation_sort := Permutation_pairingSort cmp;
 }.

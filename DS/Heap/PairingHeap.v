@@ -4,6 +4,7 @@ Require Export RCCBase.
 Set Implicit Arguments.
 
 Require Export Data.Tree.
+Require Export DS.Heap.
 Require Export Sorting.Sort.
 
 Definition PairingHeap (A : Type) : Type := Tree A.
@@ -44,6 +45,11 @@ end.
 
 (** Properties of [empty] and [isEmpty]. *)
 
+Lemma isEmpty_empty :
+  forall A : Type,
+    isEmpty (@empty A) = true.
+Proof. reflexivity. Qed.
+
 Lemma Elem_empty :
   forall (A : Type) (x : A), ~ Elem x empty.
 Proof. inversion 1. Qed.
@@ -53,33 +59,12 @@ Lemma isHeap_empty :
     isHeap R empty.
 Proof. constructor. Qed.
 
-Lemma isEmpty_empty :
-  forall A : Type,
-    isEmpty (@empty A) = true.
-Proof. reflexivity. Qed.
+Lemma isHeap2_empty :
+  forall {A : Type} (R : A -> A -> Prop),
+    isHeap2 R empty.
+Proof. constructor. Qed.
 
 (** Properties of [singleton]. *)
-
-Lemma Elem_singleton :
-  forall (A : Type) (x y : A),
-    Elem x (singleton y) <-> x = y.
-Proof.
-  split; intro; subst.
-    inv H. inv H1.
-    constructor.
-Qed.
-
-Lemma Elem_singleton' :
-  forall (A : Type) (x : A),
-    Elem x (singleton x).
-Proof.
-  intros. rewrite Elem_singleton. reflexivity.
-Qed.
-
-Lemma isHeap_singleton :
-  forall {A : Type} (R : A -> A -> Prop) (x : A),
-    isHeap R (singleton x).
-Proof. do 2 constructor. Qed.
 
 Lemma isEmpty_singleton :
   forall (A : Type) (x : A),
@@ -90,6 +75,34 @@ Lemma size_singleton :
   forall (A : Type) (x : A),
     size (singleton x) = 1.
 Proof. reflexivity. Qed.
+
+Lemma Elem_singleton :
+  forall (A : Type) (x y : A),
+    Elem x (singleton y) <-> x = y.
+Proof.
+  split; intro; subst.
+    inv H. inv H1.
+    constructor.
+Qed.
+
+(* Lemma Elem_singleton' :
+  forall (A : Type) (x : A),
+    Elem x (singleton x).
+Proof.
+  intros. rewrite Elem_singleton. reflexivity.
+Qed. *)
+
+Lemma isHeap_singleton :
+  forall {A : Type} (R : A -> A -> Prop) (x : A),
+    isHeap R (singleton x).
+Proof. do 2 constructor. Qed.
+
+Lemma isHeap2_singleton :
+  forall {A : Type} (R : A -> A -> Prop) (x : A),
+    isHeap2 R (singleton x).
+Proof.
+  do 2 constructor.
+Qed.
 
 (** Properties of [merge]. *)
 
@@ -110,25 +123,30 @@ Proof.
 Qed.
 
 Lemma isHeap_merge :
-  forall {A : Type} (cmp : A -> A -> bool) (h1 h2 : PairingHeap A)
-    (cmp_trans :
-      forall x y z : A, cmp x y -> cmp y z -> cmp x z)
-    (cmp_antisym :
-      forall x y : A, cmp x y = false -> cmp y x = true),
-        isHeap cmp h1 -> isHeap cmp h2 -> isHeap cmp (merge cmp h1 h2).
+  forall {A : Ord} (h1 h2 : PairingHeap A),
+    isHeap cmp h1 -> isHeap cmp h2 ->
+      isHeap cmp (merge cmp h1 h2).
 Proof.
-  intros A cmp h1 h2.
-  functional induction (merge cmp h1 h2); cbn;
-  inv 3; inv 1; do 2 constructor; auto.
-    inv 1. induction H1.
-      inv H4. inv H5. specialize (H6 _ H). trich. admit.
-      inv H4. inv H5.
+  intros A h1 h2.
+  functional induction (merge cmp h1 h2);
+  isHeap'.
+    inv 1. induction H1; isHeap.
+      specialize (H5 _ H). unfold comparison2bool in *. trich.
     inv 1.
-      admit.
-      induction H1.
-        inv H2. inv H3. specialize (H6 _ H). trich. admit.
-        inv H2. inv H3.
-Admitted.
+      unfold comparison2bool in *. trich.
+      induction H1; isHeap. specialize (H3 _ H). unfold comparison2bool in *. trich.
+Qed.
+
+Lemma isHeap2_merge :
+  forall {A : Ord} (h1 h2 : PairingHeap A),
+    isHeap2 cmp h1 -> isHeap2 cmp h2 ->
+      isHeap2 cmp (merge cmp h1 h2).
+Proof.
+  intros A h1 h2.
+  functional induction (merge cmp h1 h2);
+  isHeap2.
+    repeat constructor; auto. unfold comparison2bool in *. trich.
+Qed.
 
 Lemma isEmpty_merge :
   forall (A : Type) (cmp : A -> A -> bool) (h1 h2 : PairingHeap A),
@@ -139,7 +157,7 @@ Proof.
     destruct (cmp a a0); cbn; reflexivity.
 Qed.
 
-Lemma isEmpty_merge_true :
+(* Lemma isEmpty_merge_true :
   forall (A : Type) (cmp : A -> A -> bool) (h1 h2 : PairingHeap A),
     isEmpty (merge cmp h1 h2) = true <->
     isEmpty h1 = true /\ isEmpty h2 = true.
@@ -156,7 +174,7 @@ Proof.
   split; destruct h1, h2; cbn; inv 1;
   destruct (cmp a a0); cbn; auto.
 Qed.
-
+ *)
 Lemma size_merge :
   forall (A : Type) (p : A -> A -> bool) (h1 h2 : PairingHeap A),
     size (merge p h1 h2) = size h1 + size h2.
@@ -169,7 +187,7 @@ Qed.
 
 (** Properties of [insert]. *)
 
-Lemma Elem_insert :
+(* Lemma Elem_insert :
   forall (A : Type) (p : A -> A -> bool) (x y : A) (h : PairingHeap A),
     Elem x h -> Elem x (insert p y h).
 Proof.
@@ -178,8 +196,8 @@ Proof.
     inv H.
     destruct (p y a); inv H.
 Qed.
-
-Lemma Elem_insert' :
+ *)
+(* Lemma Elem_insert' :
   forall (A : Type) (p : A -> A -> bool) (x : A) (h : PairingHeap A),
     Elem x (insert p x h).
 Proof.
@@ -188,8 +206,9 @@ Proof.
     constructor.
     destruct (p x a); auto.
 Qed.
+ *)
 
-Lemma Elem_insert'' :
+Lemma Elem_insert :
   forall (A : Type) (p : A -> A -> bool) (x y : A) (h : PairingHeap A),
     Elem x (insert p y h) <-> x = y \/ Elem x h.
 Proof.
@@ -200,15 +219,13 @@ Proof.
 Qed.
 
 Lemma isHeap_insert :
-  forall (A : Type) (p : A -> A -> bool) (x : A) (h : PairingHeap A),
-    isHeap p h -> isHeap p (insert p x h).
+  forall (A : Ord) (x : A) (h : PairingHeap A),
+    isHeap cmp h -> isHeap cmp (insert cmp x h).
 Proof.
   intros. unfold insert. apply isHeap_merge.
-    admit.
-    admit.
     apply isHeap_singleton.
     assumption.
-Admitted.
+Qed.
 
 Lemma isEmpty_insert :
   forall (A : Type) (cmp : A -> A -> bool) (x : A) (h : PairingHeap A),
@@ -243,17 +260,16 @@ Proof.
 Qed.
 
 Lemma isHeap_mergePairs :
-  forall (A : Type) (p : A -> A -> bool) (l : list (PairingHeap A)),
-    Forall (isHeap p) l -> isHeap p (mergePairs p l).
+  forall (A : Ord) (l : list (PairingHeap A)),
+    Forall (isHeap cmp) l -> isHeap cmp (mergePairs cmp l).
 Proof.
-  intros. functional induction mergePairs p l.
-    constructor.
-    inv H.
-    inv H. inv H3. apply isHeap_merge.
-      1-2: admit.
-      apply isHeap_merge; auto. 1-2: admit.
-      apply IHp0. assumption.
-Admitted.
+  intros.
+  functional induction mergePairs cmp l;
+  isHeap.
+    apply isHeap_merge.
+      apply isHeap_merge; assumption.
+      apply IHp. assumption.
+Qed.
 
 Lemma isEmpty_mergePairs :
   forall (A : Type) (p : A -> A -> bool) (l : list (PairingHeap A)),
@@ -261,18 +277,19 @@ Lemma isEmpty_mergePairs :
     Forall (fun t => isEmpty t = true) l.
 Proof.
   split.
-    functional induction mergePairs p l; cbn; intros; auto.
-      rewrite ?isEmpty_merge_true in H. decompose [and] H. auto.
-    functional induction mergePairs p l; cbn; intros; auto.
-      inv H.
-      rewrite ?isEmpty_merge_true. inv H. inv H3.
+    functional induction mergePairs p l; isHeap.
+      rewrite !isEmpty_merge, !andb_true_iff. firstorder.
+    functional induction mergePairs p l; isHeap.
+      rewrite !isEmpty_merge, H1, H2, IHp0; auto.
 Qed.
 
 Lemma size_mergePairs' :
   forall (A : Type) (p : A -> A -> bool) (l : list (PairingHeap A)),
     size (mergePairs p l) = fold_right (fun h t => size h + t) 0 l.
 Proof.
-  intros. functional induction mergePairs p l; cbn; intros; auto.
+  intros.
+  functional induction mergePairs p l;
+  cbn; intros; auto.
   rewrite !size_merge, IHp0, plus_assoc. reflexivity.
 Qed.
 
@@ -290,39 +307,22 @@ Qed.
 (** Properties of [extractMin]. *)
 
 Lemma Elem_extractMin :
-  forall (A : Type) (p : A -> A -> bool) (m : A) (h h' : Tree A),
-    extractMin p h = Some (m, h') -> Elem m h.
-Proof.
-  destruct h; cbn; intros; inv H.
-Qed.
-
-Lemma Elem_extractMin_eq :
   forall (A : Type) (p : A -> A -> bool) (m x : A) (h h' : Tree A),
     isHeap p h -> extractMin p h = Some (m, h') ->
       Elem x h <-> x = m \/ Elem x h'.
 Proof.
-  split.
-    destruct h; cbn; intros; inv H0.
-      inv H. induction H3; inv H1.
-        inv H0.
-        inv H2.
-          right. rewrite Elem_mergePairs. auto.
-          inv H4. destruct (IHForall ltac:(auto) H6).
-            left. assumption.
-            right. rewrite Elem_mergePairs in *. auto.
-    destruct 1; subst.
-      eapply Elem_extractMin; eauto.
-      destruct h; cbn in *.
-        inv H0.
-        inv H0. constructor. rewrite Elem_mergePairs in H1. auto.
+  inv 1; inv 1.
+  rewrite Elem_mergePairs.
+  split; inv 1.
 Qed.
 
 Lemma isHeap_extractMin :
-  forall (A : Type) (p : A -> A -> bool) (m : A) (h h' : PairingHeap A),
-    isHeap p h -> extractMin p h = Some (m, h') -> isHeap p h'.
+  forall (A : Ord) (m : A) (h h' : PairingHeap A),
+    isHeap cmp h -> extractMin cmp h = Some (m, h') -> isHeap cmp h'.
 Proof.
-  destruct h; cbn; intros; subst; inv H0.
-  apply isHeap_mergePairs. inv H.
+  inv 1; inv 1.
+  apply isHeap_mergePairs.
+  assumption.
 Qed.
 
 Lemma isEmpty_extractMin :
@@ -343,17 +343,14 @@ Proof.
 Qed.
 
 Lemma extractMin_spec :
-  forall (A : Type) (p : A -> A -> comparison) (m : A) (h h' : Tree A),
-    isHeap p h -> extractMin p h = Some (m, h') ->
-      forall x : A, Elem x h -> p m x.
+  forall (A : Ord) (m : A) (h h' : Tree A),
+    isHeap cmp h -> extractMin cmp h = Some (m, h') ->
+      forall x : A, Elem x h -> cmp m x.
 Proof.
-  destruct h; cbn; intros; inv H0; inv H.
-  induction H3.
-    inv H1.
-      admit.
-      inv H0.
-    inv H4. inv H1. inv H2.
-Admitted.
+  inv 1; inv 1; inv 1.
+    trich.
+    induction H3; isHeap.
+Qed.
 
 (** [countTree] and its properties. *)
 

@@ -21,15 +21,7 @@ Inductive Elem' {A : Type} (x : A) : Tree A -> Prop :=
           Elem' x t -> Elem' x (T a (t :: ts))
     | Elem2' :
         forall (a : A) (t : Tree A) (ts : list (Tree A)),
-          Elem' x (T a ts) -> Elem' x (T a (t :: ts)). 
-
-Inductive isHeap {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
-    | isHeap_E : isHeap R E
-    | isHeap_T :
-        forall (v : A) (l : list (Tree A)),
-          Forall (fun t : Tree A => forall x : A, Elem x t -> R v x) l ->
-          Forall (isHeap R) l ->
-            isHeap R (T v l).
+          Elem' x (T a ts) -> Elem' x (T a (t :: ts)).
 
 Inductive All {A : Type} (P : A -> Prop) : Tree A -> Prop :=
     | All_E : All P E
@@ -45,7 +37,7 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-Hint Constructors Elem Elem' isHeap All Any Exists : core.
+Hint Constructors Elem Elem' All Any Exists : core.
 
 (** * Induction principles *)
 Fixpoint Tree_rect'
@@ -162,11 +154,6 @@ Lemma Elem_isEmpty :
   forall (A : Type) (x : A) (t : Tree A),
     isEmpty t = true -> ~ Elem x t.
 Proof. Tree_ind. inv 1. Qed.
-
-Lemma isHeap_isEmpty :
-  forall (A : Type) (R : A -> A -> Prop) (t : Tree A),
-    isEmpty t = true -> isHeap R t.
-Proof. Tree_ind. Qed.
 
 Lemma isEmpty_size_false :
   forall (A : Type) (t : Tree A),

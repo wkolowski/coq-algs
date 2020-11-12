@@ -1,6 +1,5 @@
 1. Split definition of BSTs into unique (left subtree is <) and non-unique (left subtree is <=).
-2. Ok-based definition of Heaps (particularly for Pairing Heaps).
-3. Try to refactor BinomialTree.v.
+3. Try to refactor BinomialHeap2.v.
 4. Reorder stuff in BTree.v.
 5. Split BSTs into insert-based, join-based (renamed join to partition).
 6. Get rid of TODOs.

@@ -3,144 +3,158 @@ Require Import Sorting.Sort.
 
 Set Implicit Arguments.
 
-Inductive RSTree (A : Type) : Type :=
-    | empty : RSTree A
-    | node : nat -> A -> RSTree A -> RSTree A -> RSTree A.
+Inductive LTree (A : Type) : Type :=
+    | E : LTree A
+    | N : nat -> A -> LTree A -> LTree A -> LTree A.
 
-Arguments empty {A}.
-Arguments node {A} _ _ _.
+Arguments E {A}.
+Arguments N {A} _ _ _ _.
 
-Definition right_spine {A : Type} (t : RSTree A) : nat :=
+Definition right_spine {A : Type} (t : LTree A) : nat :=
 match t with
-    | empty => 0
-    | node n _ _ _ => n
+    | E => 0
+    | N r _ _ _ => r
 end.
 
-Inductive Elem {A : Type} (x : A) : RSTree A -> Prop :=
-    | Elem_root : forall (n : nat) (l r : RSTree A),
-        Elem x (node n x l r)
-    | Elem_left : forall (n : nat) (v : A) (l r : RSTree A),
-        Elem x l -> Elem x (node n v l r)
-    | Elem_right : forall  (n : nat) (v : A) (l r : RSTree A),
-        Elem x r -> Elem x (node n v l r).
-
-Inductive isHeap {A : Ord} : RSTree A -> Prop :=
-    | isHeap_empty : isHeap empty
-    | isHeap_node :
-        forall  (n : nat) (v : A) (l r : RSTree A),
-          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
-          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
-            isHeap (node n v l r).
-
-Lemma isHeap_inv_l :
-  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
-    isHeap (node n v l r) -> isHeap l.
-Proof.
-  inversion 1; eauto.
-Qed.
-
-Lemma isHeap_inv_r :
-  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
-    isHeap (node n v l r) -> isHeap r.
-Proof.
-  inversion 1; eauto.
-Qed.
-
-Lemma isHeap_inv_leq :
-  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
-    isHeap (node n v l r) -> forall x : A,
-      Elem x (node n v l r) -> v ≤ x.
-Proof.
-  do 2 inv 1; trich.
-Qed.
-
-Hint Resolve isHeap_inv_l isHeap_inv_r : core.
-
-Inductive LeftBiased {A : Ord} : RSTree A -> Prop :=
-    | LeftBiased_empty : LeftBiased empty
-    | LeftBiased_node :
-        forall (v : A) (l r : RSTree A),
+Inductive LeftBiased {A : Type} : LTree A -> Prop :=
+    | LeftBiased_E : LeftBiased E
+    | LeftBiased_N :
+        forall (v : A) (l r : LTree A),
           @trich_le natlt (right_spine r) (right_spine l) ->
           LeftBiased l -> LeftBiased r ->
-            LeftBiased (node (S (right_spine r)) v l r).
+            LeftBiased (N (1 + right_spine r) v l r).
 
-Hint Constructors RSTree Elem isHeap LeftBiased : core.
+Inductive Elem {A : Type} (x : A) : LTree A -> Prop :=
+    | Elem_root :
+        forall (n : nat) (l r : LTree A), Elem x (N n x l r)
+    | Elem_l :
+        forall (n : nat) (v : A) (l r : LTree A),
+          Elem x l -> Elem x (N n v l r)
+    | Elem_r :
+        forall (n : nat) (v : A) (l r : LTree A),
+          Elem x r -> Elem x (N n v l r).
 
-Lemma Elem_node :
-  forall (A : Type) (n : nat) (x v : A) (l r : RSTree A),
-    Elem x (node n v l r) <-> x = v \/ Elem x l \/ Elem x r.
-Proof.
-  split; inv 1. inv H0.
-Qed.
+Inductive isHeap {A : Ord} : LTree A -> Prop :=
+    | isHeap_E : isHeap E
+    | isHeap_N :
+        forall  (n : nat) (v : A) (l r : LTree A),
+          (forall x : A, Elem x l -> v ≤ x) -> isHeap l ->
+          (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
+            isHeap (N n v l r).
 
-Ltac lh x :=
-  let t := fresh "t" in
-  let H := fresh "H" in
-  let H' := fresh "H" in
-    destruct x as [t H H']; destruct t;
-    try inversion H; try inversion H'; subst; cbn.
+Hint Constructors LTree LeftBiased Elem isHeap : core.
 
-Definition getMin {A : Ord} (t : RSTree A) : option A :=
+Definition balance
+  {A : Type} (v : A) (l r : LTree A) : LTree A :=
+    if right_spine r ≤? right_spine l
+    then N (1 + right_spine r) v l r
+    else N (1 + right_spine l) v r l.
+
+Fixpoint size {A : Type} (t : LTree A) : nat :=
 match t with
-    | empty => None
-    | node _ v _ _ => Some v
+    | E => 0
+    | N _ _ l r => 1 + size l + size r
 end.
 
-Definition singleton' {A : Type} (x : A)
-  : RSTree A := node 1 x empty empty.
+Definition sum_of_sizes
+  {A : Type} (p : LTree A * LTree A) : nat :=
+    size (fst p) + size (snd p).
 
-Ltac elem :=
-  intros; unfold singleton' in *; cbn in *; subst; repeat
-match goal with
-    | |- Elem ?x (node ?x _ _) => constructor
-    | H : Elem _ empty |- _ => inv H
-    | H : Elem _ (node _ empty empty) |- _ => inv H
-    | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
-    | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
-end; auto.
+Function merge
+  {A : Ord} (p : LTree A * LTree A)
+  {measure sum_of_sizes p} : LTree A :=
+match p with
+    | (E, t2) => t2
+    | (t1, E) => t1
+    | (N _ v l r as t1, N _ v' l' r' as t2) =>
+        if v ≤? v'
+        then balance v l (merge (r, t2))
+        else balance v' l' (merge (t1, r'))
+end.
+Proof.
+  1-2: intros; cbn; lia.
+Defined.
 
-Definition balance {A : Type} (v : A) (l r : RSTree A) : RSTree A :=
-  if right_spine r ≤? right_spine l
-  then node (S (right_spine r)) v l r
-  else node (S (right_spine l)) v r l.
+Arguments merge [x] _.
 
-Ltac balance := unfold balance in *;
+Definition empty {A : Ord} (x : A) : LTree A := E.
+
+Definition isEmpty {A : Type} (t : LTree A) : bool :=
+match t with
+    | E => true
+    | _ => false
+end.
+
+Definition singleton {A : Type} (x : A) : LTree A := N 1 x E E.
+
+Definition insert {A : Ord} (x : A) (t : LTree A) : LTree A :=
+  merge (singleton x, t).
+
+Definition findMin {A : Type} (t : LTree A) : option A :=
+match t with
+    | E => None
+    | N _ v _ _ => Some v
+end.
+
+Definition deleteMin {A : Ord} (t : LTree A) : option A * LTree A :=
+match t with
+    | E => (None, E)
+    | N _ v l r => (Some v, merge (l, r))
+end.
+
+Definition extractMin
+  {A : Ord} (t : LTree A) : option (A * LTree A) :=
+match t with
+    | E => None
+    | N _ v l r => Some (v, merge (l, r))
+end.
+
+Ltac balance := unfold balance in *; intros;
 match goal with
     | H : context [right_spine ?r ≤? right_spine ?l] |- _ =>
         destruct (@trich_leb_spec natlt (right_spine r) (right_spine l))
     | |- context [right_spine ?r ≤? right_spine ?l] =>
         destruct (@trich_leb_spec natlt (right_spine r) (right_spine l))
-end.
+end; cbn; try reflexivity.
 
-Fixpoint size {A : Type} (t : RSTree A) : nat :=
-match t with
-    | empty => 0
-    | node _ _ l r => S (size l + size r)
-end.
+Ltac elem :=
+  intros; unfold singleton in *; cbn in *; subst; repeat
+match goal with
+    | |- Elem ?x (N _ ?x _ _) => constructor
+    | H : Elem _ E |- _ => inv H
+    | H : Elem _ (N _ _ E E) |- _ => inv H
+    | H : Elem _ _ /\ Elem _ _ |- _ => destruct H
+    | H : Elem _ _ \/ Elem _ _ |- _ => destruct H
+    | H1 : forall _, Elem _ _ -> _,
+      H2 : Elem _ _ |- _ => specialize (H1 _ H2)
+end; auto.
 
-Lemma size_swap :
-  forall (A : Type) (n : nat) (v : A) (l r : RSTree A),
-    size (node n v r l) = size (node n v l r).
+Lemma Elem_N :
+  forall (A : Type) (n : nat) (x v : A) (l r : LTree A),
+    Elem x (N n v l r) <-> x = v \/ Elem x l \/ Elem x r.
 Proof.
-  intros. cbn. lia.
+  split; inv 1. inv H0.
 Qed.
 
-Lemma size_balance:
-  forall (A : Type) (n : nat) (v : A) (l r : RSTree A),
-    size (balance v l r) = size (node n v l r).
+(** * Properties of [balance]. *)
+
+Lemma LeftBiased_balance :
+  forall (A : Ord) (v : A) (l r : LTree A),
+    LeftBiased l -> LeftBiased r ->
+      LeftBiased (balance v l r).
 Proof.
-  intros. balance; trich. lia.
+  intros. balance; constructor; trich.
 Qed.
 
 Lemma Elem_balance :
-  forall (A : Type) (n : nat) (x v : A) (l r : RSTree A),
-    Elem x (balance v l r) <-> Elem x (node n v l r).
+  forall (A : Type) (x v : A) (l r : LTree A),
+    Elem x (balance v l r) <-> x = v \/ Elem x l \/ Elem x r. (*  (N n v l r). *)
 Proof.
-  intros. balance; split; intro; inv H0.
+  intros. balance; split; inv 1; inv H1.
 Qed.
 
 Lemma isHeap_balance :
-  forall (A : Ord) (n : nat) (v : A) (l r : RSTree A),
+  forall (A : Ord) (n : nat) (v : A) (l r : LTree A),
     (forall x : A, Elem x l -> v ≤ x) ->
     (forall x : A, Elem x r -> v ≤ x) ->
       isHeap l -> isHeap r -> isHeap (balance v l r).
@@ -148,174 +162,122 @@ Proof.
   intros; balance; constructor; elem.
 Qed.
 
-Lemma LeftBiased_balance :
-  forall (A : Ord) (v : A) (l r : RSTree A),
-    LeftBiased l -> LeftBiased r ->
-      LeftBiased (balance v l r).
+Lemma size_balance:
+  forall (A : Type) (v : A) (l r : LTree A),
+    size (balance v l r) = 1 + size l + size r.
 Proof.
-  intros. balance; constructor; trich.
+  intros. balance; trich. lia.
 Qed.
 
-Require Import Recdef.
+(** * Properties of [merge]. *)
 
-Definition sum_of_sizes {A : Type} (p : RSTree A * RSTree A) : nat :=
-  size (fst p) + size (snd p).
-
-Function merge' {A : Ord} (p : RSTree A * RSTree A)
-  {measure sum_of_sizes p} : RSTree A :=
-match p with
-    | (empty, t2) => t2
-    | (t1, empty) => t1
-    | (node _ v l r as t1, node _ v' l' r' as t2) =>
-        if v ≤? v'
-        then balance v l (merge' (r, t2))
-        else balance v' l' (merge' (t1, r'))
-end.
+Lemma LeftBiased_merge :
+  forall (A : Ord) (t1 t2 : LTree A),
+    LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge (t1, t2)).
 Proof.
-  1-2: intros; cbn; lia.
-Defined.
-
-Arguments merge' [x] _.
-
-Lemma Elem_merge' :
-  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
-    Elem x (merge' (t1, t2)) -> Elem x t1 \/ Elem x t2.
-Proof.
-  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
-  functional induction @merge' A p; inv 1; intros.
-    rewrite Elem_balance in H. inv H. edestruct IHr; eauto.
-    rewrite Elem_balance in H. inv H. edestruct IHr; eauto.
-    Unshelve. all: auto.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction @merge A p; do 3 inv 1; cbn in *;
+  apply LeftBiased_balance; try eapply IHl; auto.
 Qed.
 
-Lemma Elem_merge'_v2 :
-  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
-    Elem x t1 \/ Elem x t2 -> Elem x (merge' (t1, t2)).
+Lemma Elem_merge :
+  forall (A : Ord) (x : A) (t1 t2 : LTree A),
+    Elem x (merge (t1, t2)) <-> Elem x t1 \/ Elem x t2.
 Proof.
-  intros. remember (t1, t2) as p. revert x t1 t2 Heqp H.
-  functional induction @merge' A p; inv 1;
-  elem; rewrite Elem_balance.
-    inv H. apply Elem_right.
-      eapply IHr; try ((left + right); eauto); reflexivity.
-    apply Elem_right.
-      eapply IHr; try ((left + right); eauto); reflexivity.
-    apply Elem_right.
-      eapply IHr; try ((left + right); eauto); reflexivity.
-    inv H. apply Elem_right.
-      eapply IHr; try ((left + right); eauto); reflexivity.
-    Unshelve. all: auto.
+  intros until t2. revert x.
+  remember (t1, t2) as p. revert t1 t2 Heqp.
+  functional induction merge p;
+  inv 1; intro.
+    firstorder. inv H.
+    firstorder. inv H.
+    rewrite Elem_balance, (IHl _ _ eq_refl), !Elem_N.
+      split; intro H; decompose [or] H; auto 6.
+    rewrite Elem_balance, (IHl _ _ eq_refl), !Elem_N.
+      split; intro H; decompose [or] H; auto 6.
 Qed.
 
-Lemma merge'_spec :
-  forall (A : Ord) (x : A) (t1 t2 : RSTree A),
-    Elem x (merge' (t1, t2)) <-> Elem x t1 \/ Elem x t2.
+Lemma isHeap_merge :
+  forall (A : Ord) (t1 t2 : LTree A),
+    isHeap t1 -> isHeap t2 -> isHeap (merge (t1, t2)).
 Proof.
-  split; intros. elem.
-    apply Elem_merge'. assumption.
-    apply Elem_merge'_v2. assumption.
+  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
+  functional induction merge p; do 3 inv 1; apply isHeap_balance; elem.
+    rewrite Elem_merge, Elem_N in H. decompose [or] H; clear H; eauto; trich.
+      specialize (H8 _ H0). trich.
+      specialize (H10 _ H0). trich.
+    eapply IHl; eauto.
+    rewrite Elem_merge, Elem_N in H. decompose [or] H; clear H; eauto; trich.
+      specialize (H4 _ H0). trich.
+      specialize (H6 _ H0). trich.
+    eapply IHl; eauto.
 Qed.
 
-Arguments Elem_merge' [A x t1 t2] _.
-
-Lemma size_merge':
-  forall (A : Ord) (t1 t2 : RSTree A),
-    size (merge' (t1, t2)) = size t1 + size t2.
+Lemma size_merge:
+  forall (A : Ord) (t1 t2 : LTree A),
+    size (merge (t1, t2)) = size t1 + size t2.
 Proof.
   intros. remember (t1, t2) as p. revert t1 t2 Heqp.
-  functional induction @merge' A p; inv 1.
-    erewrite size_balance. cbn. rewrite (IHr r (node _ v' l' r') eq_refl).
-      cbn. lia.
-    erewrite size_balance. cbn. rewrite (IHr (node _ v l r) r' eq_refl).
-      cbn. lia.
-    Unshelve. all: auto.
+  functional induction merge p; inv 1.
+    rewrite size_balance, (IHl _ _ eq_refl). cbn. lia.
+    rewrite size_balance, (IHl _ _ eq_refl). cbn. lia.
 Qed.
 
-Lemma isHeap_merge' :
-  forall (A : Ord) (t1 t2 : RSTree A),
-    isHeap t1 -> isHeap t2 -> isHeap (merge' (t1, t2)).
+(** * Properties of [insert]. *)
+
+(** * Properties of [findMin], [deleteMin] and [extractMin]. *)
+
+Lemma LeftBiased_deleteMin :
+  forall (A : Ord) (m : A) (t t' : LTree A),
+    LeftBiased t -> deleteMin t = (Some m, t') ->
+      LeftBiased t'.
 Proof.
-  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
-  functional induction @merge' A p; do 3 inv 1; apply isHeap_balance; elem.
-    destruct (Elem_merge' H); eauto. inv H0; eauto; trich.
-      specialize (H8 _ H2). trich.
-      specialize (H10 _ H2). trich.
-    eapply IHr; eauto.
-    rewrite merge'_spec, Elem_node in H. inv H. inv H0.
-      trich.
-      inv H.
-        specialize (H4 _ H0). trich.
-        specialize (H6 _ H0). trich.
-    eapply IHr; eauto.
-Qed.
-
-Lemma LeftBiased_merge' :
-  forall (A : Ord) (t1 t2 : RSTree A),
-    LeftBiased t1 -> LeftBiased t2 -> LeftBiased (merge' (t1, t2)).
-Proof.
-  intros. remember (t1, t2) as p. revert t1 t2 Heqp H H0.
-  functional induction @merge' A p; do 3 inv 1; cbn in *;
-  apply LeftBiased_balance; try eapply IHr; auto.
-Qed.
-
-Definition insert' {A : Ord} (x : A) (t : RSTree A) : RSTree A :=
-  merge' (singleton' x, t).
-
-Definition deleteMin {A : Ord} (t : RSTree A)
-  : option A * RSTree A :=
-match t with
-    | empty => (None, empty)
-    | node _ v l r => (Some v, merge' (l, r))
-end.
-
-Lemma deleteMin_spec :
-  forall (A : Ord) (m : A) (t t' : RSTree A),
-    isHeap t -> deleteMin t = (Some m, t') ->
-      forall x : A, Elem x t' -> m ≤ x.
-Proof.
-  destruct t; cbn; inversion 1; inversion 1; subst; cbn.
-  intros. destruct (Elem_merge' H0); auto.
-Qed.
-
-Lemma size_deleteMin:
-  forall (A : Ord) (m : A) (t t' : RSTree A),
-    deleteMin t = (Some m, t') -> size t = S (size t').
-Proof.
-  destruct t; cbn; inversion 1; subst. rewrite size_merge'. trivial.
+  destruct t; cbn; do 2 inversion 1; subst.
+  apply LeftBiased_merge; assumption.
 Qed.
 
 Lemma Elem_deleteMin :
-  forall (A : Ord) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : LTree A),
     deleteMin t = (Some m, t') -> Elem m t.
 Proof.
   destruct t; cbn; inversion 1. constructor.
 Qed.
 
 Lemma isHeap_deleteMin :
-  forall (A : Ord) (m : A) (t t' : RSTree A),
+  forall (A : Ord) (m : A) (t t' : LTree A),
     isHeap t -> deleteMin t = (Some m, t') ->
       isHeap t'.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst.
-  apply isHeap_merge'; assumption.
+  apply isHeap_merge; assumption.
 Qed.
 
-Lemma LeftBiased_deleteMin :
-  forall (A : Ord) (m : A) (t t' : RSTree A),
-    LeftBiased t -> deleteMin t = (Some m, t') ->
-      LeftBiased t'.
+Lemma size_deleteMin:
+  forall (A : Ord) (m : A) (t t' : LTree A),
+    deleteMin t = (Some m, t') -> size t = S (size t').
 Proof.
-  destruct t; cbn; do 2 inversion 1; subst.
-  apply LeftBiased_merge'; assumption.
+  destruct t; cbn; inversion 1; subst. rewrite size_merge. trivial.
 Qed.
 
-(* Leftist heapsort *)
-Function fromList {A : Ord} (l : list A) : RSTree A :=
+Lemma deleteMin_spec :
+  forall (A : Ord) (m : A) (t t' : LTree A),
+    isHeap t -> deleteMin t = (Some m, t') ->
+      forall x : A, Elem x t' -> m ≤ x.
+Proof.
+  destruct t; cbn; inversion 1; inversion 1; subst; cbn.
+  intro. rewrite Elem_merge. inv 1.
+Qed.
+
+(** * Properties of [extractMin]. *)
+
+(** * Leftist heapsort *)
+
+Function fromList {A : Ord} (l : list A) : LTree A :=
 match l with
-    | [] => empty
-    | h :: t => insert' h (fromList t)
+    | [] => E
+    | h :: t => insert h (fromList t)
 end.
 
-Function toList {A : Ord} (t : RSTree A)
+Function toList {A : Ord} (t : LTree A)
   {measure size t} : list A :=
 match deleteMin t with
     | (None, _) => []
@@ -323,7 +285,7 @@ match deleteMin t with
 end.
 Proof.
   destruct t; cbn; inversion 1; inversion 1; subst.
-  rewrite size_merge'. lia.
+  rewrite size_merge. lia.
 Defined.
 
 Arguments toList [x] _.
