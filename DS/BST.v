@@ -1,5 +1,5 @@
 Require Export RCCBase.
-Require Import Data.BTree.
+Require Export Data.BTree.
 Require Import Ord.
 Require Import Sorting.Sort.
 

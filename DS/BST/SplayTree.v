@@ -1,8 +1,5 @@
-Require Export RCCBase.
-Require Export BTree.
-Require Import BST.
 Require Import Ord.
-Require Export Sorting.Sort.
+Require Import BST.
 
 Set Implicit Arguments.
 
@@ -57,37 +54,22 @@ match h1 with
           node v (merge p l l') (merge p r r')
 end.
 
-(** Properties of [isEmpty] *)
+(** We can use [removeMin] and [remove] from BST.v *)
+(* Print removeMin. *)
+(* Print remove. *)
+
+(** Properties of [splay]. *)
 
 Lemma isEmpty_splay :
-  forall {A : Type} {cmp : A -> A -> comparison} {x : A} {h l r : SplayTree A},
+  forall {A : Type} {cmp : A -> A -> bool} {x : A} {h l r : SplayTree A},
     splay cmp x h = (l, r) ->
       isEmpty h = isEmpty l && isEmpty r.
 Proof.
   intros until h.
   functional induction splay cmp x h;
-  inv 1. cbn.
-    rewrite andb_false_r. reflexivity.
+  inv 1.
+  cbn. rewrite andb_false_r. reflexivity.
 Qed.
-
-Lemma isEmpty_insert :
-  forall (A : Type) (p : A -> A -> bool) (x : A) (h : SplayTree A),
-    isEmpty (insert p x h) = false.
-Proof.
-  intros. unfold insert. case_eq (splay p x h); intros small big H.
-  cbn. reflexivity.
-Qed.
-
-Lemma isEmpty_merge :
-  forall {A : Type} {cmp : A -> A -> bool} {h1 h2 : SplayTree A},
-    isEmpty (merge cmp h1 h2) = isEmpty h1 && isEmpty h2.
-Proof.
-  destruct h1; cbn.
-    reflexivity.
-    intro. destruct (splay _ _ _). cbn. reflexivity.
-Qed.
-
-(** Properties of [splay]. *)
 
 Lemma Elem_splay :
   forall (A : Type) (p : A -> A -> bool) (x pivot : A) (h l r : SplayTree A),
@@ -122,6 +104,14 @@ Qed.
 
 (** Properties of [insert]. *)
 
+Lemma isEmpty_insert :
+  forall (A : Type) (p : A -> A -> bool) (x : A) (h : SplayTree A),
+    isEmpty (insert p x h) = false.
+Proof.
+  intros. unfold insert. case_eq (splay p x h); intros small big H.
+  cbn. reflexivity.
+Qed.
+
 Lemma Elem_insert :
   forall (A : Type) (p : A -> A -> bool) (x : A) (h : SplayTree A),
     Elem x (insert p x h).
@@ -149,6 +139,15 @@ Proof.
 Qed.
 
 (** Properties of [merge]. *)
+
+Lemma isEmpty_merge :
+  forall {A : Type} {cmp : A -> A -> bool} {h1 h2 : SplayTree A},
+    isEmpty (merge cmp h1 h2) = isEmpty h1 && isEmpty h2.
+Proof.
+  destruct h1; cbn.
+    reflexivity.
+    intro. destruct (splay _ _ _). cbn. reflexivity.
+Qed.
 
 Lemma Elem_merge :
   forall (A : Type) (p : A -> A -> bool) (x : A) (h1 h2 : SplayTree A),
