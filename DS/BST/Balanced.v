@@ -264,3 +264,22 @@ Proof.
       apply (removeMin_spec e1); auto. rewrite (Elem_removeMin e1). auto.
       eapply isBST_removeMin; eassumption.
 Qed.
+
+Module RB.
+
+Require Import DS.BST.RedBlack.
+
+#[refine]
+Instance BalanceArgs_Redblack (A : Ord) : BalanceArgs A :=
+{
+    B := color;
+    default := Red;
+    balance := balance;
+}.
+Proof.
+  intros. apply isEmpty_balance.
+  intros. apply Elem_balance.
+  intros. apply isBST_balance. assumption.
+Defined.
+
+End RB.

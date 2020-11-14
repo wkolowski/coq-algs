@@ -116,11 +116,13 @@ Qed.
 
 Lemma Elem_balance :
   forall {A : Type} (c : color) (x v : A) (l r : RBTree A),
-    Elem x (N c l v r) <-> Elem x (balance c l v r).
+    Elem x (balance c l v r) <-> Elem x l \/ x = v \/ Elem x r.
 Proof.
   split;
   functional induction balance c l v r;
-  auto; intros; Elem'.
+  auto; intros H.
+    all: Elem'.
+    all: decompose [or] H; clear H; subst; Elem'.
 Qed.
 
 Lemma isBST_balance :
@@ -185,7 +187,7 @@ Lemma Elem_ins :
 Proof.
   intros until t. revert x.
   functional induction ins leb y t;
-  intros; rewrite <- ?Elem_balance, ?Elem_N, ?IHl, ?IHr;
+  intros; rewrite ?Elem_balance, ?Elem_N, ?IHl, ?IHr;
   firstorder.
 Qed.
 

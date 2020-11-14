@@ -4,7 +4,12 @@
 6. Get rid of TODOs.
 7. Get rid of Admitted.
 8. Get rid of Abort.
-10. Implement height-balanced BSTs.
-11. Implement weight-balanced BSTs (and rename them to size-balanced).
 13. Do something about perm <-> Permutation equivalence (prove, remove, whatever).
 15. Refactor Ord to be more Haskell-like.
+16. Define more functions for "easy" finger trees and prove more lemmas.
+17. Define general finger trees.
+18. Implement more stuff from Okasaki's book.
+19. Implement height/size-balanced BSTs.
+20. Derive balanced BSTs from the general definition.
+21. Investigate dependently-typed variants of data structures.
+22. Automate proofs wherever tactics like isBST/Elem/isHeap etc. are missing.
