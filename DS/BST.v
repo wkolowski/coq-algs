@@ -656,6 +656,24 @@ Proof.
     edestruct IHp; eauto. split; Elems'.
 Qed.
 
+Lemma partition_spec' :
+  forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
+    partition cmp v t = (t1, b, t2) ->
+      isBST2 cmp t ->
+        All (fun x : A => cmp x v = Lt) t1
+          /\
+        All (fun x : A => cmp x v = Gt) t2.
+Proof.
+  intros until t.
+  functional induction partition cmp v t;
+  inv 1; isBST2.
+    trich.
+    destruct (IHp _ _ _ e1 H5). split; auto. constructor; trich.
+      induction H4; isBST2. constructor; trich.
+    destruct (IHp _ _ _ e1 H6). split; auto. constructor; trich.
+      induction H3; isBST2. constructor; trich.
+Qed.
+
 Lemma Elem_partition_rw' :
   forall {A : Ord} {v : A} {t t1 t2 : BTree A} {b : bool},
     partition cmp v t = (t1, b, t2) ->
@@ -726,6 +744,26 @@ Proof.
     destruct (All_partition e1 H4). edestruct IHp; eauto.
 Qed.
 
+(** * [union] *)
+
+Lemma union_empty_l :
+  forall {A : Type} {cmp : A -> A -> comparison} (t : BTree A),
+    union cmp empty t = t.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma union_empty_r :
+  forall {A : Type} {cmp : A -> A -> comparison} (t : BTree A),
+    union cmp t empty = t.
+Proof.
+  intros. remember empty as t'. revert Heqt'.
+  functional induction union cmp t t';
+  intros ->.
+    reflexivity.
+    inv e0. rewrite (IHb eq_refl), (IHb0 eq_refl). reflexivity.
+Qed.
+
 Lemma Elem_union :
   forall {A : Ord} (x : A) (t1 t2 : BTree A),
     Elem x (union cmp t1 t2) <-> Elem x t1 \/ Elem x t2.
@@ -781,12 +819,30 @@ Proof.
   intros until t2.
   functional induction union cmp t1 t2;
   isBST2.
-  destruct (isBST2_partition e0 H0). inv H0; cbn in *.
-    inv e0. admit.
-    constructor; auto.
-      apply All_union; auto. admit.
-      apply All_union; auto. admit.
-Admitted.
+  destruct (isBST2_partition e0 H0), (partition_spec' e0 H0). constructor; auto.
+    apply All_union; auto.
+    apply All_union; auto.
+Qed.
+
+(** * Properties of [intersection *)
+
+Lemma intersection_empty_l :
+  forall {A : Type} {cmp : A -> A -> comparison} (t : BTree A),
+    intersection cmp empty t = empty.
+Proof.
+  reflexivity.
+Qed.
+
+Lemma intersection_empty_r :
+  forall {A : Type} {cmp : A -> A -> comparison} (t : BTree A),
+    intersection cmp t empty = empty.
+Proof.
+  intros. remember empty as t'. revert Heqt'.
+  functional induction intersection cmp t t';
+  intros ->.
+    reflexivity.
+    1-3: inv e0. rewrite IHb0 in e2; inv e2.
+Qed.
 
 Lemma Elem_intersection :
   forall {A : Ord} {t1 t2 : BTree A} (x : A),

@@ -6,44 +6,7 @@ Inductive Tree (A : Type) : Type :=
 
 Arguments T [A] _ _ _.
 
-Inductive elemTree {A : Type} (x : A) : Tree A -> Prop :=
-    | elemTree_root :
-        forall (n : nat) (l : list (Tree A)), elemTree x (T n x l)
-    | elemTree_child :
-        forall (n : nat) (y : A) (l : list (Tree A)) (t : Tree A),
-          elemTree x t -> In t l -> elemTree x (T n y l).
-
-Hint Constructors elemTree : core.
-
-Definition Heap (A : Type) : Type := list (Tree A).
-
-Definition elem {A : Type} (x : A) (h : Heap A) : Prop :=
-  exists t : Tree A, elemTree x t /\ In t h.
-
-Inductive elemTree' {A : Type} (x : A) : Tree A -> Prop :=
-    | elemTree'_root :
-        forall (n : nat) (l : list (Tree A)), elemTree' x (T n x l)
-    | elemTree'_heap :
-        forall h : Heap A, elemHeap x h ->
-          forall (n : nat) (y : A), elemTree' x (T n y h)
-
-with elemHeap {A : Type} (x : A) : Heap A -> Prop :=
-    | elemHeap_here :
-        forall (t : Tree A) (h' : Heap A),
-          elemTree' x t -> elemHeap x (t :: h')
-    | elemHeap_there :
-        forall (t : Tree A) (h' : Heap A),
-          elemHeap x h' -> elemHeap x (t :: h').
-
-Hint Constructors elemTree' elemHeap : core.
-
-Definition empty {A : Type} : Heap A := [].
-
-Definition isEmpty {A : Type} (h : Heap A) : bool :=
-match h with
-    | [] => true
-    | _ => false
-end.
+Definition Forest (A : Type) : Type := list (Tree A).
 
 Definition rank {A : Type} (t : Tree A) : nat :=
 match t with
@@ -55,6 +18,87 @@ match t with
     | T _ x _ => x
 end.
 
+Inductive elemTree {A : Type} (x : A) : Tree A -> Prop :=
+    | elemTree_root :
+        forall (n : nat) (l : list (Tree A)), elemTree x (T n x l)
+    | elemTree_child :
+        forall (n : nat) (y : A) (l : list (Tree A)) (t : Tree A),
+          elemTree x t -> In t l -> elemTree x (T n y l).
+
+Definition elem {A : Type} (x : A) (h : Forest A) : Prop :=
+  exists t : Tree A, elemTree x t /\ In t h.
+
+Inductive elemTree' {A : Type} (x : A) : Tree A -> Prop :=
+    | elemTree'_root :
+        forall (n : nat) (l : list (Tree A)), elemTree' x (T n x l)
+    | elemTree'_heap :
+        forall h : Forest A, ElemForest x h ->
+          forall (n : nat) (y : A), elemTree' x (T n y h)
+
+with ElemForest {A : Type} (x : A) : Forest A -> Prop :=
+    | ElemForest_here :
+        forall (t : Tree A) (h' : Forest A),
+          elemTree' x t -> ElemForest x (t :: h')
+    | ElemForest_there :
+        forall (t : Tree A) (h' : Forest A),
+          ElemForest x h' -> ElemForest x (t :: h').
+
+Inductive isBinomialTree' {A : Type} : nat -> Tree A -> Prop :=
+    | isBinomialTree'0 :
+        forall x : A, isBinomialTree' 0 (T 0 x [])
+    | isBinomialTree'S :
+        forall (r : nat) (x : A) (l : list (Tree A)),
+          isBinomialForest' r l -> isBinomialTree' r (T r x l)
+
+with isBinomialForest' {A : Type} : nat -> list (Tree A) -> Prop :=
+    | isBinomialForest'_nil : isBinomialForest' 0 []
+    | isBinomialForest'_skip :
+        forall (r : nat) (l : list (Tree A)),
+          isBinomialForest' r l -> isBinomialForest' (S r) (l)
+    | isBinomialForest'_cons :
+        forall (r : nat) (t : Tree A) (l : list (Tree A)),
+          isBinomialTree' r t -> isBinomialForest' r l -> isBinomialForest' (S r) (t :: l).
+
+Definition isBinomialTree {A : Type} (t : Tree A) : Prop :=
+  isBinomialTree' (rank t) t.
+
+(* Definition isBinomialForest {A : Type} (h : Forest A) : Prop :=
+  isBinomialForest' (rank t) t.
+ *)
+
+Inductive isHeap {A : Ord} : Tree A -> Prop :=
+    | isHeapC :
+        forall (r : nat) (x : A) (l : list (Tree A)),
+          Forall (fun t => x ≤ root t /\ isHeap t) l ->
+            isHeap (T r x l).
+
+Definition isForestOfHeaps {A : Ord} (f : Forest A) : Prop :=
+  Forall (fun t : Tree A => isHeap t) f.
+
+Ltac isHeap :=
+repeat match goal with
+    | H : isHeap (T _ _ _) |- _                => inv H
+    |                      |- _ -> _           => intros
+    |                      |- isHeap (T _ _ _) => constructor
+end.
+
+Definition isBinomialHeap {A : Ord} (h : Forest A) : Prop :=
+  Forall (fun t => isBinomialTree t /\ isHeap t) h.
+
+Hint Constructors elemTree elemTree' ElemForest isBinomialTree' isBinomialForest' isHeap : core.
+
+Hint Unfold isBinomialTree isBinomialHeap : core.
+
+(** * Implementation *)
+
+Definition empty {A : Type} : Forest A := [].
+
+Definition isEmpty {A : Type} (h : Forest A) : bool :=
+match h with
+    | [] => true
+    | _ => false
+end.
+
 Function link {A : Ord} (t1 t2 : Tree A) : Tree A :=
 match t1, t2 with
     | T r1 x ts1, T r2 y ts2 =>
@@ -63,7 +107,7 @@ match t1, t2 with
         else T (S r2) y (t1 :: ts2)
 end.
 
-Fixpoint insTree {A : Ord} (t : Tree A) (h : Heap A) : Heap A :=
+Function insTree {A : Ord} (t : Tree A) (h : Forest A) : Forest A :=
 match h with
     | [] => [t]
     | t' :: h' =>
@@ -72,15 +116,15 @@ match h with
         else insTree (link t t') h'
 end.
 
-Definition insert {A : Ord} (x : A) (h : Heap A) : Heap A :=
+Definition insert {A : Ord} (x : A) (h : Forest A) : Forest A :=
   insTree (T 0 x []) h.
 
-Fixpoint merge {A : Ord} (h1 h2 : Heap A) : Heap A :=
+Fixpoint merge {A : Ord} (h1 h2 : Forest A) : Forest A :=
 match h1 with
     | [] => h2
     | t1 :: h1' =>
         let
-          aux := fix aux (h2 : Heap A) : Heap A :=
+          aux := fix aux (h2 : Forest A) : Forest A :=
           match h2 with
               | [] => h1
               | t2 :: h2' =>
@@ -94,8 +138,10 @@ match h1 with
         in aux h2
 end.
 
+(* Functional Scheme merge_ind := Induction for merge Sort Prop. *)
+
 Function removeMinTree
-  {A : Ord} (h : Heap A) : option (Tree A * Heap A) :=
+  {A : Ord} (h : Forest A) : option (Tree A * Forest A) :=
 match h with
     | [] => None
     | [t] => Some (t, [])
@@ -109,19 +155,19 @@ match h with
         end
 end.
 
-Definition findMin {A : Ord} (h : Heap A) : option A :=
+Definition findMin {A : Ord} (h : Forest A) : option A :=
 match removeMinTree h with
     | None => None
     | Some (t, _) => Some (root t)
 end.
 
-Definition deleteMin {A : Ord} (h : Heap A) : option (Heap A) :=
+Definition deleteMin {A : Ord} (h : Forest A) : option (Forest A) :=
 match removeMinTree h with
     | None => None
     | Some (T _ x h1, h2) => Some (merge (rev h1) h2)
 end.
 
-Definition extractMin {A : Ord} (h : Heap A) : option (A * Heap A) :=
+Definition extractMin {A : Ord} (h : Forest A) : option (A * Forest A) :=
 match removeMinTree h with
     | None => None
     | Some (T _ x h1, h2) => Some (x, merge h1 h2)
@@ -130,7 +176,7 @@ end.
 (** spec of merge *)
 
 Lemma merge_spec :
-  forall (A : Ord) (h1 h2 : Heap A),
+  forall (A : Ord) (h1 h2 : Forest A),
     merge h1 h2 =
     match h1, h2 with
         | [], _ => h2
@@ -147,10 +193,24 @@ Proof.
   destruct h1, h2; reflexivity.
 Qed.
 
-(** Properties of [isEmpty]. *)
+(** * Properties of [isEmpty] *)
+
+Lemma isEmpty_empty_false :
+  forall {A : Ord} (h : Forest A),
+    isEmpty h = false <-> h <> empty.
+Proof.
+  destruct h; compute; firstorder congruence.
+Qed.
+
+Lemma isEmpty_empty_true :
+  forall (A : Ord) (h : Forest A),
+    isEmpty h = true <-> h = empty.
+Proof.
+  destruct h; compute; firstorder congruence.
+Qed.
 
 Lemma isEmpty_elem :
-  forall (A : Ord) (h : Heap A),
+  forall (A : Ord) (h : Forest A),
     isEmpty h = true <-> forall x : A, ~ elem x h.
 Proof.
   split; intro.
@@ -166,124 +226,37 @@ Proof.
           exists x0. cbn. auto.
 Qed.
 
-Lemma isEmpty_elemHeap :
-  forall (A : Ord) (h : Heap A),
-    isEmpty h = true <-> forall x : A, ~ elemHeap x h.
+Lemma isEmpty_ElemForest :
+  forall (A : Ord) (h : Forest A),
+    isEmpty h = true <-> forall x : A, ~ ElemForest x h.
 Proof.
   split; intro.
     inv 1; cbn in *; congruence.
     induction h; intros.
       cbn. reflexivity.
       specialize (H (root a)). contradiction H. destruct a. cbn.
-        apply elemHeap_here. auto.
+        apply ElemForest_here. auto.
 Qed.
 
-Lemma isEmpty_empty_false :
-  forall {A : Ord} (h : Heap A),
-    isEmpty h = false <-> h <> empty.
+Lemma isBinomialHeap_empty :
+  forall A : Ord, isBinomialHeap (@empty A).
 Proof.
-  destruct h; compute; firstorder congruence.
+  intro. unfold isBinomialHeap, empty. constructor.
 Qed.
 
-Lemma isEmpty_empty_true :
-  forall (A : Ord) (h : Heap A),
-    isEmpty h = true <-> h = empty.
-Proof.
-  destruct h; compute; firstorder congruence.
-Qed.
+(** * Properties of [link]. *)
 
-Lemma isEmpty_insTree :
-  forall (A : Ord) (t : Tree A) (h : Heap A),
-    isEmpty (insTree t h) = false.
-Proof.
-  intros A t h; gen t.
-  induction h as [| t' h']; cbn; intros.
-    reflexivity.
-    destruct t'; cbn. destruct n as [| n'].
-      apply IHh'.
-      destruct t. cbn. destruct (leb n n').
-        cbn. reflexivity.
-        apply IHh'.
-Qed.
+Ltac tree' := intros; cbn in *;
+repeat match goal with
+    | H : context [if ?x then _ else _] |- _ => destruct x
+    | |- context [if ?x then _ else _] => destruct x
+    | H : _ \/ _ |- _ => inv H
+    | H : elemTree' _ (T _ _ _) |- _ => inv H
+    | H : ElemForest _ [] |- _ => inv H
+    | H : ElemForest _ (_ :: _) |- _ => inv H
+end; auto.
 
-Lemma isEmpty_insert :
-  forall {A : Ord} (x : A) (h : Heap A),
-    isEmpty (insert x h) = false.
-Proof.
-  intros. unfold insert. apply isEmpty_insTree.
-Qed.
-
-Lemma isEmpty_merge :
-  forall {A : Ord} (h1 h2 : Heap A),
-    isEmpty (merge h1 h2) = isEmpty h1 && isEmpty h2.
-Proof.
-  destruct h1, h2; rewrite merge_spec; cbn; auto.
-  repeat match goal with
-      | |- context [if ?x then _ else _] => destruct x
-  end; cbn.
-    1-2: reflexivity.
-    rewrite isEmpty_insTree. reflexivity.
-Qed.
-
-Lemma isEmpty_removeMinTree_false :
-  forall (A : Ord) (t : Tree A) (h h' : Heap A),
-    removeMinTree h = Some (t, h') -> isEmpty h = false.
-Proof.
-  intros. destruct h; cbn in *; congruence.
-Qed.
-
-Lemma isEmpty_removeMinTree_false' :
-  forall (A : Ord) (h : Heap A),
-    isEmpty h = false <->
-    exists (t : Tree A) (h' : Heap A), removeMinTree h = Some (t, h').
-Proof.
-  split.
-    functional induction @removeMinTree A h; cbn; intros; eauto.
-      congruence.
-      rewrite e0 in IHo. destruct h'; cbn in *.
-        contradiction.
-        apply IHo. reflexivity.
-    destruct 1 as [t [h' H]]. destruct h; cbn in *; congruence.
-Qed.
-
-Lemma isEmpty_removeMinTree_true :
-  forall (A : Ord) (h : Heap A),
-    removeMinTree h = None <-> isEmpty h = true.
-Proof.
-  split.
-    functional induction @removeMinTree A h; cbn; try congruence.
-      destruct h'; auto.
-    destruct h; cbn; congruence.
-Qed.
-
-Lemma isEmpty_extractMin_false :
-  forall (A : Ord) (h : Heap A),
-    isEmpty h = false <->
-    exists (m : A) (h' : Heap A), extractMin h = Some (m, h').
-Proof.
-  split; unfold extractMin; intros.
-    apply isEmpty_removeMinTree_false' in H. destruct H as [t [h' H]].
-      destruct t as [r x h'']. exists x, (merge h'' h'). rewrite H. auto.
-    destruct H as [m [h' H]]. apply isEmpty_removeMinTree_false'.
-      case_eq (removeMinTree h); intros.
-        destruct p. eauto.
-        rewrite H0 in H. congruence.
-Qed.
-
-Lemma isEmpty_extractMin_true :
-  forall (A : Ord) (h : Heap A),
-    isEmpty h = true <-> extractMin h = None.
-Proof.
-  unfold extractMin; split; intros.
-    apply isEmpty_removeMinTree_true in H. rewrite H. reflexivity.
-    case_eq (removeMinTree h); intros.
-      rewrite H0 in H. destruct p, t. inv H.
-      apply isEmpty_removeMinTree_true. assumption.
-Qed.
-
-(** Properties of [link]. *)
-
-Lemma link_elemTree :
+Lemma elemTree_link :
   forall (A : Ord) (x : A) (t1 t2 : Tree A),
     elemTree x (link t1 t2) <-> elemTree x t1 \/ elemTree x t2.
 Proof.
@@ -308,65 +281,240 @@ Proof.
         inv H0. eapply elemTree_child; cbn; eauto.
 Qed.
 
-Ltac tree :=
-repeat match goal with
-    | H : context [if ?x then _ else _] |- _ => destruct x
-    | |- context [if ?x then _ else _] => destruct x
-end; auto.
-
-Ltac tree' := intros; cbn in *;
-repeat match goal with
-    | H : context [if ?x then _ else _] |- _ => destruct x
-    | |- context [if ?x then _ else _] => destruct x
-    | H : _ \/ _ |- _ => inv H
-    | H : elemTree' _ (T _ _ _) |- _ => inv H
-    | H : elemHeap _ [] |- _ => inv H
-    | H : elemHeap _ (_ :: _) |- _ => inv H
-end; auto.
-
-Lemma link_elemTree' :
+Lemma elemTree'_link :
   forall (A : Ord) (x : A) (t1 t2 : Tree A),
     elemTree' x (link t1 t2) <-> elemTree' x t1 \/ elemTree' x t2.
 Proof.
   split; destruct t1, t2; cbn; intros; trich; tree'.
 Qed.
 
-Lemma insTree_elemHeap :
-  forall (A : Ord) (h : Heap A) (x : A) (t : Tree A),
-    elemHeap x (insTree t h) <-> elemTree' x t \/ elemHeap x h.
+Lemma isBinomialTree'_link :
+  forall (A : Ord) (t1 t2 : Tree A) (r : nat),
+    isBinomialTree' r t1 -> isBinomialTree' r t2 ->
+      isBinomialTree' (S r) (link t1 t2).
+Proof.
+  do 2 inv 1; trich.
+Qed.
+
+Lemma isHeap_link :
+  forall {A : Ord} {t1 t2 : Tree A},
+    isHeap t1 -> isHeap t2 ->
+      isHeap (link t1 t2).
+Proof.
+  intros until t2.
+  functional induction link t1 t2;
+  isHeap.
+    constructor.
+      split; trich.
+      assumption.
+    constructor.
+      split; trich.
+      assumption.
+Qed.
+
+Lemma rank_link :
+  forall {A : Ord} {t1 t2 : Tree A} {r : nat},
+    isBinomialTree' r t1 -> isBinomialTree' r t2 ->
+      isBinomialTree' (S r) (link t1 t2).
+Proof.
+  intros until t2.
+  functional induction link t1 t2;
+  inv 1; inv 1.
+Qed.
+
+(** * Properties of [insTree] *)
+
+Lemma isEmpty_insTree :
+  forall (A : Ord) (t : Tree A) (h : Forest A),
+    isEmpty (insTree t h) = false.
+Proof.
+  intros A t h; gen t.
+  induction h as [| t' h']; cbn; intros.
+    reflexivity.
+    destruct t'; cbn. destruct n as [| n'].
+      apply IHh'.
+      destruct t. cbn. destruct (leb n n').
+        cbn. reflexivity.
+        apply IHh'.
+Qed.
+
+Lemma ElemForest_insTree :
+  forall (A : Ord) (h : Forest A) (x : A) (t : Tree A),
+    ElemForest x (insTree t h) <-> elemTree' x t \/ ElemForest x h.
 Proof.
   split; revert x t.
     induction h as [| t' h']; tree'.
-      specialize (IHh' _ _ H). rewrite link_elemTree' in IHh'. firstorder.
+      specialize (IHh' _ _ H). rewrite elemTree'_link in IHh'. firstorder.
     induction h as [| t' h']; tree';
-      apply IHh'; rewrite link_elemTree'; auto.
+      apply IHh'; rewrite elemTree'_link; auto.
 Qed.
 
-Lemma elemTree'_insert :
-  forall (A : Ord) (x : A) (h : Heap A),
-    elemHeap x (insert x h).
+Lemma isBinomialForest'_insTree :
+  forall {A : Ord} {t : Tree A} {f : Forest A} {r1 r2 : nat},
+    isBinomialTree' r1 t -> isBinomialForest' r2 f ->
+      exists r : nat,
+        isBinomialForest' r (insTree t f).
 Proof.
-  intros. unfold insert. rewrite insTree_elemHeap. auto.
+  intros * H1 H2. revert t r1 H1.
+  induction H2; intros.
+    cbn. exists (S r1). constructor 3.
+      assumption.
+      clear H1. induction r1.
+        constructor.
+        constructor 2. assumption.
+    eapply IHisBinomialForest'. eassumption.
+    {
+      destruct (IHisBinomialForest' _ _ H1) as [r' IH'].
+      simpl. destruct (Nat.ltb_spec (rank t0) (rank t)).
+        exists (S r). constructor 2.
+Admitted.
+
+Lemma isForestOfHeaps_insTree :
+  forall {A : Ord} {t : Tree A} {f : Forest A},
+    isHeap t -> isForestOfHeaps f ->
+      isForestOfHeaps (insTree t f).
+Proof.
+  intros until f.
+  functional induction insTree t f;
+  inv 2.
+    constructor; auto.
+    constructor; auto.
+    apply IHf0.
+      apply isHeap_link; assumption.
+      assumption.
 Qed.
 
-Lemma elemHeap_merge :
-  forall (A : Ord) (x : A) (h1 h2 : Heap A),
-    elemHeap x (merge h1 h2) <-> elemHeap x h1 \/ elemHeap x h2.
+(** * Properties of [insert] *)
+
+Lemma isEmpty_insert :
+  forall {A : Ord} (x : A) (h : Forest A),
+    isEmpty (insert x h) = false.
+Proof.
+  intros. unfold insert. apply isEmpty_insTree.
+Qed.
+
+Lemma ElemForest_insert :
+  forall (A : Ord) (x : A) (h : Forest A),
+    ElemForest x (insert x h).
+Proof.
+  intros. unfold insert. rewrite ElemForest_insTree. auto.
+Qed.
+
+Lemma isBinomialForest_insert :
+  forall {A : Ord} {x : A} {f : Forest A} {r : nat},
+    isBinomialForest' r f ->
+      isBinomialForest' r (insert x f).
+Proof.
+  intros.
+  unfold insert.
+Admitted.
+
+Lemma isForestOfHeaps_insert :
+  forall {A : Ord} {x : A} {f : Forest A},
+    isForestOfHeaps f ->
+      isForestOfHeaps (insert x f).
+Proof.
+  intros. unfold insert.
+  apply isForestOfHeaps_insTree.
+    constructor; auto.
+    assumption.
+Qed.
+
+(** * Properties of [merge] *)
+
+Lemma isEmpty_merge :
+  forall {A : Ord} (h1 h2 : Forest A),
+    isEmpty (merge h1 h2) = isEmpty h1 && isEmpty h2.
+Proof.
+  destruct h1, h2; rewrite merge_spec; cbn; auto.
+  repeat match goal with
+      | |- context [if ?x then _ else _] => destruct x
+  end; cbn.
+    1-2: reflexivity.
+    rewrite isEmpty_insTree. reflexivity.
+Qed.
+
+Lemma ElemForest_merge :
+  forall (A : Ord) (x : A) (h1 h2 : Forest A),
+    ElemForest x (merge h1 h2) <-> ElemForest x h1 \/ ElemForest x h2.
 Proof.
   split; gen h2.
     induction h1; induction h2; tree'.
       specialize (IHh1 _ H1). firstorder.
       specialize (IHh2 H1). inv IHh2.
-      clear IHh2. rewrite insTree_elemHeap, link_elemTree' in H.
+      clear IHh2. rewrite ElemForest_insTree, elemTree'_link in H.
         decompose [or] H; clear H; auto. specialize (IHh1 _ H0). inv IHh1.
     induction h1; induction h2; tree';
-      rewrite insTree_elemHeap, link_elemTree'; auto.
+      rewrite ElemForest_insTree, elemTree'_link; auto.
 Qed.
 
-Lemma removeMinTree_elemHeap :
-  forall (A : Ord) (x : A) (t : Tree A) (h h' : Heap A),
+Lemma isBinomialForest'_merge :
+  forall {A : Ord} {f1 f2 : Forest A} {r1 r2 : nat},
+    isBinomialForest' r1 f1 -> isBinomialForest' r2 f2 ->
+      exists r : nat, isBinomialForest' r (merge f1 f2).
+Proof.
+  intros until 1. revert r2 f2.
+  induction H.
+    intros. cbn. exists r2. assumption.
+    intros. eapply IHisBinomialForest'. eassumption.
+    induction 1.
+      cbn. exists (S r). constructor; assumption.
+      apply IHisBinomialForest'0.
+Admitted.
+
+Lemma isForestOfHeaps_merge :
+  forall {A : Ord} {f1 f2 : Forest A},
+    isForestOfHeaps f1 -> isForestOfHeaps f2 ->
+      isForestOfHeaps (merge f1 f2).
+Proof.
+  intros A f1 f2 H1 H2. revert f2 H2.
+  induction H1; intros f2 H2.
+    cbn. assumption.
+    induction H2.
+      cbn. constructor; assumption.
+      simpl. destruct (Nat.ltb_spec (rank x) (rank x0)).
+        constructor.
+          assumption.
+          apply IHForall. constructor; assumption.
+Admitted.
+
+(** * Properties of [removeMinTree] *)
+
+Lemma isEmpty_removeMinTree_false :
+  forall (A : Ord) (t : Tree A) (h h' : Forest A),
+    removeMinTree h = Some (t, h') -> isEmpty h = false.
+Proof.
+  intros. destruct h; cbn in *; congruence.
+Qed.
+
+Lemma isEmpty_removeMinTree_false' :
+  forall (A : Ord) (h : Forest A),
+    isEmpty h = false <->
+    exists (t : Tree A) (h' : Forest A), removeMinTree h = Some (t, h').
+Proof.
+  split.
+    functional induction @removeMinTree A h; cbn; intros; eauto.
+      congruence.
+      rewrite e0 in IHo. destruct h'; cbn in *.
+        contradiction.
+        apply IHo. reflexivity.
+    destruct 1 as [t [h' H]]. destruct h; cbn in *; congruence.
+Qed.
+
+Lemma isEmpty_removeMinTree_true :
+  forall (A : Ord) (h : Forest A),
+    removeMinTree h = None <-> isEmpty h = true.
+Proof.
+  split.
+    functional induction @removeMinTree A h; cbn; try congruence.
+      destruct h'; auto.
+    destruct h; cbn; congruence.
+Qed.
+
+Lemma ElemForest_removeMinTree :
+  forall (A : Ord) (x : A) (t : Tree A) (h h' : Forest A),
     removeMinTree h = Some (t, h') ->
-      elemHeap x h <-> elemTree' x t \/ elemHeap x h'.
+      ElemForest x h <-> elemTree' x t \/ ElemForest x h'.
 Proof.
   split; revert x t h' H.
     functional induction @removeMinTree A h; inv 1; intro; inv H.
@@ -376,34 +524,105 @@ Proof.
       inv H0. specialize (IHo x _ _ e0 ltac:(auto)). inv IHo.
 Qed.
 
-Lemma elemHeap_extractMin :
-  forall (A : Ord) (x m : A) (h h' : Heap A),
-    extractMin h = Some (m, h') ->
-      elemHeap x h <-> x = m \/ elemHeap x h'.
+Lemma isBinomialForest'_removeMinTree :
+  forall {A : Ord} {f f' : Forest A} {t : Tree A},
+    removeMinTree f = Some (t, f') ->
+      forall {r : nat}, isBinomialForest' r f ->
+        exists r' : nat, isBinomialForest' r' f'.
 Proof.
-  unfold extractMin. split.
-    case_eq (removeMinTree h); intros; rewrite H0 in *.
-      destruct p, t. inv H.
-        apply removeMinTree_elemHeap with (x := x) in H0.
-        rewrite elemHeap_merge. firstorder. inv H.
-      congruence.
-    case_eq (removeMinTree h); intros; rewrite H0 in *.
-      destruct p, t. inv H. rewrite elemHeap_merge in *.
-        apply removeMinTree_elemHeap with (x := x) in H0.
-        firstorder; subst; auto.
-      congruence.
+  intros until f.
+  functional induction removeMinTree f. Print removeMinTree.
+  inv 1.
+    inv 1.
+      exists 0. constructor.
+      exists 0.
+Restart.
+  intros until 2.
+  revert f' t H.
+  induction H0.
+    inv 1.
+    intros. eapply IHisBinomialForest'. eassumption.
+    intros. functional inversion H1; subst.
+      exists 0. constructor.
+      exists r. assumption.
+      destruct (IHisBinomialForest' _ _ X) as [r' IH'].
+        exists (S r'). constructor 3.
+          admit.
+          assumption.
+Admitted.
+
+Lemma isForestOfHeaps_removeMinTree :
+  forall {A : Ord} {f f' : Forest A} {t : Tree A},
+    removeMinTree f = Some (t, f') ->
+      isForestOfHeaps f -> isForestOfHeaps f'.
+Proof.
+  intros until f.
+  functional induction removeMinTree f;
+  inv 1; inv 1.
+  constructor.
+    assumption.
+    eapply IHo; eassumption.
 Qed.
 
 Lemma removeMinTree_insTree :
-  forall (A : Ord) (t : Tree A) (h : Heap A),
+  forall (A : Ord) (t : Tree A) (h : Forest A),
     removeMinTree (insTree t h) <> None.
 Proof.
   repeat intro. apply isEmpty_removeMinTree_true in H.
   rewrite isEmpty_insTree in H. congruence.
 Qed.
 
+(** * Properties of [findMin] *)
+
+(** * Properties of [deleteMin] *)
+
+(** * Properties of [extractMin] *)
+
+Lemma isEmpty_extractMin_false :
+  forall (A : Ord) (h : Forest A),
+    isEmpty h = false <->
+    exists (m : A) (h' : Forest A), extractMin h = Some (m, h').
+Proof.
+  split; unfold extractMin; intros.
+    apply isEmpty_removeMinTree_false' in H. destruct H as [t [h' H]].
+      destruct t as [r x h'']. exists x, (merge h'' h'). rewrite H. auto.
+    destruct H as [m [h' H]]. apply isEmpty_removeMinTree_false'.
+      case_eq (removeMinTree h); intros.
+        destruct p. eauto.
+        rewrite H0 in H. congruence.
+Qed.
+
+Lemma isEmpty_extractMin_true :
+  forall (A : Ord) (h : Forest A),
+    isEmpty h = true <-> extractMin h = None.
+Proof.
+  unfold extractMin; split; intros.
+    apply isEmpty_removeMinTree_true in H. rewrite H. reflexivity.
+    case_eq (removeMinTree h); intros.
+      rewrite H0 in H. destruct p, t. inv H.
+      apply isEmpty_removeMinTree_true. assumption.
+Qed.
+
+Lemma ElemForest_extractMin :
+  forall (A : Ord) (x m : A) (h h' : Forest A),
+    extractMin h = Some (m, h') ->
+      ElemForest x h <-> x = m \/ ElemForest x h'.
+Proof.
+  unfold extractMin. split.
+    case_eq (removeMinTree h); intros; rewrite H0 in *.
+      destruct p, t. inv H.
+        apply ElemForest_removeMinTree with (x := x) in H0.
+        rewrite ElemForest_merge. firstorder. inv H.
+      congruence.
+    case_eq (removeMinTree h); intros; rewrite H0 in *.
+      destruct p, t. inv H. rewrite ElemForest_merge in *.
+        apply ElemForest_removeMinTree with (x := x) in H0.
+        firstorder; subst; auto.
+      congruence.
+Qed.
+
 Lemma extractMin_insTree :
-  forall (A : Ord) (t : Tree A) (h : Heap A),
+  forall (A : Ord) (t : Tree A) (h : Forest A),
     extractMin (insTree t h) <> None.
 Proof.
   intros. unfold extractMin.
@@ -413,20 +632,28 @@ Proof.
 Qed.
 
 Lemma extractMin_insert :
-  forall (A : Ord) (x : A) (h : Heap A),
+  forall (A : Ord) (x : A) (h : Forest A),
     extractMin (insert x h) <> None.
 Proof.
   intros. unfold insert. apply extractMin_insTree.
 Qed.
 
 Lemma extractMin_merge :
-  forall (A : Ord) (h1 h2 : Heap A),
+  forall (A : Ord) (h1 h2 : Forest A),
     extractMin (merge h1 h2) = None <->
     extractMin h1 = None /\ extractMin h2 = None.
 Proof.
   intros. rewrite <- !isEmpty_extractMin_true, isEmpty_merge.
   destruct h1, h2; cbn; firstorder congruence.
 Qed.
+
+
+
+
+
+
+
+
 
 (** Counting shiet. *)
 
@@ -437,7 +664,7 @@ match t with
           fold_right (fun t ts => countTree x t + ts) 0 l
 end.
 
-Definition count_Heap {A : Ord} (x : A) (h : Heap A) : nat :=
+Definition countForest {A : Ord} (x : A) (h : Forest A) : nat :=
   fold_right (fun t ts => countTree x t + ts) 0 h.
 
 Lemma isEmpty_countTree :
@@ -457,95 +684,28 @@ Proof.
 Qed.
 
 Lemma insTree_Some :
-  forall (A : Ord) (t : Tree A) (h : Heap A),
-    exists (t' : Tree A) (h' : Heap A),
+  forall (A : Ord) (t : Tree A) (h : Forest A),
+    exists (t' : Tree A) (h' : Forest A),
       insTree t h = t' :: h'.
 Proof.
   intros A t h; gen t. induction h as [| t' h']; tree'; eauto.
 Qed.
 
-Lemma count_Heap_insTree :
-  forall (A : Ord) (x : A) (t : Tree A) (h : Heap A),
-    count_Heap x (insTree t h) = countTree x t + count_Heap x h.
+Lemma countForest_insTree :
+  forall (A : Ord) (x : A) (t : Tree A) (h : Forest A),
+    countForest x (insTree t h) = countTree x t + countForest x h.
 Proof.
   intros A x t h; gen t; gen x.
   induction h as [| t' h']; cbn; intros.
     reflexivity.
-    tree'. unfold count_Heap in *. rewrite IHh'.
+    tree'. unfold countForest in *. rewrite IHh'.
       rewrite countTree_link. lia.
 Qed.
 
-Lemma count_Heap_insert :
-  forall (A : Ord) (x y : A) (h : Heap A),
-    count_Heap x (insert y h) =
-      (if x =? y then 1 else 0) + count_Heap x h.
+Lemma countForest_insert :
+  forall (A : Ord) (x y : A) (h : Forest A),
+    countForest x (insert y h) =
+      (if x =? y then 1 else 0) + countForest x h.
 Proof.
-  intros. unfold insert. rewrite count_Heap_insTree. cbn. trich.
+  intros. unfold insert. rewrite countForest_insTree. cbn. trich.
 Qed.
-
-Inductive validTree' {A : Type} : nat -> Tree A -> Prop :=
-    | validTree'0 :
-        forall x : A, validTree' 0 (T 0 x [])
-    | validTree'S :
-        forall (r : nat) (x : A) (l : list (Tree A)),
-          validForest r l -> validTree' r (T r x l)
-
-with validForest {A : Type} : nat -> list (Tree A) -> Prop :=
-    | validForest0 : validForest 0 []
-    | validForestS :
-        forall (r : nat) (t : Tree A) (l : list (Tree A)),
-          validTree' r t -> validForest r l -> validForest (S r) (t :: l).
-
-Definition validTree {A : Type} (t : Tree A) : Prop :=
-  validTree' (rank t) t.
-
-Inductive heapOrdered {A : Ord} : Tree A -> Prop :=
-    | heapOrderedC :
-        forall (r : nat) (x : A) (l : list (Tree A)),
-          Forall (fun t => x ≤ root t /\ heapOrdered t) l ->
-            heapOrdered (T r x l).
-
-Hint Constructors validTree' validForest heapOrdered : core.
-
-Definition isHeap {A : Ord} (h : Heap A) : Prop :=
-  Forall (fun t => validTree t /\ heapOrdered t) h.
-
-Hint Unfold validTree isHeap : core.
-
-Lemma empty_isHeap :
-  forall A : Ord, isHeap (@empty A).
-Proof.
-  intro. unfold isHeap, empty. constructor.
-Qed.
-
-Require Import Max.
-
-Lemma link_validTree' :
-  forall (A : Ord) (t1 t2 : Tree A) (r : nat),
-    validTree' r t1 -> validTree' r t2 ->
-      validTree' (S r) (link t1 t2).
-Proof.
-  do 2 inv 1; trich.
-Qed.
-
-Lemma rank_link :
-  forall (A : Ord) (t1 t2 : Tree A),
-    rank (link t1 t2) = 1 + rank t1.
-Proof.
-Admitted.
-
-Lemma insTree_isHeap :
-  forall (A : Ord) (t : Tree A) (h : Heap A),
-    validTree t -> heapOrdered t -> isHeap h ->
-      isHeap (insTree t h).
-Proof.
-  intros A t h; gen t.
-  induction h as [| t' h']; cbn; intros.
-    auto.
-    match goal with
-        | |- context [if ?x then _ else _] => destruct x
-    end.
-      auto.
-      apply IHh'.
-        red. rewrite rank_link. apply link_validTree'; auto. inv H1. inv H4.
-Abort.

@@ -248,20 +248,6 @@ match t with
         end
 end.
 
-(* Lemma minmax_leq :
-  forall (A : Ord) (x y m M : A),
-    trminmax x y = (m, M) -> m ≤ M.
-Proof.
-  unfold minmax. intros. trich.
-Qed.
-
-Lemma leq_min_max :
-  forall (A : Ord) (x y : A),
-    min x y ≤ max x y.
-Proof.
-  unfold min, max. intros. trich.
-Qed.
- *)
 Lemma isBHeap_Elem :
   forall (A : Ord) (x y v : A) (l r : BTree A),
     Elem y (node v l r) -> isBHeap (node v l r) ->

@@ -90,7 +90,9 @@ Lemma isBST_splay :
 Proof.
   intros until h.
   functional induction splay cmp x h;
-  inv 1.
+  inv 1; isBST;
+  unfold comparison2bool in *.
+    constructor; auto. Elems'. trich.
 Admitted.
 
 Lemma size_splay :

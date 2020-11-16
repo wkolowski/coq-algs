@@ -1,4 +1,7 @@
 Require Import RCCBase.
+Require Import FunctionalExtensionality.
+
+Ltac ext H := apply functional_extensionality; intro H.
 
 Inductive Finger (A : Type) : Type :=
     | F1 : A -> Finger A
@@ -206,10 +209,6 @@ Proof.
   destruct t; cbn; reflexivity.
 Qed.
 
-Require Import FunctionalExtensionality.
-
-Ltac ext H := apply functional_extensionality; intro H.
-
 Lemma mapNode_mapNode :
   forall {A B C : Type} (f : A -> B) (g : B -> C) (n : Node A),
     mapNode g (mapNode f n) = mapNode (fun x => g (f x)) n.
@@ -235,7 +234,20 @@ Proof.
     rewrite IHf0, !mapFinger_mapFinger, mapNode_mapNode'. reflexivity.
 Qed.
 
-(* TODO: fukin hard *)
+Lemma mapFinger_revFinger :
+  forall {A B : Type} (f : A -> B) (t : Finger A),
+    mapFinger f (revFinger t) = revFinger (mapFinger f t).
+Proof.
+  destruct t; reflexivity.
+Qed.
+
+Lemma mapNode_revNode :
+  forall {A B : Type} (f : A -> B) (n : Node A),
+    mapNode f (revNode n) = revNode (mapNode f n).
+Proof.
+  destruct n; reflexivity.
+Qed.
+
 Lemma map_rev :
   forall {A B : Type} (f : A -> B) (t : FingerTree A),
     map f (rev t) = rev (map f t).
@@ -244,6 +256,6 @@ Proof.
   functional induction rev t;
   cbn; intros.
     1-2: reflexivity.
-    f_equal.
-      1, 3: admit.
-Admitted.
+    rewrite !mapFinger_revFinger, <- IHf, !map_map. do 2 f_equal.
+      ext n. apply mapNode_revNode.
+Qed.

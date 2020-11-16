@@ -35,7 +35,7 @@ Proof.
   Elems'.
 Qed.
 
-Lemma isBST_insertBT :
+(* TODO: split definition of BSTs into two *)Lemma isBST_insertBT :
   forall {A : Ord} (x : A) (t : BTree A),
     isBST cmp t -> isBST cmp (insertBT cmp x t).
 Proof.
