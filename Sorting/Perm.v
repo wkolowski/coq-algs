@@ -5,8 +5,6 @@ Require Export Data.ListLemmas.
 Require Import Classes.RelationClasses.
 Require Import Permutation.
 
-(* TODO: sort things out regarding Permutation <-> perm equivalence *)
-
 (*Set Universe Polymorphism.*)
 
 Fixpoint count {A : Type} (p : A -> bool) (l : list A) : nat :=
@@ -283,7 +281,7 @@ Lemma perm_front_ex' :
       l = l1 ++ h :: l2 /\ perm (l1 ++ l2) t.
 Proof.
 (*
-  intros A h t l. gen t; gen h.
+  intros A h t l. revert t h.
   induction l as [| h' t']; cbn; intros.
     apply perm_nil_cons in H. contradiction.
     destruct (h =? h') eqn: Heq.

@@ -1,13 +1,15 @@
 Require Export Ord.
-Require Export RCCBase.
 
 Inductive Tree (A : Type) : Type :=
-    | T : nat -> A -> list (Tree A) -> Tree A.
+    | T : nat -> A -> list (Tree A) -> Tree A
 
-Arguments T [A] _ _ _.
+with Forest (A : Type) : Type :=
+    | E : Forest A
+    | N : Tree A -> Forest A -> Forest A.
+
+Arguments T {A} _ _ _.
 
 Definition Forest (A : Type) : Type := list (Tree A).
-Definition BinomialHeap (A : Type) : Type := list (Tree A).
 
 Definition rank {A : Type} (t : Tree A) : nat :=
 match t with
@@ -105,7 +107,7 @@ match t1, t2 with
         else T (S r2) y (t1 :: ts2)
 end.
 
-Function insTree {A : Ord} (t : Tree A) (h : BinomialHeap A) : BinomialHeap A :=
+Function insTree {A : Ord} (t : Tree A) (h : Forest A) : Forest A :=
 match h with
     | [] => [t]
     | t' :: h' =>

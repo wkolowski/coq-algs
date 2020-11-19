@@ -127,11 +127,11 @@ match t with
               | empty, _ =>
                   let '(m', r') := sendDown M r in
                     let (m1, m2) := trich_minmax m m' in
-                    (m1, node m2 empty r')
+                    (m1, node m2 l r')
               | _, empty =>
                   let '(m', l') := sendDown M l in
                     let (m1, m2) := trich_minmax m m' in
-                    (m1, node m2 l' empty)
+                    (m1, node m2 l' r)
               | node vl _ _, node vr _ _ =>
                   if vl ≤? vr
                   then
@@ -163,6 +163,8 @@ end.
 
 Ltac m := unfold trich_min, trich_max, trich_minmax in *; wut.
 
+(* BEWARE! This less general lemma is actually simpler, and the more general lemma Elem_sendDown'
+   is harder. *) 
 Lemma Elem_sendDown :
   forall {A : Ord} {x m : A} {t t' : BTree A},
     sendDown x t = (m, t') ->
@@ -171,21 +173,6 @@ Proof.
   intros A x m t. revert m.
   functional induction sendDown x t;
   inv 1; wut; edestruct IHp; eauto; trich.
-Qed.
-
-Lemma Elem_sendDown2 :
-  forall (A : Ord) (x m : A) (t t' : BTree A),
-    sendDown x t = (m, t') ->
-      (x = m (*/\ t = t'*)) \/ Elem x t'.
-Proof.
-  intros A x m t. revert m.
-  functional induction sendDown x t; inv 1; trich;
-  try
-  match goal with
-      | H : sendDown _ _ = _ |- _ =>
-          specialize (IHp _ _ H); apply Elem_sendDown in H
-  end;
-  wut; inv IHp.
 Qed.
 
 Lemma Elem_sendDown' :
@@ -210,25 +197,21 @@ Proof.
 Qed.
 
 (* TODO *) Lemma Elem_sendDown'' :
-  forall (A : Ord) (x m y : A) (t t' : BTree A),
-    sendDown x t = (m, t') -> Elem y t ->
-      (x = m (*/\ t = t' TODO *)) \/
-      (y = m /\ Elem x t').
+  forall (A : Ord) (x m : A) (t t' : BTree A),
+    sendDown x t = (m, t') ->
+      forall y : A, Elem y t ->
+        (x = m /\ t = t' /\ Elem y t') \/
+        (y = m /\ Elem x t').
 Proof.
-(*
-  intros A x m y t. revert m y.
-  functional induction sendDown x t; cbn; intros; wut.
-    m.
-    inv H0.
-      apply Elem_sendDown in e3. destruct e3; subst; m.
-      destruct (IHp _ _ e3 _ H1); subst; m.
-    inv H0.
-      apply Elem_sendDown in e4. destruct e4; subst; m.
-      destruct (IHp _ _ e4 _ H1); subst; m.
-    inv H0.
-      apply Elem_sendDown in e4. destruct e4; subst; m.
-      destruct (IHp _ _ e4 _ H1); subst; m.
-*)
+  intros A x m t. revert m.
+  functional induction sendDown x t;
+  inv 1.
+    Elems.
+    specialize (IHp _ _ e3). inv 1.
+      2: inv H1.
+      Focus 2. specialize (IHp _ H1). decompose [and or] IHp; clear IHp; subst.
+        trich. functional inversion e3; subst.
+          inv H1.
 Admitted.
 
 Function makeHeap {A : Ord} (t : BTree A) : BTree A :=
@@ -275,7 +258,7 @@ Proof.
     do 3 eexists. split; try reflexivity. split.
       apply isBHeap_singleton.
       trich.
-    do 3 eexists. split; try reflexivity.
+    do 3 eexists. split; try reflexivity. split.
   Ltac aa := match goal with
       | H : isBHeap empty        |- _ => inv H
       | H : isBHeap (node _ _ _) |- _ => inv H

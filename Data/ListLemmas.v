@@ -1,4 +1,3 @@
-(*Require Import Sorting.Sort.*)
 Require Export RCCBase.
 Require Export Ord.
 
@@ -34,6 +33,19 @@ Function removeFirst {A : Type} (p : A -> bool) (l : list A) : list A :=
 match l with
     | [] => []
     | h :: t => if p h then t else h :: removeFirst p t
+end.
+
+Function removeFirst' {A : Type} (p : A -> bool) (l : list A) : option (A * list A) :=
+match l with
+    | [] => None
+    | h :: t =>
+        if p h
+        then Some (h, t)
+        else
+          match removeFirst' p t with
+              | None => None
+              | Some (x, l') => Some (x, h :: l')
+          end
 end.
 
 Lemma removeFirst_In_eq :
