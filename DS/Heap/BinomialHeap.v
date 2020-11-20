@@ -359,12 +359,14 @@ Proof.
       assumption.
       clear H1. induction r1.
         constructor.
+(*
         constructor 2. assumption.
     eapply IHisBinomialForest'. eassumption.
     {
       destruct (IHisBinomialForest' _ _ H1) as [r' IH'].
       simpl. destruct (Nat.ltb_spec (rank t0) (rank t)).
         exists (S r). constructor 2.
+*)
 Admitted.
 
 Lemma isForestOfHeaps_insTree :
@@ -377,7 +379,7 @@ Proof.
   inv 2.
     constructor; auto.
     constructor; auto.
-    apply IHf0.
+    apply IHb.
       apply isHeap_link; assumption.
       assumption.
 Qed.
@@ -454,10 +456,12 @@ Proof.
   intros until 1. revert r2 f2.
   induction H.
     intros. cbn. exists r2. assumption.
+(*
     intros. eapply IHisBinomialForest'. eassumption.
     induction 1.
       cbn. exists (S r). constructor; assumption.
       apply IHisBinomialForest'0.
+*)
 Admitted.
 
 Lemma isForestOfHeaps_merge :
@@ -539,14 +543,7 @@ Restart.
   revert f' t H.
   induction H0.
     inv 1.
-    intros. eapply IHisBinomialForest'. eassumption.
-    intros. functional inversion H1; subst.
-      exists 0. constructor.
-      exists r. assumption.
-      destruct (IHisBinomialForest' _ _ X) as [r' IH'].
-        exists (S r'). constructor 3.
-          admit.
-          assumption.
+    intros. eapply IHisBinomialForest'.
 Admitted.
 
 Lemma isForestOfHeaps_removeMinTree :

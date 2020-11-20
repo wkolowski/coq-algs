@@ -99,7 +99,7 @@ Proof.
 Qed.
 
 Theorem Permutation_pairingSort :
-  forall (A : Type) (cmp : A -> A -> comparison) (l : list A),
+  forall {A : Ord} (l : list A),
     Permutation (pairingSort cmp l) l.
 Proof.
   intros. apply perm_Permutation, perm_pairingSort.
@@ -109,5 +109,5 @@ Instance Sort_pairingSort (A : Ord) : Sort cmp :=
 {
     sort := pairingSort cmp;
     Sorted_sort := Sorted_pairingSort A;
-    Permutation_sort := Permutation_pairingSort cmp;
+    Permutation_sort := Permutation_pairingSort;
 }.

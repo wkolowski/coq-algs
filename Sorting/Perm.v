@@ -224,6 +224,32 @@ Proof.
     reflexivity.
 Qed.
 
+Function removeFirst' {A : Type} (p : A -> bool) (l : list A) : option (A * list A) :=
+match l with
+    | [] => None
+    | h :: t =>
+        if p h
+        then Some (h, t)
+        else
+          match removeFirst' p t with
+              | None => None
+              | Some (x, l') => Some (x, h :: l')
+          end
+end.
+
+Lemma removeFirst'_perm :
+  forall {A : Type} {p : A -> bool} {l l' : list A} {x : A},
+    removeFirst' p l = Some (x, l') ->
+      perm l (x :: l').
+Proof.
+  intros until l.
+  functional induction removeFirst' p l;
+  inv 1.
+  rewrite perm_swap.
+    apply perm_cons, IHo. eassumption.
+    reflexivity.
+Qed.
+
 Lemma perm_In' :
   forall (A : Ord) (h : A) (t l : list A),
     perm (h :: t) l -> In h l.
@@ -251,58 +277,107 @@ Proof.
       rewrite Hph. inv H.
 Qed.
 
-Lemma perm_removeFirst :
-  forall (A : Ord) (h h' : A) (t t' : list A),
-    h <> h' -> perm (h :: t) (h' :: t') ->
-      perm (h :: removeFirst (fun x => x =? h') t) t'.
+Fixpoint removeFirst'' {A : Type} (p : A -> bool) (l : list A) : option (list A * A * list A) :=
+match l with
+    | [] => None
+    | h :: t =>
+        if p h
+        then Some ([], h, t)
+        else
+          match removeFirst'' p t with
+              | None => None
+              | Some (start, x, rest) => Some (h :: start, x, rest)
+          end
+end.
+
+Functional Scheme removeFirst''_ind := Induction for removeFirst'' Sort Prop.
+
+Lemma perm_removeFirst'' :
+  forall {A : Type} {p : A -> bool} {l s e : list A} {x : A},
+    removeFirst'' p l = Some (s, x, e) ->
+      perm l (s ++ x :: e).
 Proof.
-(*
-  intros. assert (In h' t).
-    symmetry in H0. apply perm_In' in H0. cbn in H0. destruct H0.
-      congruence.
-      assumption.
-    unfold perm. intro. cbn. destruct (p h) eqn: Heq; trich.
-      rewrite count_removeFirst_neq.
-        red in H0. specialize (H0 x). cbn in H0. trich.
-        assumption.
-      destruct (x =? h') eqn: Heq'; trich.
-        rewrite count_removeFirst_In.
-          red in H0. specialize (H0 h'). cbn in H0. trich.
-          rewrite <- Exists_dec, <- In_Exists. assumption.
-        rewrite count_removeFirst_neq.
-          red in H0. specialize (H0 x). cbn in H0. trich.
-          assumption.
-*)
-Admitted.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+    cbn. apply perm_cons, IHo. assumption.
+Qed.
+
+Lemma removeFirst''_Exists_Some :
+  forall {A : Type} {p : A -> bool} {l : list A},
+    Exists (fun x : A => p x = true) l ->
+      exists (s e : list A) (x : A),
+        removeFirst'' p l = Some (s, x, e).
+Proof.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+    do 3 eexists. reflexivity.
+    do 3 eexists. reflexivity.
+    do 3 eexists. reflexivity.
+    destruct (IHo H1) as (s & e & x & IH). congruence.
+Qed.
+
+Lemma removeFirst''_spec :
+  forall {A : Type} {p : A -> bool} {l s e : list A} {x : A},
+    removeFirst'' p l = Some (s, x, e) ->
+      l = s ++ x :: e.
+Proof.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+    rewrite (IHo _ _ _ e1). reflexivity.
+Qed.
+
+Lemma removeFirst''_spec' :
+  forall {A : Type} {p : A -> bool} {l s e : list A} {x : A},
+    removeFirst'' p l = Some (s, x, e) ->
+      p x = true.
+Proof.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+    eapply IHo. eassumption.
+Qed.
+
+Lemma removeFirst''_spec'' :
+  forall {A : Type} {p : A -> bool} {l : list A},
+    removeFirst'' p l = None ->
+      Forall (fun x : A => p x = false) l.
+Proof.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+Qed.
+
+Lemma count_removeFirst''_None :
+  forall {A : Type} {p : A -> bool} {l : list A},
+    removeFirst'' p l = None ->
+      count p l = 0.
+Proof.
+  intros until l.
+  functional induction removeFirst'' p l;
+  inv 1.
+  cbn. destruct (p h).
+    congruence.
+    auto.
+Qed.
 
 Lemma perm_front_ex' :
-  forall (A : Type) (h : A) (t l : list A),
+  forall (A : Ord) (h : A) (t l : list A),
     perm (h :: t) l -> exists l1 l2 : list A,
       l = l1 ++ h :: l2 /\ perm (l1 ++ l2) t.
 Proof.
-(*
-  intros A h t l. revert t h.
-  induction l as [| h' t']; cbn; intros.
-    apply perm_nil_cons in H. contradiction.
-    destruct (h =? h') eqn: Heq.
-      trich. exists [], t'. cbn. split.
-        reflexivity.
-        apply perm_cons_inv in H. rewrite H. reflexivity.
-      trich. assert (perm (h :: removeFirst (fun x => x =? h') t) t').
-        apply perm_removeFirst; assumption.
-        destruct (IHt' h (removeFirst (fun x => x =? h') t) H0)
-        as (l1 & l2 & H1 & H2).
-          clear IHt'. subst. exists (h' :: l1), l2. split.
-            reflexivity.
-            cbn. rewrite (removeFirst_In_perm (fun x => x =? h') h' t).
-              apply perm_cons. assumption.
-              rewrite app_comm_cons, perm_app_comm in H; cbn in H.
-                apply perm_cons_inv in H. eapply perm_In.
-                  Focus 2. rewrite H. reflexivity.
-                  apply in_or_app. right. left. reflexivity.
-                  trich.
-*)
-Admitted.
+  intros.
+  destruct (removeFirst'' (fun x : A => x =? h) l) eqn: Hrf.
+    destruct p as [[s x] e]. rewrite (removeFirst''_spec Hrf).
+      exists s, e. split.
+        do 2 f_equal. apply removeFirst''_spec' in Hrf. cbn in Hrf. trich.
+        apply (perm_cons_inv _ h). rewrite H, (perm_removeFirst'' Hrf), perm_front.
+          apply removeFirst''_spec' in Hrf. cbn in Hrf. trich.
+    apply count_removeFirst''_None in Hrf. specialize (H (fun x : A => x =? h)).
+      cbn in H. trich.
+Qed.
 
 Theorem Permutation_perm :
   forall (A : Type) (l1 l2 : list A),
@@ -313,7 +388,7 @@ Proof.
 Qed.
 
 Theorem perm_Permutation :
-  forall (A : Type) (l1 l2 : list A),
+  forall (A : Ord) (l1 l2 : list A),
     perm l1 l2 -> Permutation l1 l2.
 Proof.
   induction l1 as [| h1 t1]; cbn; intros.

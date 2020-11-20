@@ -35,46 +35,6 @@ match l with
     | h :: t => if p h then t else h :: removeFirst p t
 end.
 
-Function removeFirst' {A : Type} (p : A -> bool) (l : list A) : option (A * list A) :=
-match l with
-    | [] => None
-    | h :: t =>
-        if p h
-        then Some (h, t)
-        else
-          match removeFirst' p t with
-              | None => None
-              | Some (x, l') => Some (x, h :: l')
-          end
-end.
-
-Lemma removeFirst_In_eq :
-  forall (A : Type) (p : A -> bool) (l : list A),
-    Exists (fun x => p x = true) l ->
-      S (length (removeFirst p l)) = length l.
-Proof.
-  intros. functional induction @removeFirst A p l; inv H; cbn; auto.
-Qed.
-
-Lemma removeFirst_le :
-  forall (A : Type) (p : A -> bool) (l : list A),
-    length (removeFirst p l) <= length l.
-Proof.
-  induction l as [| h t]; cbn; try destruct (p h); cbn; lia.
-Qed.
-
-Lemma removeFirst_In_lt :
-  forall (A : Type) (p : A -> bool) (l : list A),
-    Exists (fun x => p x = true) l ->
-      length (removeFirst p l) < length l.
-Proof.
-  intros.
-  functional induction @removeFirst A p l;
-  inv H; cbn in *.
-    1-2: lia.
-    specialize (IHl0 H1). lia.
-Qed.
-
 Lemma In_Exists :
   forall (A : Type) (x : A) (l : list A),
     In x l <-> Exists (fun y => y = x) l.
@@ -120,7 +80,7 @@ Proof.
 Qed.
 
 (* Quicksort lemmas *)
-Lemma filter_length :
+Lemma length_filter :
   forall (A : Type) (f : A -> bool) (l : list A),
     length (filter f l) <= length l.
 Proof.
@@ -132,7 +92,7 @@ Lemma filter_lengthOrder :
     lengthOrder (filter p t) (h :: t).
 Proof.
   intros. unfold lengthOrder, lt. simpl. apply le_n_S.
-  apply filter_length.
+  apply length_filter.
 Qed.
 
 Lemma filter_In_app :
@@ -166,8 +126,6 @@ Proof.
   intros. functional induction @bifilter A p l; simpl;
   rewrite ?e1; simpl; try rewrite e0 in IHp0; try inversion IHp0; auto.
 Qed.
-
-Require Import Ord.
 
 Fixpoint trifilter {A : Ord} (x : A) (l : list A)
   : list A * list A * list A :=
