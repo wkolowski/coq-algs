@@ -469,7 +469,7 @@ We can easily formalize the above reformulated definition. First we define a hel
 
 This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the next subsection, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
 
-Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted list by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs on index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
+Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted lists by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs of index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
 \subsection{Not that abstract} \label{notabstract}
 
@@ -1134,8 +1134,6 @@ Most of what we've been doing lately was pretty boring. Given the cleanest defin
     \item To derive the functional induction principle, repeat the graph's induction principle, with occurrences of the graph replaced with the property being proved. Prove it using graph's induction principle and previously proved lemmas.
     \item To derive the recursive equation, use the target function's definition. Prove it with functional induction.
 \end{itemize}
-
-Test test dżony test asdss du du du dupa asd
 
 \subsection{E pluribus unum}
 
