@@ -22,7 +22,7 @@
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ Z września też nici, ale spoko} % Data zlozenia pracy
+\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ \sout{Z września też nici, ale spoko} \\ Może w marcu '21 się uda.} % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -363,28 +363,17 @@ Besides these shortcomings, there are also some other differences, which are mor
 Having given a thorough introduction, it should now be clear what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques'', using quicksort -- a well-known and well-studied sortign algorithm -- for the purposes of concrete illustration. The rest of the thesis is structured as follows:
 
 \begin{itemize}
-    \item In \hyperref[quicksort]{Chapter 2} we look at quicksort inside and out, describing the bulk of our approach.
-    \item In chapter 3, ...
-    \item TODO: put here the remaining chapters after they're written.
+    \item In \hyperref[specify]{chapter 2} we look at techniques for verifying a specification's usefulness and for improving bad specifications (sadly, there seems to be no easy way of coming up with a good specification).
+    \item In \hyperref[template]{chapter 3} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof. We also present techniques for assessing the quality of such a template.
+    \item In \hyperref[termination]{chapter 4} we describe a general method for carrying out termination proofs and review techniques for reasoning about functions defined using this method.
+    \item In \hyperref[exnihilo]{chapter 5} we show how to formally prove the abstract algorithm template correct in a top-down fashion without writing too many proofs.
 \end{itemize}
 
-\chapter{A (not so) quick \textit{tour de} sort} \label{quicksort}
-
-In this chapter we will look at the problem of sorting a list -- one of the most basic data structures -- and at quicksort, one of the fastest and most elegant solutions of this problem. Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques for specifying, implementing and verifying algorithms in the functional paradigm. The rest of the chapter is structured as follows:
-
-\begin{itemize}
-    \item In section \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications (sadly, there seems to be no easy way of coming up with a good specification).
-    \item In section \ref{template} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof. We also present techniques for assessing the quality of such a template.
-    \item In section \ref{termination} we describe a general method for carrying out termination proofs and review techniques for reasoning about functions defined in this way.
-    \item In section \ref{exnihilo} show how to formally prove the abstract algorithm template correct in a top-down fashion without writing too many proofs.
-    \item In section \ref{summary2} we go through all the concepts and techniques once more to experience a higher-level view of how they fit together.
-\end{itemize}
-
-\section{Specify the problem} \label{specify}
+\chapter{Specify the problem} \label{specify}
 
 In the previous chapter we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
 
-This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see later in this chapter, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
+This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see in later, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
 
 Nonetheless, we present a simple heuristic for checking if a specification is good and illustrate it with two failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the previous chapter.
 
@@ -393,7 +382,7 @@ Nonetheless, we present a simple heuristic for checking if a specification is go
     Find a specification of the problem that is both abstract and easy to use.
 \end{center}
 
-\subsection{Not that easy} \label{noteasy}
+\section{Not that easy} \label{noteasy}
 
 So, how can we formally define the proposition ``the list of natural numbers $l$ is sorted''? One way of doing this is to formalize the intuitive definition which says that a list is sorted if earlier elements are less than (or equal to) later elements.
 
@@ -428,7 +417,7 @@ The next source of clumsiness is the fact that on the lefts of these equations w
 
 All of these sources of clumsiness would add up if we attempted to prove that a list sorting function is correct. If we attempted an induction on the indices, dealing with the proof proof of \m{i <= j} would be a bit annoying. If we went for a induction on the proof of \m{i <= j}, then we would have to reason by cases on the list just to be able to use the equations. If we went for an induction on the list, we still have a lot of work with the indices.
 
-\subsection{Improving patchwork definitions} \label{improvingpatchwork}
+\section{Improving patchwork definitions} \label{improvingpatchwork}
 
 The problems are not insurmountable -- with some additional bookkeeping and annoyance, they can be overcome. We could even try to dodge the problem by changing the definitions of \m{<=} and \m{nth} so that they corresponded more closely to the definition of natural numbers: \m{<=} can be defined using the fact that \m{0 <= m} and \m{n <= m -> S n <= S m}, whereas \m{nth} can be defined by recursion first on the number and only then on the list.
 
@@ -467,7 +456,7 @@ This definition can be simplified even more if we notice that it is not necessar
 
 Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted lists by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs of index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
-\subsection{Not that abstract} \label{notabstract}
+\section{Not that abstract} \label{notabstract}
 
 Does this mean we now have a good specification? Not quite, because our improved definition still defies the first prescription of concept/technique \#0: it is not abstract enough. This boils down to the fact that we defined sortedness for a list of natural numbers instead of a list of elements of a general type \m{A}.
 
@@ -494,7 +483,7 @@ How do we put this into practice? It's quite simple: in our definition, we repla
 
 Note that we don't assume anything about the relation -- \m{R} can be any relation whatsoever, not necessarily a total order relation. This is the first glimpse of a concept we will meet later: don't assume what is not needed. To state the definition we don't need \m{R} to have any properties, so we don't assume any.
 
-\subsection{Just about right... or is it? Staying on the right track} \label{justright}
+\section{Just about right... or is it? Staying on the right track} \label{justright}
 
 So, we're done, right? Not quite. If you're an attentive reader, you should remember that we set out to give a specification of a sorting function, whereas it's easy to notice that so far we have only given a definition of what it means for a list to be sorted.
 
@@ -550,7 +539,7 @@ The final specification of a sorting function that we have arrived at through ou
 
 To sum up our struggles, we once more stress the fact that inventing specifications is an art that one gets better at with experience. We learned a useful criterion for telling when a specification is bad, but to apply it we must first have something to apply it to. We also saw two hints that can help us improve a bad specification, but they don't always work: sometimes by ``inductivizing'' a definition we can gain a lot, but sometimes inductive definitions are a path to oblivion and more patchwork-y definitions reign supreme.
 
-\section{Abstract the algorithm} \label{template}
+\chapter{Abstract the algorithm} \label{template}
 
 Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem were novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms -- only heuristics.} The usual high-level idea behind quicksort (agnostic as to whether the thing being sorted is a list or an array) is usually presented somewhat like this:
 
@@ -637,7 +626,7 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\subsection{User experience: concerete algorithm as a sanity check} \label{sanity1}
+\section{User experience: concerete algorithm as a sanity check} \label{sanity1}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
@@ -678,7 +667,7 @@ Improving our flawed template turns out to be pretty easy. We can change the typ
 
 With these improved types our template doesn't change a lot, but the user experience becomes much better: defining the naivest concrete quicksort on natural numbers is easier than before, because we got rid of the problematic empty list case, which also enables us to easily generalize to a more polymorphic version.
 
-\subsection{Boolean blindness vs evidence-based programming}
+\section{Boolean blindness vs evidence-based programming}
 
 The new template, thoroughly tested for user experience, will soon turn out to be good enough. But user experience is not the only way of checking whether the template makes sense. In our case, we could have arrived at the same conclusions from a completely different angle, which I will call \textit{evidence-based programming}.\footnote{This is a term I coined for the purpose of this thesis. Of course it is a pun on all the ``evidence-based X'', like evidence-based medicine or evidence-based policy.} It roughly corresponds to the part of our abstract about ``representing flow of information in a proof using types'', but we will consider the flow of information in a program, not a proof.
 
@@ -725,7 +714,7 @@ Having come so far, we can now explain what evidence-based programming is: it is
     Make sure that types in your abstract template contain enough evidence, so that information flow in the algorithm is smooth, but also make sure that it's not cluttered with unnecessary evidence.
 \end{center}
 
-\subsection{Remarks on (un)bundling and (lack of) sharing}
+\section{Remarks on (un)bundling and (lack of) sharing}
 
 We could have defined our template in a slightly different manner, namely with a more bundled class for holding the arguments. By ``bundling'', in the context of Coq, we will mean realizing a component of a record or a class as a field. ``Unbundling'', on the other hand, is realizing a component of a class or record as a parameter.
 
@@ -753,13 +742,13 @@ In case of our template's \m{QSArgs} the difference doesn't matter very much and
 
 % TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
 
-\section{Prove termination} \label{termination}
+\chapter{Prove termination} \label{termination}
 
 The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate.
 
 This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which is just as good as the technique while being much more automated and easy to use. In the meantime we will learn a generic technique for proving properties of recursive functions.
 
-\subsection{The inductive domain method}
+\section{The inductive domain method}
 
 How do we prove that our algorithm terminates? Before we tackle this question, let's first recall \textit{why} we have to prove it: the only form of recursion allowed in Coq is \textit{structural recursion}, i.e. one in which recursive calls are made on subterms of the principal argument. Because terms are finite, this guarantees that all structurally recursive programs terminate and from termination (or rather, from strong normalization) follows consistency of Coq's logic. Thus, on the one hand, the restriction to structural recursion protects us from contradiction (and from other evils too), but on the other hand it can be quite inconvenient from the pragmatic programmer's point of view.
 
@@ -795,7 +784,7 @@ We have seen only the basic version of the inductive domain method because quick
 
 The inductive domain method can be used not only to implement general recursive functions, but also to represent partial recursive functions \cite{BCM8}. If a partial recursive function terminates for some input, we can construct the corresponding call graph and use it to run the function's representation. Of course in general we won't be able to prove that a partial recursive function terminates for all inputs, so we won't be able to recover the desired partial function of type \m{A -> B} from its representation of type \m{forall a\ :\ A, D a -> B}.\footnote{The inductive domain method, as a means of representing partial recursive functions, has some problems, for example with composition. See \cite{Knapp} for the most recent take on partial recursive functions and computability in (homotopy) type theory.}
 
-\subsection{Well-founded induction}
+\section{Well-founded induction}
 
 We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.} A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{Conversely, structural induction is nothing more than just well-founded induction with the well-founded relation being ``is a subterm of''. This is why well-founded induction and structural induction are, in a sense, equivalent.}
 
@@ -849,7 +838,7 @@ Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward
 
 Having all the lemmas we need, the proof proceeds exactly as described above. \m{qs}, our provably terminating implementation of a quicksort template, is a result of feeding the termination proof into \m{qs'}. Note that it is crucial to that we have ended the proof with the command \m{Defined} instead of \m{Qed}. If we didn't, we wouldn't be able to run \m{qs} -- it would get instantly stuck. This is because the command \m{Qed} results in the definition being opaque, i.e. the body of the definition gets erased. This would prevent \m{qs} from computing anything, because the helper function \m{qs'} was defined by structural recursion on \m{d\ :\ QSDom A l}, which in the case of \m{qs} comes from the termination proof.
 
-\subsection{User experience: default implementation as a sanity check} \label{sanity2}
+\section{User experience: default implementation as a sanity check} \label{sanity2}
 
 In section \ref{sanity1} we learned an important sanity check we can easily perform: filling the template in to get a concrete algorithm. Carrying out that check turned out to be very beneficial -- it might have happened, after all, that our template is so silly that it isn't possible to fill it in!
 
@@ -875,7 +864,7 @@ By listening to the advice in the above technique, we can hit two birds with one
 
 As we can see, the definition of \m{TQSA\_default} is almost the same as that of \m{QSA\_nat}. The proofs aren't very hard, so we have passed the sanity check -- we now have a provably terminating quicksort template, together with a default implementation, and, thanks to the last check, it looks like it produces correct results. But before we move on to prove our template's correctness, let's see what we could have done differently with regards to the termination proof.
 
-\subsection{A slight variation on a theme}
+\section{A slight variation on a theme}
 
 The first thing we could have done differently is the relation between the provably terminating template and the possibly nonterminating template. We have implemented these separately, with termination checker turned off so that the latter gets accepted, but we could have chosen a different design in which \m{qs} is defined using inductive domain method and it is the ``termination proof'' (i.e. \m{QSDom\_all}) for which we turn off the termination checker. In this way we derive the possibly nonterminating version of \m{qs} from the template we used to define the provably terminating version. The code is shown in the listing below.
 
@@ -892,7 +881,7 @@ I am not sure why we would choose this variant over the original one. On the one
 
 The only argument in favor of this version that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas the original design this would require two correctness proofs (one for the nonterminating \m{qs'}, another for the one defined using inductive domain method) that could even differ from one another.
 
-\subsection{A more irrelevant variant of the inductive domain method} \label{irrelevant}
+\section{A more irrelevant variant of the inductive domain method} \label{irrelevant}
 
 Another thing we could have done differently is the particular form of the inductive domain method we used. Our domain ``predicate'' was not really a predicate, but a type family (i.e. a function \m{A -> Type}). As long as we stay inside Coq this is perfectly fine, but it starts being problematic when we leave Coq by using the mechanism of \textit{extraction}.
 
@@ -971,7 +960,7 @@ The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the 
 
 What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have achieved our goal.
 
-\section{Verificatio ex nihilo} \label{exnihilo}
+\chapter{Verificatio ex nihilo} \label{exnihilo}
 
 We are now ready to make the last step in our grand journey for formally verified algorithms: prove correctness of our template. Our approach to this task, outlined in the below technique, will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
 
@@ -980,7 +969,7 @@ We are now ready to make the last step in our grand journey for formally verifie
     Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.
 \end{center}
 
-\subsection{One induction to rule them all -- functional induction}
+\section{One induction to rule them all -- functional induction}
 
 Before we make the last step of our journey, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to put them together? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
 
@@ -1074,9 +1063,9 @@ Another not-so-tame class of recursive functions that do not easily submit to ou
 
 Before we finish, let's try to trace the history of functional induction. The term itself isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
 
-The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was as first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of two tools designed for this purpose: \m{Function} \cite{Function} and \m{Equations} \cite{Equations}, although variants of the technique used there may differ from the one presented in this thesis.
+The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of two tools designed for this purpose: \m{Function} \cite{Function} and \m{Equations} \cite{Equations}, although variants of the technique used there may differ from the one presented in this thesis.
 
-\subsection{Don't do this at home}
+\section{Don't do this at home}
 
 Before proceeding to see the automation, we will try to explore another way of deriving the functional induction principle -- a way which, at first sight, looks much easier and more appealing than the one we have already seen, but upon closer inspection leads down a rabbit hole. That way is to omit the inductive graph altogether and try to derive the functional induction principle from the induction principle of the domain predicate. The first step in such an attempt is to prove an induction principle for the helper function \m{qs'}, shown in the listing below.
 
@@ -1115,7 +1104,7 @@ The real problem is that in the last case, in which both \m{d1} and \m{d2} were 
 
 Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance. The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the last section is quite boilerplate-heavy, there is no way around it... except for some automation!\footnote{Well, there is. If we need to do just a few quick proofs and don't care about separating the reasoning from the implementation, we can just directly use the domain predicate's induction principle.}
 
-\subsection{Automating the boring stuff} \label{automate}
+\section{Automating the boring stuff} \label{automate}
 
 Most of what we've been doing lately was pretty boring. Given the cleanest definition of the algorithm we saw back in section \ref{template}, when we weren't concerned with the termination proof and the functional induction principle, can be derived automatically:
 
@@ -1131,7 +1120,7 @@ Most of what we've been doing lately was pretty boring. Given the cleanest defin
     \item To derive the recursive equation, use the target function's definition. Prove it with functional induction.
 \end{itemize}
 
-\subsection{E pluribus unum}
+\section{E pluribus unum}
 
 The verification goes here.
 
@@ -1162,21 +1151,17 @@ The verification goes here.
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-\subsection{Sanity check -- concrete proofs}
+\section{Sanity check -- concrete proofs}
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-\subsection{User experience: avoid bloatware}
+\section{User experience: avoid bloatware}
 
-\section{Summary} \label{summary2}
-
-\section{Exercise}
+\chapter{Conclusion} \label{conclusion}
 
 There's a common abstraction behind both quicksort and mergesort: split the list into parts, sort them recursively, and then merge these parts. In quicksort, the real sorting is done during the ``split'' phase, i.e. during partitioning, and the ``merge'' phase is trivial list concatenation. In mergesort it's the other way around: the ``split'' phase is more or less trivial and the sorting is done during the ``merge'' phase.
 
 Design a sorting algorithm that generalizes both quicksort and mergesort. Using concepts and techniques from this chapter, give a specification of this algorithm, implement it and prove it correct.
-
-\chapter{Conclusion}
 
 Mention thesis' repository: \repo
 
@@ -1511,13 +1496,13 @@ Mention thesis' repository: \repo
     \url{https://www.researchgate.net/publication/220676549_The_view_from_the_left}
 
 \bibitem{Program}
-    Matthieu Sozeau,
-    \textit{Un environnement pour la programmation avec types d´ependants},
+    Matthieu Sozeau, \\
+    \textit{Un environnement pour la programmation avec types d\'{e}pendants},
     2008 \\
     \url{https://www.irif.fr/~sozeau/research/publications/thesis-sozeau.pdf}
 
 \bibitem{Function}
-    Gilles Barthe, Julien Forest, David Pichardie, and Vlad Rusu,
+    Gilles Barthe, Julien Forest, David Pichardie, and Vlad Rusu, \\
     \textit{Defining and Reasoning About Recursive
     Functions: A Practical Tool for the Coq
     Proof Assistant},
@@ -1531,7 +1516,7 @@ Mention thesis' repository: \repo
     \url{https://www.irif.fr/~sozeau//research/publications/Equations_Reloaded-ICFP19.pdf}
 
 \bibitem{EncodeDecodeAbstract}
-    James McKinna and Fredrik Nordvall Forsberg,
+    James McKinna and Fredrik Nordvall Forsberg, \\
     \textit{The Encode-Decode Method, Relationally (Abstract)},
     2015, \\
     \url{http://cs.ioc.ee/types15/abstracts-book/contrib27.pdf}
