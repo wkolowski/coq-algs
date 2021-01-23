@@ -49,7 +49,7 @@
 %\newcommand{\Bool}{\mathbf{2}}
 
 % Thesis repository.
-\newcommand{\repo}{\url{https://github.com/wkolowski/RandomCoqCode}}
+\newcommand{\repo}{\url{https://github.com/wkolowski/coq-algs}}
 
 % Some type theory markup.
 \newcommand{\type}[2]{#1 \vdash #2}
@@ -267,7 +267,7 @@ The explanation of elements prompts us to change our perspective on type theory 
 
 Set theory has two basic kinds of objects -- propositions and sets -- living in two separate layers. Propositions live in the logical layer, which consists of first order classical logic, whereas sets live in the set-theoretical layer, which consists of set theory axioms. Type theory, on the other hand, has only one basic kind of objects, namely types, and only one layer -- the type layer. Both propositions and sets can in type theory be interpreted using types.
 
-% TODO: membetship predicate is propsition
+% TODO: membership predicate is propsition
 
 In set theory, the membership predicate $x \in A$ is a proposition which can be proved or disproved. It is decidable internally, because of the law of excluded middle, but not externally, because there is no computer program that can tell us whether $x \in A$. In type theory, $x : A$ is not a proposition, but a judgment, which means one can establish that it holds, but it makes no sense to negate it. It neither makes sense to talk about it's internal decidability. However, it is externally decidable, which means there is a computer program that checks whether it holds.
 
@@ -275,7 +275,7 @@ In set theory, sets are semantic entities that need not, in general, be disjoint
 
 \section{Way of the Coq} \label{coq}
 
-In this section we give a very short Coq tutorial. Before reading it, the unfamiliar reader should install CoqIDE\footnote{Available from \cite{Coq}.} and run the listing below\footnote{It can be found in the thesis' repository \repo in the directory \m{Thesis/Snippets/}} in interactive mode. This experience will greatly enrich the explanation.
+In this section we give a very short Coq tutorial. Before reading it, the unfamiliar reader should install CoqIDE\footnote{Available from \cite{Coq}.} and run the listing below\footnote{It can be found in the thesis' repository \repo\ in the directory \m{Thesis/Snippets/}} in interactive mode. This experience will greatly enrich the explanation.
 
 \definecolor{CoqIDE}{RGB}{255,248,220}
 
@@ -344,15 +344,15 @@ As we can see, the book-length literature on Coq is quite scarce and sometimes d
 
 Even though the book is great, it won't be of much inspiration for us. The reasons stem directly from the book's main themes. The first one is exploring the various algorithmic uses of lazy evaluation. Even though Coq makes lazy evaluation readily available, it does so using the tactic \m{cbn} and command \m{Eval cbn in t}, whereas the term language has barely any control over the evaluation order. This means that large swaths of the book are at odds with Coq.
 
-The second theme in the book, somewhat related to the first, are techniques for analysis of amortized complexity of lazy data structures. Okasaki was actually the first person to realize that in the purely functional world, amortization is possible (before it was though that it is contradicted by persistence) and that it is inseparably tied to lazy evaluation. This aspect of PFSD won't be important for us because, as we have already underlined many times, we are not interested in complexity, but in formal correctness.
+The second theme in the book, somewhat related to the first, are techniques for analysis of amortized complexity of lazy data structures. Okasaki was actually the first person to realize that in the purely functional world, amortization is possible (in earlier times it was though that amortization is contradicted by persistence) and that it is inseparably tied to lazy evaluation. This aspect of PFDS won't be important for us because, as we have already underlined many times, we are not interested in complexity -- only in formal correctness.
 
-The third big theme of the book are numerical representations. It is the idea that functional data structures are analogous to various obscure positional number systems that aren't at all used for other purposes. In this view, inserting an element into a data structure is analogous to incrementing a number, deleting an element is analogous to decrementing a number, merging two data structures is analogous to adding numbers and so on. While it is a very interesting and worthwhile idea, its purpose is coming up with new data structures -- something we won't do here.
+The third big theme of the book are numerical representations. The idea is that functional data structures are analogous to various obscure positional number systems that aren't at all used for other purposes. In this view, inserting an element into a data structure is analogous to incrementing a number, deleting an element is analogous to decrementing a number, merging two data structures is analogous to adding numbers and so on. While it is a very interesting and worthwhile idea, its purpose is coming up with new data structures -- something we won't do here. In fact we think that PFDS did such a great job at developing the field of functional data structures that in this thesis we will occupy ourselves entirely with functional algorithms.
 
 The other book that is relevant to our work is ``Verified Functional Algorithms'' \cite{VFA}, which is actually the third volume of the aforementioned Software Foundations series \cite{SoftwareFoundations}. It is in fact much more relevant than PFDS, because it focuses on proving algorithms correct using Coq, just as we do. In our opinion however, the approach presented in VFA has many shortcomings:
 
 \begin{itemize}
     \item It presents the discussed algorithms in their final form without discussing how they were designed in the first place (or how they were translated from their imperative progenitors).
-    \item It is not abstract enough -- all too often it considers only the case where the keys/values of a data structure are natural numbers and skips the general case, where they are of any type with decidable equality/partial order etc.
+    \item It is not abstract enough -- all too often it considers only the case where the keys/values of a data structure are natural numbers and skips the general case, where they are of any type with decidable equality, decidable order, etc.
     \item It does not deal with techniques for defining general recursive functions properly. Even though it presents a method of defining general recursive functions, it doesn't discuss its principles or what to do if it fails. Often it skips the matter completely and just uses the so called ``fuel recursion'' which is not very hygienic.
 \end{itemize}
 
@@ -360,7 +360,7 @@ Besides these shortcomings, there are also some other differences, which are mor
 
 \section{Outline of the thesis} \label{outline}
 
-Having given a thorough introduction, it should now be clear what we mean by ``formally verified functional algorithms and data structures in Coq''. In the remaining chapters of the thesis we describe the actual concepts and techniques'', using well-known and well-studied examples like quicksort, merge sort or binary heaps. The rest of the thesis is structured as follows:
+Having given a thorough introduction, it should now be clear what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques'', using quicksort -- a well-known and well-studied sortign algorithm -- for the purposes of concrete illustration. The rest of the thesis is structured as follows:
 
 \begin{itemize}
     \item In \hyperref[quicksort]{Chapter 2} we look at quicksort inside and out, describing the bulk of our approach.
@@ -370,11 +370,7 @@ Having given a thorough introduction, it should now be clear what we mean by ``f
 
 \chapter{A (not so) quick \textit{tour de} sort} \label{quicksort}
 
-The field of algorithms and data structures can, in principle, be easily separated into two subfields: the algorithms and the data structures. But these two go hand in hand: all algorithms operate on data structures, no matter how primitive, and data structures exist precisely in order for algorithms to operate on them.
-
-We have to start somewhere, however, and so we choose to break this vicious circle at algorithms. In this chapter we will look at the problem of sorting a list -- one of the most basic data structures -- and at quicksort, one of the fastest and most elegant solutions of this problem.
-
-Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques for specifying, implementing and verifying algorithms in the functional paradigm.
+In this chapter we will look at the problem of sorting a list -- one of the most basic data structures -- and at quicksort, one of the fastest and most elegant solutions of this problem. Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques for specifying, implementing and verifying algorithms in the functional paradigm. The rest of the chapter is structured as follows:
 
 \begin{itemize}
     \item In section \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications (sadly, there seems to be no easy way of coming up with a good specification).
@@ -1182,7 +1178,7 @@ Design a sorting algorithm that generalizes both quicksort and mergesort. Using 
 
 \chapter{Conclusion}
 
-Mention thesis' repository: \url{wkolowski.github.io/RandomCoqCode/Thesis/}
+Mention thesis' repository: \repo
 
 %%%%% BIBLIOGRAFIA
 
