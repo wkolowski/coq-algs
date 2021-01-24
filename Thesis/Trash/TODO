@@ -2,5 +2,3 @@
 1.1. Braun mergesort: in order not to waste resources, we sometimes have to reify abstract patterns, like the splitting in mergesort.
 1.2. Binary heaps: a case study to show the basic workflow and that it's not that obvious how to get basic stuff right.
 1.3. Cool data structures: ternary search trees, finger trees.
-
-The Equation of Knowledge: From Bayes' Rule to a Unified Philosophy of Science

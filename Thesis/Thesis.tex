@@ -360,13 +360,15 @@ Besides these shortcomings, there are also some other differences, which are mor
 
 \section{Outline of the thesis} \label{outline}
 
-Having given a thorough introduction, it should now be clear what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques'', using quicksort -- a well-known and well-studied sortign algorithm -- for the purposes of concrete illustration. The rest of the thesis is structured as follows:
+After this chapter's thorough introduction it should be now clear what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques''. The rest of the thesis is structured as follows:
 
 \begin{itemize}
-    \item In \hyperref[specify]{chapter 2} we look at techniques for verifying a specification's usefulness and for improving bad specifications (sadly, there seems to be no easy way of coming up with a good specification).
-    \item In \hyperref[template]{chapter 3} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof. We also present techniques for assessing the quality of such a template.
-    \item In \hyperref[termination]{chapter 4} we describe a general method for carrying out termination proofs and review techniques for reasoning about functions defined using this method.
-    \item In \hyperref[exnihilo]{chapter 5} we show how to formally prove the abstract algorithm template correct in a top-down fashion without writing too many proofs.
+    \setlength\itemsep{0em}
+    \item In \hyperref[specify]{chapter 2} we look at techniques for verifying a specification's usefulness and for improving bad specifications.\footnote{Sadly, there seems to be no easy way of coming up with a good specification.}
+    \item In \hyperref[template]{chapter 3} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof.
+    \item In \hyperref[termination]{chapter 4} we describe a general method for defining recursive functions and carrying out termination proofs.
+    \item In \hyperref[exnihilo]{chapter 5} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion... without writing too many proofs.
+    \item In \hyperref[conclusion]{chapter 6} we review all our concepts and techniques from a birds'-eye view and conclude with some directions for future work.
 \end{itemize}
 
 \chapter{Specify the problem} \label{specify}
