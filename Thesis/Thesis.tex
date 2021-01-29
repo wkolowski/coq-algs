@@ -85,10 +85,10 @@
 
 \chapter{Introduction} \label{ch1}
 
-The title of this thesis is ``Formally verified functional algorithms and data structures in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
+The title of this thesis is ``Formally verified functional algorithms in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
 
 \begin{itemize}
-    \item In \hyperref[paradigm]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms and data structures''.
+    \item In \hyperref[paradigm]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms''.
     \item In \hyperref[impfun]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
     \item \hyperref[worlds]{Section 3} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
     \item In \hyperref[formal]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
@@ -219,7 +219,7 @@ for doing so, called Gallina, a language for automating trivial proof steps and 
 
 Thanks to the Curry-Howard correspondence \cite{CurryHoward}, all of these great things can also be interpreted from the programmer's perspective. Gallina is a dependently typed functional programming language, Ltac is a language for automatic program synthesis, and Vernacular offers a suite of facilities similar to those found in most IDEs. CoqIDE can be seen as supporting interactive program construction (and interactively proving a program correct can be seen as a very powerful form of debugging!).
 
-Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[ch2]{Chapter 2}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
+Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[template]{Chapter 3}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
 
 What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. To sum up, we can avoid the various mismatches of previous section using formal proofs inside our unified world.
 
@@ -356,11 +356,11 @@ The other book that is relevant to our work is ``Verified Functional Algorithms'
     \item It does not deal with techniques for defining general recursive functions properly. Even though it presents a method of defining general recursive functions, it doesn't discuss its principles or what to do if it fails. Often it skips the matter completely and just uses the so called ``fuel recursion'' which is not very hygienic.
 \end{itemize}
 
-Besides these shortcomings, there are also some other differences, which are more cosmetic in nature. First, VFA uses Coq's module system, whereas we will use the typeclass system. Second, even though just like us it is not that much concerned with performance, VFA sees the performance of an algorithm implemented in Coq as a property of the OCaml program extracted\footnote{Coq has a mechanism called extraction, which is a form of code generation that transforms Coq code into computationally equivalent code in OCaml, Haskell or Scheme.} from the Coq code, rather than of the Coq program itself, like we do.
+Besides these shortcomings, there are also some other differences, which are more cosmetic in nature. First, VFA uses Coq's module system, whereas we will use the typeclass system. Second, even though it is not that much concerned with performance, just as we aren't, VFA sees the performance of an algorithm implemented in Coq as a property of the OCaml program extracted\footnote{Coq has a mechanism called extraction, which is a form of code generation that transforms Coq code into computationally equivalent code in OCaml, Haskell or Scheme.} from the Coq code, rather than of the Coq program itself, like we do.
 
 \section{Outline of the thesis} \label{outline}
 
-After this chapter's thorough introduction it should be now clear what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques''. The rest of the thesis is structured as follows:
+After this chapter's thorough introduction it should be clear now what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques''. The rest of the thesis is structured as follows:
 
 \begin{itemize}
     \setlength\itemsep{0em}
@@ -375,9 +375,11 @@ After this chapter's thorough introduction it should be now clear what we mean b
 
 In the previous chapter we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
 
-This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see in later, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
+This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see in later chapters, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
 
-Nonetheless, we present a simple heuristic for checking if a specification is good and illustrate it with two failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the previous chapter.
+The problem, whose specification we will be looking for in this chapter, is that of sorting. It is a very simple problem concerned with moving elements around in a list, the simplest and most ubiquitous data structure of functional programming. But don't let yourself get fooled by the apparent simplicity -- we will see that sorting is more than enough to illustrate the various possible traps that an inexperienced practitioner of formally verified functional algorithms can fall into when trying to devise a specification.
+
+As a guide to avoiding these traps, we present a simple heuristic for checking if a specification is good and illustrate it with a few failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the previous chapter.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0} \\
@@ -524,7 +526,7 @@ This one is admittedly quite murky. What is meant by ``aspect'' here? The best w
 ]
 {Coq}{Snippets/Chapter2/JustRight.v}
 
-Such an idea is \textit{counting}: two lists are permutations of one another when they contain the same number of occurrences of each \m{x\ :\ A}\footnote{The proof of equivalence of these two definitions of \m{Permutation} can be found in the thesis' repository. I won't give a precise location here, because it's likely to be out of date soon.} Note that, because we count elements, this new definition only applies to types that have decidable equality. This restriction is not a big problem in practice, because the need to sort functions, streams, or other such infinite objects lacking decidable equality, is pretty rare.
+Such an idea is \textit{counting}: two lists are permutations of one another when they contain the same number of occurrences of each \m{x\ :\ A}. Note that, because we count elements, this new definition only applies to types that have decidable equality. This restriction is not a big problem in practice, because the need to sort functions, streams, or other such infinite objects lacking decidable equality, is pretty rare.
 
 But the resulting definition by counting is \textit{not abstract enough}, because it \textit{assumes what is not needed}: to use this definition for lists that contain elements of type \m{A}, we need to prove that \m{A} has decidable equality. We can improve the definition with one last step of abstraction, by generalizing from counting occurrences of elements to counting the number of elements satisfying a general decidable property \m{p\ :\ A -> bool}. This definition is clearly equivalent, but we don't need to prove anything to use it.
 
@@ -748,7 +750,7 @@ In case of our template's \m{QSArgs} the difference doesn't matter very much and
 
 The algorithmic part of our journey has come to and end -- we now have a working quicksort template. If we fill it in with concrete details, we get a variant of quicksort that we can run to get a sorted list back\dots\ or not. So far, there's no guarantee that the result will be sorted, because the proof of correctness is missing, but an even more pressing concern is that there's no guarantee that we will get any answer whatsoever -- if we fill the template with gibberish, the resulting concrete algorithm need not terminate.
 
-This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which is just as good as the technique while being much more automated and easy to use. In the meantime we will learn a generic technique for proving properties of recursive functions.
+This is because, in accordance with concept/technique \#2, we ignored the matter of termination by turning Coq's termination checker off. In this section we will develop a better template that, when it is instantiated, guarantees that the concrete algorithm necessarily terminates. We will first learn how to do it manually (while hoping that we won't ever have to use this knowledge) and then we'll see a Coq feature which is just as good as the technique while being much more automated and easy to use.
 
 \section{The inductive domain method}
 
