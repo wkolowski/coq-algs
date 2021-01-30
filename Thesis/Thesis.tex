@@ -506,7 +506,7 @@ Having said that, how do we define what it means for two lists to be permutation
 ]
 {Coq}{Snippets/Chapter2/JustRight.v}
 
-After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove anything nontrivial about quicksort. The reason is that quicksort moves list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
+After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove correctness of any nontrivial sorting algorithm. The reason is that some of them move list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
 
 How to find a better definition of \m{Permutation}? Let's try the following advice.
 
@@ -545,7 +545,13 @@ To sum up our struggles, we once more stress the fact that inventing specificati
 
 \chapter{Abstract the algorithm} \label{template}
 
-Having found a good specification of the problem, the next step in the process is to implement its solution.\footnote{If the problem were novel, the next step would of course be coming up with a solution, but because we're dealing with a well-researched problem with widely known solutions, we omit this step. Another thing is that, just like for specifications, there aren't very many bulletproof techniques for coming up with good algorithms -- only heuristics.} The usual high-level idea behind quicksort (agnostic as to whether the thing being sorted is a list or an array) is usually presented somewhat like this:
+Now that we have found a good specification of the problem, the next step in the process is to come up with its solution, but we will not concern ourselves with that because the concepts and techniques that aid in inventing algorithms (like divide and conquer, dynamic programming or backtracking) are well-known and covered in all standard textbooks.
+
+Rather than invent algorithms from scratch, in the chapters to come we will show how to formalize and prove them correct. Our running example will be quicksort, one of the fastest and most elegant solutions of the problem of sorting. Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques
+
+\section{Top-down is better than bottom-up}
+
+The biggest temptation that an algorithmist faces when implementing an algorithm is to get drown in unnecessary details too quickly -- to mistake the trees for the forest, that is. The best way of combating this temptation is to constantly keep in mind a high-level idea that underlies the algorithm. For quicksort (agnostic as to whether the thing being sorted is a list or an array), it usually goes like this:
 
 \begin{itemize}
     \item If the list/array is empty, we're done.
