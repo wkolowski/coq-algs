@@ -83,7 +83,7 @@
 
 %%%%% POCZATEK ZASADNICZEGO TEKSTU PRACY
 
-\chapter{Introduction} \label{ch1}
+\chapter{Introduction} \label{introduction}
 
 The title of this thesis is ``Formally verified functional algorithms in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
 
@@ -219,9 +219,9 @@ for doing so, called Gallina, a language for automating trivial proof steps and 
 
 Thanks to the Curry-Howard correspondence \cite{CurryHoward}, all of these great things can also be interpreted from the programmer's perspective. Gallina is a dependently typed functional programming language, Ltac is a language for automatic program synthesis, and Vernacular offers a suite of facilities similar to those found in most IDEs. CoqIDE can be seen as supporting interactive program construction (and interactively proving a program correct can be seen as a very powerful form of debugging!).
 
-Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[template]{Chapter 3}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
+Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[template]{chapter 3}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
 
-What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. To sum up, we can avoid the various mismatches of previous section using formal proofs inside our unified world.
+What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. To sum up, we can avoid the various mismatches of \hyperref[worlds]{previous section} using formal proofs inside our unified world.
 
 But as long as not all worlds were collapsed into one, there is still some room for error. First, because Coq is implemented in OCaml, there is no guarantee that our formal proofs are absolutely correct. In fact, as can be seen from \url{https://github.com/coq/coq/blob/master/dev/doc/critical-bugs}, Coq has experienced about one critical bug per year. This means if we want absolute certainty in our proofs, we need to verify Coq's implementation by hand, so the world of informal math is still somewhat alive.
 
@@ -237,7 +237,7 @@ We will not worry about the concerns raised, because a single formal world is st
 
 In this section we describe the basic principles on which Coq is founded. Coq is based on a formal system called Calculus of Constructions (CoC)\cite{CoC}, which later evolved into the Calculus of Inductive Constructions (CIC) \cite{CIC} and finally into Predicative Calculus of Cumulative Inductive Constructions (pCuIC) \cite{pCuIC}.
 
-To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2}, a closely related system which from now on we will call simply ``type theory''. In the next section, where we introduce Coq, we will point out the relevant differences from type theory as we go. The material presented in this section is standard, but in the light of previous section's closing paragraphs we encourage people familiar with type theory to read it as a description not of a formal system, but of a model of computation.
+To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2}, a closely related system which from now on we will call simply ``type theory''. In the \hyperref[coq]{next section}, where we introduce Coq, we will point out the relevant differences from type theory as we go. The material presented in this section is standard, but in the light of \hyperref[formal]{previous section's} closing paragraphs we encourage people familiar with type theory to read it as a description not of a formal system, but of a model of computation.
 
 In type theory, as the name suggests, the basic objects of interest are types. In order to be meaningful, a type must first be formed. For example, we can always form the type $\N$ of natural numbers, but in general this is not the case: sometimes to form a type we must make an assumption or even several assumptions. We keep track of our assumptions using contexts. For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\type{\Gamma}{A}$ and $\type{\Gamma}{B}$ respectively, then we can form the type of functions from $A$ to $B$, written $\type{\Gamma}{A \to B}$. The rules that govern type formation are called, unsurprisingly, formation rules.
 
@@ -298,14 +298,14 @@ The command \m{Print} is part of the Vernacular -- a language of useful commands
 
 In \hyperref[worlds]{section 3} we said that in a formal setting we can prove a specification correct. This is actually the first of our techniques and in the rest of the listing our task will be to demonstrate how it works. The thing we want to specify is a function for reversing lists and the specification, named \m{rev\_spec}, starts on line 20. It takes as arguments a type \m{A} and a function $\m{f} : \m{list A -> list A}$ and our intention is that \m{rev\_spec} \m{f} means ``\m{f} is a function that reverses lists''.
 
-The definition says that \m{rev\_spec f} is a proposition\footnote{This is actually one of the differences between type theory as presented in the last section and Coq. In type theory, we represent propositions using ordinary types. In Coq, only types of sort \m{Prop} are propositions, whereas types of sort \m{Type} are not.} and that it is defined to be a record consisting of two fields. The first one is named \m{f\_app} and intuitively means that \m{f} anticommutes with list concatenation -- if we concatenate two lists and then reverse the result using \m{f}, it's the same as if we first reversed the lists and then concatenated them in the opposite order. The second field is named \m{f\_singl} and means that on lists with only one element \m{f} acts like an identity function.
+The definition says that \m{rev\_spec f} is a proposition\footnote{This is actually one of the differences between type theory as presented in the \hyperref[mltt]{last section} and Coq. In type theory, we represent propositions using ordinary types. In Coq, only types of sort \m{Prop} are propositions, whereas types of sort \m{Type} are not.} and that it is defined to be a record consisting of two fields. The first one is named \m{f\_app} and intuitively means that \m{f} anticommutes with list concatenation -- if we concatenate two lists and then reverse the result using \m{f}, it's the same as if we first reversed the lists and then concatenated them in the opposite order. The second field is named \m{f\_singl} and means that on lists with only one element \m{f} acts like an identity function.
 
 Now, let's take a break from Coq and make a short conceptual trip: how can we prove that a specification specifies precisely what we wanted? Of course, in general, we can't, because what we really want lives in the world of ideas, whereas the specification lives in the formal world. But if we are sure that the desired solution will meet the specification, the best sanity check we can perform is proving that the specification determines a unique object.
 In such a situation if we are dissatisfied with the solution, we are sure that it is not because of some bug or other kind of technical error, but simply because we were unable to express what we wanted.
 
 Back to Coq, the theorem \m{rev\_spec\_unique} is the fulfillment of our plan of ``proving the specification correct''. Such a theorem in Coq has the same status as an ordinary definition -- the statement of the theorem is a type and to prove it we need to construct an element of that type. However, the means of construction are different from those typically used for definitions: we don't provide a proof term explicitly, like the body of \m{app} between \m{match} and \m{end} was provided explicitly, but instead we use Coq's tactic language called Ltac.
 
-In Ltac, we can manipulate tactics, which can be seen as things that encapsulate a particular line of mathematical reasoning and argumentation (or, from the programmer's perspective, as techniques for synthesizing particular kinds of programs). The most basic tactics directly correspond to introduction and elimination rules of type theory as described in the previous section, and to basic features of Coq's term language, like pattern matching. More complex tactics can be created from simpler ones by using features provided by Ltac, like various tactic combinators, searching hypotheses and variables in the proof context (and more advanced features for context management), many flavours of backtracking and the ability to inspect Coq's terms as syntax.
+In Ltac, we can manipulate tactics, which can be seen as things that encapsulate a particular line of mathematical reasoning and argumentation (or, from the programmer's perspective, as techniques for synthesizing particular kinds of programs). The most basic tactics directly correspond to introduction and elimination rules of type theory as described in the \hyperref[mltt]{previous section}, and to basic features of Coq's term language, like pattern matching. More complex tactics can be created from simpler ones by using features provided by Ltac, like various tactic combinators, searching hypotheses and variables in the proof context (and more advanced features for context management), many flavours of backtracking and the ability to inspect Coq's terms as syntax.
 
 The last of these is something that is not possible using the term language, as it would allow distinguishing between convertible terms and thus lead to contradiction. For example, given a \m{P} : \m{Prop}, we can't use the term language to check whether it's of the form \m{Q /\char`\\\ R}, but we can do that using Ltac. We can use this together with other Ltac features to, for example, implement a tactic that can decide whether a proposition is an intuitionistic tautology or not.
 
@@ -332,7 +332,7 @@ Our short tutorial on Coq has come to an end. From now on, we assume the reader 
 
 \section{An ultra short literature review} \label{literature}
 
-In this section we briefly discuss the not so large body of literature relevant to our work. In case the reader still doesn't feel comfortable with Coq after last section's tutorial, we start by listing some standard learning materials on the topic:
+In this section we briefly discuss the not so large body of literature relevant to our work. In case the reader still doesn't feel comfortable with Coq after \hyperref[coq]{last section's} tutorial, we start by listing some standard learning materials on the topic:
 
 \begin{itemize}
     \item The first volume of Software Foundations \cite{SoftwareFoundations} is a textbook aimed at teaching Coq fundamentals to students familiar with neither functional programming nor formal proof. It is very beginner-friendly and well-suited for self study, but it doesn't cover all Coq-related topics exhaustively.
@@ -373,13 +373,13 @@ After this chapter's thorough introduction it should be clear now what we mean b
 
 \chapter{Specify the problem} \label{specify}
 
-In the previous chapter we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
+In the \hyperref[introduction]{previous chapter} we have already seen our first concept/technique\footnote{I don't distinguish between concepts and techniques. On the one hand, every concept, to be useful, has to be operationalized, which basically means turning it into some useful technique. On the other hand, every technique is based on some underlying idea, which means it is an operationalization of some concept.} and it told us to prove that our specification determines a unique object. Fair enough, but to do that we have to have some specification first and therefore it would be nice to have some technique for coming up with good specifications.
 
 This is likely the hardest of all tasks that a functional algorithmist will have to perform in order to get a formally-verified algorithm\footnote{Besides inventing the algorithm itself, of course, but coming up with good algorithms is not a topic of this thesis.} as it requires a significant amount of mathematical creativity and insight, which can only be acquired with experience. As we will see in later chapters, the techniques presented there will strip the tasks of implementing the algorithm and proving it correct of most of their creativity requirements and make them quite repetitive (maybe even boring), but this is not so for the task of inventing the specification.
 
 The problem, whose specification we will be looking for in this chapter, is that of sorting. It is a very simple problem concerned with moving elements around in a list, the simplest and most ubiquitous data structure of functional programming. But don't let yourself get fooled by the apparent simplicity -- we will see that sorting is more than enough to illustrate the various possible traps that an inexperienced practitioner of formally verified functional algorithms can fall into when trying to devise a specification.
 
-As a guide to avoiding these traps, we present a simple heuristic for checking if a specification is good and illustrate it with a few failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the previous chapter.
+As a guide to avoiding these traps, we present a simple heuristic for checking if a specification is good and illustrate it with a few failed (and one successful) attempts. We give it the number $0$ to mark the fact that in the logical order of things it comes before concept/technique $\#1$ from the \hyperref[introduction]{previous chapter}.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0} \\
@@ -406,14 +406,6 @@ This definition looks quite correct (and it is), but it won't serve us well. Thi
 The problem with this definition is that it is a \textit{patchwork} definition -- it is made up of various ingredients that don't fit together perfectly. The first ingredient is universal quantification over two natural numbers. The quantifier itself is fine, as are the numbers, but problems start with the hypothesis \m{n <= m}.
 
 Upon closer inspection, there's a mismatch between the inductive definition of natural numbers (using zero and successor) and the inductive definition of the relation \m{<=} (which is based on reflexivity and the fact that \m{n <= m} implies \m{n <= S m}). This is not a big problem all by itself, just one source of potential clumsiness.
-
-%\inputminted
-%[
-%    frame=lines,
-%    bgcolor=CoqIDE,
-%    firstline = 19
-%]
-%{Coq}{Snippets/Chapter2/NotEasy.v}
 
 That's not the only source of clumsiness, however. After another quantifier and two numbers, we find two equations. General equations between variables (like \m{n = m}) are not problematic at all, but equations with more specific terms on one or both sides are a bit clumsy, often requiring additional bookkeeping effort to use properly.
 
@@ -456,7 +448,7 @@ We can easily formalize the above reformulated definition. First we define a hel
 ]
 {Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
 
-This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the next subsection, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the \hyperref[notabstract]{next section}, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
 
 Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted lists by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs of index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
@@ -621,7 +613,7 @@ Coq is a total language, which means that all recursive functions necessarily te
 
 Because of this fact, an implementation of a general recursive function is usually weaved of two closely knit parts: the algorithmic part (how to do it) and the logical part (why doing it terminates). These parts are intertwined: the algorithmic part is littered with proofs and the termination proof of course strongly depends on the algorithm's properties.
 
-In the next section we will see a technique that allows us to deal with these two parts separately and a Coq language feature that can automate this technique, but at present, in accordance with concept/technique \#2, we will ignore the matter of termination. A nice way to do this, recently introduced into Coq, is the command \m{Unset Guard Checking}, which can temporarily turn the termination checker off.
+In the \hyperref[sanity1]{next section} we will see a technique that allows us to deal with these two parts separately and a Coq language feature that can automate this technique, but at present, in accordance with concept/technique \#2, we will ignore the matter of termination. A nice way to do this, recently introduced into Coq, is the command \m{Unset Guard Checking}, which can temporarily turn the termination checker off.
 
 \inputminted
 [
@@ -780,7 +772,7 @@ Back to our (almost) initial question: we need to prove termination because only
 ]
 {Coq}{Snippets/Chapter2/ProveTermination.v}
 
-The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a later section we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
+The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a \hyperref[irrelevant]{later section} we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
 
 There are two constructors. \m{Short} takes as argument a proof of \m{short l = None}, so it represents the case in which the list \m{l} is short. It can be read as ``if \m{l} is short, then it belongs to the domain of quicksort''. \m{Long} takes, as one of its arguments, a proof of \m{short l = Some (h, t)}, so it represents the recursive case in which \m{l} is not short. Its other arguments are proofs of \m{choosePivot h t = (pivot, rest)} and \m{partition pivot rest = (lt, eq, gt)}, which represent the calls to these functions that were present in our previous implementation of \m{qs}. Lastly, it takes as arguments the proofs that \m{lt} and \m{gt} belong to the domain, which represent the recursive calls. Therefore, the constructor \m{Long} can be read as ``\m{l} belongs to the domain if \m{lt} and \m{gt} belong to the domain''.
 
@@ -874,7 +866,7 @@ By listening to the advice in the above technique, we can hit two birds with one
 
 As we can see, the definition of \m{TQSA\_default} is almost the same as that of \m{QSA\_nat}. The proofs aren't very hard, so we have passed the sanity check -- we now have a provably terminating quicksort template, together with a default implementation, and, thanks to the last check, it looks like it produces correct results. But before we move on to prove our template's correctness, let's see what we could have done differently with regards to the termination proof.
 
-\section{A slight variation on a theme}
+\section{A slight variation on a theme} \label{variation}
 
 The first thing we could have done differently is the relation between the provably terminating template and the possibly nonterminating template. We have implemented these separately, with termination checker turned off so that the latter gets accepted, but we could have chosen a different design in which \m{qs} is defined using inductive domain method and it is the ``termination proof'' (i.e. \m{QSDom\_all}) for which we turn off the termination checker. In this way we derive the possibly nonterminating version of \m{qs} from the template we used to define the provably terminating version. The code is shown in the listing below.
 
@@ -979,7 +971,7 @@ We are now ready to make the last step in our grand journey for formally verifie
     Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.
 \end{center}
 
-\section{One induction to rule them all -- functional induction}
+\section{One induction to rule them all -- functional induction} \label{funind}
 
 Before we make the last step of our journey, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to put them together? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
 
@@ -1075,7 +1067,7 @@ Before we finish, let's try to trace the history of functional induction. The te
 
 The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of two tools designed for this purpose: \m{Function} \cite{Function} and \m{Equations} \cite{Equations}, although variants of the technique used there may differ from the one presented in this thesis.
 
-\section{Don't do this at home}
+\section{Don't do this at home} \label{athome}
 
 Before proceeding to see the automation, we will try to explore another way of deriving the functional induction principle -- a way which, at first sight, looks much easier and more appealing than the one we have already seen, but upon closer inspection leads down a rabbit hole. That way is to omit the inductive graph altogether and try to derive the functional induction principle from the induction principle of the domain predicate. The first step in such an attempt is to prove an induction principle for the helper function \m{qs'}, shown in the listing below.
 
@@ -1112,7 +1104,7 @@ A smart Coq user could try to salvage the above proof by attempting to prove tha
 
 The real problem is that in the last case, in which both \m{d1} and \m{d2} were made with the constructor \m{Long}, after establishing some initial equalities we have to prove that two proofs of \m{short l = Some (h, t)} are equal (and this is just the first of three similar goals). This time however the goal is impossible to achieve: Homotopy Type Theory tells us\footnote{See sections 2.5---2.14 of the HoTT Book. \cite{HoTTBook}} that the properties of equality proofs in type \m{option (A * list A)} depend on the properties of equality proofs in type \m{A}. The bottom line is that in Coq, without assuming additional axioms we can't prove that an arbitrary type \m{A} satisfies UIP\footnote{UIP stands for \textit{Uniqueness of Identity Proofs}. A type \m{A} satisfies UIP when for all \m{x y\ :\ A}, any two proofs \m{p q\ :\ x = y} are equal.} and therefore there is no chance of proving that any two proofs of \m{short l = Some (h, t)} are equal.
 
-Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance. The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the last section is quite boilerplate-heavy, there is no way around it... except for some automation!\footnote{Well, there is. If we need to do just a few quick proofs and don't care about separating the reasoning from the implementation, we can just directly use the domain predicate's induction principle.}
+Assuming that all types satisfy UIP is consistent with Coq, but an axiom-dependent way of deriving functional induction principles is clearly inferior to an axiom-free one. Similarly, the variant of inductive domain method which uses \m{Prop} as the codomain also isn't viable, as it would require us to assume Proof Irrelevance. The ultimate moral of this section's story is that even though the approach to deriving functional induction principles based on inductive graph relations presented in the \hyperref[funind]{last section} is quite boilerplate-heavy, there is no way around it... except for some automation!\footnote{Well, there is. If we need to do just a few quick proofs and don't care about separating the reasoning from the implementation, we can just directly use the domain predicate's induction principle.}
 
 \section{Automating the boring stuff} \label{automate}
 
@@ -1130,7 +1122,7 @@ Most of what we've been doing lately was pretty boring. Given the cleanest defin
     \item To derive the recursive equation, use the target function's definition. Prove it with functional induction.
 \end{itemize}
 
-\section{E pluribus unum}
+\section{E pluribus unum} \label{epluribus}
 
 The verification goes here.
 
@@ -1161,11 +1153,11 @@ The verification goes here.
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-\section{Sanity check -- concrete proofs}
+\section{Sanity check -- concrete proofs} \label{sanity3}
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
-\section{User experience: avoid bloatware}
+\section{User experience: avoid bloatware} \label{bloatware}
 
 \chapter{Conclusion} \label{conclusion}
 
