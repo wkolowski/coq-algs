@@ -88,14 +88,14 @@
 The title of this thesis is ``Formally verified functional algorithms in Coq: concepts and techniques''. In the Introduction, we take time to carefully explain what we mean by each of these phrases:
 
 \begin{itemize}
-    \item In \hyperref[paradigm]{section 1} we look at the social context that gives rise to an interesting misconception about ``algorithms''.
-    \item In \hyperref[impfun]{section 2} we explain ``functional'' programming by comparing it with imperative programming.
-    \item \hyperref[worlds]{Section 3} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
-    \item In \hyperref[formal]{section 4} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
-    \item In \hyperref[mltt]{section 5} we describe Martin-L\"{o}f Type Theory, a formal system very close to the theoretical underpinnings of Coq, which can be seen as our model of computation.
-    \item In \hyperref[coq]{section 6} we show how working ``in Coq'' looks like.
-    \item In \hyperref[literature]{section 7} we do an ultra short literature review and discuss how our ``concepts and techniques'' relate to what can be found there.
-    \item In \hyperref[outline]{section 8} we outline the thesis structure.
+    \item In section \ref{paradigm} we look at the social context that gives rise to an interesting misconception about ``algorithms''.
+    \item In section \ref{impfun} we explain ``functional'' programming by comparing it with imperative programming.
+    \item Section \ref{worlds} is a philosophical interlude in which we give an interesting interpretation of typical algorithmic activities as living in different worlds, with links between worlds being the source of potential errors.
+    \item In section \ref{formal} we lay out the (almost) unity of the ``formally verified'' algorithmic world by contrasting it with the many worlds of the previous section.
+    \item In section \ref{mltt} we describe Martin-L\"{o}f Type Theory, a formal system very close to the theoretical underpinnings of Coq, which can be seen as our model of computation.
+    \item In section \ref{coq} we show how working ``in Coq'' looks like.
+    \item In section \ref{literature} we do an ultra short literature review and discuss how our ``concepts and techniques'' relate to what can be found there.
+    \item In section \ref{outline} we outline the thesis structure.
 \end{itemize}
 
 \section{The overarching paradigm} \label{paradigm}
@@ -219,7 +219,7 @@ for doing so, called Gallina, a language for automating trivial proof steps and 
 
 Thanks to the Curry-Howard correspondence \cite{CurryHoward}, all of these great things can also be interpreted from the programmer's perspective. Gallina is a dependently typed functional programming language, Ltac is a language for automatic program synthesis, and Vernacular offers a suite of facilities similar to those found in most IDEs. CoqIDE can be seen as supporting interactive program construction (and interactively proving a program correct can be seen as a very powerful form of debugging!).
 
-Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in \hyperref[template]{chapter 3}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
+Applied to algorithms, Coq gives us numerous benefits. First, we no longer need to do pen-and-paper specifications and proofs, so the world of informal mathematics gets eliminated from the picture. Second, it has very powerful abstraction capabilities, which bypass the need for pseudocode -- we can directly implement the high-level idea behind the algorithm (an example of this will be provided in chapter \ref{template}). This merges the worlds of ideas and programming into one. Third, as already mentioned, the Curry-Howard correspondence unifies functional programming and constructive mathematics, which further collapses the two already-collapsed worlds.
 
 What we are left with are just three worlds instead of the six we had at the beginning: one for programming, proving and expressing high-level algorithmic ideas, one for the analysis (model of computation), and one for execution (hardware). Most of the links between activities now live in the first world and we can use the power of formal proofs to make sure there are no mismatches. We can prove that the algorithm satisfies the specification. If we decide to have more than one implementation (for example when we're looking for the most efficient one), we can prove they are equivalent. We can even prove that the specification is ``correct'', i.e. that the object it describes is unique. To sum up, we can avoid the various mismatches of \hyperref[worlds]{previous section} using formal proofs inside our unified world.
 
@@ -290,13 +290,13 @@ We start by importing modules for working with lists -- we will need some list f
 
 The command \m{Print} is part of the Vernacular -- a language of useful commands for looking up definitions and theorems, and other things usually provided at the IDE level. We use it to recall the definition of \m{list} and \m{app} (we modified the outputs of these commands to simplify our explanations).
 
-\m{list} is a parameterized family of inductive types. This means that for each type \m{A}, there is a type list \m{list A}, defined by giving the possible ways to construct its elements. An element of this type can be either \m{nil}, which represents an empty list, or \m{cons h t} for some $\m{h} : \m{A}$ and $\m{t} : \m{list A}$, which represents a list with head \m{h} and tail \m{t}. This is very similar to the definition of lists in pseudo-Haskell that we saw in \hyperref[impfun]{section 2}.
+\m{list} is a parameterized family of inductive types. This means that for each type \m{A}, there is a type list \m{list A}, defined by giving the possible ways to construct its elements. An element of this type can be either \m{nil}, which represents an empty list, or \m{cons h t} for some $\m{h} : \m{A}$ and $\m{t} : \m{list A}$, which represents a list with head \m{h} and tail \m{t}. This is very similar to the definition of lists in pseudo-Haskell that we saw in section \ref{impfun}.
 
 \m{app} is a function that concatenates two lists. It takes as arguments a type \m{A} and two lists of elements of type \m{A}, named \m{l1} and \m{l2}, and it returns an element of type \m{list A} as result. The first argument is surrounded by curly braces, which means it is implicit -- we won't need to write it, because Coq can infer it on its own. The other arguments are surrounded by parentheses, which means they are explicit -- we need to provide them when applying the function.
 
 \m{app} is defined by recursion, as indicated by the keyword \m{fix}, and its termination is guaranteed because this recursion is structural, as indicated by the annotation \m{struct l1}. The definition goes by pattern matching on the argument \m{l1}. if it is a \m{nil}, the result is \m{l2} and if it is $\m{h} :: \m{t}$, then the result is $\m{h} :: \m{app t l2}$. Here the double colon $\m{::}$ is a handy notation for the constructor \m{cons}.
 
-In \hyperref[worlds]{section 3} we said that in a formal setting we can prove a specification correct. This is actually the first of our techniques and in the rest of the listing our task will be to demonstrate how it works. The thing we want to specify is a function for reversing lists and the specification, named \m{rev\_spec}, starts on line 20. It takes as arguments a type \m{A} and a function $\m{f} : \m{list A -> list A}$ and our intention is that \m{rev\_spec} \m{f} means ``\m{f} is a function that reverses lists''.
+In section \ref{worlds} we said that in a formal setting we can prove a specification correct. This is actually the first of our techniques and in the rest of the listing our task will be to demonstrate how it works. The thing we want to specify is a function for reversing lists and the specification, named \m{rev\_spec}, starts on line 20. It takes as arguments a type \m{A} and a function $\m{f} : \m{list A -> list A}$ and our intention is that \m{rev\_spec} \m{f} means ``\m{f} is a function that reverses lists''.
 
 The definition says that \m{rev\_spec f} is a proposition\footnote{This is actually one of the differences between type theory as presented in the \hyperref[mltt]{last section} and Coq. In type theory, we represent propositions using ordinary types. In Coq, only types of sort \m{Prop} are propositions, whereas types of sort \m{Type} are not.} and that it is defined to be a record consisting of two fields. The first one is named \m{f\_app} and intuitively means that \m{f} anticommutes with list concatenation -- if we concatenate two lists and then reverse the result using \m{f}, it's the same as if we first reversed the lists and then concatenated them in the opposite order. The second field is named \m{f\_singl} and means that on lists with only one element \m{f} acts like an identity function.
 
@@ -364,11 +364,11 @@ After this chapter's thorough introduction it should be clear now what we mean b
 
 \begin{itemize}
     \setlength\itemsep{0em}
-    \item In \hyperref[specify]{chapter 2} we look at techniques for verifying a specification's usefulness and for improving bad specifications.\footnote{Sadly, there seems to be no easy way of coming up with a good specification.}
-    \item In \hyperref[template]{chapter 3} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof.
-    \item In \hyperref[termination]{chapter 4} we describe a general method for defining recursive functions and carrying out termination proofs.
-    \item In \hyperref[exnihilo]{chapter 5} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion... without writing too many proofs.
-    \item In \hyperref[conclusion]{chapter 6} we review all our concepts and techniques from a birds'-eye view and conclude with some directions for future work.
+    \item In chapter \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications.\footnote{Sadly, there seems to be no easy way of coming up with a good specification.}
+    \item In chapter \ref{template} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof.
+    \item In chapter \ref{termination} we describe a general method for defining recursive functions and carrying out termination proofs.
+    \item In chapter \ref{exnihilo} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion... without writing too many proofs.
+    \item In chapter \ref{conclusion} we review all our concepts and techniques from a birds'-eye view and conclude with some directions for future work.
 \end{itemize}
 
 \chapter{Specify the problem} \label{specify}
@@ -906,7 +906,7 @@ Another consequence is the behaviour of the extraction mechanism: because proofs
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-The above listing shows how \m{qs'}, its domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that \m{qs'} terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs'} from section \ref{template} with the termination checker turned off. But when we look at the result of extraction for \m{qs'}, we clearly see that this is not the case.
+The above listing shows how \m{qs'}, its domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that \m{qs'} terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs'} from chapter \ref{template} with the termination checker turned off. But when we look at the result of extraction for \m{qs'}, we clearly see that this is not the case.
 
 There is a variant of the inductive domain method (arguably somewhat more complex than the one we already know) which we can use to achieve this goal. Luckily, the aforementioned rule that disallows defining programs by pattern matching on proofs has an exception: we can pattern match on a proof if only a single case is possible.\footnote{Or, if no cases at all are possible -- this is the canonical way to construct an element of any type \m{A} from a proof of \m{False}.}
 
@@ -941,7 +941,7 @@ Even though when matching on the proof of \m{QSDom A l} there are two possible c
 ]
 {Coq}{Snippets/Chapter2/BoveCapretta.v}
 
-Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \{\m{struct d}\}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'} from \hyperref[template]{chapter 3}, when the termination checker was turned off.
+Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \{\m{struct d}\}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'} from chapter \ref{template}, when the termination checker was turned off.
 
 The second important thing to notice is that, unlike previously, we don't just simply match on \m{short l} or use \m{let}s to pattern match on the results of \m{choosePivot} or \m{partition}. This time in each of these cases we have to use the full power of Coq's dependent pattern matching in order to generalize the return types. This is because we need to feed equations like \m{short l = Some (h, t)} into our inversion lemmas.
 
@@ -960,11 +960,11 @@ The last important thing to notice is how the recursive calls look like. We use 
 
 The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the codomain of \m{QSDom} is now \m{Prop} doesn't affect it in the slightest. The same can be said of \m{qs} and the default instance \m{TQSA\_default} -- their definitions are the same as before. When we run \m{qs} on an exemple list of naturals, can see the list also gets sorted just like before.
 
-What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from section \ref{template}. We have achieved our goal.
+What changes drastically is the Haskell code extracted from \m{qs'}. Even though it will look very foreign to Haskellers (we would need to do some manual tweaking to make it look like idiomatic Haskell), it's clear that its structure is exactly what we wanted it to be -- a mirror image of our original definition of \m{qs'} from chapter \ref{template}. We have achieved our goal.
 
 \chapter{Verificatio ex nihilo} \label{exnihilo}
 
-We are now ready to make the last step in our grand journey for formally verified algorithms: prove correctness of our template. Our approach to this task, outlined in the below technique, will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
+We are now ready to make the last step in our grand quest for formally verified algorithms: prove correctness of our template. Our approach to this task, outlined in the below technique, will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and then put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#4} \\
@@ -973,7 +973,7 @@ We are now ready to make the last step in our grand journey for formally verifie
 
 \section{One induction to rule them all -- functional induction} \label{funind}
 
-Before we make the last step of our journey, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to put them together? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
+Before we make the last step of our quest, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to use them? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
 
 If the recursion scheme of the function is different from the induction scheme in the induction principle used for the proof, problems may arise. For example, the standard induction principle for natural numbers, which is concerned only with $0$ and $n + 1$, is sometimes not sufficient for proofs about the Fibonacci numbers, which are defined by recursion by considering the cases of $0$, $1$ and $n + 2$.
 
@@ -988,7 +988,7 @@ Fortunately, there is a relatively cheap ultimate solution of the problem of ind
 
 The idea behind functional induction is pretty simple. First, we want to separate the implementation of the function (its intensional aspect) from reasoning about its properties (its extensional aspect). Second, we want to capture the reasoning process in a single standalone lemma that we can reuse. To achieve this, we need to think about functions extensionally: two functions are equal whenever they give equal results for equal arguments.\footnote{Sadly, this principle (called functional extensionality) is not provable in Coq and needs to be assumed as an axiom if we want to use it.} Thus if we know all relationships between the inputs and outputs of a function, we know everything about the function. A relation that embodies all input-output relationships of a function is called a graph of that function. Therefore, we can deduce all properties of a function from its graph.
 
-We say that a binary relation \m{R\ :\ A -> B -> Prop} is a graph of the function \m{f\ :\ A -> B} when \m{R a b <-> f a = b}. We called \m{R} ``a'' graph, but it can be proven that any function has exactly one graph, so we can just as well call it ``the'' graph. But even though all graphs of a given function are equivalent, they are not equivalently useful for our purposes, because the usefulness of their intensional characteristics may vary.
+We say that a binary relation \m{R\ :\ A -> B -> Prop} is a graph of the function \m{f\ :\ A -> B} when \m{R a b <-> f a = b}. We called \m{R} ``a'' graph, but it can be proven that any function has exactly one graph, so we can just as well call it ``the'' graph. But even though all graphs of a given function are equivalent, not all of them are equivalently useful for our purposes -- the usefulness of their intensional characteristics may vary.
 
 For example, consider the function \m{div2} which divides a natural number by two, rounding down if the argument is odd. We can define its graph in two extensionally equivalent ways, either by saying that \m{R a b := a = 2 * b $\lor$ a = 1 + 2 * b} or with an inductive definition that closely follows the recursive definition of \m{div2} (which basically says that \m{div2 0 = 0}, \m{div2 1 = 0} and \m{div2 (S (S n)) = S (div2 n)}). Only the latter, inductively defined graph relation is useful for deriving the functional induction principle.
 
@@ -1001,7 +1001,7 @@ For example, consider the function \m{div2} which divides a natural number by tw
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-The inductive graph relation for our quicksort template is shown in the listing above. It is very similar to the definition of \m{QSDom} and also closely matches our original definition of \m{qs} from section \ref{template}. The parameter \m{A} and the first index of type \m{list A} represent quicksort's arguments, whereas the second index of type \m{list A} represents its result. In the constructor \m{LongG}, the inductive occurrences of \m{QSGraph} mimic the recursive calls.
+The inductive graph relation for our quicksort template is shown in the listing above. It is very similar to the definition of \m{QSDom} and also closely matches our original definition of \m{qs} from chapter \ref{template}. The parameter \m{A} and the first index of type \m{list A} represent quicksort's arguments, whereas the second index of type \m{list A} represents its result. In the constructor \m{LongG}, the inductive occurrences of \m{QSGraph} mimic the recursive calls.
 
 \inputminted
 [
@@ -1061,7 +1061,7 @@ Deriving the functional induction principle turned out to be pretty easy and it 
 
 But not all functions are as tame as quicksort -- some tougher classes of functions require slight modifications to the approach presented above. One such class are the functions that exhibit \textit{nested recursion}, i.e. a situation in which the result of a recursive call is an argument of another recursive call. These functions are problematic because the domain predicate can't be defined in the usual way: whether an element belongs to the domain might depend on whether the function's result for this argument belongs to the domain. Luckily, we can deal with such functions by first defining the inductive graph relation and then using it to represent the recursive calls in the definition of the domain predicate and then proceed as usual.
 
-Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in \ref{automate} often can't generate these definitions automatically.
+Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in section \ref{automate} often can't generate these definitions automatically.
 
 Before we finish, let's try to trace the history of functional induction. The term itself isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
 
@@ -1108,7 +1108,7 @@ Assuming that all types satisfy UIP is consistent with Coq, but an axiom-depende
 
 \section{Automating the boring stuff} \label{automate}
 
-Most of what we've been doing lately was pretty boring. Given the cleanest definition of the algorithm we saw back in section \ref{template}, when we weren't concerned with the termination proof and the functional induction principle, can be derived automatically:
+Most of what we've been doing lately was pretty boring. Given the cleanest definition of the algorithm we saw back in chapter \ref{template}, when we weren't concerned with the termination proof and the functional induction principle, can be derived automatically:
 
 \begin{itemize}
     \item To define the graph, repeat the function's definition, with each \m{match} turned into a constructor, each \m{let} turned into a bunch of universally quantified variables together with the appropriate equality hypothesis, and each recursive call turned into an inductive occurrence of the relation being defined.
