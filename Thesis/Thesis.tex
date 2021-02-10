@@ -541,7 +541,7 @@ Now that we have found a good specification of the problem, the next step in the
 
 Rather than invent algorithms from scratch, in the chapters to come we will show how to formalize and prove them correct. Our running example will be quicksort, one of the fastest and most elegant solutions of the problem of sorting. Quicksort is probably also the most researched algorithm in the whole imperative paradigm, which makes it a perfect candidate to showcase our core concepts and techniques
 
-\section{Top-down is better than bottom-up}
+\section{Top-down is better than bottom-up} \label{topdown}
 
 The biggest temptation that an algorithmist faces when implementing an algorithm is to get drown in unnecessary details too quickly -- to mistake the trees for the forest, that is. The best way of combating this temptation is to constantly keep in mind a high-level idea that underlies the algorithm. For quicksort (agnostic as to whether the thing being sorted is a list or an array), it usually goes like this:
 
@@ -973,7 +973,7 @@ We are now ready to make the last step in our grand quest for formally verified 
 
 \section{One induction to rule them all -- functional induction} \label{funind}
 
-Before we make the last step of our quest, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to use them? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction knows, it's not that simple.
+Before we make the last step of our quest, we have to ask ourselves: once we have all the lemmas we need, how exactly are we going to use them? What will the outline of the proof look like? This question may seem trivial: we defined quicksort by recursion, so the proof will go by induction. But as everyone who has ever done a formal proof by induction in Coq knows, it's not that simple.
 
 If the recursion scheme of the function is different from the induction scheme in the induction principle used for the proof, problems may arise. For example, the standard induction principle for natural numbers, which is concerned only with $0$ and $n + 1$, is sometimes not sufficient for proofs about the Fibonacci numbers, which are defined by recursion by considering the cases of $0$, $1$ and $n + 2$.
 
@@ -1027,7 +1027,7 @@ We proceed to proving that \m{QSGraph} is ``complete'' with respect to \m{qs}. T
 
 The proof of \m{QSGraph\_det} is as follows: given \m{r1} and \m{r2}, two potential results for \m{l}, and the corresponding derivations \m{QSGraph A l r1} and \m{QSGraph A l r2}, we proceed by induction on the first derivation, generalizing the other assumptions as necessary to get the most general induction hypothesis, and then we invert the second derivation.
 
-In case both derivations are of the form \m{ShortG} the proof is trivial. In case they were derived using different constructors, it's an easy contradiction. The last case, when both were constructed using \m{LongG}, is just as easy, but a bit more involved -- we have to perform various rewritings and inversions to convince Coq that using the inductive hypotheses is OK.
+In case both derivations are of the form \m{ShortG} the proof is trivial. In case they were derived using different constructors, it's an easy contradiction. The last case, when both were constructed using \m{LongG}, is just as easy, but a bit more involved -- we have to perform various rewritings and inversions to convince Coq that using the inductive hypotheses is ok.
 
 With the lemma at hand, proving completeness is trivial: first we use the lemma \m{QSGraph\_det} and then in one case we use an assumption, whereas in the other we use the correctness lemma.
 
@@ -1069,7 +1069,7 @@ The core idea, i.e. separating the concrete implementation of a function from re
 
 \section{Don't do this at home} \label{athome}
 
-Before proceeding to see the automation, we will try to explore another way of deriving the functional induction principle -- a way which, at first sight, looks much easier and more appealing than the one we have already seen, but upon closer inspection leads down a rabbit hole. That way is to omit the inductive graph altogether and try to derive the functional induction principle from the induction principle of the domain predicate. The first step in such an attempt is to prove an induction principle for the helper function \m{qs'}, shown in the listing below.
+Before we proceed to see the automation, we will try to explore another way of deriving the functional induction principle -- a way which, at first sight, looks much easier and more appealing than the one we have already seen, but upon closer inspection leads down a rabbit hole. That way is to omit the inductive graph altogether and try to derive the functional induction principle from the induction principle of the domain predicate. The first step in such an attempt is to prove an induction principle for the helper function \m{qs'}, shown in the listing below.
 
 \inputminted
 [
@@ -1087,11 +1087,11 @@ Even though deriving an induction principle for the helper function is very easy
     frame=lines,
     bgcolor=CoqIDE,
     firstline=222,
-    lastline=240
+    lastline=241
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-A smart Coq user could try to salvage the above proof by attempting to prove that any two \m{d\ :\ QSDom A l} are equal. This too, however, is impossible, as can be seen in the listing below (or rather, by going over the below listing interactively in CoqIDE). We start by induction on \m{d1} and then perform case analysis on \m{d2}. When they are constructed with different constructors, we have an easy contradiction (\m{short l} is both \m{None} and \m{Some} at the same time). When both are \m{Short}, we are required us to prove that any two proofs of \m{short l = None} are equal. This is possible, but pretty involved -- techniques from Homotopy Type Theory are necessary\footnote{The appropriate technique is called the \textit{encode-decode method}. See sections 2.12 and 2.13 of the HoTT Book \cite{HoTTBook} for easy examples and section 8.1 for an application to the fundamental group of the circle. Also see \cite{EncodeDecodeAbstract} \cite{EncodeDecodeSlides} for a newer ideas that relate the encode-decode method to functional induction principles.} -- and thus we skip it with the tactic \m{admit}.
+A smart Coq user could try to salvage the above proof by attempting to prove that any two \m{d\ :\ QSDom A l} are equal. This too, however, is impossible, as can be seen in the listing below (or rather, by going over the below listing interactively in CoqIDE). We start by induction on \m{d1} and then perform case analysis on \m{d2}. When they are constructed with different constructors, we have an easy contradiction (\m{short l} is both \m{None} and \m{Some} at the same time). When both are \m{Short}, we are required us to prove that any two proofs of \m{short l = None} are equal. This is possible, but pretty involved -- techniques from Homotopy Type Theory are necessary\footnote{The appropriate technique is called the \textit{encode-decode method}. See sections 2.12 and 2.13 of the HoTT Book \cite{HoTTBook} for easy examples and section 8.1 for an application to the fundamental group of the circle. Also see \cite{EncodeDecodeAbstract} \cite{EncodeDecodeSlides} for newer ideas that relate the encode-decode method to functional induction principles.} -- and thus we skip it with the tactic \m{admit}.
 
 \inputminted
 [
@@ -1108,19 +1108,21 @@ Assuming that all types satisfy UIP is consistent with Coq, but an axiom-depende
 
 \section{Automating the boring stuff} \label{automate}
 
-Most of what we've been doing lately was pretty boring. Given the cleanest definition of the algorithm we saw back in chapter \ref{template}, when we weren't concerned with the termination proof and the functional induction principle, can be derived automatically:
+When we are given a source function, i.e. a function defined the way we saw in section \ref{topdown}, without worrying too much about termination, we can automate generation of the boilerplate that sets up the inductive domain method and establishes the functional induction principle:
 
 \begin{itemize}
-    \item To define the graph, repeat the function's definition, with each \m{match} turned into a constructor, each \m{let} turned into a bunch of universally quantified variables together with the appropriate equality hypothesis, and each recursive call turned into an inductive occurrence of the relation being defined.
-    \item To define the domain predicate, take the graph and erase the last index, which corresponds to erasing the function's result. Also change the codomain from \m{Prop} to \m{Type}.
+    \item To define the graph, repeat the source function's definition, with each \m{match} branch turned into a constructor, each \m{let} turned into a bunch of universally quantified variables together with the appropriate equality hypothesis, and each recursive call turned into an inductive occurrence of the relation being defined.
+    \item To define the domain predicate, take the graph and erase the last index, which corresponds to erasing the function's result. Also change the codomain from \m{Prop} to \m{Type} (or not, but then automating the procedure gets a little harder).
     \item To define the auxiliary function (the one with the modified domain), repeat the target function's definition, with an additional argument corresponding to the proof of the domain predicate. Replace the original \m{match} with a \m{match} on this proof, the recursive calls with recursive calls on subproofs, etc.
-    \item To define the function itself, feed the termination proof to the auxiliary function.
-    \item To prove the function correct with respect to the graph, an \m{induction} on the proof of the domain predicate together with \m{eauto} should suffice.
-    \item To prove the graph deterministic, \m{induction} on the first hypothesis and \m{inversion} on the second. The hairy rewritings can be automated with some \m{Ltac} code.
+    \item To define the terget function (i.e. the one equivalent to the source function, but with termination taken care of), feed the termination proof to the auxiliary function.
+    \item To prove the target function correct with respect to the graph, an \m{induction} on the proof of the domain predicate together with \m{eauto} should suffice.
+    \item To prove the graph deterministic, \m{induction} on the first hypothesis and \m{inversion} on the second. The hairy rewritings can (most likely) be automated with some \m{Ltac} code.
     \item To prove the graph complete, use the previously established properties.
-    \item To derive the functional induction principle, repeat the graph's induction principle, with occurrences of the graph replaced with the property being proved. Prove it using graph's induction principle and previously proved lemmas.
-    \item To derive the recursive equation, use the target function's definition. Prove it with functional induction.
+    \item To derive the functional induction principle, repeat the graph's induction principle, with occurrences of the graph relation replaced with the property being proved. Prove it using the graph's induction principle and previously proved lemmas.
+    \item To derive the recursive equation, an application of the functional induction principle together with \m{eauto} should suffice.
 \end{itemize}
+
+Luckily, we don't need to automate this process ourselves -- it has already been done. The two most successful attempts are \m{Function} \cite{Function} and \m{Equations} \cite{Equations}
 
 \section{E pluribus unum} \label{epluribus}
 
