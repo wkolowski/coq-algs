@@ -1063,7 +1063,7 @@ But not all functions are as tame as quicksort -- some tougher classes of functi
 
 Another not-so-tame class of recursive functions that do not easily submit to our technique for deriving the functional induction principle are functions that exhibit higher-order recursion, i.e. a situation in which the recursive calls are partially applied.\footnote{Coq can recognize basic functions of this kind (like \m{map} for a tree that can have a \m{list} of subtrees) as structurally recursive without any help from the user, but this relies on some heuristics in the termination checker and is not very reliable.} This time the problem is defining the inductive graph itself: we either have to define an additional inductive graph relation for each of the partially applied recursive calls\footnote{This is pretty much equivalent to the inductive graph of a variant of the function in which the higher-order recursive calls were replaced by first-order helper functions.} or at least an additional inductive graph relation for each function which takes the recursively defined function as argument. Either way this means a lot of additional work to be done, most of which is writing boring boilerplate code. In practice the situation is even worse than it sounds, because the automation we will see in section \ref{automate} often can't generate these definitions automatically.
 
-Before we finish, let's try to trace the history of functional induction. The term itself isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
+Before we finish, let's try to trace the history of functional induction. The term originated as a name for a Coq tactic in \cite{FunInd} and isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
 
 The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of two tools designed for this purpose: \m{Function} \cite{Function} and \m{Equations} \cite{Equations}, although variants of the technique used there may differ from the one presented in this thesis.
 
@@ -1117,12 +1117,21 @@ When we are given a source function, i.e. a function defined the way we saw in s
     \item To define the terget function (i.e. the one equivalent to the source function, but with termination taken care of), feed the termination proof to the auxiliary function.
     \item To prove the target function correct with respect to the graph, an \m{induction} on the proof of the domain predicate together with \m{eauto} should suffice.
     \item To prove the graph deterministic, \m{induction} on the first hypothesis and \m{inversion} on the second. The hairy rewritings can (most likely) be automated with some \m{Ltac} code.
-    \item To prove the graph complete, use the previously established properties.
+    \item To prove the graph complete, use the determinism and correctness lemmas.
     \item To derive the functional induction principle, repeat the graph's induction principle, with occurrences of the graph relation replaced with the property being proved. Prove it using the graph's induction principle and previously proved lemmas.
     \item To derive the recursive equation, an application of the functional induction principle together with \m{eauto} should suffice.
 \end{itemize}
 
 Luckily, we don't need to automate this process ourselves -- it has already been done. The two most successful attempts are \m{Function} \cite{Function} and \m{Equations} \cite{Equations}
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=315,
+    lastline=335
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
 \section{E pluribus unum} \label{epluribus}
 
@@ -1235,7 +1244,8 @@ Mention thesis' repository: \repo
     \url{https://www.irif.fr/~sozeau/research/publications/drafts/Coq_Coq_Correct.pdf}
 
 \bibitem{Turing}
-    Alan Turing, \textit{On Computable Numbers, with an Application to the Entscheidungsproblem}, 1936 \\
+    Alan Turing, \\
+    \textit{On Computable Numbers, with an Application to the Entscheidungsproblem}, 1936 \\
     \url{https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf}
 
 \bibitem{Church}
@@ -1255,8 +1265,7 @@ Mention thesis' repository: \repo
 
 \bibitem{ICC1}
     Ugo Dal Lago, \\
-    \textit{A Short Introduction
-    to Implicit Computational Complexity}, 2010 \\
+    \textit{A Short Introduction to Implicit Computational Complexity}, 2010 \\
     \url{http://cs.unibo.it/~dallago/FICQRA/esslli.pdf}
 
 \bibitem{ICC2}
@@ -1482,6 +1491,12 @@ Mention thesis' repository: \repo
     2018, \\
     \url{https://etheses.bham.ac.uk//id/eprint/8448/4/Knapp18PhD.pdf}
 
+\bibitem{FunInd}
+    G. Barthe and P. Courtieu, \\
+    \textit{Efficient Reasoning about Executable Specifications in Coq},
+    2002 \\
+    \url{https://www.researchgate.net/publication/221302198_Efficient_Reasoning_about_Executable_Specifications_in_Coq}
+
 \bibitem{Burstall}
     R. M. Burstall,
     \textit{Proving properties of programs by structural induction},
@@ -1514,7 +1529,7 @@ Mention thesis' repository: \repo
     \url{https://www.researchgate.net/publication/48415012_Defining_and_Reasoning_About_Recursive_Functions_A_Practical_Tool_for_the_Coq_Proof_Assistant}
 
 \bibitem{Equations}
-    Matthieu Sozeau, Cyprien Mangin,
+    Matthieu Sozeau, Cyprien Mangin, \\
     \textit{Equations Reloaded: High-Level Dependently-Typed Functional Programming and Proving in Coq},
     2019,
     \url{https://www.irif.fr/~sozeau//research/publications/Equations_Reloaded-ICFP19.pdf}
@@ -1526,7 +1541,7 @@ Mention thesis' repository: \repo
     \url{http://cs.ioc.ee/types15/abstracts-book/contrib27.pdf}
 
 \bibitem{EncodeDecodeSlides}
-    James McKinna and Fredrik Nordvall Forsberg,
+    James McKinna and Fredrik Nordvall Forsberg, \\
     \textit{The Encode-Decode Method, Relationally (Slides)},
     2015, \\
     \url{https://personal.cis.strath.ac.uk/fredrik.nordvall-forsberg/talks/stp_dundee_2015/stp_dundee_2015-10-07.pdf}
