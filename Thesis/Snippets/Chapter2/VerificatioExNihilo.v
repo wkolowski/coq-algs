@@ -310,7 +310,7 @@ Proof.
     }
 Qed.
 
-(** * Wut *)
+(** * Automating the boring stuff *)
 
 Require Import Recdef.
 
@@ -333,6 +333,7 @@ Proof.
 Defined.
 
 Compute qsf (TQSA_default nat leb) [4; 3; 2; 1].
+(* ===> = [1; 2; 3; 4] *)
 
 Theorem Permutation_qsf :
   forall

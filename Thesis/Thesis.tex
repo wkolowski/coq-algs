@@ -1065,7 +1065,7 @@ Another not-so-tame class of recursive functions that do not easily submit to ou
 
 Before we finish, let's try to trace the history of functional induction. The term originated as a name for a Coq tactic in \cite{FunInd} and isn't widely known. Coq is most likely the only place where it is used -- searching Google for ``functional induction'' returns mostly Coq-related papers and Coq documentation pages intermixed with results in which the words ``functional'' and ``induction'' appear together but have unrelated meanings. I think that the technique itself doesn't have a standard name and trying to look it up on Wikipedia is also hopeless.
 
-The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works dealing with automation of defining and reasoning about general recursive functions and culminated as an important part of two tools designed for this purpose: \m{Function} \cite{Function} and \m{Equations} \cite{Equations}, although variants of the technique used there may differ from the one presented in this thesis.
+The core idea, i.e. separating the concrete implementation of a function from reasoning about its input-output behaviour, was first described\footnote{This is the earliest example I could find.} by Burstall in \cite{Burstall}, but this work is not very well-known. Since then it was independently reinvented many times by many people, for example in \cite{Slind}, \cite{FromTheLeft} and \cite{Program}, which shows that the idea is quite intuitive and natural. In the context of Coq, the technique derived from the idea arose slowly in works that dealt with automating the definition of and reasoning about general recursive functions and culminated as an important part of the \m{Function} \cite{Function} command, a tool designed precisely for this purpose (although variants of the technique used there may differ from the one presented in this thesis).
 
 \section{Don't do this at home} \label{athome}
 
@@ -1122,7 +1122,7 @@ When we are given a source function, i.e. a function defined the way we saw in s
     \item To derive the recursive equation, an application of the functional induction principle together with \m{eauto} should suffice.
 \end{itemize}
 
-Luckily, we don't need to automate this process ourselves -- it has already been done. The two most successful attempts are \m{Function} \cite{Function} and \m{Equations} \cite{Equations}
+Luckily, we don't need to automate this process ourselves. It has already been done -- the standard Coq tool for defining and reasoning about general recursive functions is the \m{Function} command \cite{Function}. We won't describe its internal workings here -- interested readers should refer to section 3 of op. cit., especially for an idea of how they differ from the approach we presented above. Instead, we will content ourselves with a quick tutorial showing how to apply the tool to our terminating quicksort template.
 
 \inputminted
 [
@@ -1132,6 +1132,9 @@ Luckily, we don't need to automate this process ourselves -- it has already been
     lastline=335
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+To use the \m{Function} command we first need to \m{Require Import Recdef} -- \m{Function} is more like a plugin than a built-in Coq command, and without this module we will get a parse error. The definition of our quicksort template is stunningly similar to the one from section \ref{sanity1}. The only differences are that the definition starts with \m{Function} instead of \m{Fixpoint}, that we use \m{TerminatingQSArgs} instead of \m{QSArgs} (because we need to prove termination for the definition to be accepted by Coq) and that we use the annotation \m{measure length l} instead of \m{struct l}. The function body is exactly the same as back then and we don't need to clutter it with any auxiliary constructions.
+
 
 \section{E pluribus unum} \label{epluribus}
 

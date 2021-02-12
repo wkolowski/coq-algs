@@ -60,13 +60,13 @@ Class QSArgs (T : Type) : Type :=
 Unset Guard Checking.
 Fixpoint qs
   {A : Type} (args : QSArgs A) (l : list A) {struct l} : list A :=
-    match short l with
-        | None => adhoc l
-        | Some (h, t) =>
-            let '(pivot, rest) := choosePivot h t in
-            let '(lt, eq, gt)  := partition pivot rest in
-              qs args lt ++ pivot :: eq ++ qs args gt
-    end.
+match short l with
+    | None => adhoc l
+    | Some (h, t) =>
+        let '(pivot, rest) := choosePivot h t in
+        let '(lt, eq, gt)  := partition pivot rest in
+          qs args lt ++ pivot :: eq ++ qs args gt
+end.
 Set Guard Checking.
 
 Instance QSA_nat : QSArgs nat :=
