@@ -1141,18 +1141,24 @@ The termination proof is much shorter than the one we saw back in section \ref{w
 
 Here \m{measure} means that we want to perform well-founded induction using a well-founded relation constructed by mapping its arguments to natural numbers and then using the standard order $<$ on natural numbers, \m{length} specifies which function we want to use for the mapping and \m{l} says the length of which list is going to decrease. This is exactly the same thing we did back insection \ref{wellfounded} -- internally it even uses the same function \m{ltof} and lemma \m{well\_founded\_ltof} that we used.
 
-The remaining part of the proof is also much simpler than in section \ref{wellfounded}. When using \m{Function} we don't need anymore to manually perform \m{destruct}s, apply the induction hypothesis or decide which constructor of the domain predicate to use when. The only proofs that are left to us are those establishing that the length of the argument descreases in the recursive calls. To sum up, the current termination proof is only 5 lines long, whereas the previous one was 12 lines -- we got rid of almost 60\% of the work, all of which was just bookkeeping.
+The remaining part of the proof is also much simpler than in section \ref{wellfounded}. When using \m{Function} we don't need anymore to manually perform \m{destruct}s, apply the induction hypothesis or decide which constructor of the domain predicate to use when. The only proofs that are left to us are those establishing that the length of the argument descreases in the recursive calls.
+
+To sum up, the current termination proof is only 5 lines long, whereas the previous one was 12 lines -- we got rid of almost 60\% of the work, all of which was just bookkeeping. But we shouldn't be too happy: automation won't dispel all our problems with function definition and termination proofs, because the \m{Function} command can't handle some kinds of functions.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
     firstline=342,
-    lastline=360
+    lastline=362
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
+The offending classes of recursive functions are the same ones that give us trouble with manual definition using the inductive domain method, namely those that exhibit \textit{nested recursion} and \textit{higher-order recursion}. Two examples of such functions are shown in the listing above.
 
+The first one, called \m{f}, is a very weird way of defining the identity function on natural numbers (if this function were accepted, an ordinary induction on \m{n} would suffice to prove that it is indeed the identity). This function exhibits nested recursion because of the expression \m{f (f n')}: first we call \m{f} with the argument \m{n'}, which is a structurally recursive call on a subterm of \m{n}, so everything is fine so far, but then we call \m{f} with the argument \m{f n'}, i.e. the result of the previous call, which is not a structurally recursive call. We annotate the function with \m{measure id n}, in order to argue about its termination using well-founded induction (when we measure a natural number with the identity function, the resulting well-founded relation is simply $<$). But this maneuver didn't help and we fail miserably -- because of nested recursion, the \m{Function} command literally refuses to even consider our function and gives us an error message.
+
+The second function, called \m{tmap}, is way of mapping its argument \m{g} over every node of a non-empty tree with finite branching. This function exhibits higher-order recursion because the expression \m{map (tmap g) l}: the recursive call to \m{tmap} is partial, i.e. not fully applied, and in this form it is passed to \m{map} as argument. This scheme of recursion is less problematic than nested recursion and therefore this time the \m{Function} command doesn't refuse to cooperate. Moreover, we don't even need to argue about termination of this function -- it is accepted after passing the ordinary guardedness check, which means that Coq considers it structurally recursive. But there's still a bit of a problem -- after the function is defined, we get two warning messages telling us that \m{Function} couldn't generate definition of the graph of the function and that it couldn't generate the functional inversion principle.
 
 
 

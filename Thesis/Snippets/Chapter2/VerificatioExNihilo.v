@@ -352,12 +352,14 @@ Inductive Tr (A : Type) : Type :=
 
 Arguments N {A} _ _.
 
-Function tmap {A B : Type} (f : A -> B) (t : Tr A) : Tr B :=
+Function tmap {A B : Type} (g : A -> B) (t : Tr A) : Tr B :=
 match t with
-    | N x l => N (f x) (map (tmap f) l)
+    | N x l => N (g x) (map (tmap g) l)
 end.
-(* ===> Cannot define graph(s) for tmap [funind-cannot-define-graph,funind] *)
-(* ===> Cannot build inversion information [funind-cannot-build-inversion,funind] *)
+(* ===> Cannot define graph(s) for tmap
+        [funind-cannot-define-graph,funind] *)
+(* ===> Cannot build inversion information
+        [funind-cannot-build-inversion,funind] *)
 
 End Function_failures.
 
