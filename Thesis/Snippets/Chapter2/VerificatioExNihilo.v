@@ -335,6 +335,34 @@ Defined.
 Compute qsf (TQSA_default nat leb) [4; 3; 2; 1].
 (* ===> = [1; 2; 3; 4] *)
 
+(** ** Not all functions are created equal *)
+
+Module Function_failures.
+
+Fail Function f (n : nat) {measure id n} : nat :=
+match n with
+    | 0 => 0
+    | S n' => S (f (f n'))
+end.
+(* ===> The command has indeed failed with message:
+        on expr : f n' check_not_nested: failure f *)
+
+Inductive Tr (A : Type) : Type :=
+    | N : A -> list (Tr A) -> Tr A.
+
+Arguments N {A} _ _.
+
+Function tmap {A B : Type} (f : A -> B) (t : Tr A) : Tr B :=
+match t with
+    | N x l => N (f x) (map (tmap f) l)
+end.
+(* ===> Cannot define graph(s) for tmap [funind-cannot-define-graph,funind] *)
+(* ===> Cannot build inversion information [funind-cannot-build-inversion,funind] *)
+
+End Function_failures.
+
+(** * E pluribus unum *)
+
 Theorem Permutation_qsf :
   forall
     (A : VerifiedQSArgs) (l : list A),

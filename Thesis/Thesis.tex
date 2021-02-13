@@ -718,7 +718,7 @@ Having come so far, we can now explain what evidence-based programming is: it is
 
 \section{Remarks on (un)bundling and (lack of) sharing}
 
-We could have defined our template in a slightly different manner, namely with a more bundled class for holding the arguments. By ``bundling'', in the context of Coq, we will mean realizing a component of a record or a class as a field. ``Unbundling'', on the other hand, is realizing a component of a class or record as a parameter.
+We could have defined our template in a slightly different manner, namely with a more bundled class for holding the arguments. By ``bundling'', in the context of Coq, we will mean realizing a component of a record or class as a field. ``Unbundling'', on the other hand, is realizing a component of a record or class as a parameter.
 
 \inputminted
 [
@@ -729,7 +729,7 @@ We could have defined our template in a slightly different manner, namely with a
 ]
 {Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
 
-Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, it takes only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if it \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
+Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, it takes only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
 The difference between bundled and unbundled versions of a class does not matter in theory -- we can derive each one from the other. If we have an unbundled class, we can define a new class whose fields correspond to the parameters of the original class and an instance of this class itself. In the other direction, given a bundled class we can define a new unbundled class, with parameters corresponding to some fields of the original class, whose fields are an instance of the original class itself and equality proofs that constrain the instance's fields to match the parameters of the new class.
 
@@ -786,7 +786,7 @@ We have seen only the basic version of the inductive domain method because quick
 
 The inductive domain method can be used not only to implement general recursive functions, but also to represent partial recursive functions \cite{BCM8}. If a partial recursive function terminates for some input, we can construct the corresponding call graph and use it to run the function's representation. Of course in general we won't be able to prove that a partial recursive function terminates for all inputs, so we won't be able to recover the desired partial function of type \m{A -> B} from its representation of type \m{forall a\ :\ A, D a -> B}.\footnote{The inductive domain method, as a means of representing partial recursive functions, has some problems, for example with composition. See \cite{Knapp} for the most recent take on partial recursive functions and computability in (homotopy) type theory.}
 
-\section{Well-founded induction}
+\section{Well-founded induction} \label{wellfounded}
 
 We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.} A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{Conversely, structural induction is nothing more than just well-founded induction with the well-founded relation being ``is a subterm of''. This is why well-founded induction and structural induction are, in a sense, equivalent.}
 
@@ -1133,7 +1133,27 @@ Luckily, we don't need to automate this process ourselves. It has already been d
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
-To use the \m{Function} command we first need to \m{Require Import Recdef} -- \m{Function} is more like a plugin than a built-in Coq command, and without this module we will get a parse error. The definition of our quicksort template is stunningly similar to the one from section \ref{sanity1}. The only differences are that the definition starts with \m{Function} instead of \m{Fixpoint}, that we use \m{TerminatingQSArgs} instead of \m{QSArgs} (because we need to prove termination for the definition to be accepted by Coq) and that we use the annotation \m{measure length l} instead of \m{struct l}. The function body is exactly the same as back then and we don't need to clutter it with any auxiliary constructions.
+To use the \m{Function} command we first need to \m{Require Import Recdef} (or \m{Require Import FunInd}). \m{Function} is not really a built-in Coq command, but more like a plugin, and without importing the appropriate module we will get a parse error when trying to use it.
+
+The definition of our quicksort template is stunningly similar to the one from section \ref{sanity1}. The only differences are that the definition starts with \m{Function} instead of \m{Fixpoint}, that we use \m{TerminatingQSArgs} instead of \m{QSArgs} (because we need to prove termination for the definition to be accepted by Coq) and that we use the annotation \m{measure length l} instead of \m{struct l}. The function body is exactly the same as back then and we don't need to clutter it with any auxiliary constructions.
+
+The termination proof is much shorter than the one we saw back in section \ref{wellfounded}. This is in part because \m{Function} frees us from the bureaucracy of instantiating the well-founded induction principle ourselves -- we only need to provide the annotation \m{measure length l} and all the details get inferred automatically.
+
+Here \m{measure} means that we want to perform well-founded induction using a well-founded relation constructed by mapping its arguments to natural numbers and then using the standard order $<$ on natural numbers, \m{length} specifies which function we want to use for the mapping and \m{l} says the length of which list is going to decrease. This is exactly the same thing we did back insection \ref{wellfounded} -- internally it even uses the same function \m{ltof} and lemma \m{well\_founded\_ltof} that we used.
+
+The remaining part of the proof is also much simpler than in section \ref{wellfounded}. When using \m{Function} we don't need anymore to manually perform \m{destruct}s, apply the induction hypothesis or decide which constructor of the domain predicate to use when. The only proofs that are left to us are those establishing that the length of the argument descreases in the recursive calls. To sum up, the current termination proof is only 5 lines long, whereas the previous one was 12 lines -- we got rid of almost 60\% of the work, all of which was just bookkeeping.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=342,
+    lastline=360
+]
+{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+
+
+
 
 
 \section{E pluribus unum} \label{epluribus}
@@ -1153,8 +1173,8 @@ The verification goes here.
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=299,
-    lastline=318
+    firstline=292,
+    lastline=311
 ]
 {Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
 
