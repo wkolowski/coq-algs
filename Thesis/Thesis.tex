@@ -284,7 +284,7 @@ In this section we give a very short Coq tutorial. Before reading it, the unfami
     frame=lines,
     bgcolor=CoqIDE
 ]
-{Coq}{Snippets/Chapter1/SpecVerification.v}
+{Coq}{Snippets/SpecVerification.v}
 
 We start by importing modules for working with lists -- we will need some list functions and notations (Coq allows defining custom notations using a built-in notation mechanism), and also \m{lia}, a procedure for reasoning in \textbf{l}inear \textbf{i}nteger \textbf{a}rithmetic (hence the name).
 
@@ -397,7 +397,7 @@ So, how can we formally define the proposition ``the list of natural numbers $l$
     firstline = 1,
     lastline = 17
 ]
-{Coq}{Snippets/Chapter2/NotEasy.v}
+{Coq}{Snippets/NotEasy.v}
 
 This is exactly what the above definition says. We start by importing the required modules and then define an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} being sorted means that for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, when the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
 
@@ -435,7 +435,7 @@ Let's try to restate the intuitive definition of sortedness, which says that ele
     firstline = 6,
     lastline = 16
 ]
-{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+{Coq}{Snippets/ImprovingPatchworkDefinitions.v}
 
 We can easily formalize the above reformulated definition. First we define a helper relation \m{LessThanAll}, so that \m{LessThanAll n l} means that the number \m{n} is less than or equal to all numbers in the list \m{l}. Then comes the main definition: an empty list is sorted\footnote{We must remember this base case, even though it's quite implicit in the patchwork definition.}, and a list \m{h\ ::\ t} is sorted as soon as \m{h} is less than all elements of \m{t} and \m{t} itself is also sorted.
 
@@ -446,7 +446,7 @@ We can easily formalize the above reformulated definition. First we define a hel
     firstline = 22,
     lastline = 27
 ]
-{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+{Coq}{Snippets/ImprovingPatchworkDefinitions.v}
 
 This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the \hyperref[notabstract]{next section}, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
 
@@ -475,7 +475,7 @@ How do we put this into practice? It's quite simple: in our definition, we repla
     firstline = 33,
     lastline = 38
 ]
-{Coq}{Snippets/Chapter2/ImprovingPatchworkDefinitions.v}
+{Coq}{Snippets/ImprovingPatchworkDefinitions.v}
 
 Note that we don't assume anything about the relation -- \m{R} can be any relation whatsoever, not necessarily a total order relation. This is the first glimpse of a concept we will meet later: don't assume what is not needed. To state the definition we don't need \m{R} to have any properties, so we don't assume any.
 
@@ -496,7 +496,7 @@ Having said that, how do we define what it means for two lists to be permutation
     firstline = 6,
     lastline = 17
 ]
-{Coq}{Snippets/Chapter2/JustRight.v}
+{Coq}{Snippets/JustRight.v}
 
 After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove correctness of any nontrivial sorting algorithm. The reason is that some of them move list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
 
@@ -516,7 +516,7 @@ This one is admittedly quite murky. What is meant by ``aspect'' here? The best w
     firstline = 23,
     lastline = 30
 ]
-{Coq}{Snippets/Chapter2/JustRight.v}
+{Coq}{Snippets/JustRight.v}
 
 Such an idea is \textit{counting}: two lists are permutations of one another when they contain the same number of occurrences of each \m{x\ :\ A}. Note that, because we count elements, this new definition only applies to types that have decidable equality. This restriction is not a big problem in practice, because the need to sort functions, streams, or other such infinite objects lacking decidable equality, is pretty rare.
 
@@ -529,7 +529,7 @@ But the resulting definition by counting is \textit{not abstract enough}, becaus
     firstline = 35,
     lastline = 40
 ]
-{Coq}{Snippets/Chapter2/JustRight.v}
+{Coq}{Snippets/JustRight.v}
 
 The final specification of a sorting function that we have arrived at through our considerations is shown in the listing. A function \m{f} is a sorting function (according to some relation \m{R}, of which we think as the order) if the output is a sorted permutation of the input. We pack these notions into a class named \m{Sort} using a combination of parameters and fields - a distinction we will revisit later.
 
@@ -622,7 +622,7 @@ In the \hyperref[sanity1]{next section} we will see a technique that allows us t
     firstline=6,
     lastline=23
 ]
-{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+{Coq}{Snippets/AbstractTheAlgorithm.v}
 
 Here's our first attempt at the abstract template. We begin by defining a class\footnote{Coq's classes are like a cross of Haskell's typeclasses and records, but much more powerful because of dependent types -- the types of later fields in a class can depend on the values of earlier fields.} whose fields are the user-provided subroutines that we will use in our template. Then comes the template itself. It is a direct translation of the (modified) four-point description of quicksort from the beginning of this section: if the list is short, sort it using some ad hoc sorting procedure; otherwise choose a pivot, partition the rest of the list into three parts, sort the parts containing smaller and greater elements recursively and join all the parts together with the pivot in the middle.
 
@@ -648,7 +648,7 @@ In typical algorithmic settings the answer is not very enlightening: the user is
     firstline=25,
     lastline=46
 ]
-{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+{Coq}{Snippets/AbstractTheAlgorithm.v}
 
 Here's what happens when we try this advice for our quicksort template. Let's say a typical user, after stumbling upon our template, will want to build the simplest quicksort variant to sort some natural numbers, and so we define: a list is short when it's empty; we can sort a short (i.e. empty) list ad hoc by returning an empty list; and we can partition by filtering twice, just like in the Haskell version.
 
@@ -663,7 +663,7 @@ When we run this particular version of quicksort on a reverse-sorted example lis
     firstline=52,
     lastline=89
 ]
-{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+{Coq}{Snippets/AbstractTheAlgorithm.v}
 
 Improving our flawed template turns out to be pretty easy. We can change the type of \m{choosePivot} to \m{T -> list T -> T * list T}, whose domain we can interpret as guaranteeing that the input list is not empty. But what if the input list \textit{is} empty? This shouldn't happen: we call \m{choosePivot} only in case the input list is not short and the empty list, being the shortest of all lists, certainly should be considered short. We can therefore modify the type of \m{short} to \m{list T -> option (T * list T)}, with the possible results being either \m{None} (which means that the list is short) or \m{Some (h, t)} (which means it is not short and guarantees that it is not empty).
 
@@ -727,7 +727,7 @@ We could have defined our template in a slightly different manner, namely with a
     firstline=95,
     lastline=115
 ]
-{Coq}{Snippets/Chapter2/AbstractTheAlgorithm.v}
+{Coq}{Snippets/AbstractTheAlgorithm.v}
 
 Our first definition of \m{QSArgs} was unbundled, because the type was a parameter. The listing above shows the alternative realization as a fully bundled class in which \m{T} is a field instead. We declare \m{T} as a coercion from \m{QSArgs} to \m{Sortclass}, so that we can use instances of \m{QSArgs} as if they were types. This is quite handy in the new definition of \m{qs} -- instead of two arguments, \m{A\ :\ Type} and \m{args\ :\ QSArgs A}, it takes only one, \m{A\ :\ QSArgs}, and we can use it to write \m{list A} just as if \m{A} were a type. Besides these cosmetic differences, the new definition of \m{qs} is the same as before.
 
@@ -770,7 +770,7 @@ Back to our (almost) initial question: we need to prove termination because only
     firstline=29,
     lastline=48
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 The above listing shows how the inductive domain method looks like in practice. We define \m{QSDom}, an inductive family of domain predicates,\footnote{\m{QSDom A} is in fact a type family, because its codomain is \m{Type}, but we'll ignore this little naming inconsistency. In a \hyperref[irrelevant]{later section} we will see a variant of the inductive domain method where the domain predicate really is a predicate.} one for each parameter \m{A\ :\ QSArgs}. \m{QSDom A l} can be read aloud as ``\m{l} belongs to the domain of quicksort'' and an element of \m{QSDom A l} represents the complete call graph of our previous implementation of \m{qs} applied to \m{l}.
 
@@ -784,15 +784,17 @@ In the literature, the inductive domain method is better known as the ``Bove-Cap
 
 We have seen only the basic version of the inductive domain method because quicksort's recursion scheme is rather basic. The method is pretty malleable and can be accomodated to fit mutual recursion (i.e. two or more general recursive functions that call each other; see \cite{BCM3}), nested recursion (i.e. a situation where the result of a recursive call is the argument of another recursive call, like in McCarthy's famous f91 function \cite{f91}; see \cite{BCM2}) and possibly even higher-order recursion (i.e. a situation where recursive calls may be partially applied; see \cite{BCM6}).
 
-The inductive domain method can be used not only to implement general recursive functions, but also to represent partial recursive functions \cite{BCM8}. If a partial recursive function terminates for some input, we can construct the corresponding call graph and use it to run the function's representation. Of course in general we won't be able to prove that a partial recursive function terminates for all inputs, so we won't be able to recover the desired partial function of type \m{A -> B} from its representation of type \m{forall a\ :\ A, D a -> B}.\footnote{The inductive domain method, as a means of representing partial recursive functions, has some problems, for example with composition. See \cite{Knapp} for the most recent take on partial recursive functions and computability in (homotopy) type theory.}
+The inductive domain method can be used not only to implement general recursive functions, but also to represent partial recursive functions \cite{BCM8}. If a partial recursive function terminates for some input, we can construct the corresponding call graph and use it to run the function's representation. Of course in general we won't be able to prove that a partial recursive function terminates for all inputs, so we won't be able to recover the desired partial function of type \m{A -> B} from its representation of type \m{forall a\ :\ A, D a -> B}. However, as a means of representing partial recursive functions, the inductive domain method has some problems, for example when one wants to compose partial functions. See \cite{Knapp} for the most recent take on partial recursive functions and computability in (homotopy) type theory.
 
-Another application of the inductive domain method, even more general than representing partial functions, is extracting an executable function definition from a specification defined as an inductive relation (see \cite{Function}). Such a relation, when seen as a function, can not only be partial in the sense of not terminating for certain arguments, but can, on the one hand, be altogether undefined for certain arguments and, on the other hand, be nondeterministic, i.e. return more than one result for a given argument). In such cases the proof that an argument belongs to the domain not only certifies that the ``function'' is defined and terminating for that argument, but also encodes an evaluation strategy which determines which result should be returned in cases where more than one is possible.
+Another application of the inductive domain method, even more general than representing partial functions, is extracting an executable function definition from a specification defined as an inductive relation (see \cite{Function}). Such a relation, when seen as a function, can not only be partial in the sense of not terminating for certain arguments, but can, on the one hand, be altogether undefined for certain arguments and, on the other hand, be nondeterministic, i.e. return more than one result for a given argument. In such cases the proof that an argument belongs to the domain not only certifies that the ``function'' is well-defined and terminating for this particular argument, but also encodes an evaluation strategy that determines which result should be returned in cases where more than one is possible. Of course in this case the same caveat as for ordinary partial functions applies, but the problems are likely a lot more severe. If one is working in a setting which allows quotient inductive-inductive types, a possibly much better solution would be to use the partiality monad described in \cite{PartialityMonad}.
 
 \section{Well-founded induction} \label{wellfounded}
 
-We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}.\footnote{In classical mathematics well-founded induction is also known as \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many more. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the letter.} A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}.\footnote{Conversely, structural induction is nothing more than just well-founded induction with the well-founded relation being ``is a subterm of''. This is why well-founded induction and structural induction are, in a sense, equivalent.}
+We now proceed to prove termination of the new quicksort template. The perfect (and, in some sense, the only) way to do this is \textit{well-founded induction}. A relation on type \m{A} is well-founded if all elements of \m{A} are accessible and an element of \m{A} is accessible if all elements below it are accessible. Well-founded induction is then just structural induction on the proof of accessibility of an element of \m{A}. And conversely, structural induction is nothing more than just well-founded induction with the well-founded relation being ``is a subterm of''. This is why well-founded induction and structural induction are, in a sense, equivalent.
 
-For example, the relation ``is shorter than'' on \m{list A}, which we will use in the listing below, is well-founded because all lists are accessible. This should be intuitively clear: the empty list is accessible because all shorter lists (of which there are none) are accessible; all singleton lists are accessible, because all shorter lists (i.e. just the empty list) are accessible; all lists of length two are accessible, because all lists of length $0$ and $1$ are accessible and so on.\footnote{Of course a formal proof of this fact goes by induction on the list whose accessibility we are showing, but watch out -- it's a little tricky.}
+In classical mathematics well-founded induction also goes by the names of \textit{strong induction}, \textit{complete induction}, \textit{Noetherian induction} and many others. There it is defined in one of two ways: the first definition states that a relation is well-founded when it has no descending chains; the second says a relation on \m{A} is well-founded when all subsets of \m{A} have a minimal element. Classically these definitions are equivalent and equivalent to the definition given in the main text, but from the point of view of constructive mathematics they are inferior to the latter.
+
+For example, the relation ``is shorter than'' on \m{list A}, which we will use in the listing below, is well-founded because all lists are accessible. This should be intuitively clear: the empty list is accessible because all shorter lists (of which there are none) are accessible; all singleton lists are accessible, because all shorter lists (i.e. just the empty list) are accessible; all lists of length two are accessible, because all lists of length $0$ and $1$ are accessible and so on.%\footnote{Of course a formal proof of this fact goes by induction on the list whose accessibility we are showing, but watch out -- it's a little tricky.}
 
 \inputminted
 [
@@ -801,7 +803,7 @@ For example, the relation ``is shorter than'' on \m{list A}, which we will use i
     firstline=50,
     lastline=67
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 Our first attempt to prove termination is shown in the listing above. We proceed by well-founded induction on \m{l}, the well-founded relation being ``is shorter than'' described in the previous paragraph. The main part of the proof starts after we have convinced Coq that this relation really is well-founded (using the lemma \m{well\_founded\_ltof} from the standard library).
 
@@ -827,7 +829,7 @@ But the beauty of mathematics in general and of our approach to algorithms in pa
     firstline=3,
     lastline=27
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward: start with a class that has a single field which accomodates the original \m{QSArgs} and then successively add all the lemmas and properties needed to finish the termination proof. Don't forget about the coercion, so that elements of \m{TerminatingQSArgs} can be used in all places where an element of \m{QSArgs} is expected.
 
@@ -838,7 +840,7 @@ Coming up with the proper definition of \m{TerminatingQSArgs} is straightforward
     firstline=69,
     lastline=89
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 Having all the lemmas we need, the proof proceeds exactly as described above. \m{qs}, our provably terminating implementation of a quicksort template, is a result of feeding the termination proof into \m{qs'}. Note that it is crucial to that we have ended the proof with the command \m{Defined} instead of \m{Qed}. If we didn't, we wouldn't be able to run \m{qs} -- it would get instantly stuck. This is because the command \m{Qed} results in the definition being opaque, i.e. the body of the definition gets erased. This would prevent \m{qs} from computing anything, because the helper function \m{qs'} was defined by structural recursion on \m{d\ :\ QSDom A l}, which in the case of \m{qs} comes from the termination proof.
 
@@ -864,7 +866,7 @@ By listening to the advice in the above technique, we can hit two birds with one
     firstline=121,
     lastline=156
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 As we can see, the definition of \m{TQSA\_default} is almost the same as that of \m{QSA\_nat}. The proofs aren't very hard, so we have passed the sanity check -- we now have a provably terminating quicksort template, together with a default implementation, and, thanks to the last check, it looks like it produces correct results. But before we move on to prove our template's correctness, let's see what we could have done differently with regards to the termination proof.
 
@@ -879,7 +881,7 @@ The first thing we could have done differently is the relation between the prova
     firstline=162,
     lastline=174
 ]
-{Coq}{Snippets/Chapter2/ProveTermination.v}
+{Coq}{Snippets/ProveTermination.v}
 
 I am not sure why we would choose this variant over the original one. On the one hand it seems to be ``more uniform'' (one definition of \m{qs'}, two ``termination proofs'') than the original (two definitions of \m{qs'}, one termination proof), but on the other hand the definition of \m{qs'} with termination checker turned off is much more readable than the above proof of \m{QSDom\_all}, which is virtually the same, but implemented with tactics.
 
@@ -906,7 +908,7 @@ Another consequence is the behaviour of the extraction mechanism: because proofs
     firstline=3,
     lastline=42
 ]
-{Coq}{Snippets/Chapter2/BoveCapretta.v}
+{Coq}{Snippets/BoveCapretta.v}
 
 The above listing shows how \m{qs'}, its domain predicate \m{QSDom} and the termination proof \m{QSDom\_all} are extracted when the codomain of \m{QSDom} is \m{Type}. There's quite a bit of code and that should worry us, because this code is an artifact stemming from the fact that we had to use the inductive domain method to convince Coq that \m{qs'} terminates. We certainly don't want the termination proof to leave Coq and slip into Haskell, because the proof is not necessary here -- Haskell allows general recursion. In fact, we would like the extracted code to resemble our original implementation of \m{qs'} from chapter \ref{template} with the termination checker turned off. But when we look at the result of extraction for \m{qs'}, we clearly see that this is not the case.
 
@@ -919,7 +921,7 @@ There is a variant of the inductive domain method (arguably somewhat more comple
     firstline=44,
     lastline=55
 ]
-{Coq}{Snippets/Chapter2/BoveCapretta.v}
+{Coq}{Snippets/BoveCapretta.v}
 
 To get what we want, it therefore suffices to change the codomain of \m{QSDom} into \m{Prop} and use the exception to the rule for making recursive calls. The former task, whose results are shown in the listing above, is a piece of cake, but the latter has some technical overhead -- Coq is not smart enough to just let us match on the proof, so we will need to pack the pattern matching into special lemmas. One of these is shown in the listing below.
 
@@ -930,7 +932,7 @@ To get what we want, it therefore suffices to change the codomain of \m{QSDom} i
     firstline=57,
     lastline=76
 ]
-{Coq}{Snippets/Chapter2/BoveCapretta.v}
+{Coq}{Snippets/BoveCapretta.v}
 
 Even though when matching on the proof of \m{QSDom A l} there are two possible cases, \m{Short} and \m{Long}, we will match it only when we know the list is not short, which reduces the number of possible cases to one. The above inversion lemma, which retrieves a proof of \m{QSDom A lt} from the proof of \m{QSDom A l}, formalizes this simple intuition. Its proof, however, is a bit involved because of all the equational hypotheses which need to be rewritten at some point. We also need an analogous inversion lemma for \m{QSDom A gt} -- it is not shown in the listing because it is completely analogous. Note that we end the proof with \m{Defined}, not \m{Qed} -- this is crucial, because Coq will need to be able to inspect the resulting proofterm.
 
@@ -941,7 +943,7 @@ Even though when matching on the proof of \m{QSDom A l} there are two possible c
     firstline=99,
     lastline=123
 ]
-{Coq}{Snippets/Chapter2/BoveCapretta.v}
+{Coq}{Snippets/BoveCapretta.v}
 
 Armed with both lemmas, we can now implement \m{qs'} -- the implementation is shown in the listing above. The first important point to notice is that the principal argument is \m{d\ :\ QSDom A l}, as can be seen from the annotation \{\m{struct d}\}, but we don't match on \m{d} -- the definition proceeds like for our initial \m{qs'} from chapter \ref{template}, when the termination checker was turned off.
 
@@ -958,7 +960,7 @@ The last important thing to notice is how the recursive calls look like. We use 
     firstline=183,
     lastline=205
 ]
-{Coq}{Snippets/Chapter2/BoveCapretta.v}
+{Coq}{Snippets/BoveCapretta.v}
 
 The termination proof \m{QSDom\_all} doesn't change at all -- the fact that the codomain of \m{QSDom} is now \m{Prop} doesn't affect it in the slightest. The same can be said of \m{qs} and the default instance \m{TQSA\_default} -- their definitions are the same as before. When we run \m{qs} on an exemple list of naturals, can see the list also gets sorted just like before.
 
@@ -1001,7 +1003,7 @@ For example, consider the function \m{div2} which divides a natural number by tw
     firstline=108,
     lastline=121
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The inductive graph relation for our quicksort template is shown in the listing above. It is very similar to the definition of \m{QSDom} and also closely matches our original definition of \m{qs} from chapter \ref{template}. The parameter \m{A} and the first index of type \m{list A} represent quicksort's arguments, whereas the second index of type \m{list A} represents its result. In the constructor \m{LongG}, the inductive occurrences of \m{QSGraph} mimic the recursive calls.
 
@@ -1012,7 +1014,7 @@ The inductive graph relation for our quicksort template is shown in the listing 
     firstline=123,
     lastline=129
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The next step is to prove that \m{QSGraph} is ``correct'' with respect to \m{qs}. In less jargony words, this corresponds to one of the implications from the definition of a function's graph, namely \m{f a = b -> R a b}. The statement of the lemma is a bit different, however: it is the equivalent of saying \m{R a (f a)} instead. The proof is easy: we introduce assumptions to context, unfold the definition of \m{qs} and generalize the termination proof \m{QSDom\_all A l} to a general \m{q\ :\ QSDom A l}. The rest is a simple induction on \m{q}, followed by using the appropriate constructor and feeding it with the arguments it wants.
 
@@ -1023,7 +1025,7 @@ The next step is to prove that \m{QSGraph} is ``correct'' with respect to \m{qs}
     firstline=131,
     lastline=157
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 We proceed to proving that \m{QSGraph} is ``complete'' with respect to \m{qs}. This is the other implication from the definition of a function's graph, namely \m{R a b -> f a = b}. But if we tried to prove it directly, it would turn out to be very hard -- we would have to reason about \m{qs}, but we haven't derived the functional induction principle yet! Luckily, there is a very easy way to get this done: since we already know that \m{QSGraph} is correct, it suffices to prove that it is also deterministic, i.e. that \m{R a b1 -> R a b2 -> b1 = b2}. If we combine correctness with being deterministic, we get completeness.
 
@@ -1040,7 +1042,7 @@ With the lemma at hand, proving completeness is trivial: first we use the lemma 
     firstline=159,
     lastline=180
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 At last we can formulate the functional induction principle and prove it. The principle looks similar to the induction principle \m{QSGraph\_ind} that Coq generated automatically for \m{QSGraph}. The differences are that we assume the induction hypothesis holds for \m{qs A lt} and \m{qs A gt} instead of \m{lt'} and \m{gt'} (which come from derivations of \m{QSGraph A lt lt'} and \m{QSGraph A gt gt'}). Another difference is that there is no mention of \m{QSGraph} in the conclusion.
 
@@ -1053,7 +1055,7 @@ The proof is straightforward. We introduce assumptions to context and apply the 
     firstline=182,
     lastline=196
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The last thing to do is proving the recursive equation, shown in the listing above. In theory it should not be necessary -- the functional induction principle should always suffice -- but in practice it is sometimes handy to have it. The purpose of the recursive equation is to be able to ``unfold'' the function's definition, replacing it with the desired, clean body we wanted to have at the very beginning instead of the clumsy actual implementation, which involves hairy details like the termination proof.
 
@@ -1084,7 +1086,7 @@ Before we proceed to see the automation, we will try to explore another way of d
     firstline=200,
     lastline=220
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 Even though deriving an induction principle for the helper function is very easy, transfering the principle to \m{qs} is impossible. The reason is that the induction hypotheses for \m{qs} hold only for specific proofs of \m{QSDom A l} (namely \m{QSDom\_all A lt} and \m{QSDom\_all A gt}, where \m{lt} and \m{gt} are the list of elements smaller and greater than the pivot, respectively), whereas the induction hypotheses for \m{qs'} are required to hold for all possible proofs of \m{QSDom A lt} and \m{QSDom A gt}. Compare the above listing with the listing below, which shows an attempt at proving the functional induction principle for \m{qs}.
 
@@ -1095,7 +1097,7 @@ Even though deriving an induction principle for the helper function is very easy
     firstline=222,
     lastline=241
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 A smart Coq user could try to salvage the above proof by attempting to prove that any two \m{d\ :\ QSDom A l} are equal. This too, however, is impossible, as can be seen in the listing below (or rather, by going over the below listing interactively in CoqIDE). We start by induction on \m{d1} and then perform case analysis on \m{d2}. When they are constructed with different constructors, we have an easy contradiction (\m{short l} is both \m{None} and \m{Some} at the same time). When both are \m{Short}, we are required us to prove that any two proofs of \m{short l = None} are equal. This is possible, but pretty involved -- techniques from Homotopy Type Theory are necessary\footnote{The appropriate technique is called the \textit{encode-decode method}. See sections 2.12 and 2.13 of the HoTT Book \cite{HoTTBook} for easy examples and section 8.1 for an application to the fundamental group of the circle. Also see \cite{EncodeDecodeAbstract} \cite{EncodeDecodeSlides} for newer ideas that relate the encode-decode method to functional induction principles.} -- and thus we skip it with the tactic \m{admit}.
 
@@ -1106,7 +1108,7 @@ A smart Coq user could try to salvage the above proof by attempting to prove tha
     firstline=243,
     lastline=259
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The real problem is that in the last case, in which both \m{d1} and \m{d2} were made with the constructor \m{Long}, after establishing some initial equalities we have to prove that two proofs of \m{short l = Some (h, t)} are equal (and this is just the first of three similar goals). This time however the goal is impossible to achieve: Homotopy Type Theory tells us\footnote{See sections 2.5---2.14 of the HoTT Book. \cite{HoTTBook}} that the properties of equality proofs in type \m{option (A * list A)} depend on the properties of equality proofs in type \m{A}. The bottom line is that in Coq, without assuming additional axioms we can't prove that an arbitrary type \m{A} satisfies UIP\footnote{UIP stands for \textit{Uniqueness of Identity Proofs}. A type \m{A} satisfies UIP when for all \m{x y\ :\ A}, any two proofs \m{p q\ :\ x = y} are equal.} and therefore there is no chance of proving that any two proofs of \m{short l = Some (h, t)} are equal.
 
@@ -1137,7 +1139,7 @@ Luckily, we don't need to automate this process ourselves. It has already been d
     firstline=315,
     lastline=335
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 To use the \m{Function} command we first need to \m{Require Import Recdef} (or \m{Require Import FunInd}). \m{Function} is not really a built-in Coq command, but more like a plugin, and without importing the appropriate module we will get a parse error when trying to use it.
 
@@ -1158,7 +1160,7 @@ But we shouldn't be too happy: automation won't dispel all our problems with def
     firstline=342,
     lastline=348
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The first one, called \m{f}, is a very weird way of defining the identity function on natural numbers (if this function were accepted, an ordinary induction on \m{n} would suffice to prove that it is indeed the identity). This function exhibits nested recursion because of the expression \m{f (f n')}: first we call \m{f} with the argument \m{n'}, which is a structurally recursive call on a subterm of \m{n}, so everything is fine so far, but then we call \m{f} with the argument \m{f n'}, i.e. the result of the previous call, which is not a structurally recursive call. We annotate the function with \m{measure id n}, in order to argue about its termination using well-founded induction (when we measure a natural number with the identity function, the resulting well-founded relation is simply $<$). But this maneuver didn't help and we fail miserably -- because of nested recursion, the \m{Function} command literally refuses to even consider our function and gives us an error message.
 
@@ -1169,7 +1171,7 @@ The first one, called \m{f}, is a very weird way of defining the identity functi
     firstline=350,
     lastline=362
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 The second function, called \m{tmap}, is way of mapping its argument \m{g} over every node of a non-empty tree with finite branching. This function exhibits higher-order recursion because the expression \m{map (tmap g) l}: the recursive call to \m{tmap} is partial, i.e. not fully applied, and in this form it is passed to \m{map} as argument. This scheme of recursion is less problematic than nested recursion and therefore this time the \m{Function} command doesn't refuse to cooperate. Moreover, we don't even need to argue about termination of this function -- it is accepted after passing the ordinary guardedness check, which means that Coq considers it structurally recursive. But there's still a bit of a problem -- after the function is defined, we get two warning messages telling us that \m{Function} couldn't generate definition of the graph of the function and that it couldn't generate the functional inversion principle.
 
@@ -1186,7 +1188,7 @@ The verification goes here.
     firstline=3,
     lastline=53
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 \inputminted
 [
@@ -1195,7 +1197,7 @@ The verification goes here.
     firstline=292,
     lastline=311
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 \inputminted
 [
@@ -1204,7 +1206,7 @@ The verification goes here.
     firstline=370,
     lastline=395
 ]
-{Coq}{Snippets/Chapter2/VerificatioExNihilo.v}
+{Coq}{Snippets/VerificatioExNihilo.v}
 
 \section{Sanity check -- concrete proofs} \label{sanity3}
 
@@ -1533,6 +1535,12 @@ Mention thesis' repository: \repo
     2018, \\
     \url{https://etheses.bham.ac.uk//id/eprint/8448/4/Knapp18PhD.pdf}
 
+\bibitem{PartialityMonad}
+    Thorsten Altenkirch, Nils Anders Danielsson, and Nicolai Kraus,
+    \textit{Partiality, Revisited \\The Partiality Monad as a Quotient Inductive-Inductive Type},
+    2017, \\
+    \url{https://arxiv.org/pdf/1610.09254.pdf}
+
 \bibitem{FunInd}
     G. Barthe and P. Courtieu, \\
     \textit{Efficient Reasoning about Executable Specifications in Coq},
@@ -1564,16 +1572,14 @@ Mention thesis' repository: \repo
 
 \bibitem{Function}
     Gilles Barthe, Julien Forest, David Pichardie, and Vlad Rusu, \\
-    \textit{Defining and Reasoning About Recursive
-    Functions: A Practical Tool for the Coq
-    Proof Assistant},
+    \textit{Defining and Reasoning About Recursive Functions: A Practical Tool for the Coq Proof Assistant},
     2006 \\
     \url{https://www.researchgate.net/publication/48415012_Defining_and_Reasoning_About_Recursive_Functions_A_Practical_Tool_for_the_Coq_Proof_Assistant}
 
 \bibitem{Equations}
     Matthieu Sozeau, Cyprien Mangin, \\
     \textit{Equations Reloaded: High-Level Dependently-Typed Functional Programming and Proving in Coq},
-    2019,
+    2019, \\
     \url{https://www.irif.fr/~sozeau//research/publications/Equations_Reloaded-ICFP19.pdf}
 
 \bibitem{EncodeDecodeAbstract}
