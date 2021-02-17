@@ -93,5 +93,7 @@ Proof.
       unfold Permutation in H1. specialize (H1 (fun _ => true)).
         inversion H1.
       apply IHForall; clear IHForall. unfold Permutation in *.
-        intro p. cbn in *. specialize (H1 p). destruct (p h2).
+        intro p. cbn in *. specialize (H1 p). destruct (p h2) eqn: Hhp2.
+          destruct (p x) eqn: Hpx.
+            
 Admitted.

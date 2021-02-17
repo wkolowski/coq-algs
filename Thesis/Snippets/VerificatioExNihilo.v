@@ -339,27 +339,27 @@ Compute qsf (TQSA_default nat leb) [4; 3; 2; 1].
 
 Module Function_failures.
 
-Fail Function f (n : nat) {measure id n} : nat :=
+Fail Function weird_id (n : nat) {measure id n} : nat :=
 match n with
     | 0 => 0
-    | S n' => S (f (f n'))
+    | S n' => S (weird_id (weird_id n'))
 end.
 (* ===> The command has indeed failed with message:
-        on expr : f n' check_not_nested: failure f *)
+        on expr : weird_id n' check_not_nested: failure weird_id *)
 
 Inductive Tr (A : Type) : Type :=
     | N : A -> list (Tr A) -> Tr A.
 
 Arguments N {A} _ _.
 
-Function tmap {A B : Type} (g : A -> B) (t : Tr A) : Tr B :=
+Function tmap {A B : Type} (f : A -> B) (t : Tr A) : Tr B :=
 match t with
-    | N x l => N (g x) (map (tmap g) l)
+    | N x l => N (f x) (map (tmap f) l)
 end.
-(* ===> Cannot define graph(s) for tmap
-        [funind-cannot-define-graph,funind] *)
-(* ===> Cannot build inversion information
-        [funind-cannot-build-inversion,funind] *)
+(* ===> tmap is defined
+        tmap is recursively defined (guarded on 4th argument)
+        Cannot define graph(s) for tmap [...]
+        Cannot build inversion information [...] *)
 
 End Function_failures.
 
