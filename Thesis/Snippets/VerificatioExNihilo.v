@@ -26,10 +26,12 @@ Class VerifiedQSArgs : Type :=
           Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
 
     (* TODO 2: kwestia rozstrzygalności relacji *)
-    R : T -> T -> Prop;
+(*     R : T -> T -> Prop; *)
+    R : T -> T -> bool;
 
     R_refl :
-      forall x : T, R x x;
+(*       forall x : T, R x x; *)
+      forall x : T, R x x = true;
 
     Sorted_adhoc :
       forall {l : list T},
@@ -462,3 +464,5 @@ Proof.
   apply Sorted_qsf.
   apply Permutation_qsf.
 Qed.
+
+Print Assumptions Sort_qsf.

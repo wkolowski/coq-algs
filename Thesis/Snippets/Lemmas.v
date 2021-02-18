@@ -78,22 +78,56 @@ Proof.
   intros. rewrite !count_app. apply Nat.add_comm.
 Qed.
 
-Lemma Permutation_Forall :
-  forall {A : Type} {P : A -> Prop} {l1 l2 : list A},
-    Permutation l1 l2 ->
-      Forall P l1 -> Forall P l2.
+Lemma count_length :
+  forall {A : Type} (p : A -> bool) (l : list A),
+    count p l <= length l.
 Proof.
-  intros until 2. revert l2 H.
-  induction H0; intros.
-    destruct l2.
+  induction l as [| h t]; cbn.
+    constructor.
+    destruct (p h).
+      apply le_n_S. assumption.
+      constructor. assumption.
+Qed.
+
+Require Import Lia.
+
+Lemma Forall_count :
+  forall {A : Type} {p : A -> bool} {l : list A},
+    Forall (fun x => p x = true) l <-> count p l = length l.
+Proof.
+  induction l as [| h t]; cbn.
+    split; constructor.
+    split.
+      inversion 1. rewrite H2. cbn. f_equal. rewrite <- IHt. assumption.
       constructor.
-      unfold Permutation in H. specialize (H (fun _ => true)).
-        inversion H.
-    destruct l2 as [| h2 t2].
-      unfold Permutation in H1. specialize (H1 (fun _ => true)).
-        inversion H1.
-      apply IHForall; clear IHForall. unfold Permutation in *.
-        intro p. cbn in *. specialize (H1 p). destruct (p h2) eqn: Hhp2.
-          destruct (p x) eqn: Hpx.
-            
-Admitted.
+        destruct (p h) eqn: Hph.
+          reflexivity.
+          cbn in H. pose (count_length p t). lia.
+        destruct (p h) eqn: Hph.
+          inversion H. rewrite IHt. assumption.
+          cbn in H. pose (count_length p t). lia.
+Qed.
+
+Lemma count_true :
+  forall {A : Type} (l : list A),
+    count (fun _ => true) l = length l.
+Proof.
+  induction l as [| h t]; cbn.
+    reflexivity.
+    rewrite IHt. reflexivity.
+Qed.
+
+Lemma Permutation_Forall :
+  forall {A : Type} {p : A -> bool} {l1 l2 : list A},
+    Permutation l1 l2 ->
+      Forall (fun x => p x = true) l1 -> Forall (fun x => p x = true) l2.
+Proof.
+  unfold Permutation.
+  intros A p l1 l2 HP HF.
+  rewrite Forall_count.
+  rewrite Forall_count in HF.
+  rewrite <- HP, HF.
+  specialize (HP (fun _ => true)).
+  rewrite 2!count_true in HP.
+  assumption.
+Qed.
