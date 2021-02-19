@@ -110,7 +110,7 @@ Definition Permutation {A : Type} (l1 l2 : list A) : Prop :=
   forall p : A -> bool, count p l1 = count p l2.
 
 Require Import ImprovingPatchworkDefinitions.
-Export M3.
+Export M3. Require Export Permutation.
 
 Class Sort
   {A : Type} (R : A -> A -> Prop) (f : list A -> list A) : Prop :=

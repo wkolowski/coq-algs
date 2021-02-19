@@ -1,10 +1,9 @@
-Require Export Lemmas ProveTermination Lia.
+Require Export Lemmas ProveTermination Lia Permutation.
 
 Class VerifiedQSArgs : Type :=
 {
     T :> TerminatingQSArgs;
 
-    (* TODO *)
     Permutation_adhoc :
       forall {l : list T},
         short l = None ->
@@ -25,17 +24,14 @@ Class VerifiedQSArgs : Type :=
         partition pivot rest = (lt, eq, gt) ->
           Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
 
-    (* TODO 2: kwestia rozstrzygalności relacji *)
-(*     R : T -> T -> Prop; *)
-    R : T -> T -> bool;
+    R : T -> T -> Prop;
 
     R_refl :
-(*       forall x : T, R x x; *)
-      forall x : T, R x x = true;
+      forall x : T, R x x;
 
     Sorted_adhoc :
       forall {l : list T},
-        short l = None -> (* TODO 3: opisać to *)
+        short l = None ->
           Sorted R (adhoc l);
 
     partition_pivot_lt :
@@ -64,23 +60,21 @@ Instance VQSA_nat : VerifiedQSArgs :=
 }.
 Proof.
   destruct l; inversion 1. constructor.
-  destruct l; inversion 1. constructor.
-  inversion 1. constructor.
+  destruct l; inversion 1. reflexivity.
+  inversion 1. reflexivity.
   inversion 1; subst; clear H.
     induction rest as [| h t]; cbn in *.
-      constructor.
+      reflexivity.
       destruct (h <=? pivot); cbn.
-        eapply Permutation_trans.
-          apply Permutation_swap.
-          apply Permutation_cons. assumption.
+        rewrite perm_swap, <- IHt. reflexivity.
         {
-          rewrite Permutation_app_symm.
+          rewrite Permutation_app_comm.
           rewrite <- !app_comm_cons.
-          rewrite Permutation_swap.
-          rewrite (@Permutation_swap _ h pivot).
-          apply Permutation_cons. 
+          rewrite perm_swap.
+          rewrite (@perm_swap _ h pivot).
+          constructor.
           rewrite app_comm_cons.
-          rewrite Permutation_app_symm.
+          rewrite Permutation_app_comm.
           assumption.
         }
   exact le.
@@ -306,8 +300,8 @@ Proof.
       rewrite e, e0, e1.
       apply Permutation_app.
         assumption.
-        apply Permutation_cons, Permutation_app.
-          apply Permutation_refl.
+        constructor. apply Permutation_app.
+          reflexivity.
           assumption.
     }
 Qed.
@@ -382,8 +376,8 @@ Proof.
       rewrite e, e0, e1.
       apply Permutation_app.
         assumption.
-        apply Permutation_cons, Permutation_app.
-          apply Permutation_refl.
+        constructor. apply Permutation_app.
+          reflexivity.
           assumption.
     }
 Qed.
@@ -464,5 +458,3 @@ Proof.
   apply Sorted_qsf.
   apply Permutation_qsf.
 Qed.
-
-Print Assumptions Sort_qsf.

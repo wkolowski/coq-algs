@@ -1,6 +1,6 @@
 Require Export List Setoid Arith Specification.
 
-Lemma Permutation_refl :
+(* Lemma Permutation_refl :
   forall {A : Type} {l : list A},
     Permutation l l.
 Proof.
@@ -130,4 +130,4 @@ Proof.
   specialize (HP (fun _ => true)).
   rewrite 2!count_true in HP.
   assumption.
-Qed.
+Qed. *)
