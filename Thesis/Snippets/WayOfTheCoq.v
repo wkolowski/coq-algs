@@ -1,5 +1,5 @@
-Require Import List Lia.
-Import ListNotations.
+Require Export List Permutation Lia Arith.
+Export ListNotations.
 
 Print list.
 (*

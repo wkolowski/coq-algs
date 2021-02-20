@@ -1,103 +1,4 @@
-Require Export Lemmas ProveTermination Lia Permutation.
-
-Class VerifiedQSArgs : Type :=
-{
-    T :> TerminatingQSArgs;
-
-    Permutation_adhoc :
-      forall {l : list T},
-        short l = None ->
-          Permutation l (adhoc l);
-
-    Permutation_short :
-      forall {l : list T} {h : T} {t : list T},
-        short l = Some (h, t) ->
-          Permutation l (h :: t);
-
-    Permutation_choosePivot :
-      forall {h : T} {t : list T} {pivot : T} {rest : list T},
-        choosePivot h t = (pivot, rest) ->
-          Permutation (h :: t) (pivot :: rest);
-
-    Permutation_partition :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
-
-    R : T -> T -> Prop;
-
-    R_refl :
-      forall x : T, R x x;
-
-    Sorted_adhoc :
-      forall {l : list T},
-        short l = None ->
-          Sorted R (adhoc l);
-
-    partition_pivot_lt :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          Forall (fun x => R x pivot) lt;
-
-    partition_pivot_eq :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          Forall (fun x => pivot = x) eq;
-
-    partition_pivot_gt :
-      forall {pivot : T} {rest lt eq gt : list T},
-        partition pivot rest = (lt, eq, gt) ->
-          Forall (fun x => R pivot x) gt;
-}.
-
-Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
-Coercion R : VerifiedQSArgs >-> Funclass.
-
-#[refine]
-Instance VQSA_nat : VerifiedQSArgs :=
-{
-    T := TQSA_nat;
-}.
-Proof.
-  destruct l; inversion 1. constructor.
-  destruct l; inversion 1. reflexivity.
-  inversion 1. reflexivity.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn in *.
-      reflexivity.
-      destruct (h <=? pivot); cbn.
-        rewrite perm_swap, <- IHt. reflexivity.
-        {
-          rewrite Permutation_app_comm.
-          rewrite <- !app_comm_cons.
-          rewrite perm_swap.
-          rewrite (@perm_swap _ h pivot).
-          constructor.
-          rewrite app_comm_cons.
-          rewrite Permutation_app_comm.
-          assumption.
-        }
-  exact le.
-  apply le_refl.
-  constructor.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn.
-      constructor.
-      destruct (Nat.leb_spec h pivot).
-        constructor; assumption.
-        assumption.
-  inversion 1; subst; clear H. constructor.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn.
-      constructor.
-      destruct (Nat.leb_spec h pivot); cbn.
-        assumption.
-        constructor.
-          lia.
-          assumption.
-Defined.
-
-Compute qs VQSA_nat [4; 3; 2; 1].
+Require Export ProveTermination.
 
 (** * One induction to rule them all: functional induction *)
 
@@ -283,29 +184,6 @@ Proof.
 Qed.
 *)
 
-(** It's possible to prove theorems using just QSDom_ind, but it's not
-    very abstract or modular to do so. *)
-Theorem Permutation_qs :
-  forall
-    (A : VerifiedQSArgs) (l : list A),
-      Permutation l (qs A l).
-Proof.
-  unfold qs. intros. generalize (QSDom_all A l).
-  induction q; cbn.
-    eapply Permutation_adhoc. assumption.
-    {
-      apply Permutation_short in e.
-      apply Permutation_choosePivot in e0.
-      apply Permutation_partition in e1.
-      rewrite e, e0, e1.
-      apply Permutation_app.
-        assumption.
-        constructor. apply Permutation_app.
-          reflexivity.
-          assumption.
-    }
-Qed.
-
 (** * Automating the boring stuff *)
 
 Require Import Recdef.
@@ -330,8 +208,6 @@ Defined.
 
 Compute qsf (TQSA_default nat leb) [4; 3; 2; 1].
 (* ===> = [1; 2; 3; 4] *)
-
-(** ** Not all functions are created equal *)
 
 Module Function_failures.
 
@@ -360,6 +236,59 @@ end.
 End Function_failures.
 
 (** * E pluribus unum *)
+
+Class VerifiedQSArgs : Type :=
+{
+    T :> TerminatingQSArgs;
+
+    Permutation_adhoc :
+      forall {l : list T},
+        short l = None ->
+          Permutation l (adhoc l);
+
+    Permutation_short :
+      forall {l : list T} {h : T} {t : list T},
+        short l = Some (h, t) ->
+          Permutation l (h :: t);
+
+    Permutation_choosePivot :
+      forall {h : T} {t : list T} {pivot : T} {rest : list T},
+        choosePivot h t = (pivot, rest) ->
+          Permutation (h :: t) (pivot :: rest);
+
+    Permutation_partition :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Permutation (pivot :: rest) (lt ++ pivot :: eq ++ gt);
+
+    R : T -> T -> Prop;
+
+    R_refl :
+      forall x : T, R x x;
+
+    Sorted_adhoc :
+      forall {l : list T},
+        short l = None ->
+          Sorted R (adhoc l);
+
+    partition_pivot_lt :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => R x pivot) lt;
+
+    partition_pivot_eq :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => pivot = x) eq;
+
+    partition_pivot_gt :
+      forall {pivot : T} {rest lt eq gt : list T},
+        partition pivot rest = (lt, eq, gt) ->
+          Forall (fun x => R pivot x) gt;
+}.
+
+Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
+Coercion R : VerifiedQSArgs >-> Funclass.
 
 Theorem Permutation_qsf :
   forall
@@ -458,3 +387,77 @@ Proof.
   apply Sorted_qsf.
   apply Permutation_qsf.
 Qed.
+
+(** * Sanity *)
+
+#[refine]
+Instance VQSA_nat : VerifiedQSArgs :=
+{
+    T := TQSA_nat;
+}.
+Proof.
+  destruct l; inversion 1. constructor.
+  destruct l; inversion 1. reflexivity.
+  inversion 1. reflexivity.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn in *.
+      reflexivity.
+      destruct (h <=? pivot); cbn.
+        rewrite perm_swap, <- IHt. reflexivity.
+        {
+          rewrite Permutation_app_comm.
+          rewrite <- !app_comm_cons.
+          rewrite perm_swap.
+          rewrite (@perm_swap _ h pivot).
+          constructor.
+          rewrite app_comm_cons.
+          rewrite Permutation_app_comm.
+          assumption.
+        }
+  exact le.
+  apply le_refl.
+  constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (Nat.leb_spec h pivot).
+        constructor; assumption.
+        assumption.
+  inversion 1; subst; clear H. constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (Nat.leb_spec h pivot); cbn.
+        assumption.
+        constructor.
+          lia.
+          assumption.
+Defined.
+
+Compute qs VQSA_nat [4; 3; 2; 1].
+
+
+
+(** It's possible to prove theorems using just QSDom_ind, but it's not
+    very abstract or modular to do so. *)
+(* Theorem Permutation_qs :
+  forall
+    (A : VerifiedQSArgs) (l : list A),
+      Permutation l (qs A l).
+Proof.
+  unfold qs. intros. generalize (QSDom_all A l).
+  induction q; cbn.
+    eapply Permutation_adhoc. assumption.
+    {
+      apply Permutation_short in e.
+      apply Permutation_choosePivot in e0.
+      apply Permutation_partition in e1.
+      rewrite e, e0, e1.
+      apply Permutation_app.
+        assumption.
+        constructor. apply Permutation_app.
+          reflexivity.
+          assumption.
+    }
+Qed.
+ *)

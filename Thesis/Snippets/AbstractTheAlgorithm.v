@@ -1,5 +1,6 @@
-Require Export List Arith.
-Export ListNotations.
+Require Export SpecifyTheProblem.
+
+(** * Top-down is better than bottom-up *)
 
 Module FirstTry.
 
@@ -21,6 +22,8 @@ Fixpoint qs
       let '(lt, eq, gt)  := partition pivot rest in
         qs args lt ++ pivot :: eq ++ qs args gt.
 Set Guard Checking.
+
+(** * User experience: concerete algorithm as a sanity check *)
 
 Instance QS_nat : QSArgs nat :=
 {
@@ -47,7 +50,7 @@ Compute qs QS_nat [5; 4; 3; 2; 1; 0].
 
 End FirstTry.
 
-Module Unbundled.
+Module SecondTry.
 
 Class QSArgs (T : Type) : Type :=
 {
@@ -88,9 +91,9 @@ Compute qs QSA_nat [5; 4; 3; 2; 1; 0].
 (* ===> = [0; 1; 2; 3; 4; 5]
         : list nat *)
 
-End Unbundled.
+End SecondTry.
 
-Module Bundled.
+(** * Remarks on (un)bundling and (lack of) sharing *)
 
 Class QSArgs : Type :=
 {
@@ -131,7 +134,5 @@ Instance QSA_nat : QSArgs :=
 }.
 
 Compute qs QSA_nat [5; 4; 3; 2; 1; 0].
-
-End Bundled.
-
-Export Bundled.
+(* ===> = [0; 1; 2; 3; 4; 5]
+        : list QSA_nat *)

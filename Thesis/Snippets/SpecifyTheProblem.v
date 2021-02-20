@@ -1,5 +1,6 @@
-Require Import List.
-Import ListNotations.
+Require Export WayOfTheCoq.
+
+(** * Not that easy *)
 
 Module NotEasy.
 
@@ -37,9 +38,9 @@ Inductive list (A : Type) : Type :=
 
 End NotEasy.
 
-Module ImprovingPatchworkDefinitions.
+(** * Improving patchwork definitions *)
 
-Module M1.
+Module ImprovingPatchworkDefinitions1.
 
 Inductive LessThanAll (n : nat) : list nat -> Prop :=
     | LessThanAll_nil : LessThanAll n []
@@ -53,9 +54,9 @@ Inductive Sorted : list nat -> Prop :=
         forall (h : nat) (t : list nat),
           LessThanAll h t -> Sorted t -> Sorted (h :: t).
 
-End M1.
+End ImprovingPatchworkDefinitions1.
 
-Module M2.
+Module ImprovingPatchworkDefinitions2.
 
 Inductive Sorted : list nat -> Prop :=
     | Sorted_nil : Sorted []
@@ -64,9 +65,7 @@ Inductive Sorted : list nat -> Prop :=
         forall (n m : nat) (l : list nat),
           n <= m -> Sorted (m :: l) -> Sorted (n :: m :: l).
 
-End M2.
-
-Module M3.
+End ImprovingPatchworkDefinitions2.
 
 Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
     | Sorted_nil : Sorted R []
@@ -75,11 +74,7 @@ Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
         forall (x y : A) (l : list A),
           R x y -> Sorted R (y :: l) -> Sorted R (x :: y :: l).
 
-End M3.
-
-End ImprovingPatchworkDefinitions.
-
-Module JustRight.
+(** * Just about right... or is it? Staying on the right track *)
 
 Module Moving.
 
@@ -109,8 +104,7 @@ end.
 Definition Permutation {A : Type} (l1 l2 : list A) : Prop :=
   forall p : A -> bool, count p l1 = count p l2.
 
-Require Import ImprovingPatchworkDefinitions.
-Export M3. Require Export Permutation.
+End Counting.
 
 Class Sort
   {A : Type} (R : A -> A -> Prop) (f : list A -> list A) : Prop :=
@@ -118,9 +112,3 @@ Class Sort
     isSorted : forall l : list A, Sorted R (f l);
     isPermutation : forall l : list A, Permutation l (f l)
 }.
-
-End Counting.
-
-End JustRight.
-
-Export JustRight.Counting.
