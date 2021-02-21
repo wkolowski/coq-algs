@@ -110,15 +110,17 @@ Module Moving.
 
 Inductive Transposition {A : Type} : list A -> list A -> Prop :=
     | Transposition' :
-        forall (l1 : list A) (x : A) (l2 : list A) (y : A) (l3 : list A),
-          Transposition (l1 ++ x :: l2 ++ y :: l3) (l1 ++ y :: l2 ++ x :: l3).
+        forall (x y : A) (l1 l2 l3 : list A),
+          Transposition (l1 ++ x :: l2 ++ y :: l3)
+                        (l1 ++ y :: l2 ++ x :: l3).
 
 Inductive Permutation {A : Type} : list A -> list A -> Prop :=
     | Permutation_refl :
         forall l : list A, Permutation l l
     | Permutation_step_trans :
         forall l1 l2 l3 : list A,
-          Transposition l1 l2 -> Permutation l2 l3 -> Permutation l1 l3.
+          Transposition l1 l2 ->
+            Permutation l2 l3 -> Permutation l1 l3.
 
 End Moving.
 

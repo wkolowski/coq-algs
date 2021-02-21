@@ -522,17 +522,23 @@ But the resulting definition by counting is \textit{not abstract enough}, becaus
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 109,
-    lastline = 114
+    firstline = 111,
+    lastline = 123
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
+
+But counting doesn't exhaust the pool of ideas around which we can focus a definition of permutation. Yet another such idea is \textit{permuting} (that is, rearranging) the elements in a list. This idea is arguably the one most apparent in the name ``permutation'' and it corresponds to the well-known theorem of classical mathematics that a permutation can be represented as a product of transpositions.
+
+The corresponding definition is shown in the listing above. First we define transpositions, the meaning of \m{Transposition l1 l2} being that we can take any two elements of \m{l1} and switch their places, getting \m{l2} as a result. Then a permutation is defined effectively as a sequence of such transpositions, where the constructor \m{Permutation\_refl} represents no transpositions at all, and the constructor \m{Permutation\_step\_trans} means that to permute \m{l1} into \m{l3} we first need to transpose two elements in \m{l1} to obtain \m{l2} and then permute the elements of \m{l2} to get \m{l3}.
+
+The focal ideas of \textit{generating}, \textit{counting} and \textit{permuting} lead to different definitions of \m{Permutation}, each of which has its strengths and weaknesses.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 109,
-    lastline = 114
+    firstline = 143,
+    lastline = 149
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
