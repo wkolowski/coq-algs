@@ -76,7 +76,7 @@ Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
 
 (** * Just about right... or is it? Staying on the right track *)
 
-Module Moving.
+Module Generating.
 
 Inductive Permutation {A : Type} : list A -> list A -> Prop :=
   | perm_nil1 :
@@ -91,7 +91,7 @@ Inductive Permutation {A : Type} : list A -> list A -> Prop :=
       forall l1 l2 l3 : list A,
         Permutation l1 l2 -> Permutation l2 l3 -> Permutation l1 l3.
 
-End Moving.
+End Generating.
 
 Module Counting.
 
@@ -105,6 +105,38 @@ Definition Permutation {A : Type} (l1 l2 : list A) : Prop :=
   forall p : A -> bool, count p l1 = count p l2.
 
 End Counting.
+
+Module Moving.
+
+Inductive Transposition {A : Type} : list A -> list A -> Prop :=
+    | Transposition' :
+        forall (l1 : list A) (x : A) (l2 : list A) (y : A) (l3 : list A),
+          Transposition (l1 ++ x :: l2 ++ y :: l3) (l1 ++ y :: l2 ++ x :: l3).
+
+Inductive Permutation {A : Type} : list A -> list A -> Prop :=
+    | Permutation_refl :
+        forall l : list A, Permutation l l
+    | Permutation_step_trans :
+        forall l1 l2 l3 : list A,
+          Transposition l1 l2 -> Permutation l2 l3 -> Permutation l1 l3.
+
+End Moving.
+
+Module Moving2.
+
+Inductive AdjacentTransposition {A : Type} : list A -> list A -> Prop :=
+    | AdjacentTransposition' :
+        forall (x y : A) (l1 l2 : list A),
+          AdjacentTransposition (l1 ++ x :: y :: l2) (l1 ++ y :: x :: l2).
+
+Inductive Permutation {A : Type} : list A -> list A -> Prop :=
+    | Permutation_refl   :
+        forall l : list A, Permutation l l
+    | Permutation_step_trans :
+        forall l1 l2 l3 : list A,
+          AdjacentTransposition l1 l2 -> Permutation l1 l2 -> Permutation l2 l3.
+
+End Moving2.
 
 Class Sort
   {A : Type} (R : A -> A -> Prop) (f : list A -> list A) : Prop :=

@@ -397,7 +397,7 @@ So, how can we formally define the proposition ``the list of natural numbers $l$
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
-This is exactly what the above definition says. We start by defining an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} being sorted means that for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, when the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
+This is exactly what the above definition says. We start by defining an auxiliary function named \m{nth}, which returns the \m{n}-th element of the list \m{l} (wrapped in the \m{option} constructor \m{Some}) or \m{None} if the list is not long enough to have an \m{n}-th element. Then comes the definition of sortedness itself: the list \m{l} is sorted when, for any two indices \m{i} and \m{j} such that \m{i} comes before \m{j}, if the \m{i}-th element of \m{l} is \m{n} and the \m{j}-th element of \m{l} is \m{m}, then \m{n} is less than or equal to \m{m}.
 
 This definition looks quite correct (and it is), but it won't serve us well. This is because it defies the second part of our advice \#0 -- it is not easy to use. The reason why will be rather elusive for people who are not Coq experts,\footnote{Knowing at first sight that a definition like this one will later turn out to be quite clumsy requires precisely the kind of creativity and insight mentioned before that can't be packed into a repetitive, mindless technique.} but I will nonetheless try to give an appealing argument.
 
@@ -407,9 +407,9 @@ Upon closer inspection, there's a mismatch between the inductive definition of n
 
 That's not the only source of clumsiness, however. After another quantifier and two numbers, we find two equations. General equations between variables (like \m{n = m}) are not problematic at all, but equations with more specific terms on one or both sides are a bit clumsy, often requiring additional bookkeeping effort to use properly.
 
-The next source of clumsiness is the fact that on the lefts of these equations we used the auxiliary function \m{nth}, which is defined by first matching the list argument and then matching the number argument. This is a bit clumsy because even if we reason by cases on the number, the definition of \m{nth} won't reduce unless we also reason by cases on the list.
+The next source of clumsiness is the fact that in the lef-hand sides of these equations we used the auxiliary function \m{nth}, which is defined by first matching the list argument and then matching the number argument. This is a bit clumsy because even if we reason by cases on the number, the definition of \m{nth} won't reduce unless we also reason by cases on the list.
 
-All of these sources of clumsiness would add up if we attempted to prove that a list sorting function is correct. If we attempted an induction on the indices, dealing with the proof proof of \m{i <= j} would be a bit annoying. If we went for a induction on the proof of \m{i <= j}, then we would have to reason by cases on the list just to be able to use the equations. If we went for an induction on the list, we still have a lot of work with the indices.
+All of these sources of clumsiness would add up if we attempted to prove that a list sorting function is correct. If we attempted an induction on the indices, dealing with the proof of \m{i <= j} would be a bit annoying. If we went for a induction on the proof of \m{i <= j}, then we would have to reason by cases on the list just to be able to use the equations. If we went for an induction on the list, we still have a lot of work with the indices.
 
 \section{Improving patchwork definitions} \label{improvingpatchwork}
 
@@ -430,25 +430,25 @@ Let's try to restate the intuitive definition of sortedness, which says that ele
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 47,
-    lastline = 57
+    firstline = 45,
+    lastline = 55
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
 We can easily formalize the above reformulated definition. First we define a helper relation \m{LessThanAll}, so that \m{LessThanAll n l} means that the number \m{n} is less than or equal to all numbers in the list \m{l}. Then comes the main definition: an empty list is sorted\footnote{We must remember this base case, even though it's quite implicit in the patchwork definition.}, and a list \m{h\ ::\ t} is sorted as soon as \m{h} is less than all elements of \m{t} and \m{t} itself is also sorted.
 
+This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the \hyperref[notabstract]{next section}, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
+
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 63,
-    lastline = 68
+    firstline = 61,
+    lastline = 66
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
-This definition can be simplified even more if we notice that it is not necessary to compare an element with all elements coming after it, but only with the one that immediately follows it.\footnote{This transformation crucially relies on the fact that the usual order relation on naturals is transitive. The generalized version of this definition, which we will see in the \hyperref[notabstract]{next section}, is equivalent to a generalized version of the patchwork definition only for transitive relations.} This simplified definition reads like this: empty and singleton lists are sorted and to prove that a list with at least two elements is sorted, we need to show that the first element is less than the second element and that the tail of this list is also sorted.
-
-Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted lists by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs of index inequality, equations, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
+Our final definition of sortedness is, in terms of usability, much better than the one we started with: it is a simple, three-clause inductive definition. It's easy to prove theorems about sorted lists by induction on the proof of sortedness. It's also much easier to prove that a list is sorted, because we no longer have to deal with indices, proofs of index inequality, equations between terms, auxiliary functions defined by recursion and so on. All of these things are now baked into the definition and thus all the parts fit together perfectly.
 
 \section{Not that abstract} \label{notabstract}
 
@@ -462,7 +462,7 @@ There are two main reasons for seeking abstraction when solving a problem. The f
 
 Our initial choice has far-reaching implications, because the type of natural numbers is an object very rich in structure. Naturals form a semiring under addition and multiplication and a totally ordered set under the standard ordering, they support proof by induction, are countably infinite, embed in the reals, etc. On the other hand, a general type \m{A} doesn't have any of this structure -- we know almost nothing about it.
 
-At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At a second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong.\footnote{At a third glance, this should be obvious to every proponent of strong, static typing. After all, types are a mechanism that constrains the programmer by ruling out suspicious (i.e. not well-typed) programs.} After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting.
+At first glance this may look like a disadvantage: not having addition or countability seems to constrain us, because we can't do as much with \m{A} as with the naturals. At second glance, however, we may notice that sometimes being constrained is advantageous, as we have less ways of being wrong. After all, most of the rich structure of natural numbers isn't very relevant to the problem of sorting. At third glance, this should be obvious to every proponent of strong, static typing -- the type system is precisely a mechanism that constrains the programmer by ruling out suspicious (i.e. not well-typed) programs.\footnote{A very good source of examples of Inventor's paradox are proofs by induction. Sometimes proving a theorem with a stronger conclusion can be easier than proving a theorem with a weaker conclusion, because a strong induction hypothesis is much more valuable than a weak induction hypothesis.}
 
 How do we put this into practice? It's quite simple: in our definition, we replace \m{nat} with \m{A} and the order \m{<=} with a general relation \m{R}. Both \m{A} and \m{R} become parameters.
 
@@ -470,8 +470,8 @@ How do we put this into practice? It's quite simple: in our definition, we repla
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline = 74,
-    lastline = 79
+    firstline = 70,
+    lastline = 75
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
@@ -496,16 +496,14 @@ Having said that, how do we define what it means for two lists to be permutation
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
-After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement the algorithm already, but that would be a bit hasty: this definition fails the ``easy to use'' criterion. This is even harder to see in advance than the clumsiness of our initial definition of sortedness -- most people would probably discover it as an empirical fact as soon as they tried to prove correctness of any nontrivial sorting algorithm. The reason is that some of them move list elements around in very different ways than allowed by the definition of \m{Permutation}. This is yet another reminder that finding good specifications is more an art than a science.
-
-How to find a better definition of \m{Permutation}? Let's try the following advice.
+After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement something that satisfies the specification, but we won't be this hasty -- there's one more concept that can be useful for validating and improving specifications. Let's say we have a feeling that this definition will fail the ``easy to use'' criterion at some point during a proof of correctness of some nontrivial sorting algorithm. We think this could be so because the algorithm moves list elements around in ways that don't play too well with the above definition of \m{Permutation}. How to find a better definition in such a case?
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#0.75} \\
-    Sometimes we can find an alternative specification by changing the focus from one aspect to another.
+    Sometimes we can find an alternative specification by changing its focus.
 \end{center}
 
-This one is admittedly quite murky. What is meant by ``aspect'' here? The best way to understand it is to immediately apply it to our case. In the inductive definition of \m{Permutation}, the main idea is that of rearranging elements in a list. What this concept/technique is trying to tell us is to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
+This one is admittedly quite murky. What is meant by ``focus'' here and how can we change it? The best way to understand this concept is to immediately apply it to our case. In the above definition of \m{Permutation}, the main idea is that of simultaneously building up two lists, starting from two \m{[]}s, using constructors that preserve the fact of being a permutation. So we can say that this definition focuses on \textit{generating} permutations.\footnote{Of course all inductive definitions are about generating objects. The sense in which we use the word ``generating'' will become clearer in the next paragraphs, after looking at ways of defining permutations that have a different focus.} If we want to apply the above concept/technique, we should try to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
 
 \inputminted
 [
@@ -519,6 +517,15 @@ This one is admittedly quite murky. What is meant by ``aspect'' here? The best w
 Such an idea is \textit{counting}: two lists are permutations of one another when they contain the same number of occurrences of each \m{x\ :\ A}. Note that, because we count elements, this new definition only applies to types that have decidable equality. This restriction is not a big problem in practice, because the need to sort functions, streams, or other such infinite objects lacking decidable equality, is pretty rare.
 
 But the resulting definition by counting is \textit{not abstract enough}, because it \textit{assumes what is not needed}: to use this definition for lists that contain elements of type \m{A}, we need to prove that \m{A} has decidable equality. We can improve the definition with one last step of abstraction, by generalizing from counting occurrences of elements to counting the number of elements satisfying a general decidable property \m{p\ :\ A -> bool}. This definition is clearly equivalent, but we don't need to prove anything to use it.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline = 109,
+    lastline = 114
+]
+{Coq}{Snippets/SpecifyTheProblem.v}
 
 \inputminted
 [
