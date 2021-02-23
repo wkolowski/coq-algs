@@ -527,13 +527,13 @@ But the resulting definition by counting is \textit{not abstract enough}, becaus
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
-But counting doesn't exhaust the pool of ideas around which we can focus a definition of permutation. Yet another such idea is \textit{permuting} (that is, rearranging) the elements in a list. This idea is arguably the one most apparent in the name ``permutation'' and it corresponds to the well-known theorem of classical mathematics that a permutation can be represented as a product of transpositions.
+Counting doesn't exhaust the pool of ideas around which we can focus a definition of permutation. Yet another such idea is \textit{permuting} (that is, rearranging) the elements in a list. This idea is arguably the one most apparent in the name ``permutation'' and it corresponds to the well-known theorem of classical mathematics that a permutation can be represented as a product of transpositions.
 
 The corresponding definition is shown in the listing above. First we define transpositions, the meaning of \m{Transposition l1 l2} being that we can take any two elements of \m{l1} and switch their places, getting \m{l2} as a result. Then a permutation is defined effectively as a sequence of such transpositions, where the constructor \m{Permutation\_refl} represents no transpositions at all, and the constructor \m{Permutation\_step\_trans} means that to permute \m{l1} into \m{l3} we first need to transpose two elements in \m{l1} to obtain \m{l2} and then permute the elements of \m{l2} to get \m{l3}.
 
 So far we have seen three different definitions of \m{Permutation}, but there's still more to it, as each of the central ideas can be put into practice in slightly different ways. Generation can be realized by repeatedly inserting the same element into two lists at possibly different positions. The patchwork-y definition by counting could be inductivized a little, which would also generalize it to types without decidable equality. And permuting may be implemented by seeing a permutation as a sequence of \textit{adjacent} transpositions, i.e. transpositions that apply only to neighbouring elements in a list.
 
-The focal ideas of \textit{generating}, \textit{counting} and \textit{permuting} yield definitions which are very different but equivalent.\footnote{As far as types with decidable equality are concerned.} Each definition satisfies our criteria of being easy to use and abstract enough, but they still vary greatly in their strengths and weaknesses and each is fit for different purposes. Or rather, they would vary and be fit fot different purposes if we were starting from scratch and had to prove all necessary lemmas ourselves. But in case all the properties of permutations we will need are readily available, we don't need to wory about the differences, because these properties are all that we need.\footnote{Another way not to worry about how we define permutations is to abstract over this definition by taking ``permutation'' to mean any relation \m{P : forall A : Type, list A -> list A -> Prop} that satisfies the properties we will need it to satisfy. This is a glimpse of the concepts and techniques we will see in the chapters to come.} This is indeed the case, as the original definition we gave (the one based on generating) is part of Coq's standard library, which is replete with lemmas about permutations that we can use in our proofs. We will therefore stick with this definition.
+The focal ideas of \textit{generating}, \textit{counting} and \textit{permuting} yield definitions which are pretty different, but it is crucial to observe that the precise definition matters only if we are starting from scratch and have to prove all the necessary lemmas ourselves. In such a case different definitions are fit for different purposes and vary greatly in their strengths and weaknesses, but in case all the properties of permutations we need are readily available, the definition doesn't matter.\footnote{Another way not to worry about how we define permutations is to abstract over this definition by taking ``permutation'' to mean any relation \m{P : forall A : Type, list A -> list A -> Prop} that satisfies the properties we will need it to satisfy. This is a glimpse of the concepts and techniques we will see in the chapters to come.} This is indeed the case for the original definition we gave (the one based on generating), because Coq's standard library is replete with lemmas that we can use in our proofs, which guarantees that this definition is easy to use. Because it is also abstract enough, we will stick with it.
 
 The final specification of a sorting function that we have arrived at through our considerations is shown in the listing below. A function \m{f} is a sorting function (according to some relation \m{R}, of which we think as the order) if the output is a sorted permutation of the input. We pack these notions into a class named \m{Sort} using a combination of parameters and fields - a distinction we will revisit later.
 
@@ -546,7 +546,7 @@ The final specification of a sorting function that we have arrived at through ou
 ]
 {Coq}{Snippets/SpecifyTheProblem.v}
 
-To sum up our struggles, we once more stress the fact that inventing specifications is an art that one gets better at with experience. We learned a useful criterion for telling when a specification is bad, but to apply it we must first have something to apply it to. We also saw two hints that can help us improve a bad specification, but they don't always work: sometimes by ``inductivizing'' a definition we can gain a lot, but sometimes inductive definitions are a path to oblivion and more patchwork-y definitions reign supreme.
+To sum up our struggles: in this chapter we learned a useful criterion for telling when a specification is bad, but to apply it we must first have something to apply it to. We also learned two hints that can help us improve a bad specification, but they are no silver bullets: sometimes we can improve a patchwork definition by inductivizing (that is, defunctionalizing) it, and sometimes we can find a new definition by focusing on a different aspect of the object we are defining, but it is hard to tell in advance whether we should take such steps. We once more stress the fact that inventing specifications is an art that one gets better at with experience.
 
 \chapter{Abstract the algorithm} \label{template}
 
@@ -641,7 +641,7 @@ Here's our first attempt at the abstract template. We begin by defining a class\
 
 Note that the definition is placed between commands \m{Unset Guard Checking} and \m{Set Guard Checking} in order to temporarily disable the termination checker. Without these, Coq would reject the definition: it is declared to be structurally recursive (by the annotation \{\m{struct l}\}), but there is nothing to guarantee that recursive calls are made on structural subterms of \m{l} (indeed, in almost all cases either \m{lt} or \m{gt} won't be a subterm of \m{l}).
 
-\section{User experience: concerete algorithm as a sanity check} \label{sanity1}
+\section{User experience: concrete algorithm as a sanity check} \label{sanity1}
 
 Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
@@ -1143,7 +1143,7 @@ When we are given a source function, i.e. a function defined the way we saw in s
     \item To derive the recursive equation, an application of the functional induction principle together with \m{eauto} should suffice.
 \end{itemize}
 
-Luckily, we don't need to automate this process ourselves. It has already been done -- the standard Coq tool for defining and reasoning about general recursive functions is the \m{Function} command \cite{Function}. We won't describe its internal workings here -- interested readers should refer to section 3 of op. cit., especially for an idea of how they differ from the approach we presented above. Instead, we will content ourselves with a quick tutorial showing how to apply the tool to our terminating quicksort template.
+Luckily, we don't need to automate this process ourselves. It has already been done -- the standard Coq tool for defining and reasoning about general recursive functions is the \m{Function} command \cite{Function} \cite{FunctionRefman}. We won't describe its internal workings here -- interested readers should refer to section 3 of \cite{Function}, especially for an idea of how they differ from the approach we presented above. Instead, we will content ourselves with a quick tutorial showing how to apply the tool to our terminating quicksort template.
 
 \inputminted
 [
@@ -1590,6 +1590,11 @@ Mention thesis' repository: \repo
     \textit{Defining and Reasoning About Recursive Functions: A Practical Tool for the Coq Proof Assistant},
     2006 \\
     \url{https://www.researchgate.net/publication/48415012_Defining_and_Reasoning_About_Recursive_Functions_A_Practical_Tool_for_the_Coq_Proof_Assistant}
+
+\bibitem{FunctionRefman}
+    Coq Reference Manual,
+    \textit{Functional induction}, \\
+    \url{https://coq.inria.fr/refman/using/libraries/funind.html}
 
 \bibitem{Equations}
     Matthieu Sozeau, Cyprien Mangin, \\

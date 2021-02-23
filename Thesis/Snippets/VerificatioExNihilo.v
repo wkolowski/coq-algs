@@ -461,3 +461,20 @@ Proof.
     }
 Qed.
  *)
+
+Theorem Permutation_qsf_first_try :
+  forall
+    (A : VerifiedQSArgs) (l : list A),
+      Permutation l (qsf A l).
+Proof.
+  intros.
+  functional induction (qsf A l).
+    admit.
+    eapply Permutation_trans with (lt ++ pivot :: eq ++ gt).
+      admit.
+      apply Permutation_app.
+        admit.
+        rewrite !app_comm_cons. apply Permutation_app.
+          reflexivity.
+          admit.
+Admitted.

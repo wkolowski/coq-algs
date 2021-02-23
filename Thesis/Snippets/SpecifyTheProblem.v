@@ -79,7 +79,7 @@ Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
 Module Generating.
 
 Inductive Permutation {A : Type} : list A -> list A -> Prop :=
-  | perm_nil1 :
+  | perm_nil :
       Permutation [] []
   | perm_skip :
       forall (x : A) (l1 l2 : list A),
