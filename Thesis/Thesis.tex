@@ -1194,14 +1194,17 @@ To sum up, all of the boilerplate that we saw in sections \ref{inductivedomain} 
 
 \section{E pluribus unum} \label{epluribus}
 
-The verification goes here.
+We have defined our quicksort template, proved it terminating and derived the functional induction principle. All that remains to be done is the actual correctness proof. But before we do that, we will spend some time comparing proof engineering\footnote{``Proof engineering'' is a fancy name for proving theorems using a proof assistant like Coq, usually applied to large proofs (just like the term ``software engineering'' is usually applied to large projects and not to a hello-world-sized programs).} to software engineering in order to learn a certain technique for proving in the large.\footnote{``Proving in the large''}
+
+
+
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
     firstline=240,
-    lastline=291
+    lastline=281
 ]
 {Coq}{Snippets/VerificatioExNihilo.v}
 
