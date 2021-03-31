@@ -1194,7 +1194,17 @@ To sum up, all of the boilerplate that we saw in sections \ref{inductivedomain} 
 
 \section{E pluribus unum} \label{epluribus}
 
-We have defined our quicksort template, proved it terminating and derived the functional induction principle, which will allow us to prove it correct. But before we do that, we will spend some time comparing proof engineering to software engineering in order to learn a certain technique for proving in the large.\footnote{``Proof engineering'' is a fancy name for proving theorems using a proof assistant like Coq. It is usually applied to large and complex proofs, just like the term ``software engineering'' is usually applied to large and complex software systems and not to hello-world-sized programs.}
+We have defined our quicksort template, proved it terminating and derived the functional induction principle, which will allow us to prove it correct. But before we start proving, we will spend some time to put our approaches to software engineering and proof engineering\footnote{``Proof engineering'' is a fancy name for proving theorems using a proof assistant like Coq. It is usually applied to large and complex proofs, just like the term ``software engineering'' is usually applied to large and complex software systems and not to hello-world-sized programs.} in a wider context.
+
+We started our development by giving a specification. This is reminiscent of test-driven development, except that tests are replaced by formal proofs. Such an approach has been dubbed \textit{proof-driven development} \cite{ProofDriven}, but we don't attach any emotional value to this label.
+
+A much more important tenet of our approach could be called \textit{hole-driven development}.\footnote{Sadly, there is no solid literature on the topic, mostly just blog posts that introduce the idea.} The idea here is that we construct programs in stages, by refining earlier, incomplete versions of the program. Each missing piece of the program is marked with an intrinsically typed hole and refining an incomplete program is done by filling (i.e. replacing) the hole with a program of the appropriate type, which can also possibly be incomplete and contain further holes.
+
+The most well-known languages that support holes are Agda, Idris and Haskell.
+
+Coq doesn't support holes, but languages like Idris and Agda do. In Idris, a hole looks like \m{?h :\ A}, where \m{h} is the name of the hole and \m{A} is its type.
+
+
 
 
 
@@ -1602,6 +1612,10 @@ Mention thesis' repository: \repo
     Tomas Petricek,
     \href{http://tomasp.net/blog/type-first-development.aspx/}{\textit{Why type-first development matters}}, 2012, \\
     \wayback{https://web.archive.org/web/20210320002228/http://tomasp.net/blog/type-first-development.aspx/}
+
+\bibitem{ProofDriven}
+    B. Goodspeed,
+    \href{https://arxiv.org/pdf/1512.02102.pdf}{\textit{Proof-Driven Development}}, 2015
 
 \end{thebibliography}
 
