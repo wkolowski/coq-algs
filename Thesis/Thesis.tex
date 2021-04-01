@@ -1198,21 +1198,17 @@ We have defined our quicksort template, proved it terminating and derived the fu
 
 We started our development by giving a specification. This is reminiscent of test-driven development, except that tests are replaced by formal proofs. Such an approach has been dubbed \textit{proof-driven development} \cite{ProofDriven}, but we don't attach any emotional value to this label.
 
-A much more important tenet of our approach could be called \textit{hole-driven development}.\footnote{Sadly, there is no solid literature on the topic, mostly just blog posts that introduce the idea.} The idea here is that we construct programs in stages, by refining earlier, incomplete versions of the program. Each missing piece of the program is marked with an intrinsically typed hole and refining an incomplete program is done by filling (i.e. replacing) the hole with a program of the appropriate type, which can also possibly be incomplete and contain further holes.
+A much more important tenet of our approach could be called \textit{hole-driven development}.\footnote{Sadly, there is no solid literature on the topic, mostly just blog posts that introduce the idea.} The idea here is that we construct programs in stages, by refining earlier, incomplete versions of the program. Each missing piece of the program is marked with an hole and refining an incomplete program is done by filling (i.e. replacing) the hole with a program of the appropriate type, which can also possibly be incomplete and contain further holes. This process is iterated until we reach a complete program.
 
-The most well-known languages that support holes are Agda, Idris and Haskell.
+The most well-known languages that support holes are Agda, Idris and Haskell \cite{TypedHoles}. In Idris, a hole looks like \m{?h :\ A}, where \m{h} is the name of the hole and \m{A} is its type -- holes are intrinsically typed, just like all other terms in the language. Coq, sadly, does not support holes. The closest equivalent of holes in Coq are \textit{existential variables} \cite{ExistentialVariables}. When we combine them with tactic-based definitions\footnote{These are programs defined between \m{Proof.} and \m{Defined.} using ordinary tactics.} using the tactic \m{refine}, we got something that vaguely resembles the hole-driven development available in Idris.
 
-Coq doesn't support holes, but languages like Idris and Agda do. In Idris, a hole looks like \m{?h :\ A}, where \m{h} is the name of the hole and \m{A} is its type.
+But wait! What we did when defining the quicksort template looked nothing like the hole-driven development approach that we just described. That's right, and for two separate reasons. First, we used holes quite implicitly, because quicksort is too easy an algorithm to pose serious problems when defining it. Second and more importantly, we filled our implicit holes with subprograms that we abstracted over and put into \m{QSArgs}, effectively postponing the hole-filling until the time when a user actually wants to run the algorithm.
 
+What we did when defining the terminating quicksort template also didn't look like hole-driven development as described above, but it was. Recall that in section \ref{wellfounded}, after having defined the domain predicate, we tried to prove by well-founded induction that all lists belong to the domain, but we failed. The reason of our failure was that some termination-related properties of our subprograms were lacking and thus our proof had some gaps.\footnote{Curiously, mathematicians tend to use the word ``gap'' for a missing part of a proof. This is very similar to our use of ``hole'' for a missing part of a program. But there's also a significant difference between gaps and holes: in the mathematical world, gaps arise from mistakes and errors, whereas holes in programs come into existence by being deliberately put there.} We then assumed that the desired properties indeed hold by defining \m{TerminatingQSArgs}, and filled the gaps with proofs coming from there.
 
+We see that our approach, based on filling holes with things we abstract over, is very powerful and lends itself well to both writing programs and proving theorems. But we don't need to treat all holes this way -- we can still, of course, fill holes with concrete terms, like in the traditional hole-driven development. This is indeed how we will prove our quicksort correct: we will reason by functional induction and use the tactic \m{admit} for any parts of the theorems that we can't prove. Then we will step back and try to turn these \m{admit}ted gaps into lemmas. When it's clear we couldn't possibly prove some lemma, we will simply assume that it holds by adding it into \m{VerifiedQSArgs}, the last incarnation of \m{QSArgs} which allows the correctness proof to go through.
 
-
-
-
-\cite{SlidingAdmit}
-\cite{Typeful}
-\cite{TypeDriven}
-\cite{TypeFirst}
+Before we finish our deliberations, we should also mention the idea of \textit{type-driven development} \cite{TypeDriven}, sometimes also called \textit{type-first development} \cite{TypeFirst} or \textit{typeful programming} \cite{Typeful}.
 
 
 
@@ -1594,14 +1590,17 @@ Mention thesis' repository: \repo
     \href{https://personal.cis.strath.ac.uk/fredrik.nordvall-forsberg/talks/stp_dundee_2015/stp_dundee_2015-10-07.pdf}{\textit{The Encode-Decode Method, Relationally (Slides)}},
     2015
 
-\bibitem{SlidingAdmit}
-    F* wiki,
-    \href{https://github.com/FStarLang/FStar/wiki/Sliding-admit-verification-style}{\textit{Sliding admit verification style}}, \\
-    \wayback{https://web.archive.org/web/20210320002215/https://github.com/FStarLang/FStar/wiki/Sliding-admit-verification-style}
+\bibitem{ProofDriven}
+    B. Goodspeed,
+    \href{https://arxiv.org/pdf/1512.02102.pdf}{\textit{Proof-Driven Development}}, 2015
 
-\bibitem{Typeful}
-    Luca Cardelli,
-    \href{http://www.lucacardelli.name/Papers/TypefulProg.pdf}{\textit{Typeful Programming}}, 1991
+\bibitem{TypedHoles}
+    \href{https://wiki.haskell.org/GHC/Typed_holes}{\textit{GHC/Typed holes - Haskell wiki}}, \\
+    \wayback{https://web.archive.org/web/20210401100939/https://wiki.haskell.org/GHC/Typed_holes}
+
+\bibitem{ExistentialVariables}
+    \href{https://coq.inria.fr/refman/language/extensions/evars.html}{\textit{Existential variables - Coq 8.13.1 documentation}}, \\
+    \wayback{https://web.archive.org/web/20210401125720/https://coq.inria.fr/refman/language/extensions/evars.html}
 
 \bibitem{TypeDriven}
     Edwin Brady,
@@ -1613,9 +1612,9 @@ Mention thesis' repository: \repo
     \href{http://tomasp.net/blog/type-first-development.aspx/}{\textit{Why type-first development matters}}, 2012, \\
     \wayback{https://web.archive.org/web/20210320002228/http://tomasp.net/blog/type-first-development.aspx/}
 
-\bibitem{ProofDriven}
-    B. Goodspeed,
-    \href{https://arxiv.org/pdf/1512.02102.pdf}{\textit{Proof-Driven Development}}, 2015
+\bibitem{Typeful}
+    Luca Cardelli,
+    \href{http://www.lucacardelli.name/Papers/TypefulProg.pdf}{\textit{Typeful Programming}}, 1991
 
 \end{thebibliography}
 
