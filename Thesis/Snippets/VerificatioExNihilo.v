@@ -244,12 +244,12 @@ Proof.
   intros. functional induction (qsf A l).
     admit.
     eapply Permutation_trans with (lt ++ pivot :: eq ++ gt).
-      admit.
-      apply Permutation_app.
+      Focus 2. apply Permutation_app.
         assumption.
-        rewrite !app_comm_cons. apply Permutation_app.
+        constructor. apply Permutation_app.
           reflexivity.
           assumption.
+      admit.
 Admitted.
 
 Theorem Sorted_qsf_first_try :
@@ -273,8 +273,8 @@ Proof.
             cut (Forall (fun x => x = pivot) eq).
               admit.
               admit.
-          apply (Permutation_Forall (Permutation_qsf_first_try A gt)).
-            admit.
+            apply (Permutation_Forall (Permutation_qsf_first_try A gt)).
+              admit.
 Admitted.
 
 Class VerifiedQSArgs : Type :=

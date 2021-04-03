@@ -1221,14 +1221,45 @@ Type-driven development is championed by Idris and described in the book \cite{T
 
 As it turns out, hole-driven development, together with the idea of abstracting some holes away, naturally leads to type-driven development. They are intrinsically linked.
 
+Enough talking, let's see the proofs already!
+
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
     firstline=240,
-    lastline=281
+    lastline=253
 ]
 {Coq}{Snippets/VerificatioExNihilo.v}
+
+Recall that our specification consists of two properties. First, the output of the sorting function has to be a permutation of the input. Second, it has to be sorted. These properties are separate, but it will turn out that we need the first one in order to prove the second, so it's better to deal with \m{Permutation} first.
+
+We start by introducing everything into the context and performing functional induction. This results in two cases. In the first case, the list is short and so it gets sorted with \m{adhoc}. Here we encounter the first opportunity to \m{admit} something without proof -- because \m{adhoc} is abstract, we have no way to prove that its output is a \m{Permutation} of \m{l}.
+
+In the second case the list is not short, and the goal is \m{Permutation l (qsf A lt ++ pivot ::\ eq ++ qsf A gt)}. From our induction hypotheses we know that \m{qsf A lt} is a \m{Permutation} of \m{lt} and similarly for \m{gt}, so it's best to reason by transitivity. This again yields two subgoals.
+
+The second one is easy and boils down mostly to the fact that \m{Permutation} is preserved by list concatenation, followed by uses of induction hypotheses. However the first subgoal, which reads \m{Permutation l (lt ++ pivot ::\ eq ++ gt)}, is hopeless. We know that \m{lt}, \m{eq} and \m{gt} are outputs of \m{partition}, whose inputs are the outputs of \m{choosePivot}, whose inputs are the outputs of \m{short}, but there is nothing certifiying that the outputs of these functions are \m{Permutation}s of their inputs. This is the perfect place to use \m{admit} and finish the proof (with the command \m{Admitted}).
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=255,
+    lastline=278
+]
+{Coq}{Snippets/VerificatioExNihilo.v}
+
+The proof of the second property starts the same as the first one: we introduce everything into the context and use functional induction, which again yields two subgoals. In the first, we sort \m{l} using \m{adhoc}, but we don't actually know that \m{adhoc} is a valid sorting function! Thus comes the first \m{admit}.
+
+The second subgoal reads \m{Sorted R (qsf A lt ++ pivot ::\ eq ++ qsf A gt)}. Intuitively, it should be pretty easy: everything in \m{qsf A lt} is less than the pivot and everything in \m{qsf A gt} is greater than the pivot, so it suffices to somehow break the goal into subgoals along these lines... and thus we encounter the first hurdle, because there's nothing we can use. We nonetheless allow ourselves to reason in this way by using the tactic \m{cut} and \m{admit}ting the missing lemma -- we will prove it later.
+
+We're thus left with three subgoals. In the first, we use an induction hypothesis to prove that \m{qsf A lt} is sorted. In the second subgoal, we need to prove that all elements of \m{qsf A lt} are less than the pivot. This should be quite easy -- we already know that the output of \m{qsf} is a permutation of its input, and we know that \m{Forall} respects \m{Permutation}, thanks to a lemma from the standard library called \m{Permutation\_Forall}. But the proof won't go through -- we're missing the fact that all elements of \m{lt} are less than the pivot, and so we have to \m{admit}.
+
+In the third subgoal, we are left with \m{Sorted R (pivot ::\ eq ++ qsf A gt)}. This should be provable with reasoning similar to the previous one, namely it should suffice to know that all elements of \m{qsf A gt} are greater than the pivot. But yet again, we lack this knowledge and so we use \m{cut} together with \m{admit}.
+
+
+
+
 
 \inputminted
 [
