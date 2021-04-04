@@ -1251,24 +1251,24 @@ The second one is easy and boils down mostly to the fact that \m{Permutation} is
 
 The proof of the second property starts the same as the first one: we introduce everything into the context and use functional induction, which again yields two subgoals. In the first, we sort \m{l} using \m{adhoc}, but we don't actually know that \m{adhoc} is a valid sorting function! Thus comes the first \m{admit}.
 
-The second subgoal reads \m{Sorted R (qsf A lt ++ pivot ::\ eq ++ qsf A gt)}. Intuitively, it should be pretty easy: everything in \m{qsf A lt} is less than the pivot and everything in \m{qsf A gt} is greater than the pivot, so it suffices to somehow break the goal into subgoals along these lines... and thus we encounter the first hurdle, because there's nothing we can use. We nonetheless allow ourselves to reason in this way by using the tactic \m{cut} and \m{admit}ting the missing lemma -- we will prove it later.
+The second subgoal reads \m{Sorted R (qsf A lt ++ pivot ::\ eq ++ qsf A gt)}. Intuitively, it should be pretty easy: everything in \m{qsf A lt} is less than the pivot and everything in \m{qsf A gt} is greater than the pivot, so it suffices to somehow break the goal into subgoals along these lines... and thus we encounter another hurdle, because there's nothing we can use. We nonetheless allow ourselves to reason in this way by using the tactic \m{cut} and \m{admit}ting the missing lemma -- we will prove it later.
 
 We're thus left with three subgoals. In the first, we use an induction hypothesis to prove that \m{qsf A lt} is sorted. In the second subgoal, we need to prove that all elements of \m{qsf A lt} are less than the pivot. This should be quite easy -- we already know that the output of \m{qsf} is a permutation of its input, and we know that \m{Forall} respects \m{Permutation}, thanks to a lemma from the standard library called \m{Permutation\_Forall}. But the proof won't go through -- we're missing the fact that all elements of \m{lt} are less than the pivot, and so we have to \m{admit}.
 
 In the third subgoal, we are left with \m{Sorted R (pivot ::\ eq ++ qsf A gt)}. This should be provable with reasoning similar to the previous one, namely it should suffice to know that all elements of \m{qsf A gt} are greater than the pivot. But yet again, we lack this knowledge and so we use \m{cut} together with \m{admit}.
 
-
-
-
+This leaves us with two more subgoals. First, we have to prove \m{Sorted R (pivot ::\ eq)}. It looks quite easy, as all elements of \m{eq} are supposed to be equal to \m{pivot}, but we know neither that nor we have any evidence for the fact that a list in which all elements are equal is sorted. This results in two more \m{admit}s. The last subgoal, where we have to show that all elements of \m{qsf A gt} are greater than the \m{pivot}, is completely analogous to what we described two paragraphs above, and so we have to \m{admit} it too.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=293,
-    lastline=312
+    firstline=280,
+    lastline=331
 ]
 {Coq}{Snippets/VerificatioExNihilo.v}
+
+
 
 \inputminted
 [

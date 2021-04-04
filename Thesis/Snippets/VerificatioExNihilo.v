@@ -354,35 +354,35 @@ Qed.
 Lemma Sorted_app :
   forall
     {A : Type} {R : A -> A -> Prop}
-    {pivot : A} {lt gt : list A},
-      Sorted R lt ->
+    {pivot : A} {lt rest : list A},
       Forall (fun x => R x pivot) lt ->
-      Sorted R (pivot :: gt) ->
-        Sorted R (lt ++ pivot :: gt).
+      Sorted R lt ->
+      Sorted R (pivot :: rest) ->
+        Sorted R (lt ++ pivot :: rest).
 Proof.
   induction 1; cbn; intros.
     assumption.
-    constructor.
-      inversion H. assumption.
-      assumption.
-    constructor.
-      assumption.
-      apply IHSorted.
-        inversion H1. assumption.
+    inversion H1; subst; cbn.
+      constructor; assumption.
+      constructor.
         assumption.
+        apply IHForall; assumption.
 Qed.
 
 Lemma Sorted_app_eq :
-  forall (A : VerifiedQSArgs) (pivot : A) (eq gt : list A),
-    Forall (fun x => pivot = x) eq ->
-    Forall (fun x => A pivot x) gt ->
-    Sorted A gt ->
-      Sorted A (pivot :: eq ++ gt).
+  forall
+    {A : Type} {R : A -> A -> Prop}
+    {pivot : A} {eq gt : list A},
+      Forall (fun x => pivot = x) eq ->
+      Forall (fun x => R pivot x) gt ->
+      (forall x : A, R x x) ->
+      Sorted R gt ->
+        Sorted R (pivot :: eq ++ gt).
 Proof.
   induction 1; cbn; intros.
     inversion H; subst; constructor; assumption.
     subst. constructor.
-      apply R_refl.
+      apply H2.
       apply IHForall; assumption.
 Qed.
 
@@ -395,13 +395,14 @@ Proof.
   functional induction (qsf A l).
     apply Sorted_adhoc. assumption.
     apply Sorted_app.
-      assumption.
       apply (Permutation_Forall (Permutation_qsf A lt)).
         eapply partition_pivot_lt; eassumption.
+      assumption.
       apply Sorted_app_eq.
         eapply partition_pivot_eq; eassumption.
         apply (Permutation_Forall (Permutation_qsf A gt)).
           eapply partition_pivot_gt; eassumption.
+        apply R_refl.
         assumption.
 Qed.
 
