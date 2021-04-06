@@ -1192,7 +1192,7 @@ But not all hope is lost! There exists another, less popular but newer Coq plugi
 
 To sum up, all of the boilerplate that we saw in sections \ref{inductivedomain} and \ref{funind} can be easily automated using either the \m{Function} command or the \m{Equations} package, provided that we avoid higher-order recursion and, in case of \m{Function}, also nested recursion. For these two kinds of recursion schemes, the most robust way of defining functions, proving termination and deriving the functional induction principle is to manually apply the inductive domain method. However, since simple examples of higher-order recursion are considered structurally recursive by Coq, it may be a good alternative idea to just use ordinary induction for the proofs.
 
-\section{E pluribus unum} \label{epluribus}
+\section{Hole-driven development and proof by admission} \label{byadmission}
 
 We have defined our quicksort template, proved it terminating and derived the functional induction principle, which will allow us to prove it correct. But before we start proving, we will spend some time to put our approaches to software engineering and proof engineering\footnote{``Proof engineering'' is a fancy name for proving theorems using a proof assistant like Coq. It is usually applied to large and complex proofs, just like the term ``software engineering'' is usually applied to large and complex software systems and not to hello-world-sized programs.} in a wider context.
 
@@ -1204,24 +1204,16 @@ The most well-known languages that support holes are Agda, Idris and Haskell \ci
 
 But wait! What we did when defining the quicksort template looked nothing like the hole-driven development approach that we just described. That's right, and for two separate reasons. First, we used holes quite implicitly, because quicksort is too easy an algorithm to pose serious problems when defining it. Second and more importantly, we filled our implicit holes with subprograms that we abstracted over (by putting them into the definition of \m{QSArgs)}, effectively postponing the hole-filling until the time when a user actually wants to run the algorithm.
 
-What we did when defining the terminating quicksort template also didn't look like hole-driven development as described above, but it was. Recall that in section \ref{wellfounded}, after having defined the domain predicate, we unsuccessully tried to prove by well-founded induction that all lists belong to the domain. The reason of our failure was that some termination-related properties of our subprograms were lacking and thus our proof had a few gaps.\footnote{Interestingly, mathematicians tend to use the word ``gap'' for a missing part of a proof. This is very similar to our use of ``hole'' for a missing part of a program. But there's also a significant difference between gaps and holes: in the mathematical world, gaps arise from mistakes and errors, whereas holes in programs come into existence by being deliberately put there.} We then assumed that the desired properties indeed hold (by putting them into the definition of \m{TerminatingQSArgs}), and used them to fill the gaps in our proof.
-
-We see that our approach, based on filling holes with things we abstract over,\footnote{It's tempting to call this technique \textit{hole abstraction} or \textit{abstraction over holes}.} is very powerful and lends itself well to both writing programs and proving theorems. But we don't need to treat all holes this way -- we can still, of course, fill holes with concrete terms, like in the traditional hole-driven development. This is indeed how we will prove our quicksort correct: we will reason by functional induction and use the tactic \m{admit} for any parts of the theorems that we can't prove right away. Then we will step back and try to turn these \m{admit}ted gaps into lemmas. When it's clear we couldn't possibly prove some lemma, we will simply assume that it holds (by putting it into the definition of \m{VerifiedQSArgs}, the last incarnation of \m{QSArgs} which allows the correctness proof to go through) and use this assumption to fill the gap in the main proof.
+What we did when defining the terminating quicksort template also didn't look like hole-driven development as described above, but it was. Recall that in section \ref{wellfounded}, after having defined the domain predicate, we unsuccessully tried to prove by well-founded induction that all lists belong to the domain. The reason of our failure was that some termination-related properties of our subprograms were lacking and thus our proof had a few gaps.\footnote{Interestingly, mathematicians tend to use the word ``gap'' for a missing part of a proof. This is very similar to our use of ``hole'' for a missing part of a program. But there's also a significant difference between gaps and holes: holes in programs come into existence by being deliberately put there, whereas in the mathematical world, gaps usually arise from mistakes and errors. However, see \cite{Gap1} \cite{Gap2} \cite{Gap3} for more on proof gaps which are intentional or acceptable.} We then assumed that the desired properties indeed hold (by putting them into the definition of \m{TerminatingQSArgs}), and used them to fill the gaps in our proof.
 
 \begin{center}
     \textbf{Formally verified algorithm concept/technique \#4.2} \\
-    When proving correctness of the algorithm (or when proving anything, really), use the tactic \m{admit} for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.
+    When proving correctness of the algorithm template (or when proving anything else, really), use the tactics \m{cut} and/or \m{admit} for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.
 \end{center}
 
-Before we finish our deliberations, we should also mention the idea of \textit{type-driven development} \cite{TypeDriven}, sometimes also called \textit{type-first development} \cite{TypeFirst} or \textit{typeful programming} \cite{Typeful}. Type-driven development is, as the name suggests, a way of using the type system to guide the programmer towards an implementation of the desired program. It can be contrasted with the usual way of utilizing the type system, in which the programmer writes the program first and only after finishing he asks the typechecker to help him find errors in the program.
+We see that our approach, based on filling holes with things we abstract over, is very powerful and lends itself well to both writing programs and proving theorems. But we don't need to treat all holes this way -- we can still, of course, fill holes with concrete terms, like in the traditional hole-driven development. This is indeed how we will prove our quicksort correct, as shown in the above concept/technique: we will reason by functional induction and use the tactic \m{admit} for any parts of the theorems that we can't prove right away. Then we will step back and try to turn these \m{admit}ted gaps into lemmas. When it's clear we couldn't possibly prove some lemma, we will simply assume that it holds (by putting it into the definition of \m{VerifiedQSArgs}, the ultimate incarnation of \m{QSArgs} which allows the correctness proof to go through) and use this assumption to fill the gap in the main proof.
 
-Type-driven development is usually realised by a kind of interaction between the programmer and his language's tooling, where the programmer talks to the system by writing types and programs fragments, and the system responds by synthesizing obvious programs that fit the given type (which is reminiscent of Coq's proof automation), refining the program (e.g. performing case splits) or providing the programmer with suggestions when there are more possible implementations, and typechecking the program fragments provided by the user.\footnote{A powerful type system (i.e. at least dependent types) is pretty much required for the typechecking to fit nicely into this process.}
-
-Type-driven development is championed by Idris and described in the book \cite{TypeDriven} by the language's creator, Edwin Brady. In Coq we can also use this approach as described above, at least as long as we stay in the proof mode. But if we squint a bit, we can see that what we did when defining the default concrete implementation of our algorithm was quite similar in nature. Indeed, when we are done with the correctness proof, the types of subroutines and their expected termination and correctness properties present in \m{VerifiedQSArgs} will turn out to be great at guiding users of our algorithm template towards defining their own concrete implementations.
-
-As it turns out, hole-driven development, together with the idea of abstracting some holes away, naturally leads to type-driven development. They are intrinsically linked.
-
-Enough talking, let's see the proofs already!
+The last thing that remains to be done is to name the above technique for easier reference in the future. It could be called ``verification ex nihilo'', like in the title of this chapter, but Latin names aren't too catchy in computer science. Another possible name would be ``gap-driven development'', referring to gaps we leave in proofs to be filled later, but the technique is more about proof engineering than software development. Therefore, from now on we will refer to this technique as \textit{proof by admission}, after the tactic \m{admit}.\footnote{Proof by admission can also be seen as the formalized counterpart of a very powerful proof technique often used by mathematicians, called \textit{proof by handwaving.}}
 
 \inputminted
 [
@@ -1257,7 +1249,9 @@ We're thus left with three subgoals. In the first, we use an induction hypothesi
 
 In the third subgoal, we are left with \m{Sorted R (pivot ::\ eq ++ qsf A gt)}. This should be provable with reasoning similar to the previous one, namely it should suffice to know that all elements of \m{qsf A gt} are greater than the pivot. But yet again, we lack this knowledge and so we use \m{cut} together with \m{admit}.
 
-This leaves us with two more subgoals. First, we have to prove \m{Sorted R (pivot ::\ eq)}. It looks quite easy, as all elements of \m{eq} are supposed to be equal to \m{pivot}, but we know neither that nor we have any evidence for the fact that a list in which all elements are equal is sorted. This results in two more \m{admit}s. The last subgoal, where we have to show that all elements of \m{qsf A gt} are greater than the \m{pivot}, is completely analogous to what we described two paragraphs above, and so we have to \m{admit} it too.
+This leaves us with two more subgoals. First, we have to prove \m{Sorted R (pivot ::\ eq)}. It looks quite easy, as all elements of \m{eq} are supposed to be equal to \m{pivot}, but we know neither that nor have we any evidence for the fact that a list in which all elements are equal is sorted. This results in another \m{cut} and two more \m{admit}s. The last subgoal, where we have to show that all elements of \m{qsf A gt} are greater than the \m{pivot}, is completely analogous to what we described two paragraphs above, and so we have to \m{admit} it too.
+
+We are done with the ``proving'' and ready 
 
 \inputminted
 [
@@ -1267,6 +1261,7 @@ This leaves us with two more subgoals. First, we have to prove \m{Sorted R (pivo
     lastline=331
 ]
 {Coq}{Snippets/VerificatioExNihilo.v}
+
 
 
 
@@ -1280,6 +1275,14 @@ This leaves us with two more subgoals. First, we have to prove \m{Sorted R (pivo
 {Coq}{Snippets/VerificatioExNihilo.v}
 
 \section{Sanity check -- concrete proofs} \label{sanity3}
+
+Before we finish our deliberations, we should also mention the idea of \textit{type-driven development} \cite{TypeDriven}, sometimes also called \textit{type-first development} \cite{TypeFirst} or \textit{typeful programming} \cite{Typeful}. Type-driven development is, as the name suggests, a way of using the type system to guide the programmer towards an implementation of the desired program. It can be contrasted with the usual way of utilizing the type system, in which the programmer writes the program first and only after finishing he asks the typechecker to help him find errors in the program.
+
+Type-driven development is usually realised by a kind of interaction between the programmer and his language's tooling, where the programmer talks to the system by writing types and programs fragments, and the system responds by synthesizing obvious programs that fit the given type (which is reminiscent of Coq's proof automation), refining the program (e.g. performing case splits) or providing the programmer with suggestions when there are more possible implementations, and typechecking the program fragments provided by the user.\footnote{A powerful type system (i.e. at least dependent types) is pretty much required for the typechecking to fit nicely into this process.}
+
+Type-driven development is championed by Idris and described in the book \cite{TypeDriven} by the language's creator, Edwin Brady. In Coq we can also use this approach as described above, at least as long as we stay in the proof mode. But if we squint a bit, we can see that what we did when defining the default concrete implementation of our algorithm was quite similar in nature. Indeed, when we are done with the correctness proof, the types of subroutines and their expected termination and correctness properties present in \m{VerifiedQSArgs} will turn out to be great at guiding users of our algorithm template towards defining their own concrete implementations.
+
+As it turns out, hole-driven development, together with the idea of abstracting some holes away, naturally leads to type-driven development. They are intrinsically linked.
 
 \concept{Prove the concrete algorithm correct by filling out the proofs.}
 
@@ -1641,6 +1644,18 @@ Mention thesis' repository: \repo
 \bibitem{ExistentialVariables}
     \href{https://coq.inria.fr/refman/language/extensions/evars.html}{\textit{Existential variables - Coq 8.13.1 documentation}}, \\
     \wayback{https://web.archive.org/web/20210401125720/https://coq.inria.fr/refman/language/extensions/evars.html}
+
+\bibitem{Gap1}
+    Don Fallis,
+    \href{https://www.jstor.org/stable/20117325?seq=1}{\textit{Intentional Gaps in Mathematical Proofs}}, 2003
+
+\bibitem{Gap2}
+    Yacin Hamami,
+    \href{https://journals.openedition.org/philosophiascientiae/908}{\textit{Mathematical Rigor, Proof Gap and the Validity of Mathematical Inference}}, 2014
+
+\bibitem{Gap3},
+    Line Edslev Andersen,
+    \href{https://link.springer.com/article/10.1007/s11229-018-1778-8}{\textit{Acceptable gaps in mathematical proofs}}, 2020
 
 \bibitem{TypeDriven}
     Edwin Brady,
