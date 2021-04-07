@@ -330,10 +330,36 @@ Class VerifiedQSArgs : Type :=
 Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
 Coercion R : VerifiedQSArgs >-> Funclass.
 
-Theorem Permutation_qsf :
+Hint Constructors Sorted : core.
+
+Lemma Sorted_app :
   forall
-    (A : VerifiedQSArgs) (l : list A),
-      Permutation l (qsf A l).
+    {A : Type} {R : A -> A -> Prop}
+    {pivot : A} {lt rest : list A},
+      Forall (fun x => R x pivot) lt ->
+      Sorted R lt ->
+      Sorted R (pivot :: rest) ->
+        Sorted R (lt ++ pivot :: rest).
+Proof.
+  induction 1; try inversion 1; subst; cbn; auto.
+Qed.
+
+Lemma Sorted_app_eq :
+  forall
+    {A : Type} {R : A -> A -> Prop}
+    {pivot : A} {eq gt : list A},
+      Forall (fun x => pivot = x) eq ->
+      Forall (fun x => R pivot x) gt ->
+      (forall x : A, R x x) ->
+      Sorted R gt ->
+        Sorted R (pivot :: eq ++ gt).
+Proof.
+  induction 1; cbn; inversion 1; subst; auto.
+Qed.
+
+Theorem Permutation_qsf :
+  forall (A : VerifiedQSArgs) (l : list A),
+    Permutation l (qsf A l).
 Proof.
   intros.
   functional induction (qsf A l).
@@ -351,45 +377,9 @@ Proof.
     }
 Qed.
 
-Lemma Sorted_app :
-  forall
-    {A : Type} {R : A -> A -> Prop}
-    {pivot : A} {lt rest : list A},
-      Forall (fun x => R x pivot) lt ->
-      Sorted R lt ->
-      Sorted R (pivot :: rest) ->
-        Sorted R (lt ++ pivot :: rest).
-Proof.
-  induction 1; cbn; intros.
-    assumption.
-    inversion H1; subst; cbn.
-      constructor; assumption.
-      constructor.
-        assumption.
-        apply IHForall; assumption.
-Qed.
-
-Lemma Sorted_app_eq :
-  forall
-    {A : Type} {R : A -> A -> Prop}
-    {pivot : A} {eq gt : list A},
-      Forall (fun x => pivot = x) eq ->
-      Forall (fun x => R pivot x) gt ->
-      (forall x : A, R x x) ->
-      Sorted R gt ->
-        Sorted R (pivot :: eq ++ gt).
-Proof.
-  induction 1; cbn; intros.
-    inversion H; subst; constructor; assumption.
-    subst. constructor.
-      apply H2.
-      apply IHForall; assumption.
-Qed.
-
 Theorem Sorted_qsf :
-  forall
-    (A : VerifiedQSArgs) (l : list A),
-      Sorted A (qsf A l).
+  forall (A : VerifiedQSArgs) (l : list A),
+    Sorted A (qsf A l).
 Proof.
   intros.
   functional induction (qsf A l).
@@ -412,7 +402,7 @@ Instance Sort_qsf
 Proof.
   apply Sorted_qsf.
   apply Permutation_qsf.
-Qed.
+Defined.
 
 (** * Sanity *)
 

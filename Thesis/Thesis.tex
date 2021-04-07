@@ -1266,7 +1266,7 @@ Tedious proofs have a known outline -- in our case it was functional induction, 
 
 We can now progress to fill the gaps, of which there are two kinds: lemmas to be proved and additional properties to be assumed. Thankfully, they are quite easy to distinguish: in our proofs, uses of the tactic \m{cut} (or, to be more precise, \m{cut} followed by \m{admit}) correspond to lemmas and all other uses of \m{admit} correspond to additional assumptions we need to make (some correspond to more than one assumption).
 
-We will start with the additional assumptions we need, collecting them into a new class called \m{VerifiedQSArgs}. The first field of the class is called \m{T} and has type \m{TerminatingQSArgs}. This is similar to how we defined \m{TerminatingQSArgs} as an extension of \m{QSArgs}. In fact, this is the customary way to simulate inheritance in Coq.
+We will start with the additional assumptions we need, collecting them into a new class called \m{VerifiedQSArgs}. We want this class to be kind of an ``extension'' of the class \m{TerminatingQSArgs}, similarly to how we defined \m{TerminatingQSArgs} as an extension of \m{QSArgs}. Therefore, the first field of the class, called \m{T}, is an instance of \m{TerminatingQSArgs}.
 
 The four fields that follow correspond to the two \m{admit}s from the proof of \m{Permutation\_qsf\_first\_try}. They are evidence for the fact that all components of our algorithm template return permutations of their inputs and thus, when put together, are evidence that the algorithm as a whole also returns a permutation of its input.
 
@@ -1276,18 +1276,29 @@ The next field of \m{VerifiedQSArgs} ensures that this order relation \m{R} is r
 
 The remaining fields correspond to \m{admit}s from the proof of \m{Sorted\_qsf\_first\_try}. The first \m{admit} was used because we didn't know that \m{adhoc} is a sorting function and the remaining ones that did not immediately follow uses of \m{cut} were used because we didn't know what is the relation between the pivot and the outputs of \m{partition}.
 
-which is also a coercion, because we want to be able to use an instance of \m{VerifiedQSArgs} wherever an instance of \m{TerminatingQSArgs} is expected.
-
+At the end, we declare some coercions -- this is the simplest way to simulate inheritance/subtyping in Coq. First, we declare \m{T} to be a coercion from \m{VerifiedQSArgs} to \m{TerminatingQSArgs}, which ensures that we can use an instance of the former class wherever an instance of the latter class is expected. Second, we declare \m{R} to be a coercion from \m{VerifiedQSArgs} to \m{Funclass}, which means that we can use an instance \m{x :\ VerifiedQSArgs} to refer to the order relation \m{R x}.
 
 \inputminted
 [
     frame=lines,
     bgcolor=CoqIDE,
-    firstline=364,
-    lastline=381
+    firstline=333,
+    lastline=358
 ]
 {Coq}{Snippets/VerificatioExNihilo.v}
 
+To fill the remaining gaps, we will need some lemmas, shown in the listing above. Note that, even though we used the tactic \m{cut} three times, only two lemmas suffice -- the last two \m{cut}s got merged and appear as the second lemma. The lemmas aren't terribly interesting, so we will not discuss them at length. Note only that we don't use \m{VerifiedQSArgs} to state these lemmas -- this is because it's easier for automation to find the proofs for us when all premises are explicit. All automation that is actually needed is on the first line -- we need to tell the tactic \m{auto} that it might need to use constructors of \m{Sorted}.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=360,
+    lastline=405
+]
+{Coq}{Snippets/VerificatioExNihilo.v}
+
+The finished correctness proofs are shown in the listing above. They are not terribly different from the initial versions. The only exceptions are that their are now stated using \m{VerifiedQSArgs} and they no longer contain any gaps. Also, the structure of the second proof changed a bit to reflect the fact that only two lemmas are needed now (as opposed to three \m{cut}s previously).
 
 \section{Sanity check -- concrete proofs} \label{sanity3}
 
