@@ -279,7 +279,7 @@ Admitted.
 
 Class VerifiedQSArgs : Type :=
 {
-    T :> TerminatingQSArgs;
+    T : TerminatingQSArgs;
 
     Permutation_adhoc :
       forall {l : list T},
