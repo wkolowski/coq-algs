@@ -235,7 +235,7 @@ end.
 
 End Function_failures.
 
-(** * E pluribus unum *)
+(** * Hole-driven development and proof by admission *)
 
 Theorem Permutation_qsf_first_try :
   forall (A : TerminatingQSArgs) (l : list A),
@@ -404,12 +404,13 @@ Proof.
   apply Permutation_qsf.
 Defined.
 
-(** * Sanity *)
+(** * Sanity check – concrete proofs *)
 
 #[refine]
 Instance VQSA_nat : VerifiedQSArgs :=
 {
     T := TQSA_nat;
+    R := le;
 }.
 Proof.
   destruct l; inversion 1. constructor.
@@ -430,9 +431,8 @@ Proof.
           rewrite Permutation_app_comm.
           assumption.
         }
-  exact le.
   apply le_refl.
-  constructor.
+  cbn. constructor.
   inversion 1; subst; clear H.
     induction rest as [| h t]; cbn.
       constructor.
@@ -451,6 +451,55 @@ Proof.
 Defined.
 
 Compute qs VQSA_nat [4; 3; 2; 1].
+(* ===> = [1; 2; 3; 4] *)
+
+#[refine]
+Instance VQSA_default
+  {A : Type} (p : A -> A -> bool)
+  (Hrefl : forall x : A, p x x = true)
+  (Hsym : forall x y : A, p x y = negb (p y x))
+  : VerifiedQSArgs :=
+{
+    T := TQSA_default A p;
+    R x y := p x y = true;
+    R_refl := Hrefl
+}.
+Proof.
+  destruct l; inversion 1. constructor.
+  destruct l; inversion 1. reflexivity.
+  inversion 1. reflexivity.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn in *.
+      reflexivity.
+      destruct (p h pivot); cbn.
+        rewrite perm_swap, <- IHt; reflexivity.
+        {
+          rewrite Permutation_app_comm.
+          rewrite <- !app_comm_cons.
+          rewrite perm_swap.
+          rewrite (@perm_swap _ h pivot).
+          constructor.
+          rewrite app_comm_cons.
+          rewrite Permutation_app_comm.
+          assumption.
+        }
+  cbn. constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (p h pivot) eqn: Hp.
+        constructor; assumption.
+        assumption.
+  inversion 1; subst; clear H. constructor.
+  inversion 1; subst; clear H.
+    induction rest as [| h t]; cbn.
+      constructor.
+      destruct (p h pivot) eqn: Hp; cbn.
+        assumption.
+        constructor.
+          rewrite Hsym, Hp. cbn. reflexivity.
+          assumption.
+Defined.
 
 (** It's possible to prove theorems using just QSDom_ind, but it's not
     very abstract or modular to do so. *)

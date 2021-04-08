@@ -419,10 +419,7 @@ However, that would still yield us a patchwork definition and patchwork definiti
 
 How do we go about that? As has been said previously, in general it requires some creativity and insight, but it turns out sometimes there's a little shortcut: if we have a patchwork definition, made of parts that don't fit perfectly, we can try to restate it as an inductive definition, yielding a potential improvement.\footnote{If the patchwork definition consists of universal quantifiers and implications, then restating it as an inductive definition is a special case of a more general transformation known as defunctionalization. See \cite{DefunctionalizationLight} for a programmer-friendly introduction and \cite{DefunctionalizationSerious} for a more academic work.}
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#0.5} \\
-    Sometimes a patchwork definition can be improved by restating it as an inductive definition.
-\end{center}
+\concept{Sometimes a patchwork definition can be improved by restating it as an inductive definition.}
 
 Let's try to restate the intuitive definition of sortedness, which says that elements with smaller indices are less than or equal to elements with bigger indices. If we (conceptually) unfold this statement a bit, we get this: the element with the smallest index is the least element, the element with the second smallest index is the second least element, etc. Unfolding a bit more: the first element is less than everything that follows it, the second element is less than everything that follows it, etc.
 
@@ -498,10 +495,7 @@ Having said that, how do we define what it means for two lists to be permutation
 
 After all the praise inductive definitions got up to now, we might be tempted to declare victory and go on to implement something that satisfies the specification, but we won't be this hasty -- there's one more concept that can be useful for validating and improving specifications. Let's say we have a feeling that this definition will fail the ``easy to use'' criterion at some point in the future during a proof of correctness of some nontrivial sorting algorithm. We think this could be so because the algorithm moves list elements around in ways that don't play too well with the above definition of \m{Permutation}. How to find a better definition in such a case?
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#0.75} \\
-    Sometimes we can find an alternative specification by changing its focus.
-\end{center}
+\concept{Sometimes we can find an alternative specification by changing its focus.}
 
 This one is admittedly quite murky. What is meant by ``focus'' here and how can we change it? The best way to understand this concept is to immediately apply it to our case. In the above definition of \m{Permutation}, the main idea is that of simultaneously building up two lists, starting from two \m{[]}s, using constructors that preserve the fact of being a permutation. So, we can say that this definition focuses on \textit{generating} permutations.\footnote{Of course all inductive definitions are about generating objects. The sense in which we use the word ``generating'' will become clearer in the next paragraphs, after looking at ways of defining permutations that have a different focus.} If we want to apply the above concept/technique, we should try to define \m{Permutation} using some other crucial idea that completely characterizes what it means to be a permutation.
 
@@ -649,10 +643,7 @@ A better criterion is user experience. It's not the first thing that comes to mi
 
 In typical algorithmic settings the answer is not very enlightening: the user is anybody who runs our algorithm and user experience means that the algorithm is fast (or at least fast enough for his purposes; correctness is taken for granted). In our case things are a bit different, however: even though correctness is even more taken for granted, execution speed will never be satisfying\footnote{Coq users make various jokes along the lines of ``Since discovering Coq, I don't run my programs anymore, I only prove them correct.''. It is possible to extract Coq programs into Haskell, OCaml or Scheme and get performance typical for these languages, but we won't be interested in performance of the extracted code.}. What matters to us is that the template is very abstract and, unless provided with some defaults, the user will have to fill it out in order to get a concrete algorithm running. Thence comes a better advice for ensuring quality of our abstract template:
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#2.5} \\
-    Instantiate your template in the most naive way. See what happens and use that observation to improve the template.
-\end{center}
+\concept{Instantiate your template in the most naive way. See what happens and use that observation to improve the template.}
 
 \inputminted
 [
@@ -724,10 +715,7 @@ Explicit and implicit information are not absolute concepts. Between these two e
 
 Having come so far, we can now explain what evidence-based programming is: it is programming that incorporates considerations about information flow in the program into the design process. We can apply it to our algorithmic template as follows:
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#2.75} \\
-    Make sure that types in your abstract template contain enough evidence, so that information flow in the algorithm is smooth, but also make sure that it's not cluttered with unnecessary evidence.
-\end{center}
+\concept{Make sure that types in your abstract template contain enough evidence, so that information flow in the algorithm is smooth, but also make sure that it's not cluttered with unnecessary evidence.}
 
 \section{Remarks on (un)bundling and (lack of) sharing}
 
@@ -750,12 +738,7 @@ In practice, however, the difference is very annoying. Each direction of the con
 
 In case of our template's \m{QSArgs} the difference doesn't matter very much and we could have used either the bundled or the unbundled version.\footnote{Our original choice, with \m{T\ :\ Type} realized as a parameter, is probably a cultural heritage of Haskell, in which most typeclasses have a single type parameter and any number of non-type fields.}\footnote{A pragmatically important thing to bear in mind when deciding between bundled and unbundled classes is that field names in Coq are treated like ordinary top-level names. This often leads to a polluted global context and interferes with other mechanisms, like automatic hypothesis naming in proofs. Parameters avoid this problem, because they are ordinary local names. Therefore, if you want to name your type \m{T}, it might be smarter to make it a parameter rather than a field.} Why bother then? A situation in which problems could potentially arise is when we are concurrently developing templates of many algorithms that share some components. In such cases it's a good idea to make the shared components into parameters. Otherwise we may stick to the bundled version (which we will do in the rest of this chapter).
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#2.8901234567} \\
-    If you are developing many algorithm templates at once, make components shared between them into parameters and other components into fields. In case of a single template, use a bundled class by default.
-\end{center}
-
-% TODO: quicksort jako "space-efficient" tree-sort, czy też na odwrót: jak zaoszczędzić na konkatenacji list zamieniając quicksort w robienie drzewa - pewnie dopiero w kolejnym rozdziale
+\concept{If you are developing many algorithm templates at once, make components shared between them into parameters and other components into fields. In case of a single template, use a bundled class by default.}
 
 \chapter{Prove termination} \label{termination}
 
@@ -769,10 +752,7 @@ How do we prove that our algorithm terminates? Before we tackle this question, l
 
 Structural recursion is to be contrasted with \textit{general recursion}, found in most programming languages, in which arguments of recursive calls can be arbitrary. This is very convenient for the pragmatic programmer, because it doesn't constrain him at all, but renders the language inconsistent as a logic, and thus absolutely useless for formal reasoning.\footnote{Note, however, that an inconsistent language can still be useful for the purpose of \textit{rigorous} reasoning. See \cite{FastAndLoose} for details.} Consider Haskell's \m{Void} type, for example, which is supposed to be empty, just like its Coq equivalent \m{False}. There is no direct way of making an element of \m{Void}, but using general recursion we can easily define a nonterminating function \m{f\ ::\ a -> Void} (for example by setting \m{f x = f x}), which we can then use to obtain an element of \m{Void} (for example \m{f ()\ ::\ Void}).
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#3.1} \\
-    Define a predicate that represents the shape of recursion in the algorithm and use it to implement a better template.
-\end{center}
+\concept{Define a predicate that represents the shape of recursion in the algorithm and use it to implement a better template.}
 
 Back to our (almost) initial question: we need to prove termination because only structural recursion is allowed and our algorithm is not structurally recursive. As for the truly initial question of how to do it, the answer is provided by the above technique which I will call the \textit{inductive domain method}. It might look like a revelation at first, but in hindsight it couldn't have been more obvious. This technique basically tells us to represent general recursion on some type by structural recursion on a special type crafted precisely for this purpose. By doing that we get a new template which is guaranteed to terminate when filled in. There's a caveat, however: we changed the type of our algorithm, so what we got is not what we initially wanted. To implement the original algorithm, we will have to do some more work.
 
@@ -828,10 +808,7 @@ As for the second inequality, \m{rest} was obtained from \m{h\ ::\ t} by choosin
 
 And so we proceed by... well, we don't proceed anymore. We are stuck because we have no evidence to back up our reasoning from the previous one and a half paragraphs. The reason is simple: there's nothing in \m{QSArgs} guaranteeing that \m{short}, \m{choosePivot} and \m{partition} don't produce gibberish.
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#3.2} \\
-    When proving termination by well-founded induction, assume that every property and lemma you need is in fact given and add them to the algorithm template.
-\end{center}
+\concept{When proving termination by well-founded induction, assume that every property and lemma you need is in fact given and add them to the algorithm template.}
 
 But the beauty of mathematics in general and of our approach to algorithms in particular is that we can just assume everything we need and call it a day! Therefore it suffices to introduce a new variant of \m{QSArgs} which will provide us with all the lemmas we need -- its definition is shown in the listing below.
 
@@ -863,10 +840,7 @@ In section \ref{sanity1} we learned an important sanity check we can easily perf
 
 Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless. We might be tempted to extend our previous sanity check by providing a concrete termination proof for the concrete algorithm that it spawned. There is, however, a smarter thing to do.
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#3.3} \\
-    Make sure that a user can run a default implementation of the algorithm without having to prove anything.
-\end{center}
+\concept{Make sure that a user can run a default implementation of the algorithm without having to prove anything.}
 
 The rationale behind the technique is quite simple -- it is a kind of \textit{principle of least effort}. A typical user will want to see the algorithm's results and running time immediately, without having to fill in the template. If he does decide to fill it in, he will want to get a feel of his custom algorithm without having to invest his precious time in proving anything. If he does decide to prove termination, he will want to use his provably-terminating algorithm as a building block of some bigger development without having to prove it correct. Only when he wants to prove the whole thing correct should he be forced into providing a concrete correctness proof.
 
@@ -983,10 +957,7 @@ What changes drastically is the Haskell code extracted from \m{qs'}. Even though
 
 We are now ready to make the last step in our grand quest for formally verified algorithms: prove correctness of our template. Our approach to this task, outlined in the below technique, will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and then put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#4} \\
-    Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.
-\end{center}
+\concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
 
 \section{One induction to rule them all -- functional induction} \label{funind}
 
@@ -996,10 +967,7 @@ If the recursion scheme of the function is different from the induction scheme i
 
 A tentative answer to this problem may be to use well-founded induction, just as we did for the termination proof. But again, as anybody who was ever done a proof by well-founded induction in Coq knows, this would be a bit messy and inconvenient. Because well-founded induction is so general that it can be used for any function whatsoever, it doesn't fit any single recursion scheme particularly well and this produces some overhead.
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#4.1} \\
-    Define an inductive relation that represents the graph of your algorithm, prove that it really is the graph and use its induction principle to derive the functional induction principle of your algorithm.
-\end{center}
+\concept{Define an inductive relation that represents the graph of your algorithm, prove that it really is the graph and use its induction principle to derive the functional induction principle of your algorithm.}
 
 Fortunately, there is a relatively cheap ultimate solution of the problem of inductive proofs: functional induction. This is a form of induction in which a tailor-made induction principle that perfectly fits the function's recursion scheme is used to prove all properties of the function. Thanks to this technique the proofs become pretty easy\footnote{Problems may arise only when we compose the function in question with others -- in such a case even the functional induction principle may be not enough to guarantee a smooth proof.} and also easy to automate, and the derivation of the functional induction principle is very schematic and easy to automate itself. The above technique outlines how to accomplish it.
 
@@ -1206,10 +1174,7 @@ But wait! What we did when defining the quicksort template looked nothing like t
 
 What we did when defining the terminating quicksort template also didn't look like hole-driven development as described above, but it was. Recall that in section \ref{wellfounded}, after having defined the domain predicate, we unsuccessfully tried to prove by well-founded induction that all lists belong to the domain. The reason of our failure was that some termination-related properties of our subprograms were lacking and thus our proof had a few gaps.\footnote{Interestingly, mathematicians tend to use the word ``gap'' for a missing part of a proof. This is very similar to our use of ``hole'' for a missing part of a program. But there's also a significant difference between gaps and holes: holes in programs come into existence by being deliberately put there, whereas in the mathematical world, gaps usually arise from mistakes and errors. However, see \cite{Gap1} \cite{Gap2} \cite{Gap3} for more on proof gaps which are intentional or acceptable.} We then assumed that the desired properties indeed hold (by putting them into the definition of \m{TerminatingQSArgs}), and used them to fill the gaps in our proof.
 
-\begin{center}
-    \textbf{Formally verified algorithm concept/technique \#4.2} \\
-    When proving correctness of the algorithm template (or when proving anything else, really), use the tactics \m{admit} (and/or) \m{cut}) for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.
-\end{center}
+\concept{When proving correctness of the algorithm template (or when proving anything else, really), use the tactics \m{admit} (and/or) \m{cut}) for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.}
 
 We see that our approach, based on filling holes with things we abstract over, is very powerful and lends itself well to both writing programs and proving theorems. But we don't need to treat all holes this way -- we can still, of course, fill holes with concrete terms, like in the traditional hole-driven development. This is indeed how we will prove our quicksort correct, as shown in the above concept/technique: we will reason by functional induction and use the tactic \m{admit} for any parts of the theorems that we can't prove right away. Then we will step back and try to turn these \m{admit}ted gaps into lemmas. When it's clear we couldn't possibly prove some lemma, we will simply assume that it holds (by putting it into the definition of \m{VerifiedQSArgs}, the ultimate incarnation of \m{QSArgs} which allows the correctness proof to go through) and use this assumption to fill the gap in the main proof.
 
@@ -1302,20 +1267,30 @@ The finished correctness proofs are shown in the listing above. They are not ter
 
 \section{Sanity check -- concrete proofs} \label{sanity3}
 
+\concept{Prove the concrete algorithm correct by filling out the proofs.}
+
 We are almost done with our formally correct quicksort. The last step that separates us from proclaiming total success is yet another sanity check -- we will have to provide concrete correctness proofs for the default implementation from section \ref{sanity2}. But before we do that, we will take our time to put all our sanity checks into a broader perspective. We will be especially interested in how they are related to hole-driven development and proof by admission as described in the \hyperref[byadmission]{previous section}.
 
 The crucial idea to be mentioned here is \textit{type-driven development} \cite{TypeDriven}, sometimes also called \textit{type-first development} \cite{TypeFirst} or \textit{typeful programming} \cite{Typeful}. Type-driven development is, as the name suggests, a way of using the type system to guide the programmer towards an implementation of the desired program. It can be contrasted with the usual way of utilizing the type system, in which the programmer writes the program first and only after finishing he asks the typechecker to help him find errors in the program.
 
-Type-driven development\footnote{Type-driven development is often shortened to TDD, but this acronym can also be expanded as \textit{Test-driven development}, an Agile technique popular among users of dynamically typed languages. In this thesis, TDD will always refer to type-driven development, however.} is championed by Idris and described in the book \cite{TypeDriven} by the language's creator, Edwin Brady. There it is realised by a kind of interaction between the programmer and the language's tooling, where the programmer talks to the system by writing types and programs fragments, and the system responds by synthesizing obvious programs that fit the given type (which is reminiscent of Coq's proof automation), refining the program (e.g. performing case splits) or providing the programmer with suggestions when there are more possible implementations, and typechecking the program fragments provided by the user.
+Type-driven development\footnote{Type-driven development is often shortened to TDD, but this acronym can also be expanded as \textit{test-driven development}, an Agile technique popular among users of dynamically typed languages. In this thesis, TDD will always refer to type-driven development, however.} is championed by Idris and described in the book \cite{TypeDriven} by the language's creator, Edwin Brady. There it is realised by a kind of interaction between the programmer and the language's tooling, where the programmer talks to the system by writing types and programs fragments, and the system responds by synthesizing obvious programs that fit the given type (which is reminiscent of Coq's proof automation), refining the program (e.g. performing case splits) or providing the programmer with suggestions when there are more possible implementations, and typechecking the program fragments provided by the user.
 
- In Coq we can also use this approach as described above, at least as long as we stay in the proof mode. Outside the proof mode, support for type-driven development seems missing, but it's still possible to practice it, even if only unconsciously and without tooling support. What we did in section \ref{sanity1}, when we defined the default concrete implementation of our algorithm, looks quite similar to TDD, at least if we squint a bit. The most noticeable difference is that in Idris, type-driven development is usually practiced using precise, dependently typed specifications, whereas our quicksort template consists only of simply typed components.
+In Coq we can also use this approach as described above, at least as long as we stay in the proof mode. Outside the proof mode, support for type-driven development seems missing, but it's still possible to practice it, even though without tooling support. What we did in section \ref{sanity1}, when we defined the default concrete implementation of our algorithm, was pretty similar in nature to type-driven development. The most noticeable difference is that in Idris, type-driven development is usually practiced using precise, dependently typed specifications, whereas our quicksort template consists only of simply typed components.
+
+However, we (and the users of our algorithm template) also have additional guidance from the termination properties in \m{TerminatingQSArgs} and correctness properties in \m{VerifiedQSArgs}. If we consider them all at once, instead of defining the concrete implementation in stages, what we get is precisely just an exercise in type-driven development -- as soon as we define anything of the appropriate type (i.e. \m{VerifiedQSArgs}), we are done. As it turns out, hole-driven development, together with our idea of abstracting some holes away, naturally leads to programs that can be proven correct using proof by admission, and then finally we can recover concrete, fully correct implementations using type-driven development. These three techniques are intrinsically linked, yielding a perfect harmony.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=409,
+    lastline=454
+]
+{Coq}{Snippets/VerificatioExNihilo.v}
+
+Our concrete proofs are shown in the listing above. We want to prove that the concrete algorithm we developed in section \ref{sanity1} and \ref{sanity2}, embodied in \m{TQSA\_nat :\ TerminatingQSArgs} is correct, i.e. \m{qs TQSA\_nat} is a sorting function that returns a permutation of its input sorted according to the standard order relation \m{<=} on the natural numbers.
 
 
-Indeed, when we are done with the correctness proof, the types of subroutines and their expected termination and correctness properties present in \m{VerifiedQSArgs} will turn out to be great at guiding users of our algorithm template towards defining their own concrete implementations.
-
-As it turns out, hole-driven development, together with the idea of abstracting some holes away, naturally leads to type-driven development. They are intrinsically linked.
-
-\concept{Prove the concrete algorithm correct by filling out the proofs.}
 
 \section{User experience: avoid bloatware} \label{bloatware}
 
