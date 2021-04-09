@@ -12,17 +12,17 @@
 % Pamietaj o madrym (zgodnym z logicznym rozbiorem zdania oraz estetyka) recznym
 % zlamaniu wierszy w temacie pracy, zwlaszcza tego w jezyku pracy. Uzyj do tego
 % polecenia \fmlinebreak.
-\englishtitle   {Formally verified algorithms and data structures in Coq: concepts and techniques}
-\polishtitle    {Formalnie zweryfikowane algorytmy i struktury danych w Coqu: koncepcje i techniki}
-\polishabstract {Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów i struktur danych, skupiając się bardziej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznym czasie działania. Prezentujemy koncepcje i techniki, obie często opierające się na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście bogato ilustrujemy przykładami i studiami przypadku.}
-\englishabstract{We discuss how to specify, implement and verify functional algorithms and data structures, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach using rich examples and case studies.}
+\englishtitle   {Formally verified algorithms in Coq:\fmlinebreak concepts and techniques}
+\polishtitle    {Formalnie zweryfikowane algorytmy w Coqu: koncepcje i techniki}
+\englishabstract{We discuss how to specify, implement and verify functional algorithms, concentrating on formal proofs rather than asymptotic complexity or actual performance. We present concepts and techniques, both of which often rely on one key principle -- the reification and representation, using Coq's powerful type system, of something which in the classical-imperative approach is intangible, like the flow of information in a proof or the shape of a function's recursion. We illustrate our approach on the running example of quicksort. In the end, we arrive at a robust and general method applicable to any functional algorithm.}
+\polishabstract {Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów, skupiając się raczej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznej wydajności. Prezentujemy koncepcje i techniki, obie często opierające się na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś, co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście obszernie ilustrujemy na przykładzie quicksorta. Ostatecznie otrzymujemy solidną i ogólną metodę, którą można zastosować do dowolnego algorytmu funkcyjnego.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Wojciech Kołowski}
-\usepackage{ulem} % TODO
+\usepackage{ulem}
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ \sout{Z września też nici, ale spoko} \\ Może w marcu '21 się uda.} % Data zlozenia pracy
+\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ \sout{Z września też nici, ale spoko} \\ \sout{Może w marcu '21 się uda.} \\ Jak będzie to będzie.} % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -365,7 +365,7 @@ After this chapter's thorough introduction it should be clear now what we mean b
     \item In chapter \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications.\footnote{Sadly, there seems to be no easy way of coming up with a good specification.}
     \item In chapter \ref{template} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof.
     \item In chapter \ref{termination} we describe a general method for defining recursive functions and carrying out termination proofs.
-    \item In chapter \ref{exnihilo} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion... without writing too many proofs.
+    \item In chapter \ref{exnihilo} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion.
     \item In chapter \ref{conclusion} we review all our concepts and techniques from a birds'-eye view and conclude with some directions for future work.
 \end{itemize}
 
@@ -637,7 +637,7 @@ Note that the definition is placed between commands \m{Unset Guard Checking} and
 
 \section{User experience: concrete algorithm as a sanity check} \label{sanity1}
 
-Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming with the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
+Are we done with the template? Not quite -- how do we know that our template makes sense? There's the obvious criterion of conforming to the informal description of the algorithm, but it's quite vague and thus fulfilling it is a rather weak guarantee of success -- it's too easy to sneak in errors or inconveniences that will later turn out to be problematic.
 
 A better criterion is user experience. It's not the first thing that comes to mind when thinking about either algorithms or anything formally verified, but nonetheless it's important to get it right. What does user experience mean in our case? Who are the users and what will they want to do with our algorithm template?
 
@@ -656,7 +656,7 @@ In typical algorithmic settings the answer is not very enlightening: the user is
 
 Here's what happens when we try this advice for our quicksort template. Let's say a typical user, after stumbling upon our template, will want to build the simplest quicksort variant to sort some natural numbers, and so we define: a list is short when it's empty; we can sort a short (i.e. empty) list ad hoc by returning an empty list; and we can partition by filtering twice, just like in the Haskell version.
 
-But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot, but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary, as this number does not appear in the list (since it's empty).
+But how do we choose the pivot? When the list has head and tail, we choose the head to be the pivot, but in case the list is empty we run into a problem, because the choice is not obvious. We actually chose the number \m{42}, as shown in the listing, but this choice is arbitrary because this number does not appear in the list (which is empty).
 
 When we run this particular version of quicksort on a reverse-sorted example list, it gives the correct answer, but this shouldn't deceive us. If we wanted to be a bit more general and define a similar, but more polymorphic version of quicksort (that works, let's say, on any type with a decidable linear order), we couldn't, because we can't conjure an element of a general type \m{T} out of thin air. Our template is, therefore, seriously flawed, as any user who attempted to do just that would find the task impossible.
 
@@ -840,11 +840,11 @@ In section \ref{sanity1} we learned an important sanity check we can easily perf
 
 Our present situation is quite similar: our termination ``proof'' is not really a proof, but a combination of a bunch of unverified assumptions that we made when our first proof attempt failed. If we made a mistake in our initial reasoning, it could have lead us to making too strong or even contradictory\footnote{Our assumptions can't be too weak, however -- if they were, the termination proof wouldn't have gone through.} assumptions, which would render our algorithm template useless. We might be tempted to extend our previous sanity check by providing a concrete termination proof for the concrete algorithm that it spawned. There is, however, a smarter thing to do.
 
-\concept{Make sure that a user can run a default implementation of the algorithm without having to prove anything.}
+\concept{Make sure that users can run a default implementation of the algorithm without having to prove anything.}
 
 The rationale behind the technique is quite simple -- it is a kind of \textit{principle of least effort}. A typical user will want to see the algorithm's results and running time immediately, without having to fill in the template. If he does decide to fill it in, he will want to get a feel of his custom algorithm without having to invest his precious time in proving anything. If he does decide to prove termination, he will want to use his provably-terminating algorithm as a building block of some bigger development without having to prove it correct. Only when he wants to prove the whole thing correct should he be forced into providing a concrete correctness proof.
 
-By listening to the advice in the above technique, we can hit two birds with one stone: instead of a concrete termination proof for a quicksort for sorting lists of naturals according to the standard order, we can define and prove termination of a default implementation of quicksort that works for any type \m{A} and any comparison function \m{p\ :\ A -> A -> bool}. The effort required is almost the same, but the result is much more generally applicable.
+By using the above technique, we can hit two birds with one stone: instead of a concrete termination proof for a quicksort for sorting lists of naturals according to the standard order, we can define and prove termination of a default implementation of quicksort that works for any type \m{A} and any comparison function \m{p\ :\ A -> A -> bool}. The effort required is almost the same, but the result is much more generally applicable.
 
 \inputminted
 [
@@ -955,9 +955,7 @@ What changes drastically is the Haskell code extracted from \m{qs'}. Even though
 
 \chapter{Verificatio ex nihilo} \label{exnihilo}
 
-We are now ready to make the last step in our grand quest for formally verified algorithms: prove correctness of our template. Our approach to this task, outlined in the below technique, will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and then put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
-
-\concept{Prove your template correct ``by fiat'': find out what properties and lemmas are required for each step of the proof to go through and assume they are part of your template.}
+We are now ready to make the last step in our grand quest for formally verified algorithms: prove correctness of our template. Our approach to this task will be pretty similar to what we did when proving termination -- we will assume all the properties and lemmas we need and then put them together to get the correctness proof, leaving the concrete proofs  to the users of our algorithm. But as a conveniece for the users (and a sanity check for ourselves), we will provide a nice correctness proof for the default implementation.
 
 \section{One induction to rule them all -- functional induction} \label{funind}
 
@@ -1111,7 +1109,7 @@ When we are given a source function, i.e. a function defined the way we saw in s
     \item To derive the recursive equation, an application of the functional induction principle together with \m{eauto} should suffice.
 \end{itemize}
 
-Luckily, we don't need to automate this process ourselves. It has already been done -- the standard Coq tool for defining and reasoning about general recursive functions is the \m{Function} command \cite{Function} \cite{FunctionRefman}. We won't describe its internal workings here -- interested readers should refer to section 3 of \cite{Function}, especially for an idea of how they differ from the approach we presented above. Instead, we will content ourselves with a quick tutorial showing how to apply the tool to our terminating quicksort template.
+Luckily, we don't need to automate this process ourselves. It has already been done -- the standard Coq tool for defining and reasoning about general recursive functions is the \m{Function} command \cite{Function} \cite{FunctionRefman}. We won't describe its internal workings here -- interested readers should refer to section 3 of \cite{Function}, especially for an idea of how they differ from the approach presented above. Instead, we will content ourselves with a quick tutorial showing how to apply the tool to our terminating quicksort template.
 
 \inputminted
 [
@@ -1174,7 +1172,7 @@ But wait! What we did when defining the quicksort template looked nothing like t
 
 What we did when defining the terminating quicksort template also didn't look like hole-driven development as described above, but it was. Recall that in section \ref{wellfounded}, after having defined the domain predicate, we unsuccessfully tried to prove by well-founded induction that all lists belong to the domain. The reason of our failure was that some termination-related properties of our subprograms were lacking and thus our proof had a few gaps.\footnote{Interestingly, mathematicians tend to use the word ``gap'' for a missing part of a proof. This is very similar to our use of ``hole'' for a missing part of a program. But there's also a significant difference between gaps and holes: holes in programs come into existence by being deliberately put there, whereas in the mathematical world, gaps usually arise from mistakes and errors. However, see \cite{Gap1} \cite{Gap2} \cite{Gap3} for more on proof gaps which are intentional or acceptable.} We then assumed that the desired properties indeed hold (by putting them into the definition of \m{TerminatingQSArgs}), and used them to fill the gaps in our proof.
 
-\concept{When proving correctness of the algorithm template (or when proving anything else, really), use the tactics \m{admit} (and/or) \m{cut}) for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.}
+\concept{When proving correctness of the algorithm template (or when proving anything else, really), use the tactics \m{admit} (and/or \m{cut}) for any subgoals that you can't immediately prove. After you finish the proof, go back and turn these \m{admit}ted subgoals into lemmas or, when they are not provable, into additional assumptions of your proof.}
 
 We see that our approach, based on filling holes with things we abstract over, is very powerful and lends itself well to both writing programs and proving theorems. But we don't need to treat all holes this way -- we can still, of course, fill holes with concrete terms, like in the traditional hole-driven development. This is indeed how we will prove our quicksort correct, as shown in the above concept/technique: we will reason by functional induction and use the tactic \m{admit} for any parts of the theorems that we can't prove right away. Then we will step back and try to turn these \m{admit}ted gaps into lemmas. When it's clear we couldn't possibly prove some lemma, we will simply assume that it holds (by putting it into the definition of \m{VerifiedQSArgs}, the ultimate incarnation of \m{QSArgs} which allows the correctness proof to go through) and use this assumption to fill the gap in the main proof.
 
@@ -1267,7 +1265,7 @@ The finished correctness proofs are shown in the listing above. They are not ter
 
 \section{Sanity check -- concrete proofs} \label{sanity3}
 
-\concept{Prove the concrete algorithm correct by filling out the proofs.}
+\concept{Make sure your proofs by admission make sense by filling out concrete proofs for the default implementation.}
 
 We are almost done with our formally correct quicksort. The last step that separates us from proclaiming total success is yet another sanity check -- we will have to provide concrete correctness proofs for the default implementation from section \ref{sanity2}. But before we do that, we will take our time to put all our sanity checks into a broader perspective. We will be especially interested in how they are related to hole-driven development and proof by admission as described in the \hyperref[byadmission]{previous section}.
 
@@ -1289,10 +1287,6 @@ However, we (and the users of our algorithm template) also have additional guida
 {Coq}{Snippets/VerificatioExNihilo.v}
 
 Our concrete proofs are shown in the listing above. We want to prove that the concrete algorithm we developed in section \ref{sanity1} and \ref{sanity2}, embodied in \m{TQSA\_nat :\ TerminatingQSArgs} is correct, i.e. \m{qs TQSA\_nat} is a sorting function that returns a permutation of its input sorted according to the standard order relation \m{<=} on the natural numbers.
-
-
-
-\section{User experience: avoid bloatware} \label{bloatware}
 
 \chapter{Conclusion} \label{conclusion}
 

@@ -457,7 +457,7 @@ Compute qs VQSA_nat [4; 3; 2; 1].
 Instance VQSA_default
   {A : Type} (p : A -> A -> bool)
   (Hrefl : forall x : A, p x x = true)
-  (Hsym : forall x y : A, p x y = negb (p y x))
+  (Hsym : forall x y : A, p x y = p y x -> x = y)
   : VerifiedQSArgs :=
 {
     T := TQSA_default A p;
@@ -497,30 +497,6 @@ Proof.
       destruct (p h pivot) eqn: Hp; cbn.
         assumption.
         constructor.
-          rewrite Hsym, Hp. cbn. reflexivity.
-          assumption.
-Defined.
-
-(** It's possible to prove theorems using just QSDom_ind, but it's not
-    very abstract or modular to do so. *)
-(* Theorem Permutation_qs :
-  forall
-    (A : VerifiedQSArgs) (l : list A),
-      Permutation l (qs A l).
-Proof.
-  unfold qs. intros. generalize (QSDom_all A l).
-  induction q; cbn.
-    eapply Permutation_adhoc. assumption.
-    {
-      apply Permutation_short in e.
-      apply Permutation_choosePivot in e0.
-      apply Permutation_partition in e1.
-      rewrite e, e0, e1.
-      apply Permutation_app.
-        assumption.
-        constructor. apply Permutation_app.
-          reflexivity.
-          assumption.
-    }
-Qed.
- *)
+          destruct (p pivot h) eqn: Heq'.
+            reflexivity.
+Abort.
