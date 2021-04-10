@@ -1263,11 +1263,43 @@ To fill the remaining gaps, we will need some lemmas, shown in the listing above
 
 The finished correctness proofs are shown in the listing above. They are not terribly different from the initial versions. The only exceptions are that their are now stated using \m{VerifiedQSArgs}, which makes them shorter, and they no longer contain any gaps. Also, the structure of the second proof changed a bit to reflect the fact that only two lemmas are needed now (as opposed to three \m{cut}s previously).
 
-\section{Sanity check -- concrete proofs} \label{sanity3}
+\section{Sanity check: default correctness proofs} \label{sanity3}
 
-\concept{Make sure your proofs by admission make sense by filling out concrete proofs for the default implementation.}
+We are almost done with our formally correct quicksort. The last step that separates us from proclaiming total success is yet another sanity check -- we will have to provide concrete correctness proofs for the default implementation from section \ref{sanity2}.
 
-We are almost done with our formally correct quicksort. The last step that separates us from proclaiming total success is yet another sanity check -- we will have to provide concrete correctness proofs for the default implementation from section \ref{sanity2}. But before we do that, we will take our time to put all our sanity checks into a broader perspective. We will be especially interested in how they are related to hole-driven development and proof by admission as described in the \hyperref[byadmission]{previous section}.
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=409,
+    lastline=455
+]
+{Coq}{Snippets/VerificatioExNihilo.v}
+
+Our concrete proofs are shown in the listing above. We want to prove that \m{TQSA\_default}, the default implementation we defined in section \ref{sanity2}, is correct. To do this, we define an instance of \m{VerifiedQSArgs} that extends  \m{TQSA\_default}. Because the latter is parameterized with a comparison function \m{p :\ A -> A -> bool}, we need the same parameters for \m{VQSA\_default}.
+
+We can then define the order relation with respect to which the output will be sorted as \m{R x y := p x y = true} -- we are esentially turning our comparison function into a relation, because we don't have anything else. Next, we need to provide a proof that our relation is reflexive, but functions of type \m{A -> A -> bool} in general don't need to have this property, so we need to assume it. Last but not least, it only makes sense to sort using a comparison function which guarantees that the order is total, \m{p x y = true \/ p y x = true}, which we express in a more convenient way as \m{p x y = false -> p y x = true}. Interestingly, we didn't need to assume totality during our proof by admission, but this time we will need it in one of the proofs.
+
+The proofs themselves are not terribly interesting, so we will not describe them in detail. In most cases it suffices to reason by inversion on the first hypothesis (which is always an equation like \m{short l = None}). If this is not enough, we reason by induction on the input list. When proving \m{Permutation\_partition}, we need to do some rewriting with standard library lemmas concerning \m{Permutation}. In the last proof we need to use the hypothesis \m{Htotal} in the right moment.
+
+\concept{If your ``concrete'' correctness proof for the default implementation is actually not that concrete, i.e. if it is parameterized with some proofs, make sure it's possible to fill them in and get something useful.}
+
+We are now done with the correctness proofs for the default implementation, but we shouldn't feel completely satisfied with them. They were, after all, supposed to be ``concrete'', whereas our proofs are parameterized by proofs of reflexivity and totality. This isn't very dangerous, because finding an order which is reflexive and total isn't very hard, but in the general case it might turn out that our assumptions are contradictory and it isn't possible to retrieve a concrete verified algorithm from our template. The solution to this problem, suggested by the above concept/technique, is the same as before: we should try to instantiate our template to get something concrete out of it. In our case, let's try to derive a formally verified counterpart of the quicksort on naturals from section \ref{sanity1}.
+
+\inputminted
+[
+    frame=lines,
+    bgcolor=CoqIDE,
+    firstline=457,
+    lastline=468
+]
+{Coq}{Snippets/VerificatioExNihilo.v}
+
+We succeed, and so our formally verified quicksort is really correct. Well done!
+
+\section{User experience: type-driven development} \label{typedriven}
+
+But before we do that, we will take our time to put all our sanity checks into a broader perspective. We will be especially interested in how they are related to hole-driven development and proof by admission as described in the \hyperref[byadmission]{previous section}.
 
 The crucial idea to be mentioned here is \textit{type-driven development} \cite{TypeDriven}, sometimes also called \textit{type-first development} \cite{TypeFirst} or \textit{typeful programming} \cite{Typeful}. Type-driven development is, as the name suggests, a way of using the type system to guide the programmer towards an implementation of the desired program. It can be contrasted with the usual way of utilizing the type system, in which the programmer writes the program first and only after finishing he asks the typechecker to help him find errors in the program.
 
@@ -1277,16 +1309,9 @@ In Coq we can also use this approach as described above, at least as long as we 
 
 However, we (and the users of our algorithm template) also have additional guidance from the termination properties in \m{TerminatingQSArgs} and correctness properties in \m{VerifiedQSArgs}. If we consider them all at once, instead of defining the concrete implementation in stages, what we get is precisely just an exercise in type-driven development -- as soon as we define anything of the appropriate type (i.e. \m{VerifiedQSArgs}), we are done. As it turns out, hole-driven development, together with our idea of abstracting some holes away, naturally leads to programs that can be proven correct using proof by admission, and then finally we can recover concrete, fully correct implementations using type-driven development. These three techniques are intrinsically linked, yielding a perfect harmony.
 
-\inputminted
-[
-    frame=lines,
-    bgcolor=CoqIDE,
-    firstline=409,
-    lastline=454
-]
-{Coq}{Snippets/VerificatioExNihilo.v}
+\concept{To ensure that your formally verified algorithm template provides the best user experience, use type-driven development to define and prove correct another (preferably quite different) concrete implementation.}
 
-Our concrete proofs are shown in the listing above. We want to prove that the concrete algorithm we developed in section \ref{sanity1} and \ref{sanity2}, embodied in \m{TQSA\_nat :\ TerminatingQSArgs} is correct, i.e. \m{qs TQSA\_nat} is a sorting function that returns a permutation of its input sorted according to the standard order relation \m{<=} on the natural numbers.
+
 
 \chapter{Conclusion} \label{conclusion}
 

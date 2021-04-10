@@ -407,57 +407,10 @@ Defined.
 (** * Sanity check – concrete proofs *)
 
 #[refine]
-Instance VQSA_nat : VerifiedQSArgs :=
-{
-    T := TQSA_nat;
-    R := le;
-}.
-Proof.
-  destruct l; inversion 1. constructor.
-  destruct l; inversion 1. reflexivity.
-  inversion 1. reflexivity.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn in *.
-      reflexivity.
-      destruct (h <=? pivot); cbn.
-        rewrite perm_swap, <- IHt. reflexivity.
-        {
-          rewrite Permutation_app_comm.
-          rewrite <- !app_comm_cons.
-          rewrite perm_swap.
-          rewrite (@perm_swap _ h pivot).
-          constructor.
-          rewrite app_comm_cons.
-          rewrite Permutation_app_comm.
-          assumption.
-        }
-  apply le_refl.
-  cbn. constructor.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn.
-      constructor.
-      destruct (Nat.leb_spec h pivot).
-        constructor; assumption.
-        assumption.
-  inversion 1; subst; clear H. constructor.
-  inversion 1; subst; clear H.
-    induction rest as [| h t]; cbn.
-      constructor.
-      destruct (Nat.leb_spec h pivot); cbn.
-        assumption.
-        constructor.
-          lia.
-          assumption.
-Defined.
-
-Compute qs VQSA_nat [4; 3; 2; 1].
-(* ===> = [1; 2; 3; 4] *)
-
-#[refine]
 Instance VQSA_default
   {A : Type} (p : A -> A -> bool)
   (Hrefl : forall x : A, p x x = true)
-  (Hsym : forall x y : A, p x y = p y x -> x = y)
+  (Htotal : forall x y : A, p x y = false -> p y x = true)
   : VerifiedQSArgs :=
 {
     T := TQSA_default A p;
@@ -468,7 +421,7 @@ Proof.
   destruct l; inversion 1. constructor.
   destruct l; inversion 1. reflexivity.
   inversion 1. reflexivity.
-  inversion 1; subst; clear H.
+  inversion 1; subst; clear H. Print VerifiedQSArgs.
     induction rest as [| h t]; cbn in *.
       reflexivity.
       destruct (p h pivot); cbn.
@@ -483,7 +436,7 @@ Proof.
           rewrite Permutation_app_comm.
           assumption.
         }
-  cbn. constructor.
+  constructor.
   inversion 1; subst; clear H.
     induction rest as [| h t]; cbn.
       constructor.
@@ -497,6 +450,19 @@ Proof.
       destruct (p h pivot) eqn: Hp; cbn.
         assumption.
         constructor.
-          destruct (p pivot h) eqn: Heq'.
-            reflexivity.
-Abort.
+          apply Htotal in Hp. assumption.
+          assumption.
+Defined.
+
+Lemma leb_total :
+  forall x y : nat, leb x y = false -> leb y x = true.
+Proof.
+  intros.
+  apply leb_correct.
+  apply leb_complete_conv in H.
+  lia.
+Qed.
+
+Compute qsf (VQSA_default leb Nat.leb_refl leb_total)
+            [1; 2; 3; 666; 42; 0].
+(* ===> = [0; 1; 2; 3; 42; 666] *)
