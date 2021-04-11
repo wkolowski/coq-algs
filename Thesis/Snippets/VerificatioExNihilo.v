@@ -463,6 +463,6 @@ Proof.
   lia.
 Qed.
 
-Compute qsf (VQSA_default leb Nat.leb_refl leb_total)
-            [1; 2; 3; 666; 42; 0].
-(* ===> = [0; 1; 2; 3; 42; 666] *)
+Compute
+  qsf (VQSA_default leb Nat.leb_refl leb_total) [1; 2; 666; 42; 0].
+(* ===> = [0; 1; 2; 42; 666] *)
