@@ -551,7 +551,7 @@ Rather than invent algorithms from scratch, in the chapters to come we will show
 
 \section{Top-down is better than bottom-up} \label{topdown}
 
-The biggest temptation that an algorithmist faces when implementing an algorithm is to get drown in unnecessary details too quickly -- to mistake the trees for the forest, that is. The best way of combating this temptation is to constantly keep in mind a high-level idea that underlies the algorithm. For quicksort (agnostic as to whether the thing being sorted is a list or an array), it usually goes like this:
+The biggest temptation faced by an algorithmist when implementing an algorithm is to get drown in unnecessary details too quickly -- to mistake the trees for the forest, that is. The best way of combating this temptation is to constantly keep in mind a high-level idea that underlies the algorithm. For quicksort (agnostic as to whether the thing being sorted is a list or an array), it usually goes like this:
 
 \begin{itemize}
     \item If the list/array is empty, we're done.
@@ -603,7 +603,7 @@ void qsort(int a[], int lo, int hi)
 
 The main difference between these two implementations is a discrepancy in their levels of abstraction. The first\footnote{\m{qs\ []\ =\ []} in Haskell, \m{if\ (lo\ <\ hi)} in C} and second\footnote{\m{int\ p\ =\ a[hi];} in C. In Haskell, the pivot is implicitly chosen to be \m{h}.} bullet points are realized at roughly the same level. The crux of the matter is the partitioning. In the Haskell version, it is expressed as \m{filter (< h) t} and \m{filter (>= h) t}, which can be directly read as ``all elements of \m{t} which are less than \m{h}'' and ``all elements of \m{t} which are greater than or equal to \m{h}'', respectively. In the C version, things are much more non-obvious, but if we squint hard enough, we can see that the first \m{while} loop says ``let \m{a[l]} be the first element on the left of the pivot that is greater than the pivot'', the second one says ''let \m{a[h]} be the first element on the right (counting from the end) that is less than the pivot'' and the \m{if} clause means ``swap \m{a[l]} and \m{a[h]}'', and the \m{do...while} loop carries this on until the array is fully partitioned.
 
-We have to admit that the presentation is a bit skewed in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is skewed in favor of C, because it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
+We have to admit that the presentation is a bit biased in favor of Haskell, because the definition of \m{filter} is omitted. However, \m{filter} is another two-liner, so even if it was included, the Haskell way of partitioning is still much more abstract than the C way. This is also mitigated by the fact that the second part of the last bullet point, ``putting the recursively sorted parts together'' is biased in favor of C, because it's already included in the partitioning, whereas in Haskell, if we wanted to be fully explicit, we would have to inline the definition of \m{++}, another two-liner.
 
 The above details aren't that important, however. What matters is the conclusion we wanted to illustrate: the Haskell version looks much simpler (and it's way easier to judge its correctness) because it's much more abstract, in some sense. The C version, being much more concrete, isn't as friendly-looking.\footnote{I don't mean to imply that all imperative implementations of quicksort must be somehow inferior to all functional implementations. I think that given language features such as higher-order functions and interfaces, which are missing from C, the imperative implementation could match the functional one in simplicity and elegance.}
 
@@ -1342,23 +1342,30 @@ We have presented 15 concepts/techniques in total (numbered 0 through 14), but t
     \subitem \#11: Outline of correctness proof: functional induction.
     \item Provide a concrete default implementation together with all the proofs.
     \subitem \#5: Provide a default implementation.
-    \subitem \#10: Make sure that a default implementation can be run without any proofs obligations, and that terminating implementation can be run without having to prove correctness.
+    \subitem \#10: Make sure that a default implementation can be run without any proofs obligations, and that a provably terminating implementation can be run without having to prove correctness.
     \subitem \#13: If your default implementation or its proofs are too abstract, provide a more concrete version.
     \subitem \#14: When looking for default and concrete implementations, use type-driven development.
 \end{itemize}
 
 The most difficult of these is of course finding a solution to the problem, but we didn't touch this topic, as it is well-described elsewhere and taught to most undergraduates worldwide. Finding good specifications is also pretty hard -- our techniques help mostly with evaluating or modifying them.
 
-\section{Contributions}
+\section{Contributions, related and further work}
 
-The source code of the most up-to-date version of this thesis can be found at \thesisrepo. The thesis was born out of my project, which can be found at \repo. The project had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one.\footnote{This looks like yet another example of the famous \href{https://en.wikipedia.org/wiki/Pareto_principle}{Pareto principle}.}
+\paragraph{Technical details.}{The source code of the most up-to-date version of this thesis can be found at \thesisrepo, together with all code snippets and a script that compiles the thesis to PDF (it requires \href{https://mg.readthedocs.io/latexmk.html}{latexmk} and \href{https://pygments.org/}{pygments}, particularly the package \href{http://tug.ctan.org/tex-archive/macros/latex/contrib/minted/minted.pdf}{minted}). The thesis was born out of my side-project, which can be found at \repo.}
 
-I have discovered the core the approach described in this thesis while working an a comparison of sorting algorithms 
+\paragraph{Backstory.}{That side-project of mine had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one.\footnote{This looks like yet another example of the famous \href{https://en.wikipedia.org/wiki/Pareto_principle}{Pareto principle}.} I have discovered the core of the approach described in this thesis while working on a comparison of sorting algorithms.\footnote{This probably explains why quicksort became the running example of the thesis.} The sheer amount of different algorithms and various versions of the same algorithm made such a highly abstract and modular approach pretty much necessary, and Coq's powerful type system made it feasible. In the end I learned that for a skilled Coq user armed with my approach, proving the algorithms correct is not much harder than implementing them in the first place and that both implementation and verification become easier when considered together.}
 
-\section{Related and further work}
+\paragraph{Contributions}{I consider this thesis to be a work of pedagogy rather than one of research -- basically, it's a lengthy tutorial intended to be accessible to people with only rudimentary knowledge of Coq. I have discovered some of the techniques presented here semi-autonomously, but I don't take any credit. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate it. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea.
 
-TODO
+Some techniques presented here, like functional induction, are well-known, but there was a lack of good expository material, which I provided in section \ref{funind}. Others, like the Bove-Capretta method, are both well-known and well-described in the literature, but these descriptions are fragmented between different papers, some of them paywalled, most of them jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- the inductive domain method -- and providing a beginner-friendly introduction in section \ref{inductivedomain}. Yet other techniques, like proof by admission, are probably very well-known, but it is hard to check this fact, because they lack a standard name (well, they lacked it until section \ref{byadmission}). This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them. I am also not aware of any tutorials or other expository texts on proof by admission.
 
+The greatest contribution of this thesis, however, is simply putting all of these useful concepts and techniques together 
+
+}
+
+\paragraph{Further work}{}
+
+\paragraph{Related work}{}
 
 \section{Exercise}
 
