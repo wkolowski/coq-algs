@@ -860,7 +860,7 @@ As we can see, the definition of \m{TQSA\_default} is almost the same as that of
 
 \section{A slight variation on a theme} \label{variation}
 
-The first thing we could have done differently is the relation between the provably terminating template and the possibly nonterminating template. We have implemented these separately, with termination checker turned off so that the latter gets accepted, but we could have chosen a different design in which \m{qs} is defined using inductive domain method and it is the ``termination proof'' (i.e. \m{QSDom\_all}) for which we turn off the termination checker. In this way we derive the possibly nonterminating version of \m{qs} from the template we used to define the provably terminating version. The code is shown in the listing below.
+The first thing we could have done differently is the relation between the provably terminating template and the possibly nonterminating template. We have implemented these separately, with the termination checker turned off so that the latter gets accepted, but we could have chosen a different design in which \m{qs} is defined using the inductive domain method and it is the termination proof (i.e. \m{QSDom\_all}) for which we turn off the termination checker. In this way we derive the possibly nonterminating version of \m{qs} from the template we used to define the provably terminating version. The code is shown in the listing below.
 
 \inputminted
 [
@@ -871,9 +871,9 @@ The first thing we could have done differently is the relation between the prova
 ]
 {Coq}{Snippets/ProveTermination.v}
 
-I am not sure why we would choose this variant over the original one. On the one hand it seems to be ``more uniform'' (one definition of \m{qs'}, two ``termination proofs'') than the original (two definitions of \m{qs'}, one termination proof), but on the other hand the definition of \m{qs'} with termination checker turned off is much more readable than the above proof of \m{QSDom\_all}, which is virtually the same, but implemented with tactics.
+It is not clear if we should choose this variant over the original one (and so we won't). On the one hand it seems to be ``more uniform'' (one template, two termination proofs) than the original (two templates, one termination proof), but on the other hand the definition of \m{qs} with termination checker turned off is much more readable than the above proof of \m{QSDom\_all}, which is virtually the same, but implemented with tactics.
 
-The only argument in favor of this version that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas the original design this would require two correctness proofs (one for the nonterminating \m{qs'}, another for the one defined using inductive domain method) that could even differ from one another.
+The only argument in favor of this variant that comes to my mind is that it would be simpler to prove it correct without having to prove termination -- we have to do the proofs only once, whereas in the original design this would require two correctness proofs (one for the possibly nonterminating template, another one for the provably terminating template).
 
 \section{A more irrelevant variant of the inductive domain method} \label{irrelevant}
 
@@ -1320,16 +1320,14 @@ To sum up our findings from the present chapter: hole-driven development, togeth
 
 In this thesis, we have described concepts and techniques useful for implementing and verifying functional algorithms. We worked in Coq, but our ideas readily transfer to other dependently typed languages, like Agda, Idris or F*. Some of the techniques (mostly those concerned with specification and implementation of the abstract template) are probably also useful in languages with weaker type systems, like Haskell, OCaml or F\#.
 
-\section{Too long, didn't read!}
-
-We have presented 15 concepts/techniques in total (numbered 0 through 14), but they neither capture everything that was described in this thesis, nor are they really unique. They also don't show the big picture -- in fact, they are better thought of as subitems of the following five-item master plan which describes how to turn any problem into a formally verified, user-extensible algorithm that solves it.
+\paragraph{Too long, didn't read!}{We have presented 15 concepts/techniques in total (numbered 0 through 14), but they neither capture everything that was described in this thesis, nor are they really unique. They also don't show the big picture -- in fact, they are better thought of as subitems of the following five-item master plan which shows the steps that lead from a problem to a formally verified, user-extensible algorithm that solves it.}
 
 \begin{itemize}
     \item Find a good specification of the problem.
     \subitem \#0: Good means abstract and easy to use.
     \subitem \#1: Good specification determines a unique object.
     \subitem \#2: Bad specifications can possibly be improved with defunctionalization.
-    \subitem \#3: Better specifications can be found by changing their ``focus''.
+    \subitem \#3: Sometimes better specifications can be found by focusing on a different aspect of the problem.
     \item Find an algorithm that solves the problem.
     \item Implement a template of the algorithm that abstracts over the exact details.
     \subitem \#4: While implementing the template, ignore termination at first.
@@ -1347,31 +1345,41 @@ We have presented 15 concepts/techniques in total (numbered 0 through 14), but t
     \subitem \#14: When looking for default and concrete implementations, use type-driven development.
 \end{itemize}
 
-The most difficult of these is of course finding a solution to the problem, but we didn't touch this topic, as it is well-described elsewhere and taught to most undergraduates worldwide. Finding good specifications is also pretty hard -- our techniques help mostly with evaluating or modifying them.
-
-\section{Contributions, related and further work}
-
 \paragraph{Technical details.}{The source code of the most up-to-date version of this thesis can be found at \thesisrepo, together with all code snippets and a script that compiles the thesis to PDF (it requires \href{https://mg.readthedocs.io/latexmk.html}{latexmk} and \href{https://pygments.org/}{pygments}, particularly the package \href{http://tug.ctan.org/tex-archive/macros/latex/contrib/minted/minted.pdf}{minted}). The thesis was born out of my side-project, which can be found at \repo.}
 
 \paragraph{Backstory.}{That side-project of mine had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one.\footnote{This looks like yet another example of the famous \href{https://en.wikipedia.org/wiki/Pareto_principle}{Pareto principle}.} I have discovered the core of the approach described in this thesis while working on a comparison of sorting algorithms.\footnote{This probably explains why quicksort became the running example of the thesis.} The sheer amount of different algorithms and various versions of the same algorithm made such a highly abstract and modular approach pretty much necessary, and Coq's powerful type system made it feasible. In the end I learned that for a skilled Coq user armed with my approach, proving the algorithms correct is not much harder than implementing them in the first place and that both implementation and verification become easier when considered together.}
 
-\paragraph{Contributions}{I consider this thesis to be a work of pedagogy rather than one of research -- basically, it's a lengthy tutorial intended to be accessible to people with only rudimentary knowledge of Coq. I have discovered some of the techniques presented here semi-autonomously, but I don't take any credit. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate it. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea.
+\paragraph{Contributions}{I have stumbled upon some of the techniques presented in this thesis semi-autonomously, but I don't take any credit for inventing (or discovering) them. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate it. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea. I think that my greatest contribution is simply putting all of these concepts and techniques into a coherent and effective approach to functional algorithms.
 
-Some techniques presented here, like functional induction, are well-known, but there was a lack of good expository material, which I provided in section \ref{funind}. Others, like the Bove-Capretta method, are both well-known and well-described in the literature, but these descriptions are fragmented between different papers, some of them paywalled, most of them jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- the inductive domain method -- and providing a beginner-friendly introduction in section \ref{inductivedomain}. Yet other techniques, like proof by admission, are probably very well-known, but it is hard to check this fact, because they lack a standard name (well, they lacked it until section \ref{byadmission}). This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them. I am also not aware of any tutorials or other expository texts on proof by admission.
+Some techniques described in this thesis, like functional induction, are well-known, but lacked good expository material, which I provided in section \ref{funind}. Others, like the Bove-Capretta method, are both well-known and widely present in the literature, but scattered across different papers, some of which are paywalled, most of which are jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- ``the inductive domain method'' -- and providing a beginner-friendly introduction in section \ref{inductivedomain}. Yet other techniques, like proof by admission, are kind of folklore. One the one hand, I am not aware of any tutorials or other expository texts on it. On the other hand, I'm pretty sure it's very well-known, but it is hard to check this because it lacks a standard name. This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them.}
 
-The greatest contribution of this thesis, however, is simply putting all of these useful concepts and techniques together 
+% Another kind of further work: describe how to create a suite of default typeclasses that take even more work off the user's shoulders.
 
+\paragraph{Related and further work}{The approach presented in this thesis is powerful, but not complete. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Moreover, we have skipped the issue of actually inventing the algorithm that we want to formalize. The classical-imperative paradigm knows many techniques of algorithm design and most of them transfer easily to the functional paradigm, but it would be very interesting to see how they interact with the rest of our approach -- maybe it's possible to synthesise the algorithm directly from the specification, or maybe the abstract template plays nicer with greedy algorithms than with dynamic programming?
+
+It would also be worth to explore how the other algorithmic activities described in section \ref{worlds}, like complexity analysis, benchmarking and testing, fit into our approach. An interesting link between complexity analysis and inductive types is Analytic Combinatorics \cite{AnalyticCombinatorics}, whose slogan is ``If you can specify it, you can analyze it''. There has also been some work on property-based testing in Coq \cite{SF4}. Although testing is almost never sufficient to prove the absence of bugs (except in very simple situations when there are finitely many possible inputs), it extremely efficient at generating counterexamples to our theorems. This can help us realize that our algorithm is incorrect many orders of magnitude faster than when we simply can't prove it correct (in such a case there's always a dilemma: either it's wrong or we are incompetent at proving).
+
+in our formally-verified setting testing may appear is never sufficient 
+
+
+
+
+    
+struktury danych
+
+
+I consider this thesis to be a work of pedagogy rather than one of research -- basically, it's a lengthy tutorial intended to be accessible to people with only rudimentary knowledge of Coq.
+
+
+
+Both PFDS \cite{Okasaki} and VFA \cite{VFA} assume that the reader already knows about the standard
 }
 
-\paragraph{Further work}{}
-
-\paragraph{Related work}{}
-
-\section{Exercise}
+\paragraph{Exercise}{No tutorial or textbook is complete without some exercises, so I will provide one too in case the reader wants to practice whatever he learned after reading this thesis.
 
 There's a common abstraction behind both quicksort and mergesort: split the list into parts, sort them recursively, and then merge these parts. In quicksort, the real sorting is done during the ``split'' phase, i.e. during partitioning, and the ``merge'' phase is trivial list concatenation. In mergesort it's the other way around: the ``split'' phase is more or less trivial and the sorting is done during the ``merge'' phase.
 
-Design a sorting algorithm that generalizes both quicksort and mergesort. Using concepts and techniques from this chapter, give a specification of this algorithm, implement it and prove it correct.
+Design a sorting algorithm that generalizes both quicksort and mergesort. Give a specification of this algorithm, implement it and prove it correct.}
 
 %%%%% BIBLIOGRAFIA
 
@@ -1746,6 +1754,15 @@ Design a sorting algorithm that generalizes both quicksort and mergesort. Using 
 \bibitem{Typeful}
     Luca Cardelli,
     \href{http://www.lucacardelli.name/Papers/TypefulProg.pdf}{\textit{Typeful Programming}}, 1991
+
+\bibitem{AnalyticCombinatorics}
+    Philippe Flajolet and Robert Sedgewick,
+    \href{https://ac.cs.princeton.edu/home/AC.pdf}{\textit{Analytic Combinatorics}}, 2011, \\
+    also see the accompanying booksite \url{https://ac.cs.princeton.edu/home/}
+
+\bibitem{SF4}
+    Leonidas Lampropoulos and Benjamin C. Pierce,
+    \href{https://softwarefoundations.cis.upenn.edu/qc-current/Preface.html}{\textit{Software Foundations Volume 4. QuickChick: Property-Based Testing in Coq}}
 
 \end{thebibliography}
 
