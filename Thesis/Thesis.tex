@@ -22,7 +22,7 @@
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {\sout{Czerwiec '20 chyba że koronawirus} \\ \sout{Jednak raczej wrzesień} \\ \sout{Z września też nici, ale spoko} \\ \sout{Może w marcu '21 się uda.} \\ Jak będzie to będzie.} % Data zlozenia pracy
+\date           {Kwiecień 2021} % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -30,23 +30,14 @@
 
 %%%%% WLASNE DODATKOWE PAKIETY
 %
-%\usepackage{graphicx,listings,amsmath,amssymb,amsthm,amsfonts,tikz}
 \usepackage{amsfonts}
 \usepackage{minted}
 %
+
 %%%%% WLASNE DEFINICJE I POLECENIA
 %
-%\theoremstyle{definition} \newtheorem{definition}{Definition}[chapter]
-%\theoremstyle{remark} \newtheorem{remark}[definition]{Observation}
-%\theoremstyle{plain} \newtheorem{theorem}[definition]{Theorem}
-%\theoremstyle{plain} \newtheorem{lemma}[definition]{Lemma}
-%\renewcommand \qedsymbol {\ensuremath{\square}}
 
 \newcommand{\m}[1]{\texttt{#1}}
-
-%\newcommand{\Empty}{\mathbf{0}}
-%\newcommand{\Unit}{\mathbf{1}}
-%\newcommand{\Bool}{\mathbf{2}}
 
 % Thesis repository.
 \newcommand{\repo}{\url{https://github.com/wkolowski/coq-algs}}
@@ -362,12 +353,11 @@ Besides these shortcomings, there are also some other differences, which are mor
 After this chapter's thorough introduction it should be clear now what we mean by ``formally verified functional algorithms in Coq''. In the remaining chapters of the thesis we describe the actual ``concepts and techniques''. The rest of the thesis is structured as follows:
 
 \begin{itemize}
-    \setlength\itemsep{0em}
     \item In chapter \ref{specify} we look at techniques for verifying a specification's usefulness and for improving bad specifications.\footnote{Sadly, there seems to be no easy way of coming up with a good specification.}
     \item In chapter \ref{template} we show how to implement an abstract template of an algorithm without worrying too much about concrete details or the termination proof.
     \item In chapter \ref{termination} we describe a general method for defining recursive functions and carrying out termination proofs.
     \item In chapter \ref{exnihilo} we describe a general technique for reasoning about functions and show how to use it to formally prove the abstract algorithm template correct in a top-down fashion.
-    \item In chapter \ref{conclusion} we review all our concepts and techniques from a birds'-eye view and conclude with some directions for future work.
+    \item In chapter \ref{conclusion} we review all our concepts and techniques from a birds'-eye view, describe the nature of our contributions and conclude with a discussion of related and further work.
 \end{itemize}
 
 \chapter{Specify the problem} \label{specify}
@@ -1349,37 +1339,19 @@ In this thesis, we have described concepts and techniques useful for implementin
 
 \paragraph{Backstory.}{That side-project of mine had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one.\footnote{This looks like yet another example of the famous \href{https://en.wikipedia.org/wiki/Pareto_principle}{Pareto principle}.} I have discovered the core of the approach described in this thesis while working on a comparison of sorting algorithms.\footnote{This probably explains why quicksort became the running example of the thesis.} The sheer amount of different algorithms and various versions of the same algorithm made such a highly abstract and modular approach pretty much necessary, and Coq's powerful type system made it feasible. In the end I learned that for a skilled Coq user armed with my approach, proving the algorithms correct is not much harder than implementing them in the first place and that both implementation and verification become easier when considered together.}
 
-\paragraph{Contributions}{I have stumbled upon some of the techniques presented in this thesis semi-autonomously, but I don't take any credit for inventing (or discovering) them. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate it. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea. I think that my greatest contribution is simply putting all of these concepts and techniques into a coherent and effective approach to functional algorithms.
+\paragraph{Contributions.}{I have stumbled upon some of the techniques presented in this thesis semi-autonomously, but I don't take any credit for inventing (or discovering) them. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate it. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea. I think that my greatest contribution is simply putting all of these concepts and techniques into a coherent and effective approach to functional algorithms.
 
 Some techniques described in this thesis, like functional induction, are well-known, but lacked good expository material, which I provided in section \ref{funind}. Others, like the Bove-Capretta method, are both well-known and widely present in the literature, but scattered across different papers, some of which are paywalled, most of which are jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- ``the inductive domain method'' -- and providing a beginner-friendly introduction in section \ref{inductivedomain}. Yet other techniques, like proof by admission, are kind of folklore. One the one hand, I am not aware of any tutorials or other expository texts on it. On the other hand, I'm pretty sure it's very well-known, but it is hard to check this because it lacks a standard name. This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them.}
 
-% Another kind of further work: describe how to create a suite of default typeclasses that take even more work off the user's shoulders.
+\paragraph{Related and further work.}{The approach presented in this thesis is powerful, but not complete and could be improved in many respects. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Even though we did discuss well-founded induction, we haven't seen any techniques for constructing the most convenient well-founded relation for a given termination proof. We have also seen that the inductive domain method has some problems when dealing with functions that exhibit nested recursion or higher-order recursion.
 
-\paragraph{Related and further work}{The approach presented in this thesis is powerful, but not complete. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Moreover, we have skipped the issue of actually inventing the algorithm that we want to formalize. The classical-imperative paradigm knows many techniques of algorithm design and most of them transfer easily to the functional paradigm, but it would be very interesting to see how they interact with the rest of our approach -- maybe it's possible to synthesise the algorithm directly from the specification, or maybe the abstract template plays nicer with greedy algorithms than with dynamic programming?
+Moreover, we have skipped the issue of actually inventing the algorithm that we want to formalize. The classical-imperative paradigm knows many techniques of algorithm design and most of them transfer easily to the functional paradigm, but it would be very interesting to see how they interact with the rest of our approach -- maybe it's possible to synthesise the algorithm directly from the specification, or maybe the abstract template is easier to implement for greedy algorithms than for dynamic programming?
 
-It would also be worth to explore how the other algorithmic activities described in section \ref{worlds}, like complexity analysis, benchmarking and testing, fit into our approach. An interesting link between complexity analysis and inductive types is Analytic Combinatorics \cite{AnalyticCombinatorics}, whose slogan is ``If you can specify it, you can analyze it''. There has also been some work on property-based testing in Coq \cite{SF4}. Although testing is almost never sufficient to prove the absence of bugs (except in very simple situations when there are finitely many possible inputs), it extremely efficient at generating counterexamples to our theorems. This can help us realize that our algorithm is incorrect many orders of magnitude faster than when we simply can't prove it correct (in such a case there's always a dilemma: either it's wrong or we are incompetent at proving).
+It would also be worth exploring how other algorithmic activities described in section \ref{worlds} fit into our approach. An interesting link between complexity analysis and inductive types is Analytic Combinatorics \cite{AnalyticCombinatorics}, whose slogan is ``If you can specify it, you can analyze it''. Testing is also relevant to formally verified algorithms. Although, as Dijkstra famously put it, ``Testing can be used to show the presence of bugs, but never to show their absence!'', property-based testing is extremely efficient at generating counterexamples and can shorten the feedback loop between implementation and bug detection by many orders of magnitude.\footnote{When formalizing algorithms without tests, we usually detect implementation bugs when we can't prove the algorithm correct, but before that happens we waste a lot of time pondering the basic dilemma: is it really incorrect or are we just incompetent at proving it correct?} There has already been some work on property-based testing in Coq \cite{SF4}.}
 
-in our formally-verified setting testing may appear is never sufficient 
+% TODO: Another kind of further work: describe how to create a suite of default typeclasses that take even more work off the user's shoulders.
 
-
-
-
-    
-struktury danych
-
-
-I consider this thesis to be a work of pedagogy rather than one of research -- basically, it's a lengthy tutorial intended to be accessible to people with only rudimentary knowledge of Coq.
-
-
-
-Both PFDS \cite{Okasaki} and VFA \cite{VFA} assume that the reader already knows about the standard
-}
-
-\paragraph{Exercise}{No tutorial or textbook is complete without some exercises, so I will provide one too in case the reader wants to practice whatever he learned after reading this thesis.
-
-There's a common abstraction behind both quicksort and mergesort: split the list into parts, sort them recursively, and then merge these parts. In quicksort, the real sorting is done during the ``split'' phase, i.e. during partitioning, and the ``merge'' phase is trivial list concatenation. In mergesort it's the other way around: the ``split'' phase is more or less trivial and the sorting is done during the ``merge'' phase.
-
-Design a sorting algorithm that generalizes both quicksort and mergesort. Give a specification of this algorithm, implement it and prove it correct.}
+% TODO: improve the layout of code listings.
 
 %%%%% BIBLIOGRAFIA
 
@@ -1734,10 +1706,10 @@ Design a sorting algorithm that generalizes both quicksort and mergesort. Give a
     \href{https://www.jstor.org/stable/20117325?seq=1}{\textit{Intentional Gaps in Mathematical Proofs}}, 2003
 
 \bibitem{Gap2}
-    Yacin Hamami,
+    Yacin Hamami, \\
     \href{https://journals.openedition.org/philosophiascientiae/908}{\textit{Mathematical Rigor, Proof Gap and the Validity of Mathematical Inference}}, 2014
 
-\bibitem{Gap3},
+\bibitem{Gap3}
     Line Edslev Andersen,
     \href{https://link.springer.com/article/10.1007/s11229-018-1778-8}{\textit{Acceptable gaps in mathematical proofs}}, 2020
 
@@ -1761,7 +1733,7 @@ Design a sorting algorithm that generalizes both quicksort and mergesort. Give a
     also see the accompanying booksite \url{https://ac.cs.princeton.edu/home/}
 
 \bibitem{SF4}
-    Leonidas Lampropoulos and Benjamin C. Pierce,
+    Leonidas Lampropoulos and Benjamin C. Pierce, \\
     \href{https://softwarefoundations.cis.upenn.edu/qc-current/Preface.html}{\textit{Software Foundations Volume 4. QuickChick: Property-Based Testing in Coq}}
 
 \end{thebibliography}
