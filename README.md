@@ -16,6 +16,8 @@ The structure of the development is as follows:
 
 ## Accomplished
 
+
+
 Structures/ contains ``LinDec``, an implementation of decidable linear orders, used in most of the sorting algorithms, along with some lemmas and quite powerful automation tactic called dec.
 
 There's also ``TrichDec``, which stands for "decidable trichotomous order". The idea is that such a structure should provide a function  which can decide ``x < y``, ``x = y`` or ``x > y`` all in one step. It is used in a variant of quicksort. It also comes with appropriate lemmas and automation.
