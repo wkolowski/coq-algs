@@ -51,6 +51,9 @@
 \newcommand{\term}[3]{#1 \vdash #2 : #3}
 \newcommand{\termconv}[4]{#1 \vdash #2 \equiv #3 : #4}
 
+% Empty type.
+\newcommand{\Empty}{\bot}
+
 % Natural numbers.
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\suc}[1]{\m{succ}(#1)}
@@ -242,15 +245,15 @@ We keep track of assumptions using contexts. When a context $\Gamma$ appears to 
 
 It is important to reiterate that not all judgements are derivable. For example, the judgement $\term{}{5}{\N \to \N}$ asserts that five is a function from natural numbers to natural numbers, but this is clearly nonsense. To know which judgements are derivable (and which are not), we need inference rules. An inference rule in general has the form ``if $J_1$, \dots, $J_n$, then $J$'' and means that we can derive the judgement $J$ provided that we have already derived all of the judgements $J_1, \dots, J_n$. An important special case are inference rules with no premises, i.e. of the form ``$J$''. Such a rule declares that the judgement $J$ can be derived unconditionally. For rules with no premises, we will identify the whole rule with the judgement $J$. In most texts, inference rules are written with a horizontal line notation, with premises (if any) above the line and the conclusion below it, but in the following paragraphs we will state them inline using ordinary sentences.
 
-A particular flavor of type theory is defined by specifying what judgements it has and what are the inference rules for deriving them. The rules can be roughly classified into two genres. First, the core rules tell us about the basics of each judgement and how the judgements interact. Second, the type-directed rules tell us how to form the given type (these are called formation rules), how to create and use the terms of this type (introduction and elimination rules, respectively) and how to compute with them (computation and uniqueness rules). Additionally, there are some type-directed congruence rules which tell us how the formation, introduction and elimination rules behave with respect to computation. These congruence rules are very schematic and therefore often omitted from most texts on type theory, but they are nonetheless necessary for the whole system to work correctly.
+In most varieties of type theory, the inference rules can be roughly classified into two genres:\footnote{We use the word ``genre'' (in its ordinary sense) to avoid words like ``type'' or ``kind'' which may also be used in a technical sense.} the core rules and the type-directed rules. The core rules tell us about the basics of each judgement and how the judgements interact. The type-directed rules tell us how to form the given type (these are called formation rules), how to create and use the terms of this type (introduction and elimination rules, respectively) and how to compute with them (computation and uniqueness rules). Additionally, there are some type-directed congruence rules which tell us how the formation, introduction and elimination rules behave with respect to computation. These congruence rules are very schematic and therefore often omitted from most presentations of type theory, but they are nonetheless necessary for the whole system to work correctly.
 
-Let's start with rules for contexts. First, there is the empty context, usually denoted by leaving empty space to the left of $\vdash$. For example, $\type{}{\N}$ asserts that $\N$ is a type in the empty context. Second, if we can derive $\Gamma \vdash A$, (i.e. $A$ is a type in the context $\Gamma$), then we can extend the context $\Gamma$ with a variable of type $A$, written $\Gamma, x : A$, provided that the name $x$ doesn't already occur in $\Gamma$. There's also a very important typing rule mainly concerned with contexts, called the assumption rule. It states that if we have a well-formed context $\Gamma$ which contains the assumption $x : A$, then we can derive $\term{\Gamma}{x}{A}$. These three rules are the most important core rules. We will discuss other core rules as we go along.
+Let's start with rules for contexts. First, there is the empty context, usually denoted by leaving empty space to the left of $\vdash$, and a rule which says that the empty context is a well-formed context. Second, if $A$ is a type in context $\Gamma$, then the context $\Gamma, x : A$ (i.e. $\Gamma$ extended with a variable $x$ of type $A$) is a well-formed context, provided that the name $x$ doesn't already occur in $\Gamma$. There's also a very important typing rule mainly concerned with contexts, called the assumption rule. It states that if we have a well-formed context $\Gamma$ which contains the assumption $x : A$, then we can derive $\term{\Gamma}{x}{A}$. These three rules are the most important core rules. We will discuss other core rules as we go along.
 
-Moving on to the type-directed rules: for each type there is a rule that specifies how this type is formed. These rules are called, unsurprisingly, formation rules. For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\type{\Gamma}{A}$ and $\type{\Gamma}{B}$ respectively, then we can form the type of functions from $A$ to $B$, written $\type{\Gamma}{A \to B}$. The formation rule for the natural numbers is $\type{\Gamma}{\N}$, i.e. $\N$ is a type in any context.
+Moving on to the type-directed rules: for each type there is exactly one rule (called the formation rule) that tells us how this type is formed. For example, if in a context $\Gamma$ we can form the types $A$ and $B$, written $\type{\Gamma}{A}$ and $\type{\Gamma}{B}$ respectively, then we can form the type of functions from $A$ to $B$, written $\type{\Gamma}{A \to B}$. The formation rule for the natural numbers is $\type{\Gamma}{\N}$, i.e. $\N$ is a type in any context.
 
-Rules for terms (i.e. for the typing judgement) can be divided into two main genres: introduction rules and elimination rules. Introduction rules for a type tell us how to create new terms of this type. For example, there are two introduction rules for natural numbers. The first says that $\term{\Gamma}{0}{\N}$, i.e. that $0$ is a natural number. The second says that given $\term{\Gamma}{n}{\N}$, we have $\term{\Gamma}{\suc{n}}{\N}$, i.e. that when we have a natural number $n$, its successor $\suc{n}$ is also a natural number.
+Rules for terms (i.e. for the typing judgement) can be divided into two main genres: introduction rules (also called constructors) and elimination rules (also called eliminators). Introduction rules for a type tell us how to create new terms of this type. For example, there are two introduction rules for natural numbers. The first says that $\term{\Gamma}{0}{\N}$, i.e. that $0$ is a natural number. The second says that given $\term{\Gamma}{n}{\N}$, we have $\term{\Gamma}{\suc{n}}{\N}$, i.e. that when we have a natural number $n$, its successor $\suc{n}$ is also a natural number. A type need not have any introduction rules at all -- for example, the empty type $\bot$ doesn't have introduction rules because we don't want to have any way of creating terms of this type.
 
-Elimination rules for a type, on the other hand, tell us how to use terms of this type to create terms of other types. For example, the simplest elimination rule for $\N$ says that if $\term{\Gamma}{z}{X}$ and $\term{\Gamma}{s}{X \to X}$ and $\term{\Gamma}{n}{\N}$, then $\term{\Gamma}{\recN{z}{s}{n}}{X}$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we need a stronger elimination rule. We won't state it here to keep things simple.
+Elimination rules for a type, on the other hand, tell us how to use terms of this type to create terms of other types. For example, the simplest elimination rule for $\N$ says that if $\term{\Gamma}{z}{X}$ and $\term{\Gamma}{s}{X \to X}$ and $\term{\Gamma}{n}{\N}$, then $\term{\Gamma}{\recN{z}{s}{n}}{X}$. This rule, alternatively called a recursor, allows us to define functions by recursion on natural numbers, but to do proofs by induction we would need a stronger elimination rule which we won't state here to keep things simple. As with introduction rules, a type needs not have elimination rules. This is traditionally the case with the unvierse of types $\mathcal{U}$, although the reason behind this tradition is not clear.\footnote{One possible answer can be that an eliminator for $\mathcal{U}$ breaks parametricity. A more modern answer would be that it contradicts Univalence. \cite{HoTTBlog} For a language that allows eliminating types, see Idris 2. \cite{Idris2}}
 
 \label{convertible}
 
@@ -1499,11 +1502,11 @@ It would also be worth exploring how other algorithmic activities described in s
     \href{https://hal.inria.fr/hal-01615123v2/document}{\textit{Consistency of the Predicative Calculus of Cumulative Inductive Constructions (pCuIC)}}, 2018
 
 \bibitem{MLTT1}
-    Per Martin-L\"{o}f, \\
+    Per Martin-L\"{o}f,
     \href{https://archive-pml.github.io/martin-lof/pdfs/An-Intuitionistic-Theory-of-Types-1972.pdf}{\textit{An intuitionistic theory of types}}, 1972
 
 \bibitem{MLTT2}
-    Per Martin-L\"{o}f, \\
+    Per Martin-L\"{o}f,
     \href{https://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf}{\textit{Intuitionistic Type Theory}}, 1984
 
 \bibitem{HoTTBook}
@@ -1514,6 +1517,16 @@ It would also be worth exploring how other algorithmic activities described in s
 \bibitem{Overlapping}
     Jesper Cockx, \\
     \href{https://www.scriptiebank.be/sites/default/files/webform/scriptie/masterpaper_5.pdf}{\textit{Overlapping and order-independent patterns in type theory}}, 2013
+
+\bibitem{HoTTBlog}
+    Michael Shulman, \\
+    \href{https://homotopytypetheory.org/2014/06/08/hiru-tdd/}{\textit{Higher inductive-recursive univalence and type-directed definitions}}, 2014, \\
+    \wayback{https://web.archive.org/web/20210515160716/https://homotopytypetheory.org/2014/06/08/hiru-tdd/}
+
+\bibitem{Idris2}
+    Idris 2 documentation, \\
+    \href{https://idris2.readthedocs.io/en/latest/tutorial/multiplicities.html}{\textit{Docs » A Crash Course in Idris 2 » Multiplicities}}, 2021, \\
+    \wayback{https://web.archive.org/web/20210515164227/https://idris2.readthedocs.io/en/latest/tutorial/multiplicities.html}
 
 \bibitem{SoftwareFoundations}
     Benjamin C. Pierce, Andrew W. Appel et al., \\
