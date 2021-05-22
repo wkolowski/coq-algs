@@ -277,15 +277,23 @@ The most important core rule that involves type convertibility is called the sub
 
 Moreover, for each type formation rule we have one congruence rule which says that types formed from equal components are equal. For example, for the type $\Fin{n}$ we have the congruence rule which says if we can derive $\termconv{\Gamma}{n}{m}{\N}$, then we can derive $\typeconv{\Gamma}{\Fin{n}}{\Fin{m}}$. These congruence rules allow us to answer our initial question in the affirmative -- because $2 + 2$ and $3 + 1$ are convertible, i.e. $\termconv{\Gamma}{2 + 2}{3 + 1}{\N}$, the types $\Fin{2 + 2}$ and $\Fin{3 + 1}$ are also convertible, i.e. $\typeconv{\Gamma}{\Fin{2 + 2}}{\Fin{3 + 1}}$.
 
-We are mostly done describing type theory, but we will take some more time to list differences between our presentation and what may be found elsewhere. First, some presentations of type theory can also include other judgements. For example, there may be a context convertibility judgement -- because types like $\Fin{2 + 2}$ and $\Fin{3 + 1}$ can appear in assumptions, judging whether two contexts are the same may be of some importance. We didn't discuss substitution in our presentation of type theory, but there are typically two ways of doing it. The first one is to define a meta-level substitution function by recursion. The second one is to introduce even more judgements and inference rules: the explicit substitution judgement, the substitution convertibility judgement, and add a lot of inference rules for term and type convertibility which describe how the substitutions are actually performed. Yet others can drop the type formation judgement and type convertibility judgement and go with universes.
+We are mostly done describing type theory, but we will take some more time to list differences between our presentation and what may be found elsewhere. First, some presentations of type theory can include additional judgements. For example, there may be a context convertibility judgement -- because types like $\Fin{2 + 2}$ and $\Fin{3 + 1}$ can appear in contexts as part of an assumption, judging whether two contexts are equal may be of importance. This is especially the case in more concrete presentations aimed at an implementation. See \cite{Danielsson} and \cite{EatItself} for type theories that have a context convertibility judgement.
+
+Second, some presentations of types theory may not have some of the judgements we have seen. This is particularly the case for the type formation judgement and the type convertibility judgement, as they may be replaced by formulating type formation rules as introduction rules for the universe\footnote{We didn't discuss universes in our presentation, as their handling is somewhat technical.} and type convertibility rules as term convertibility rules for the universe. See \cite{HoTTBook} (Appendix A) for a text that takes this approach
+
+We didn't discuss substitution in our presentation of type theory, but there are typically two ways of doing it. The first one, called implicit substitutions, is to define a meta-level substitution function by recursion. The second one, called explicit substitutions, is to introduce more judgements (the well-formed substitution judgement and the substitution convertibility judgement) and more inference rules for term and type convertibility which describe how the substitutions are actually computed. The implicit approach is more abstract, less detailed and, in general, better suited for informal presentations. The explicit approach is more concrete, more detailed and better fit for the purpose of implementation. For presentations of type theory with explicit substitutions, see \cite{Danielsson} and \cite{EatItself}.
+
+That's it. Even though a full formal presentation of type theory is massive (the number of inference rules can easily surpass one hundred if we count all the congruence rules for all types), the basic idea behind it is very simple, regular and beautiful (well, at least once you get used to it). Of course the above presentation is far from being complete -- to be, we would have to list all the formation, introduction, elimination, computation and uniqueness rules for all types, and also a lot of these boring congruence rules whose role is to make sure everything works as expected.
+
+Coq's logic\footnote{By Coq's logic we mean its term language, Gallina.} is consistent, which means that it is impossible to prove \m{False} in the empty context. This fact follows from a property enjoyed by Coq, called canonicity: every term in the empty context evaluates to a canonical form in a finite number of computation steps, no matter in what order these steps are carried out. A canonical form is what we intuitively expect the final result of a computation to look like: for natural numbers, the canonical forms are $0, 1, 2, \dots$ (i.e. $\m{0}, \m{\suc{0}}, \m{\suc{\suc{0}}}, \dots$), for booleans they are \m{true} and \m{false} and so on. In general, the canonical forms of an inductive type are generated by its constructors.
+
+Given canonicity, it is very easy to prove consistency. Let's assume that Coq is inconsistent, i.e. that we have some \m{e :\ False}. But then, by canonicitiy, \m{e} evaluates to a canonical form, which means that it is of the form \m{c t\_1\ \dots\ t\_n}, where \m{c} is some constructor of the type \m{False}. But \m{False} has no constructors! Therefore, we have a contradiction and Coq is consistent.
 
 
 
 An astute reader has probably noticed that we sneaked into the above description a word that is familiar but was not defined, namely ``element''. The elements of a type $A$ are its closed terms that are in normal form. A term is closed if its context is empty and it is in normal form if it is the final result of evaluation, i.e. it can't be evaluated any further.
 
 For example, $\term{}{4}{\N}$ is a closed term in normal form, $\term{}{2 + 2}{\N}$ is a closed term that is not in normal form and $\term{n : \N}{\suc{n}}{\N}$ is a term in normal form, but it is not closed because it depends on the assumption $n : \N$ (such terms are called open). It turns out that for natural numbers, the elements are precisely $0, \suc{0}, \suc{\suc{0}}, \suc{\suc{\suc{0}}}, \dots$ which we can interpret as $0, 1, 2, 3, \dots$ respectively. So, the elements of the type of natural numbers are precisely the natural numbers. Who would have guessed!
-
-That's it. The basic idea behind type theory is very simple. Of course the above presentation is far from being complete -- to be, we would have to list all the formation, introduction, elimination, computation and uniqueness rules for all types, and also dozens of boring technical rules whose role is to make sure everything works as expected.
 
 The explanation of elements prompts us to change our perspective on type theory from a model of computation back to foundational and pose the following question: what is the relation between type theory and set theory? After all, types have elements and sets have elements too. Below, we provide a short comparison.
 
@@ -771,9 +779,9 @@ This is because, in accordance with concept/technique \#2, we ignored the matter
 
 \section{The inductive domain method} \label{inductivedomain}
 
-How do we prove that our algorithm terminates? Before we tackle this question, let's first recall \textit{why} we have to prove it: in short, to avoid inconsistency. Coq's logic\footnote{By Coq's logic we mean its term language, Gallina.} is consistent, which means that it is impossible to prove \m{False} in the empty context. This fact follows from a property enjoyed by Coq, called canonicity: every term in the empty context evaluates to a canonical form in a finite number of computation steps, no matter in what order these steps are carried out. A canonical form is what we intuitively expect the final result of a computation to look like: for natural numbers, the canonical forms are $0, 1, 2, \dots$ (i.e. $\m{0}, \m{\suc{0}}, \m{\suc{\suc{0}}}, \dots$), for booleans they are \m{true} and \m{false} and so on. In general, the canonical forms of an inductive type are generated by its constructors.
+How do we prove that our algorithm terminates? Before we tackle this question, let's first recall \textit{why} we have to prove it: in short, to avoid inconsistency. 
 
-Given canonicity, it is very easy to prove consistency. Let's assume that Coq is inconsistent, i.e. that we have some \m{e :\ False}. But then, by canonicitiy, \m{e} evaluates to a canonical form, which means that it is of the form \m{c t\_1\ \dots\ t\_n}, where \m{c} is some constructor of the type \m{False}. But \m{False} has no constructors! Therefore, we have a contradiction and Coq is consistent.
+% TODO
 
 
 
@@ -1491,7 +1499,7 @@ It would also be worth exploring how other algorithmic activities described in s
 
 \bibitem{CostSemantics}
     Norman Danner, Daniel R. Licata, Ramyaa Ramyaa \\
-    \href{https://dlicata.wescreates.wesleyan.edu/pubs/dlr15inductive/dlr15inductive.pdf}{\textit{Denotational Cost Semantics for Functional Languages with Inductive Types}}
+    \href{https://dlicata.wescreates.wesleyan.edu/pubs/dlr15inductive/dlr15inductive.pdf}{\textit{Denotational Cost Semantics for Functional Languages with Inductive Types}}, 2015
 
 \bibitem{CoC}
     Thierry Coquand, Gérard Huet, \\
@@ -1531,6 +1539,15 @@ It would also be worth exploring how other algorithmic activities described in s
     Idris 2 documentation, \\
     \href{https://idris2.readthedocs.io/en/latest/tutorial/multiplicities.html}{\textit{Docs » A Crash Course in Idris 2 » Multiplicities}}, 2021, \\
     \wayback{https://web.archive.org/web/20210515164227/https://idris2.readthedocs.io/en/latest/tutorial/multiplicities.html}
+
+\bibitem{Danielsson}
+    Nils Anders Danielsson, \\
+    \href{http://www.cse.chalmers.se/~nad/publications/danielsson-types2006.pdf}{\textit{A Formalisation of a Dependently Typed Language as an Inductive-Recursive Family}}, 2006
+
+\bibitem{EatItself}
+    James Chapman,
+    \href{https://www.sciencedirect.com/science/article/pii/S157106610800577X}{\textit{Type Theory Should Eat Itself}},
+    2008
 
 \bibitem{SoftwareFoundations}
     Benjamin C. Pierce, Andrew W. Appel et al., \\
