@@ -1,5 +1,5 @@
 (*
-Require Export RCCBase.
+Require Export CoqAlgs.Base.
 
 Require Export CoqMTL.Control.Applicative.
 Require Export CoqMTL.Control.Monad.Lazy.

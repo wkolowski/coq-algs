@@ -1,5 +1,5 @@
 Require Export Ord.
-Require Export RCCBase.
+Require Export CoqAlgs.Base.
 
 Inductive Tree (A : Type) : Type :=
     | T : nat -> A -> list (Tree A) -> Tree A.

@@ -9,7 +9,7 @@ Require Import CoqMTL.Base.
 Require Import CoqMTL.Control.Functor.
 Require Import CoqMTL.Control.Monad.All.
 
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 (** ** 10.1 Structural Decomposition *)
 

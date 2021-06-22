@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Generate a makefile.
-coq_makefile -R "." RandomCoqCode -o makefile $(find -name "*v")
+coq_makefile -R "." CoqAlgs -o makefile $(find -name "*v")
 
 # Build the library.
 make

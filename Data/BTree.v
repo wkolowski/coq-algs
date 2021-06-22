@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 Require Import Ord.
 Require Export Data.ListLemmas.
 Require Import Sorting.Sort.

@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 (** A LIFO sequence. The most obvious implementation is intended to be a
     list. *)

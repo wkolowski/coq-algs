@@ -1,6 +1,6 @@
 Require Import Recdef Div2.
 
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 Require Import Structures.Ord.
 Require Import Sorting.Sort.
 Require Import Sorting.MergeSort.

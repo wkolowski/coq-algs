@@ -1,4 +1,4 @@
-Require Export RCCBase.
+Require Export CoqAlgs.Base.
 
 Set Implicit Arguments.
 

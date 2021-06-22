@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 Inductive nel (A : Type) : Type :=
     | singl : A -> nel A

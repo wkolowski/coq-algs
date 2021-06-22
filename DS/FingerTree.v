@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 (* Class Monoid : Type :=
 {

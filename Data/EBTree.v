@@ -1,4 +1,4 @@
-Require Export RCCBase.
+Require Export CoqAlgs.Base.
 Require Import Ord.
 
 Inductive EBTree (M A : Type) : Type :=

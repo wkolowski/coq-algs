@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 Require Import FunctionalExtensionality.
 
 Ltac ext H := apply functional_extensionality; intro H.

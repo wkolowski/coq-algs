@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 Definition Queue (A : Type) : Type := list A * list A.
 

@@ -1,4 +1,4 @@
-Require Import RCCBase.
+Require Import CoqAlgs.Base.
 
 Inductive formula : Set :=
     | FConst : bool -> formula

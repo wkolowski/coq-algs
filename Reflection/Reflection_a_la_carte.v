@@ -1,4 +1,4 @@
-Require Export RCCBase.
+Require Export CoqAlgs.Base.
 Require Import CoqMTL.Control.Functor.
 
 Set Implicit Arguments.
