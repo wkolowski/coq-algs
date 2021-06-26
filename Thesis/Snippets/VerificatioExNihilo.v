@@ -244,12 +244,12 @@ Proof.
   intros. functional induction (qsf A l).
     admit.
     eapply Permutation_trans with (lt ++ pivot :: eq ++ gt).
-      Focus 2. apply Permutation_app.
+      admit.
+      apply Permutation_app.
         assumption.
         constructor. apply Permutation_app.
           reflexivity.
           assumption.
-      admit.
 Admitted.
 
 Theorem Sorted_qsf_first_try :
@@ -330,7 +330,7 @@ Class VerifiedQSArgs : Type :=
 Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
 Coercion R : VerifiedQSArgs >-> Funclass.
 
-Hint Constructors Sorted : core.
+Global Hint Constructors Sorted : core.
 
 Lemma Sorted_app :
   forall

@@ -16,7 +16,7 @@ Inductive isBST2
 
 Arguments isBST2 {A} _ _.
 
-Hint Constructors All isBST2 : core.
+Global Hint Constructors All isBST2 : core.
 
 Ltac isBST2 :=
 repeat match goal with
@@ -123,11 +123,13 @@ Definition test' : BTree nat :=
       empty)
     empty.
 
+(*
 Compute union Nat.compare test test'.
 Compute intersection Nat.compare test test'.
 Compute difference Nat.compare test test'.
 Compute insert Nat.compare 123 test.
 Compute remove Nat.compare 50 test.
+*)
 
 (** * Properties of partition *)
 

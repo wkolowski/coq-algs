@@ -157,6 +157,7 @@ Class Select (A : Ord) : Type :=
 
 Coercion select : Select >-> Funclass.
 
+Set Warnings "-unused-pattern-matching-variable". (* Line 166 - bug in Coq? *)
 Function gss
   {A : Ord} (s : Select A) (l : list A)
   {measure length l} : list A :=
@@ -171,6 +172,7 @@ Proof.
   decompose [and or] teq; clear teq;
   try congruence; try assumption.
 Defined.
+Set Warnings "unused-pattern-matching-variable".
 
 Lemma Permutation_gss :
   forall (A : Ord) (s : Select A) (l : list A),

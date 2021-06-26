@@ -68,7 +68,7 @@ Inductive prefix {A : Type} : list A -> list A -> Prop :=
         forall (h : A) (t l : list A),
           prefix t l -> prefix (h :: t) (h :: l).
 
-Hint Constructors prefix : core.
+Global Hint Constructors prefix : core.
 
 Lemma prefix_app :
   forall (A : Type) (l1 l2 : list A),
@@ -84,7 +84,7 @@ Proof.
   induction l; auto.
 Qed.
 
-Hint Resolve prefix_app prefix_refl : core.
+Global Hint Resolve prefix_app prefix_refl : core.
 
 Lemma prefix_char :
   forall (A : Type) (l1 l2 : list A),

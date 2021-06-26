@@ -14,7 +14,7 @@ Inductive isBHeap {A : Ord} : BTree A -> Prop :=
           (forall x : A, Elem x r -> v ≤ x) -> isBHeap r ->
             isBHeap (node v l r).
 
-Hint Constructors isBHeap : core.
+Global Hint Constructors isBHeap : core.
 
 Ltac isBHeap :=
 repeat match goal with
@@ -35,7 +35,7 @@ Inductive isBHeap2 {A : Type} (R : A -> A -> Prop) : BTree A -> Prop :=
           OK R v l -> OK R v r ->
             isBHeap2 R l -> isBHeap2 R r -> isBHeap2 R (node v l r).
 
-Hint Constructors OK isBHeap2 : core.
+Global Hint Constructors OK isBHeap2 : core.
 
 Ltac ok :=
 repeat match goal with
@@ -65,7 +65,7 @@ Inductive isBHeap3 {A : Ord} : BTree A -> Prop :=
           v ≤ rv -> isBHeap3 (node rv rl rr) ->
             isBHeap3 (node v (node lv ll lr) (node rv rl rr)).
 
-Hint Constructors isBHeap3 : core.
+Global Hint Constructors isBHeap3 : core.
 
 Lemma isBHeap2_isBHeap :
   forall {A : Ord} (t : BTree A),
@@ -209,9 +209,6 @@ Proof.
     Elems.
     specialize (IHp _ _ e3). inv 1.
       2: inv H1.
-      Focus 2. specialize (IHp _ H1). decompose [and or] IHp; clear IHp; subst.
-        trich. functional inversion e3; subst.
-          inv H1.
 Admitted.
 
 Function makeHeap {A : Ord} (t : BTree A) : BTree A :=

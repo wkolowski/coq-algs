@@ -8,8 +8,8 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Local Hint Unfold lt : core.
-Local Hint Resolve le_n_S length_filter : core.
+Global Hint Unfold lt : core.
+Global Hint Resolve le_n_S length_filter : core.
 
 (** Time to generalize [ghqs]:
     - Rather that [n], the length of the desired "small list",

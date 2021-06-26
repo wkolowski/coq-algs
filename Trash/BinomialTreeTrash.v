@@ -41,7 +41,7 @@ with elemForest {A : Type} (x : A)
         forall (r : nat) (t : BinomialTree A (S r)) (f : BinomialForest A r),
           elemForest x f -> elemForest x (bfcons t f).
 
-Hint Constructors elem elemForest : core.
+Global Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
@@ -108,7 +108,7 @@ with elemForest {A : Type} (x : A)
         forall (r : nat) (t : BinomialTree A (S r)) (f : BinomialForest A r),
           elemForest x f -> elemForest x (bfcons t f).
 
-Hint Constructors elem elemForest : core.
+Global Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :
@@ -166,7 +166,7 @@ with elemForest {A : Type} (x : A)
         forall (r : nat) (t : BinomialTree A (S r)) (f : BinomialForest A r),
           elem x t \/ elemForest x f -> elemForest x (bfcons t f).
 
-Hint Constructors elem elemForest : core.
+Global Hint Constructors elem elemForest : core.
 
 Fixpoint elem_dec
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :

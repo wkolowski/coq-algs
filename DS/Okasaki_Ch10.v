@@ -87,7 +87,7 @@ Inductive lookupGraph :
         forall i A h t r,
           lookupGraph i A (Zero t) r -> lookupGraph (S i) A (One h t) r.
 
-Hint Constructors lookupGraph : core.
+Global Hint Constructors lookupGraph : core.
 
 Definition lookup_strong
   (i : nat) {A : Type} (s : Seq A)
@@ -125,7 +125,7 @@ Inductive fupdateGraph
           fupdateGraph i A f (Zero t) r ->
             fupdateGraph (S i) A f (One h t) (cons h r).
 
-Hint Constructors fupdateGraph : core.
+Global Hint Constructors fupdateGraph : core.
 
 Definition fupdate_strong
   (i : nat) (A : Type) (f : A -> A) (s : Seq A)
@@ -352,20 +352,6 @@ Qed.
   forall (A : Type) (h : A) (t s : Seq A),
     valid s -> uncons s = None \/ (uncons s = Some (h, t) -> valid t).
 Proof.
-  intros A h t s. gen t; gen h.
-  induction s as [| s' | h' t']; cbn; intros.
-    left. reflexivity.
-    destruct (uncons s).
-      destruct p, p. right. inv 1. cbn. destruct H.
-        destruct (IHs (h, s2) s0 H0).
-          inv H1.
-          apply H1. reflexivity.
-      left. reflexivity.
-    right. inv 1. cbn. split; auto. case_eq (uncons s); intros.
-      destruct p. destruct (IHs p s0 H).
-        congruence.
-        destruct s; cbn in *; congruence.
-Restart.
   intros until s. revert h t.
   functional induction uncons s;
   cbn.

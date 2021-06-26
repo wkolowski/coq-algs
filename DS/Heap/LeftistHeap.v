@@ -50,7 +50,7 @@ Inductive isHeap {A : Ord} : LTree A -> Prop :=
           (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (N n v l r).
 
-Hint Constructors LTree LeftBiased LeftBiased2 Elem isHeap : core.
+Global Hint Constructors LTree LeftBiased LeftBiased2 Elem isHeap : core.
 
 Definition balance
   {A : Type} (v : A) (l r : LTree A) : LTree A :=

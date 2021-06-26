@@ -17,7 +17,7 @@ Class Ord : Type :=
 
 Coercion carrier : Ord >-> Sortclass.
 
-(* Hint Resolve trich_lt_trans : core. *)
+(* Global Hint Resolve trich_lt_trans : core. *)
 
 Definition trich_ltb {A : Ord} (x y : A) : bool :=
 match cmp x y with

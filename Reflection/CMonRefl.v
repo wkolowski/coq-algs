@@ -327,8 +327,9 @@ Proof.
   intros. functional induction substF f i e; cbn; lia.
 Qed.
 
-Hint Resolve size_gt_0 : core.
+Global Hint Resolve size_gt_0 : core.
 
+Set Warnings "-unused-pattern-matching-variable". (* Line 350 - bug in Coq? *)
 Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
   : formula X :=
 match f with
@@ -345,7 +346,7 @@ match f with
         match simplifyEq' f1 with
             (* | fEq (Var i) e as f1' => fImpl f1' (simplifyEq' (substF f2 i e)) *)
             (* | fEq (Var i) e as f1' => fImpl f1' (substF (simplifyEq' f2) i e) *)
-            | fEq (Var i) e as f1' => substF (simplifyEq' f2) i e
+            | fEq (Var i) e => substF (simplifyEq' f2) i e
             | f1' => fImpl f1' (simplifyEq' f2)
         end
     | _ => f
@@ -360,6 +361,7 @@ Proof.
           end
   end; try lia.
 Defined.
+Set Warnings "unused-pattern-matching-variable".
 
 Theorem simplifyEq'_correct :
   forall (X : CMon) (envX : Env X) (envP : Env Prop) (f : formula X),

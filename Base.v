@@ -21,7 +21,7 @@ Export ListNotations.
 Set Implicit Arguments.
 Set Universe Polymorphism.
 
-Hint Constructors reflect : core.
+Global Hint Constructors reflect : core.
 
 (* General useful tactics. *)
 

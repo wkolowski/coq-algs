@@ -83,9 +83,9 @@ end.
 Definition isBinomialHeap {A : Ord} (h : Forest A) : Prop :=
   Forall (fun t => isBinomialTree t /\ isHeap t) h.
 
-Hint Constructors elemTree elemTree' ElemForest isBinomialTree' isBinomialForest' isHeap : core.
+Global Hint Constructors elemTree elemTree' ElemForest isBinomialTree' isBinomialForest' isHeap : core.
 
-Hint Unfold isBinomialTree isBinomialHeap : core.
+Global Hint Unfold isBinomialTree isBinomialHeap : core.
 
 (** * Implementation *)
 
@@ -532,13 +532,6 @@ Lemma isBinomialForest'_removeMinTree :
       forall {r : nat}, isBinomialForest' r f ->
         exists r' : nat, isBinomialForest' r' f'.
 Proof.
-  intros until f.
-  functional induction removeMinTree f. Print removeMinTree.
-  inv 1.
-    inv 1.
-      exists 0. constructor.
-      exists 0.
-Restart.
   intros until 2.
   revert f' t H.
   induction H0.

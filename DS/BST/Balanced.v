@@ -265,9 +265,9 @@ Proof.
       eapply isBST_removeMin; eassumption.
 Qed.
 
-Module RB.
-
 Require Import DS.BST.RedBlack.
+
+Module RB.
 
 #[refine]
 Instance BalanceArgs_Redblack (A : Ord) : BalanceArgs A :=

@@ -37,7 +37,7 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-Hint Constructors Elem Elem' All Any Exists : core.
+Global Hint Constructors Elem Elem' All Any Exists : core.
 
 (** * Induction principles *)
 Fixpoint Tree_rect'

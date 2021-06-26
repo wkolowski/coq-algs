@@ -6,7 +6,7 @@ match x with
     | pair a b => pair a (f b)
 end.
 
-Hint Unfold fmap_Prod : core.
+Global Hint Unfold fmap_Prod : core.
 
 #[refine]
 Instance FunctorProd (A : Type) : Functor (prod A) :=

@@ -1,7 +1,7 @@
 Require Import CoqAlgs.Base.
 Require Import FunctionalExtensionality.
 
-Ltac ext H := apply functional_extensionality; intro H.
+Ltac exten H := apply functional_extensionality; intro H.
 
 Inductive Finger (A : Type) : Type :=
     | F1 : A -> Finger A
@@ -220,7 +220,7 @@ Lemma mapNode_mapNode' :
   forall {A B C : Type} (f : A -> B) (g : B -> C),
     (fun x => mapNode g (mapNode f x)) = mapNode (fun x => g (f x)).
 Proof.
-  intros. ext n. apply mapNode_mapNode.
+  intros. exten n. apply mapNode_mapNode.
 Qed.
 
 Lemma map_map :
@@ -257,5 +257,5 @@ Proof.
   cbn; intros.
     1-2: reflexivity.
     rewrite !mapFinger_revFinger, <- IHf, !map_map. do 2 f_equal.
-      ext n. apply mapNode_revNode.
+      exten n. apply mapNode_revNode.
 Qed.

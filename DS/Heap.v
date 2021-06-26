@@ -8,7 +8,7 @@ Inductive isHeap {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
           Forall (isHeap R) l ->
             isHeap R (T v l).
 
-Hint Constructors isHeap : core.
+Global Hint Constructors isHeap : core.
 
 Ltac isHeap :=
 repeat match goal with
@@ -48,7 +48,7 @@ Inductive isHeap2 {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
           Forall (fun t : Tree A => OK R v t) l ->
             Forall (isHeap2 R) l -> isHeap2 R (T v l).
 
-Hint Constructors isHeap OK isHeap2 : core.
+Global Hint Constructors isHeap OK isHeap2 : core.
 
 Ltac isHeap2 :=
 repeat match goal with
