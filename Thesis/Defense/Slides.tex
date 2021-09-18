@@ -1,0 +1,130 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage[polish]{babel}
+\usepackage{graphicx}
+
+\usetheme{Darmstadt}
+\useoutertheme{miniframes}
+\makeatletter
+  \beamer@compressfalse
+\makeatother
+
+\title{Formalnie zweryfikowane algorytmy w Coqu: koncepcje i techniki}
+\author{Wojciech Kołowski}
+\date{24 września 2021}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\addtocontents{toc}{\setcounter{tocdepth}{1}}
+\frame{\tableofcontents}
+
+\section{Historia}
+
+\begin{frame}{Geneza pracy}
+\begin{itemize}
+	\item Około połowy 2017 roku postanowiłem sformalizować sobie kilka algorytmów, głównie sortowania, i innych tego typu pierdółek.
+	\item W semestrze zimowym 2017/2018 brałem udział w kursie Algorytmy Funkcyjne i Trwałe Struktury Danych (czy jak on tam się zwał), który skłonił mnie do sięgnięcia po książkę Okasakiego i próbę sformalizowania tego, co w niej znajdę.
+	\item Przez kolejne +- dwa i pół roku projekt ewoluował i działy się w nim różne rzeczy, takie jak badania nad dowodzeniem przez reflekcję czy memoizacją.
+	\item Znaczna większość czasu i kodu poświęcona została strukturom danych i operującym na nich funkcjom.
+	\item Mimo tego, największym źródłem odkryć i najbardziej istotnym dla napisania pracy elementem projektu było porównanie algorytmów sortowania, którego się podjąłem.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Backstory}
+	That side-project of mine had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one. I have discovered the core of the approach described in this thesis while working on a comparison of sorting algorithms. The sheer amount of different algorithms and various versions of the same algorithm made such a highly abstract and modular approach pretty much necessary, and Coq's powerful type system made it feasible. In the end I learned that for a skilled Coq user armed with my approach, proving the algorithms correct is not much harder than implementing them in the first place and that both implementation and verification become easier when considered together.
+\end{frame}
+
+\section{Motywacja i efekty}
+
+\begin{frame}{Motywacje teoretyczne}
+\begin{itemize}
+	\item todo
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Kontrybucje}
+	I have stumbled upon some of the techniques presented in this thesis semi-autonomously, but I don't take any credit for inventing (or discovering) them. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate them. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea. I think that my greatest contribution is simply putting all of these concepts and techniques into a coherent and effective approach to functional algorithms.
+
+	Some techniques described in this thesis, like functional induction, are well-known, but lacked good expository material, which I provided in section FunInd. Others, like the Bove-Capretta method, are both well-known and widely present in the literature, but scattered across different papers, some of which are paywalled, most of which are jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- ``the inductive domain method'' -- and providing a beginner-friendly introduction in section InductiveDomainMethod. Yet other techniques, like proof by admission, are kind of folklore. On the one hand, I am not aware of any tutorials or other expository texts on it. On the other hand, I'm pretty sure it's very well-known, but it is hard to check this because it lacks a standard name. This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them.
+\end{frame}
+
+\section{Streszczenie pracy}
+
+\begin{frame}{Abstrakt}
+\begin{center}
+	Omawiamy sposoby specyfikowania, implementowania i weryfikowania funkcyjnych algorytmów, skupiając się raczej na dowodach formalnych niż na asymptotycznej złożoności czy faktycznej wydajności. Prezentujemy koncepcje i techniki, obie często opierające się na jednej kluczowej zasadzie -- reifikacji i reprezentacji, za pomocą potężnego systemu typów Coqa, czegoś, co w klasycznym, imperatywnym podejściu jest nieuchwytne, jak przepływ informacji w dowodzie czy kształt rekursji funkcji. Nasze podejście obszernie ilustrujemy na przykładzie quicksorta. Ostatecznie otrzymujemy solidną i ogólną metodę, którą można zastosować do dowolnego algorytmu funkcyjnego.
+\end{center}
+\end{frame}
+
+
+
+\begin{frame}{Konkluzja}
+	In this thesis, we have described concepts and techniques useful for implementing and verifying functional algorithms. We worked in Coq, but our ideas readily transfer to other dependently typed languages, like Agda, Idris or F*. Some of the techniques (mostly those concerned with specification and implementation of the abstract template) are probably also useful in languages with weaker type systems, like Haskell, OCaml or F\#.
+\end{frame}
+
+\begin{frame}{TLDR}
+	
+	We have presented 15 concepts/techniques in total (numbered 0 through 14), but they neither capture everything that was described in this thesis, nor are they really unique. They also don't show the big picture -- in fact, they are better thought of as subitems of the following five-item master plan which shows the steps that lead from a problem to a formally verified, user-extensible algorithm that solves it.
+\end{frame}
+
+\begin{frame}{Find a good specification of the problem.}
+\begin{itemize}
+	\item \#0: Good means abstract and easy to use.
+	\item \#1: Good specification determines a unique object.
+	\item \#2: Bad specifications can possibly be improved with defunctionalization.
+	\item \#3: Sometimes better specifications can be found by focusing on a different aspect of the problem.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Find an algorithm that solves the problem}
+\begin{itemize}
+	\item Easier said than done.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Implement a template of the algorithm that abstracts over the exact details}
+\begin{itemize}
+	\item \#4: While implementing the template, ignore termination at first.
+	\item \#6: Types of components of your template should contain enough evidence, but not too much!
+	\item \#7: When dealing with many templates at once, make shared components into parameters. In all other cases, prefer bundled classes.
+	\item \#8: Use the Inductive Domain Method to define a better, provably terminating algorithm template.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Prove termination and correctness of the algorithm template}
+\begin{itemize}
+	\item \#12: Use the technique of Proof by Admission.
+	\item \#9: Outline of termination proof: well-founded induction.
+	\item \#11: Outline of correctness proof: functional induction.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Provide a concrete default implementation together with all the proofs}
+\begin{itemize}
+	\item \#5: Provide a default implementation.
+	\item \#10: Make sure that a default implementation can be run without any proof obligations, and that a provably terminating implementation can be run without having to prove correctness.
+	\item \#13: If your default implementation or its proofs are too abstract, provide a more concrete version.
+	\item \#14: When looking for default and concrete implementations, use type-driven development.
+\end{itemize}
+\end{frame}
+
+\section{Co dalej}
+
+\begin{frame}{Related and further work}
+	The approach presented in this thesis is powerful, but not complete and could be improved in many respects. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Even though we did discuss well-founded induction, we haven't seen any techniques for constructing the most convenient well-founded relation for a given termination proof. We have also seen that the inductive domain method has some problems when dealing with functions that exhibit nested recursion or higher-order recursion.
+
+	Moreover, we have skipped the issue of actually inventing the algorithm that we want to formalize. The classical-imperative paradigm knows many techniques of algorithm design and most of them transfer easily to the functional paradigm, but it would be very interesting to see how they interact with the rest of our approach -- maybe it's possible to synthesise the algorithm directly from the specification, or maybe the abstract template is easier to implement for greedy algorithms than for dynamic programming?
+	
+	It would also be worth exploring how other algorithmic activities described in section Worlds fit into our approach. An interesting link between complexity analysis and inductive types is Analytic Combinatorics, whose slogan is ``If you can specify it, you can analyze it''. Testing is also relevant to formally verified algorithms. Although, as Dijkstra famously put it, ``Testing can be used to show the presence of bugs, but never to show their absence!'', property-based testing is extremely efficient at generating counterexamples and can shorten the feedback loop between implementation and bug detection by many orders of magnitude.
+	
+	When formalizing algorithms without tests, we usually detect implementation bugs when we can't prove the algorithm correct, but before that happens we waste a lot of time pondering the basic dilemma: is it really incorrect or are we just incompetent at proving it correct?
+	
+	There has already been some work on property-based testing in Coq.
+\end{frame}
+
+\end{document}
