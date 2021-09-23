@@ -13,7 +13,7 @@
 
 \title{Formalnie zweryfikowane algorytmy w Coqu: koncepcje i techniki}
 \author{Wojciech Kołowski}
-\date{24 września 2021}
+\date{27 września 2021}
 
 \begin{document}
 
@@ -24,25 +24,39 @@
 
 \section{Historia}
 
-\begin{frame}{Geneza pracy}
+\begin{frame}{Backstory}
 \begin{itemize}
-	\item Około połowy 2017 roku postanowiłem sformalizować sobie kilka algorytmów, głównie sortowania, i innych tego typu pierdółek.
+	\item Około połowy 2017 roku postanowiłem sformalizować sobie kilka algorytmów, głównie sortowania, i innych tego typu pierdółek. Tak powstał projekt żyjący pod adresem \url{https://github.com/wkolowski/coq-algs}.
 	\item W semestrze zimowym 2017/2018 brałem udział w kursie Algorytmy Funkcyjne i Trwałe Struktury Danych (czy jak on tam się zwał), który skłonił mnie do sięgnięcia po książkę Okasakiego i próbę sformalizowania tego, co w niej znajdę.
-	\item Przez kolejne +- dwa i pół roku projekt ewoluował i działy się w nim różne rzeczy, takie jak badania nad dowodzeniem przez reflekcję czy memoizacją.
-	\item Znaczna większość czasu i kodu poświęcona została strukturom danych i operującym na nich funkcjom.
-	\item Mimo tego, największym źródłem odkryć i najbardziej istotnym dla napisania pracy elementem projektu było porównanie algorytmów sortowania, którego się podjąłem.
+	\item Przez kolejne $+-$ dwa i pół roku projekt ewoluował i działy się w nim różne rzeczy, takie jak badania nad spamiętywanie czy dowodzeniem przez reflekcję.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Backstory}
-	That side-project of mine had two goals: first, formalize some data structures from Okasaki's book; second, see how easy (or hard) it is to formally prove correctness of functional algorithms. Even though most code (and time spent) concerns the first of these goals, most insight I gained concerns the second one. I have discovered the core of the approach described in this thesis while working on a comparison of sorting algorithms. The sheer amount of different algorithms and various versions of the same algorithm made such a highly abstract and modular approach pretty much necessary, and Coq's powerful type system made it feasible. In the end I learned that for a skilled Coq user armed with my approach, proving the algorithms correct is not much harder than implementing them in the first place and that both implementation and verification become easier when considered together.
+\begin{frame}{Geneza pracy}
+\begin{itemize}
+	\item Znaczna większość czasu i kodu poświęcona została podstawowym strukturom danych takim jak kolejki, sterty czy samobalansujące się drzewa wyszukiwań.
+	\item Mimo tego, największym źródłem odkryć i najbardziej istotnym dla napisania pracy elementem projektu było porównanie algorytmów sortowania.
+	\item Podjąłem się go częściowo z nudów, a częściowo żeby nieco systematyczniej zbadać, jak trudno (lub łatwo) formalizuje się algorytmy w Coqu i dowodzi ich poprawności.
+	\item Wcześniejsze formalizacje algorytmów w tym projekcie nie dawały dobrej odpowiedzi na to pytanie, bo dotyczyły różnych problemów, a ich dobór nie był zbyt systematyczny.
+\end{itemize}
 \end{frame}
 
-\section{Motywacja i efekty}
+\section{Odkrycia, motywacje i efekty}
 
-\begin{frame}{Motywacje teoretyczne}
+\begin{frame}{Odkrycia}
 \begin{itemize}
-	\item todo
+	\item Porównanie algorytmów sortowania okazało się być strzałem w dziesiątkę.
+	\item Spora liczba algorytmów i jeszcze większa mnogość ich wariantów bardzo szybko wymusiły wysoce abstrakcyjne i modularne podejście oraz znacznie ułatwiły zauważenie uniwersalnych prawidłowości, a potężny system typów Coqa umożliwił (niemal) bezproblemową realizację tej wizji.
+	\item Ostatecznie przekonałem się, że dla wprawnego użytkownika Coqa, uzbrojonego w moje koncepcje i techniki, dowodzenie poprawności algorytmów nie jest dużo trudniejsze niż sama ich implementacja.
+	\item Co więcej, zarówno implementacja jak i weryfikacja stają się łatwiejsze, gdy rozważamy je razem.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Motywacje}
+\begin{itemize}
+	\item Odkrywszy wspaniałe techniki radzenia sobie z formalizacją algorytmów stosowalne we wszystkich w zasadzie językach z typami zależnymi, postanowiłem podzielić się nimi ze światem.
+	\item Głównym celem pracy było opisanie koncepcji i technik w przyjazny sposób, unikając akademickiego bełkotu, żargonu i udawania, że się jest mądrym, bez robienia większego sensu dla zagubionego czytelnika.
+	\item Dodatkową motywacją było opisanie koncepcji i technik, które mimo iż są powszechnie znane, to nie ma dobrych materiałów na ich temat.
 \end{itemize}
 \end{frame}
 
