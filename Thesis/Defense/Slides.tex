@@ -44,7 +44,7 @@
 \begin{itemize}
 	\item Spora liczba algorytmów i jeszcze większa mnogość ich wariantów bardzo szybko wymusiły wysoce abstrakcyjne i modularne podejście, a potężny system typów Coqa umożliwił (niemal) bezproblemową realizację tej wizji.
 	\item W miarę postępów formalizacji poznałem też całą masę uniwersalnych prawidłowości, które następnie przekułem w pracy na tytułowe koncepcje i techniki.
-	\item Ostatecznie przekonałem się, że dla wprawnego użytkownika Coqa, uzbrojonego w moje koncepcje i techniki, dowodzenie poprawności algorytmów nie jest dużo trudniejsze niż sama ich implementacja.
+	\item Ostatecznie przekonałem się, że dla wprawnego użytkownika Coqa, uzbrojonego w moje koncepcje i techniki, dowodzenie poprawności algorytmów jest niewiele trudniejsze niż sama ich implementacja (choć jest dużo bardziej pracochłonne).
 	\item Co więcej, zarówno implementacja jak i weryfikacja stają się łatwiejsze, gdy rozważamy je razem.
 \end{itemize}
 \end{frame}
@@ -59,23 +59,7 @@
 \begin{frame}{Motywacje}
 \begin{itemize}
 	\item Poznawszy wspaniałe techniki radzenia sobie z formalizacją algorytmów stosowalne we wszystkich w zasadzie językach z typami zależnymi, postanowiłem podzielić się nimi ze światem.
-	\item Głównym celem pracy było bardzo przyjazne i dostępne dla zwykłych śmiertelników opisanie tego wszystkiego, w formie tutorialowej zbliżonej stylem do najlepszych dydaktycznie postów na blogach.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Kontrybucje}
-\begin{itemize}
-	\item Główną kontrybucją mojej pracy jest systematyzacja tych technik, ich synteza w spójną metodę i zastosowanie tego wszystkiego konkretnie do algorytmów funkcyjnych.
-	\item Uwaga: nie przypisuję sobie odkrycia w zasadzie żadnej z opisanych przeze mnie koncepcji i technik -- część była znana już wcześniej, część ma status pewnego folkloru, a część jest na tyle nieuchwytna, że trzeba je wymyślić na nowo, żeby porządnie je zrozumieć.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Kontrybucje}
-\begin{itemize}
-	\item Indukcja funkcyjna, elegancka metoda dowodzenia właściwości funkcji rekurencyjnych, nie została nigdzie opisana w sposób przyjazny dla początkujących.
-	\item Metoda Bove-Capretta (co za okropna nazwa!) została opisana w wielu pracach, ale nie są one przyjazne dla początkujących.
-	\item Type-driven development został przyjaźnie opisany, ale książka jest płatna i trochę przeterminowana.
-	\item Spamowanie taktyką \texttt{admit} nie zostało nigdzie opisane jako systematyczna metoda dowodzenia i nie ma nawet nazwy, a jego związki z \textit{Hole-driven development} sa nad wyraz nieoczywiste.
+	\item Głównym celem pracy było bardzo przyjazne i dostępne dla zwykłych śmiertelników opisanie tego wszystkiego, w formie tutorialowej zbliżonej stylem do najlepszych dydaktycznie znanych mi postów na blogach.
 \end{itemize}
 \end{frame}
 
@@ -87,29 +71,28 @@
 \end{center}
 \end{frame}
 
-
-
-\begin{frame}{Konkluzja}
-	In this thesis, we have described concepts and techniques useful for implementing and verifying functional algorithms. We worked in Coq, but our ideas readily transfer to other dependently typed languages, like Agda, Idris or F*. Some of the techniques (mostly those concerned with specification and implementation of the abstract template) are probably also useful in languages with weaker type systems, like Haskell, OCaml or F\#.
-\end{frame}
-
-\begin{frame}{TLDR}
-	
-	We have presented 15 concepts/techniques in total (numbered 0 through 14), but they neither capture everything that was described in this thesis, nor are they really unique. They also don't show the big picture -- in fact, they are better thought of as subitems of the following five-item master plan which shows the steps that lead from a problem to a formally verified, user-extensible algorithm that solves it.
-\end{frame}
-
-\begin{frame}{Find a good specification of the problem.}
+\begin{frame}{Jak sformalizować funkcyjny algorytm?}
 \begin{itemize}
-	\item \#0: Good means abstract and easy to use.
-	\item \#1: Good specification determines a unique object.
-	\item \#2: Bad specifications can possibly be improved with defunctionalization.
-	\item \#3: Sometimes better specifications can be found by focusing on a different aspect of the problem.
+	\item Praca prezentuje 15 technik przydatnych przy formalizacji algorytmów funkcyjnych.
+	\item Liczba 15 jest trochę naciągana, zresztą nie o ilość chodzi.
+	\item Najlepiej rozumieć je jako podpunkty uniwersalnego planu, który prowadzi nas od problemu do formalnie zweryfikowanego algorytmu, który go rozwiązuje.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Find an algorithm that solves the problem}
+\begin{frame}{Znajdź specyfikację problemu (sekcja 1.6 i rozdział 2)}
 \begin{itemize}
-	\item Easier said than done.
+	\item \#0: Dobra specyfikacja jest abstrakcyjna i prosta w użyciu.
+	\item \#1: Dobra specyfikacja określa unikalny obiekt.
+	\item \#2: Patchworkowa specyfikacja może zostać ulepszona przy użyciu defunkcjonalizacji (czyli przy użyciu definicji induktywnych zamiast kwantyfikatora uniwersalnego).
+	\item \#3: Czasem można znaleźć lepszą specyfikację skupiając się na innym aspekcie zagadnienia.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Znajdź algorytm, który rozwiązuje problem}
+\begin{itemize}
+	\item Łatwiej powiedzieć niż zrobić.
+	\item Praca nie porusza tematyki wymyślania czy projektowania algorytmów - zakładamy, że formalizujemy znany już algorytm.
+	\item Ostatnio wyszła ciekawa książka o projektowaniu algorytmów funkcyjnych, ale jeszcze nie czytałem: \href{https://www.amazon.com/Algorithm-Design-Haskell-Richard-Bird/dp/1108491618}{Algorithm Design with Haskell}
 \end{itemize}
 \end{frame}
 
@@ -140,7 +123,29 @@
 \end{itemize}
 \end{frame}
 
-\section{Co dalej}
+\section{Podsumowanie i co dalej}
+
+
+\begin{frame}{Konkluzja}
+	In this thesis, we have described concepts and techniques useful for implementing and verifying functional algorithms. We worked in Coq, but our ideas readily transfer to other dependently typed languages, like Agda, Idris or F*. Some of the techniques (mostly those concerned with specification and implementation of the abstract template) are probably also useful in languages with weaker type systems, like Haskell, OCaml or F\#.
+\end{frame}
+
+\begin{frame}{Główna kontrybucja pracy}
+\begin{itemize}
+	\item Główną kontrybucją pracy jest systematyzacja wielu technik, ich synteza w spójną metodę i zastosowanie tej metody konkretnie do problemu formalizacji algorytmów funkcyjnych.
+	\item Uwaga: nie przypisuję sobie odkrycia w zasadzie żadnej z opisanych przeze mnie koncepcji i technik -- część była znana już wcześniej, część ma status pewnego folkloru, a część jest na tyle nieuchwytna, że trzeba je wymyślić na nowo, żeby porządnie je zrozumieć.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Pomniejsze kontrybucje}
+\begin{itemize}
+	\item Udało mi się w przyjazny i zrozumiały sposób opisać także wiele znanych już technik, które jednak dotychczas 
+	\item Indukcja funkcyjna, elegancka metoda dowodzenia właściwości funkcji rekurencyjnych, nie została nigdzie opisana w sposób przyjazny dla początkujących.
+	\item Metoda Bove-Capretta (co za okropna nazwa!) została opisana w wielu pracach, ale nie są one przyjazne dla początkujących.
+	\item Type-driven development został przyjaźnie opisany, ale książka jest płatna i trochę przeterminowana.
+	\item Spamowanie taktyką \texttt{admit} nie zostało nigdzie opisane jako systematyczna metoda dowodzenia i nie ma nawet nazwy, a jego związki z \textit{Hole-driven development} są nie do końca oczywiste.
+\end{itemize}
+\end{frame}
 
 \begin{frame}{Related and further work}
 	The approach presented in this thesis is powerful, but not complete and could be improved in many respects. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Even though we did discuss well-founded induction, we haven't seen any techniques for constructing the most convenient well-founded relation for a given termination proof. We have also seen that the inductive domain method has some problems when dealing with functions that exhibit nested recursion or higher-order recursion.
