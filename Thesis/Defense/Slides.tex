@@ -24,46 +24,59 @@
 
 \section{Historia}
 
-\begin{frame}{Backstory}
-\begin{itemize}
-	\item Około połowy 2017 roku postanowiłem sformalizować sobie kilka algorytmów, głównie sortowania, i innych tego typu pierdółek. Tak powstał projekt żyjący pod adresem \url{https://github.com/wkolowski/coq-algs}.
-	\item W semestrze zimowym 2017/2018 brałem udział w kursie Algorytmy Funkcyjne i Trwałe Struktury Danych (czy jak on tam się zwał), który skłonił mnie do sięgnięcia po książkę Okasakiego i próbę sformalizowania tego, co w niej znajdę.
-	\item Przez kolejne $+-$ dwa i pół roku projekt ewoluował i działy się w nim różne rzeczy, takie jak badania nad spamiętywanie czy dowodzeniem przez reflekcję.
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Geneza pracy}
 \begin{itemize}
-	\item Znaczna większość czasu i kodu poświęcona została podstawowym strukturom danych takim jak kolejki, sterty czy samobalansujące się drzewa wyszukiwań.
-	\item Mimo tego, największym źródłem odkryć i najbardziej istotnym dla napisania pracy elementem projektu było porównanie algorytmów sortowania.
-	\item Podjąłem się go częściowo z nudów, a częściowo żeby nieco systematyczniej zbadać, jak trudno (lub łatwo) formalizuje się algorytmy w Coqu i dowodzi ich poprawności.
-	\item Wcześniejsze formalizacje algorytmów w tym projekcie nie dawały dobrej odpowiedzi na to pytanie, bo dotyczyły różnych problemów, a ich dobór nie był zbyt systematyczny.
+	\item Około połowy 2017 roku postanowiłem sformalizować sobie kilka algorytmów i struktur danych. Tak powstał projekt żyjący pod adresem \url{https://github.com/wkolowski/coq-algs}
+	\item W semestrze zimowym 2017/2018 brałem udział w kursie Algorytmy Funkcyjne i Trwałe Struktury Danych (czy jak on tam się zwał), który skłonił mnie do sięgnięcia po książkę Okasakiego i próbę sformalizowania tego, co w niej znajdę.
+	\item Przez kolejne $+-$ dwa i pół roku projekt ewoluował i działy się w nim różne rzeczy, takie jak badania nad spamiętywaniem czy dowodzeniem przez reflekcję.
 \end{itemize}
 \end{frame}
 
-\section{Odkrycia, motywacje i efekty}
-
-\begin{frame}{Odkrycia}
+\begin{frame}{Skąd odkrycia?}
 \begin{itemize}
-	\item Porównanie algorytmów sortowania okazało się być strzałem w dziesiątkę.
-	\item Spora liczba algorytmów i jeszcze większa mnogość ich wariantów bardzo szybko wymusiły wysoce abstrakcyjne i modularne podejście oraz znacznie ułatwiły zauważenie uniwersalnych prawidłowości, a potężny system typów Coqa umożliwił (niemal) bezproblemową realizację tej wizji.
+	\item Pewnego razu postanowiłem sformalizować pokaźny wachlarz przeróżnych algorytmów sortowania.
+	\item Podjąłem się go częściowo z nudów, a częściowo żeby nieco systematyczniej zbadać, jak trudno (lub łatwo) formalizuje się algorytmy w Coqu i dowodzi ich poprawności.
+	\item Wcześniejsze formalizacje algorytmów w tym projekcie nie dawały dobrej odpowiedzi na to pytanie, bo dotyczyły przypadkowo dobranych problemów, a rozwiązania pochodziły głównie z książki Okasakiego.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Algorytmy sortowania motorem napędowym nauki}
+\begin{itemize}
+	\item Spora liczba algorytmów i jeszcze większa mnogość ich wariantów bardzo szybko wymusiły wysoce abstrakcyjne i modularne podejście, a potężny system typów Coqa umożliwił (niemal) bezproblemową realizację tej wizji.
+	\item W miarę postępów formalizacji poznałem też całą masę uniwersalnych prawidłowości, które następnie przekułem w pracy na tytułowe koncepcje i techniki.
 	\item Ostatecznie przekonałem się, że dla wprawnego użytkownika Coqa, uzbrojonego w moje koncepcje i techniki, dowodzenie poprawności algorytmów nie jest dużo trudniejsze niż sama ich implementacja.
 	\item Co więcej, zarówno implementacja jak i weryfikacja stają się łatwiejsze, gdy rozważamy je razem.
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Pareto wiecznie żywy}
+\begin{itemize}
+	\item Porównanie algorytmów sortowania okazało się więc być strzałem w dziesiątkę.
+	\item Zadziałała też niezawodna zasada Pareto: mimo, że znaczna większość czasu i kodu poświęcona została podstawowym strukturom danych takim jak kolejki, sterty czy samobalansujące się drzewa wyszukiwań, to największym źródłem odkryć i najbardziej istotnym dla napisania pracy elementem projektu było właśnie porównanie algorytmów sortowania.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Motywacje}
 \begin{itemize}
-	\item Odkrywszy wspaniałe techniki radzenia sobie z formalizacją algorytmów stosowalne we wszystkich w zasadzie językach z typami zależnymi, postanowiłem podzielić się nimi ze światem.
-	\item Głównym celem pracy było opisanie koncepcji i technik w przyjazny sposób, unikając akademickiego bełkotu, żargonu i udawania, że się jest mądrym, bez robienia większego sensu dla zagubionego czytelnika.
-	\item Dodatkową motywacją było opisanie koncepcji i technik, które mimo iż są powszechnie znane, to nie ma dobrych materiałów na ich temat.
+	\item Poznawszy wspaniałe techniki radzenia sobie z formalizacją algorytmów stosowalne we wszystkich w zasadzie językach z typami zależnymi, postanowiłem podzielić się nimi ze światem.
+	\item Głównym celem pracy było bardzo przyjazne i dostępne dla zwykłych śmiertelników opisanie tego wszystkiego, w formie tutorialowej zbliżonej stylem do najlepszych dydaktycznie postów na blogach.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Kontrybucje}
-	I have stumbled upon some of the techniques presented in this thesis semi-autonomously, but I don't take any credit for inventing (or discovering) them. For example, I ``knew'' about (hole-) and (type-)driven development before starting this project, but I had to reinvent the wheel from scratch myself, driven purely by the needs of proof engineering, in order to really grasp, absorb and assimilate them. My only original addition to it is the idea of abstracting over holes, which I haven't seen described anywhere else, but I'm pretty sure that people more knowledgeable on the matter have also encountered this idea. I think that my greatest contribution is simply putting all of these concepts and techniques into a coherent and effective approach to functional algorithms.
+\begin{itemize}
+	\item Główną kontrybucją mojej pracy jest systematyzacja tych technik, ich synteza w spójną metodę i zastosowanie tego wszystkiego konkretnie do algorytmów funkcyjnych.
+	\item Uwaga: nie przypisuję sobie odkrycia w zasadzie żadnej z opisanych przeze mnie koncepcji i technik -- część była znana już wcześniej, część ma status pewnego folkloru, a część jest na tyle nieuchwytna, że trzeba je wymyślić na nowo, żeby porządnie je zrozumieć.
+\end{itemize}
+\end{frame}
 
-	Some techniques described in this thesis, like functional induction, are well-known, but lacked good expository material, which I provided in section FunInd. Others, like the Bove-Capretta method, are both well-known and widely present in the literature, but scattered across different papers, some of which are paywalled, most of which are jargony and directed at insiders in the field. I rectified the situation by giving this method a more friendly name -- ``the inductive domain method'' -- and providing a beginner-friendly introduction in section InductiveDomainMethod. Yet other techniques, like proof by admission, are kind of folklore. On the one hand, I am not aware of any tutorials or other expository texts on it. On the other hand, I'm pretty sure it's very well-known, but it is hard to check this because it lacks a standard name. This is a serious problem, because it is very hard to refer to nameless things, hard to think about them and hard to teach them.
+\begin{frame}{Kontrybucje}
+\begin{itemize}
+	\item Indukcja funkcyjna, elegancka metoda dowodzenia właściwości funkcji rekurencyjnych, nie została nigdzie opisana w sposób przyjazny dla początkujących.
+	\item Metoda Bove-Capretta (co za okropna nazwa!) została opisana w wielu pracach, ale nie są one przyjazne dla początkujących.
+	\item Type-driven development został przyjaźnie opisany, ale książka jest płatna i trochę przeterminowana.
+	\item Spamowanie taktyką \texttt{admit} nie zostało nigdzie opisane jako systematyczna metoda dowodzenia i nie ma nawet nazwy, a jego związki z \textit{Hole-driven development} sa nad wyraz nieoczywiste.
+\end{itemize}
 \end{frame}
 
 \section{Streszczenie pracy}
