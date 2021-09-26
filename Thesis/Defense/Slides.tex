@@ -75,7 +75,7 @@
 \begin{itemize}
 	\item Praca prezentuje 15 technik przydatnych przy formalizacji algorytmów funkcyjnych.
 	\item Liczba 15 jest trochę naciągana, zresztą nie o ilość chodzi.
-	\item Najlepiej rozumieć je jako podpunkty uniwersalnego planu, który prowadzi nas od problemu do formalnie zweryfikowanego algorytmu, który go rozwiązuje.
+	\item Najlepiej rozumieć te techniki jako podpunkty uniwersalnego planu, który prowadzi nas od problemu do formalnie zweryfikowanego algorytmu, który go rozwiązuje.
 \end{itemize}
 \end{frame}
 
@@ -83,7 +83,7 @@
 \begin{itemize}
 	\item \#0: Dobra specyfikacja jest abstrakcyjna i prosta w użyciu.
 	\item \#1: Dobra specyfikacja określa unikalny obiekt.
-	\item \#2: Patchworkowa specyfikacja może zostać ulepszona przy użyciu defunkcjonalizacji (czyli przy użyciu definicji induktywnych zamiast kwantyfikatora uniwersalnego).
+	\item \#2: \textit{Patchworkowa} specyfikacja może zostać ulepszona przy użyciu defunkcjonalizacji (czyli przy użyciu definicji induktywnych zamiast kwantyfikacji uniwersalnej, implikacji i funkcji).
 	\item \#3: Czasem można znaleźć lepszą specyfikację skupiając się na innym aspekcie zagadnienia.
 \end{itemize}
 \end{frame}
@@ -92,43 +92,36 @@
 \begin{itemize}
 	\item Łatwiej powiedzieć niż zrobić.
 	\item Praca nie porusza tematyki wymyślania czy projektowania algorytmów - zakładamy, że formalizujemy znany już algorytm.
-	\item Ostatnio wyszła ciekawa książka o projektowaniu algorytmów funkcyjnych, ale jeszcze nie czytałem: \href{https://www.amazon.com/Algorithm-Design-Haskell-Richard-Bird/dp/1108491618}{Algorithm Design with Haskell}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Implement a template of the algorithm that abstracts over the exact details}
+\begin{frame}{Zaimplementuj abstrakcyjny szablon algorytmu (rozdział 3)}
 \begin{itemize}
-	\item \#4: While implementing the template, ignore termination at first.
-	\item \#6: Types of components of your template should contain enough evidence, but not too much!
-	\item \#7: When dealing with many templates at once, make shared components into parameters. In all other cases, prefer bundled classes.
-	\item \#8: Use the Inductive Domain Method to define a better, provably terminating algorithm template.
+	\item \#4: Przy implementacji pierwszego szablonu nie przejmuj się terminacją.
+	\item \#6: Typy parametrów szablonu powinny zawierać wystarczająco \textit{evidence} (żeby np. nie popaść w ślepotę boolowską), ale nie za dużo.
+	\item \#7: Jeżeli implementujesz wiele szablonów na raz (wielu powiązanych algorytmów), ich współdzielone komponenty powinny być parametrami szablonu. Pozostałe komponenty powinny być jego polami.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Prove termination and correctness of the algorithm template}
+\begin{frame}{Udowodnij terminację i poprawność (rozdziały 4 i 5)}
 \begin{itemize}
-	\item \#12: Use the technique of Proof by Admission.
-	\item \#9: Outline of termination proof: well-founded induction.
-	\item \#11: Outline of correctness proof: functional induction.
+	\item \#8: Użyj Metody Induktywnej Dziedziny (to mój rebranding metody Bove-Capretta) żeby zdefiniować lepszy szablon algorytmu, którego terminację łatwo udowodnić.
+	\item \#12: W dowodzeniu niesamowicie przydatna jest technika \textit{proof by admission}, czyli formalny odpowiednik dowodu przez machanie rękami. W skrócie: jeżeli nie potrafisz czegoś udowodnić, załóż że to prawda. Później udowodnij lemat, który wypełni tę lukę, albo przyjmij dodatkowe założenie.
+	\item \#9: Dowód terminacji sprowadza się do indukcji dobrze ufundowanej -- wystarczy znaleźć jakąś rozsądną relację dobrze ufundowaną lub miarę.
+	\item \#11: Dowód poprawności szablonu sprowadza się do indukcji funkcyjnej.
 \end{itemize}
 \end{frame}
 
-
-\begin{frame}{Provide a concrete default implementation together with all the proofs}
+\begin{frame}{Dostarcz domyślną implementację (rozdziały 5 i 3)}
 \begin{itemize}
-	\item \#5: Provide a default implementation.
-	\item \#10: Make sure that a default implementation can be run without any proof obligations, and that a provably terminating implementation can be run without having to prove correctness.
-	\item \#13: If your default implementation or its proofs are too abstract, provide a more concrete version.
-	\item \#14: When looking for default and concrete implementations, use type-driven development.
+	\item \#5: Dostarcz domyślną implementację.
+	\item \#10: Upewnij się, że domyślna implementacja może zostać uruchomiona bez dowodzenia czegokolwiek (terminacji/poprawności) i że terminująca implementacja może zostać uruchomiona bez dowodzenia poprawności.
+	\item \#13: Jeżeli twoja domyślna implementacja jest zbyt abstrakcyjna, dostarcz bardziej konkretną wersję.
+	\item \#14: Do zdefiniowana domyślnej i konkretnej implementacji użyj type-driven development.
 \end{itemize}
 \end{frame}
 
 \section{Podsumowanie i co dalej}
-
-
-\begin{frame}{Konkluzja}
-	In this thesis, we have described concepts and techniques useful for implementing and verifying functional algorithms. We worked in Coq, but our ideas readily transfer to other dependently typed languages, like Agda, Idris or F*. Some of the techniques (mostly those concerned with specification and implementation of the abstract template) are probably also useful in languages with weaker type systems, like Haskell, OCaml or F\#.
-\end{frame}
 
 \begin{frame}{Główna kontrybucja pracy}
 \begin{itemize}
@@ -139,24 +132,38 @@
 
 \begin{frame}{Pomniejsze kontrybucje}
 \begin{itemize}
-	\item Udało mi się w przyjazny i zrozumiały sposób opisać także wiele znanych już technik, które jednak dotychczas 
+	\item Udało mi się w przyjazny i zrozumiały sposób opisać także wiele znanych już technik, które dotychczas były nieopisane lub były opisane słabo.
 	\item Indukcja funkcyjna, elegancka metoda dowodzenia właściwości funkcji rekurencyjnych, nie została nigdzie opisana w sposób przyjazny dla początkujących.
 	\item Metoda Bove-Capretta (co za okropna nazwa!) została opisana w wielu pracach, ale nie są one przyjazne dla początkujących.
-	\item Type-driven development został przyjaźnie opisany, ale książka jest płatna i trochę przeterminowana.
-	\item Spamowanie taktyką \texttt{admit} nie zostało nigdzie opisane jako systematyczna metoda dowodzenia i nie ma nawet nazwy, a jego związki z \textit{Hole-driven development} są nie do końca oczywiste.
+	\item \textit{Type-driven development} został przyjaźnie opisany, ale książka jest płatna i trochę przeterminowana.
+	\item Spamowanie taktyką \texttt{admit} nie zostało nigdzie opisane jako systematyczna metoda dowodzenia i nie ma nawet oficjalnej nazwy (ja nazwałem to \textit{proof by admission}), a jego związki z \textit{Hole-driven development} są nie do końca oczywiste.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Related and further work}
-	The approach presented in this thesis is powerful, but not complete and could be improved in many respects. Although we have seen some criteria for judging specifications and some techniques for improving them, it would be nice to have a general method for coming up with good specifications. Even though we did discuss well-founded induction, we haven't seen any techniques for constructing the most convenient well-founded relation for a given termination proof. We have also seen that the inductive domain method has some problems when dealing with functions that exhibit nested recursion or higher-order recursion.
+\begin{frame}{Co dalej - ogólnie}
+\begin{itemize}
+	\item Zaprezentowane w pracy podejście do algorytmów funkcyjnych nie jest kompletne i można je rozszerzyć i poprawić.
+	\item Nie znam żadnej ogólnej metody wymyślania specyfikacji.
+	\item Pominięte zostały metody wymyślania/projektowania algorytmów, gdyż mieleniem ich zajmują się wszystkie możliwe kursy i książki, np. klasyczna książka Okasakiego i niedawno wydana \href{https://www.amazon.com/Algorithm-Design-Haskell-Richard-Bird/dp/1108491618}{\textit{Algorithm Design with Haskell}}.
+	\item Analiza złożoności mogłaby także nieco zyskać na formalnym podejściu, choćby dlatego że możemy formalnie dowodzić zależności rekurencyjnych. Z drugiej strony analiza komplikuje się przez problemy związane np. z obecnością predykatu dziedzinowego.
+\end{itemize}
+\end{frame}
 
-	Moreover, we have skipped the issue of actually inventing the algorithm that we want to formalize. The classical-imperative paradigm knows many techniques of algorithm design and most of them transfer easily to the functional paradigm, but it would be very interesting to see how they interact with the rest of our approach -- maybe it's possible to synthesise the algorithm directly from the specification, or maybe the abstract template is easier to implement for greedy algorithms than for dynamic programming?
-	
-	It would also be worth exploring how other algorithmic activities described in section Worlds fit into our approach. An interesting link between complexity analysis and inductive types is Analytic Combinatorics, whose slogan is ``If you can specify it, you can analyze it''. Testing is also relevant to formally verified algorithms. Although, as Dijkstra famously put it, ``Testing can be used to show the presence of bugs, but never to show their absence!'', property-based testing is extremely efficient at generating counterexamples and can shorten the feedback loop between implementation and bug detection by many orders of magnitude.
-	
-	When formalizing algorithms without tests, we usually detect implementation bugs when we can't prove the algorithm correct, but before that happens we waste a lot of time pondering the basic dilemma: is it really incorrect or are we just incompetent at proving it correct?
-	
-	There has already been some work on property-based testing in Coq.
+\begin{frame}{Co dalej - terminacja}
+\begin{itemize}
+	\item Wspomniałem o problemach standardowej Metody Induktywnej Dziedziny z funkcjami z zagnieżdżoną rekursją i rekursją wyższego rzędu, i jak sobie z tym poradzić, ale nie pokazałem, jak dokładnie należy to zrobić.
+	\item Nie omówiłem żadnych metod konstruowania relacji dobrze ufundowanych.
+	\item Nie omówiłem też alternatywnych metod dowodzenia terminacji jako HORPO (\textit{Higher Order Recursive Path Ordering}) czy \textit{Size-Change Principle}.
+	\item Milczałem też o algorytmach korekurencyjnych i dowodzeniu ich produktywności, choć to temat raczej badawczy niż dydaktyczno-folklorystyczny.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Co dalej - bujanie w chmurach}
+\begin{itemize}
+	\item Zdaje się, że istnieje linia badań nad ``obliczaniem'' algorytmu ze specyfikacji za pomocą rozumowań równaniowych. W połączeniu z techniką wymyślania specyfikacji byłoby to naprawdę potężne combo.
+	\item Ciekawą rzeczą jest Kombinatoryka Analityczna, która pozwala obliczyć liczbę struktur (np. drzew) danego rodzaju z samej definicji typu induktywnego, dzięki czemu stanowi pomost między specyfikacją a analizą złożoności.
+	\item Testowanie może się wydawać zbędne, jednak \textit{property-based testing} jest bardzo dobry w znajdowaniu kontrprzykładów, co może znacznie skrócić czas od popełnienia błędu do wykrycia go -- moglibyśmy zrobić to już na etapie domyślnej implementacji, czyli niedługo po zaimplementowaniu pierwszego szablonu, zamiast dopiero na końcu, przy dowodzie poprawności.
+\end{itemize}
 \end{frame}
 
 \end{document}
