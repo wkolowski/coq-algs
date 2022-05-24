@@ -27,6 +27,7 @@ Axiom hehe : False.
 Require Import Ord.
 
 #[refine]
+#[export]
 Instance KVP (A : Ord) (B : Type) : Ord :=
 {
     carrier := A * B;

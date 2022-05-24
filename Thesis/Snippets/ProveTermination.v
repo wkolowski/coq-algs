@@ -103,7 +103,7 @@ Proof.
       apply le_S. assumption.
 Defined.
 
-#[refine]
+#[refine, export]
 Instance TQSA_nat : TerminatingQSArgs :=
 {
     args := QSA_nat;
@@ -122,7 +122,7 @@ Compute qs TQSA_nat [4; 3; 2; 1].
 
 (** * User experience: provide a default implementation *)
 
-Instance QSA_default
+#[export] Instance QSA_default
   (A : Type) (p : A -> A -> bool) : QSArgs :=
 {
     T := A;
@@ -139,7 +139,7 @@ Instance QSA_default
        filter (fun x => negb (p x pivot)) rest)
 }.
 
-#[refine]
+#[refine, export]
 Instance TQSA_default
   (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
 {
@@ -346,7 +346,7 @@ Proof.
       apply le_S. assumption.
 Defined.
 
-#[refine]
+#[refine, export]
 Instance TQSA_default
   (A : Type) (p : A -> A -> bool) : TerminatingQSArgs :=
 {

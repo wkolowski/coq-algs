@@ -152,7 +152,7 @@ Inductive ANF {X : UCRing} : exp X -> Prop :=
         NoAdd e1 -> NoAdd e2 -> ANF e1 -> ANF e2 -> ANF (Mul e1 e2)
     | ANF_Neg : forall e : exp X, ANF e -> ANF (Neg e).
 
-Global Hint Constructors NoAdd ANF : core.
+#[global] Hint Constructors NoAdd ANF : core.
 
 Ltac inv_NoAdd := repeat
 match goal with

@@ -76,6 +76,7 @@ Proof.
     rewrite Permutation_inorder_insert. constructor. assumption.
 Qed.
 
+#[export]
 Instance Sort_splaySort (A : Ord) : Sort cmp :=
 {
     sort := splaySort trich_leb;

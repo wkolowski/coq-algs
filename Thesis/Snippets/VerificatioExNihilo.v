@@ -330,7 +330,7 @@ Class VerifiedQSArgs : Type :=
 Coercion T : VerifiedQSArgs >-> TerminatingQSArgs.
 Coercion R : VerifiedQSArgs >-> Funclass.
 
-Global Hint Constructors Sorted : core.
+#[global] Hint Constructors Sorted : core.
 
 Lemma Sorted_app :
   forall
@@ -396,7 +396,7 @@ Proof.
         assumption.
 Qed.
 
-#[refine]
+#[refine, export]
 Instance Sort_qsf
   (A : VerifiedQSArgs) : Sort A (qsf A) := {}.
 Proof.
@@ -406,7 +406,7 @@ Defined.
 
 (** * Sanity check – concrete proofs *)
 
-#[refine]
+#[refine, export]
 Instance VQSA_default
   {A : Type} (p : A -> A -> bool)
   (Hrefl : forall x : A, p x x = true)

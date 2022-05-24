@@ -8,7 +8,7 @@ Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
     | Sorted2 : forall (x y : A) (l : list A),
         R x y -> Sorted R (y :: l) -> Sorted R (x :: y :: l).
 
-Global Hint Constructors Sorted : core.
+#[global] Hint Constructors Sorted : core.
 
 Class Sort {A : Type} (R : A -> A -> Prop) : Type :=
 {
@@ -112,7 +112,7 @@ Proof.
     apply Sorted_app_all; auto.
 Qed.
 
-Global Hint Resolve (*Sorted_head*) Sorted_tail Sorted_app_all : core.
+#[global] Hint Resolve (*Sorted_head*) Sorted_tail Sorted_app_all : core.
 
 Lemma Sorted_cons :
   forall (A : Type) (R : A -> A -> Prop) (h : A) (t : list A),

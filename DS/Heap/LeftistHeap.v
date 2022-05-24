@@ -50,7 +50,7 @@ Inductive isHeap {A : Ord} : LTree A -> Prop :=
           (forall x : A, Elem x r -> v ≤ x) -> isHeap r ->
             isHeap (N n v l r).
 
-Global Hint Constructors LTree LeftBiased LeftBiased2 Elem isHeap : core.
+#[global] Hint Constructors LTree LeftBiased LeftBiased2 Elem isHeap : core.
 
 Definition balance
   {A : Type} (v : A) (l r : LTree A) : LTree A :=
@@ -620,6 +620,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_leftistHeapsort (A : Ord) : Sort trich_le :=
 {
     sort := @leftistHeapsort A;

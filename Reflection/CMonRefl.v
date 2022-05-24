@@ -327,7 +327,7 @@ Proof.
   intros. functional induction substF f i e; cbn; lia.
 Qed.
 
-Global Hint Resolve size_gt_0 : core.
+#[global] Hint Resolve size_gt_0 : core.
 
 Set Warnings "-unused-pattern-matching-variable". (* Line 350 - bug in Coq? *)
 Function simplifyEq' {X : CMon} (f : formula X) {measure size f}
@@ -651,6 +651,7 @@ match goal with
 end.
 
 #[refine]
+#[export]
 Instance CMon_unit : CMon :=
 {
     carrier := unit;

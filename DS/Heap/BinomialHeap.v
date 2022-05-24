@@ -83,9 +83,9 @@ end.
 Definition isBinomialHeap {A : Ord} (h : Forest A) : Prop :=
   Forall (fun t => isBinomialTree t /\ isHeap t) h.
 
-Global Hint Constructors elemTree elemTree' ElemForest isBinomialTree' isBinomialForest' isHeap : core.
+#[global] Hint Constructors elemTree elemTree' ElemForest isBinomialTree' isBinomialForest' isHeap : core.
 
-Global Hint Unfold isBinomialTree isBinomialHeap : core.
+#[global] Hint Unfold isBinomialTree isBinomialHeap : core.
 
 (** * Implementation *)
 

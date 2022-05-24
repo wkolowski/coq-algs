@@ -20,7 +20,7 @@ Inductive Elem {A : Type} (a : A) : BTree A -> Prop :=
     | Elem_right : forall (v : A) (l r : BTree A),
         Elem a r -> Elem a (node v l r).
 
-Global Hint Constructors Elem : core.
+#[global] Hint Constructors Elem : core.
 
 Lemma Elem_node :
   forall {A : Type} (x v : A) (l r : BTree A),
@@ -742,7 +742,7 @@ Inductive Any {A : Type} (P : A -> Prop) : BTree A -> Prop :=
         forall (v : A) (l r : BTree A),
           Any P r -> Any P (node v l r).
 
-Global Hint Constructors Any : core.
+#[global] Hint Constructors Any : core.
 
 Lemma Any_find :
   forall (A : Type) (P : A -> Prop) (p : A -> bool) (t : BTree A),
@@ -825,7 +825,7 @@ Inductive All {A : Type} (P : A -> Prop) : BTree A -> Prop :=
         forall (v : A) (l r : BTree A),
           P v -> All P l -> All P r -> All P (node v l r).
 
-Global Hint Constructors All : core.
+#[global] Hint Constructors All : core.
 
 Lemma All_node' :
   forall {A : Type} {P : A -> Prop} {v : A} {l r : BTree A},
@@ -1084,7 +1084,7 @@ Inductive AtLeast {A : Type} (P : A -> Prop) : BTree A -> nat -> Prop :=
         forall (v : A) (l r : BTree A) (n m : nat),
           AtLeast P l n -> AtLeast P r m -> AtLeast P (node v l r) (n + m).
 
-Global Hint Constructors AtLeast : core.
+#[global] Hint Constructors AtLeast : core.
 
 Fixpoint toList {A : Type} (t : BTree A) : list A :=
 match t with

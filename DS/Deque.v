@@ -151,7 +151,7 @@ Inductive isDeque' {A : Type} : Deque A -> Prop :=
         forall (hf hr : A) (tf tr : list A),
           isDeque' (hf :: tf, hr :: tr).
 
-Global Hint Constructors isDeque' : core.
+#[global] Hint Constructors isDeque' : core.
 
 Lemma empty_isDeque :
   forall A : Type, isDeque (@empty A).

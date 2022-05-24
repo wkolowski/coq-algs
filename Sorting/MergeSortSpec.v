@@ -34,6 +34,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_ghms
   (n : nat) (A : Ord) (sort : Sort trich_le) (split : Split A) : Sort trich_le :=
 {

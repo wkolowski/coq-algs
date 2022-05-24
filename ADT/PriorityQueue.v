@@ -202,6 +202,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_priorityQueueSort (A : Ord) : Sort trich_le :=
 {
     sort := @priorityQueueSort A;

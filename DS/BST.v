@@ -17,7 +17,7 @@ Inductive isBST
 
 Arguments isBST {A} _ _.
 
-Global Hint Constructors Elem isBST : core.
+#[global] Hint Constructors Elem isBST : core.
 
 Ltac isBST :=
 repeat match goal with
@@ -46,7 +46,7 @@ Inductive isBST2
 
 Arguments isBST2 {A} _ _.
 
-Global Hint Constructors All isBST2 : core.
+#[global] Hint Constructors All isBST2 : core.
 
 Ltac isBST2 :=
 repeat match goal with
@@ -217,7 +217,7 @@ Proof.
   constructor; auto; inv 1.
 Qed.
 
-Global Hint Resolve isBST_singleton : core.
+#[global] Hint Resolve isBST_singleton : core.
 
 Lemma isBST_insert :
   forall
@@ -531,7 +531,7 @@ Proof.
           Elems'. rewrite Hxz. reflexivity.
 Qed.
 
-Global Hint Constructors All : core.
+#[global] Hint Constructors All : core.
 
 Lemma Elem_leftmost :
   forall {A : Type} (t : BTree A) (x : A),

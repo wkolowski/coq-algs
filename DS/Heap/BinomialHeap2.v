@@ -73,7 +73,7 @@ with ElemForest {A : Type} (x : A)
         forall (r : nat) (t : BinomialTree A r) (f : BinomialForest A r),
           Elem x t \/ ElemForest x f -> ElemForest x (bfcons t f).
 
-Global Hint Constructors Elem ElemForest : core.
+#[global] Hint Constructors Elem ElemForest : core.
 
 Fixpoint Elem_dec
   {A : Ord} (x : A) {r : nat} (t : BinomialTree A r) :

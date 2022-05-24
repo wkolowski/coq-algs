@@ -129,6 +129,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance HalfSplit (A : Ord) : Split A :=
 {
     split' l :=
@@ -190,6 +191,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance MsSplit (A : Ord) : Split A :=
 {
     split' := ms_split;
@@ -279,6 +281,7 @@ Defined.
 Definition ums_wut A := @ums' A 0.
 
 #[refine]
+#[export]
 Instance Small_recdepth (A : Ord) (max : nat) : Small A :=
 {
     small recdepth l :=

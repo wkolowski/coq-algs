@@ -615,6 +615,7 @@ match n, m with
 end.
 
 #[refine]
+#[export]
 Instance natlt : Ord :=
 {
     carrier := nat;

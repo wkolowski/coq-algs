@@ -87,7 +87,7 @@ Inductive lookupGraph :
         forall i A h t r,
           lookupGraph i A (Zero t) r -> lookupGraph (S i) A (One h t) r.
 
-Global Hint Constructors lookupGraph : core.
+#[global] Hint Constructors lookupGraph : core.
 
 Definition lookup_strong
   (i : nat) {A : Type} (s : Seq A)
@@ -125,7 +125,7 @@ Inductive fupdateGraph
           fupdateGraph i A f (Zero t) r ->
             fupdateGraph (S i) A f (One h t) (cons h r).
 
-Global Hint Constructors fupdateGraph : core.
+#[global] Hint Constructors fupdateGraph : core.
 
 Definition fupdate_strong
   (i : nat) (A : Type) (f : A -> A) (s : Seq A)

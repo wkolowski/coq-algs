@@ -78,6 +78,7 @@ Proof.
     rewrite Permutation_inorder_insert, IHt. reflexivity.
 Qed.
 
+#[export]
 Instance Sort_redblackSort (A : Ord) : Sort trich_le :=
 {
     sort := redblackSort trich_leb;

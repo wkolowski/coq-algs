@@ -25,7 +25,7 @@ Set Guard Checking.
 
 (** * User experience: concerete algorithm as a sanity check *)
 
-Instance QS_nat : QSArgs nat :=
+#[export] Instance QS_nat : QSArgs nat :=
 {
     short l :=
       match l with
@@ -72,7 +72,7 @@ match short l with
 end.
 Set Guard Checking.
 
-Instance QSA_nat : QSArgs nat :=
+#[export] Instance QSA_nat : QSArgs nat :=
 {
     short l :=
       match l with
@@ -117,7 +117,7 @@ match short l with
 end.
 Set Guard Checking.
 
-Instance QSA_nat : QSArgs :=
+#[export] Instance QSA_nat : QSArgs :=
 {
     T := nat;
     short l :=

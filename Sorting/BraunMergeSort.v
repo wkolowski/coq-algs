@@ -98,6 +98,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_braunSort (A : Ord) : Sort trich_le :=
 {|
     sort := @braunSort A;

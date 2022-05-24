@@ -105,6 +105,7 @@ Proof.
     rewrite Permutation_treeSort_aux. constructor. assumption.
 Qed.
 
+#[export]
 Instance Sort_treeSort {A : Ord} : Sort cmp :=
 {
     sort := treeSort cmp;

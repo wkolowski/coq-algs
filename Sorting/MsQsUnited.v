@@ -32,6 +32,7 @@ match small l with
 end.
 Set Guard Checking.
 
+#[export]
 Instance MsArgs_nat : MsArgs :=
 {
     A := nat;

@@ -270,6 +270,7 @@ Require Import DS.BST.RedBlack.
 Module RB.
 
 #[refine]
+#[export]
 Instance BalanceArgs_Redblack (A : Ord) : BalanceArgs A :=
 {
     B := color;

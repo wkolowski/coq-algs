@@ -37,12 +37,12 @@ Notation "- x" := (neg x).
 Coercion carrier : UCRing >-> Sortclass.
 
 (* Basic tactics for rewriting UCRing axioms. *)
-Hint Rewrite @zero_l @zero_r @one_l @one_r @neg_l @neg_r : units.
-Hint Rewrite @add_assoc @mul_assoc : assoc.
-Hint Rewrite <- @add_assoc @mul_assoc : assoc'.
-Hint Rewrite @add_comm @mul_comm : comm.
-Hint Rewrite @distr_l @distr_r : distr.
-Hint Rewrite <- @distr_l @distr_r : distr'.
+#[global] Hint Rewrite @zero_l @zero_r @one_l @one_r @neg_l @neg_r : units.
+#[global] Hint Rewrite @add_assoc @mul_assoc : assoc.
+#[global] Hint Rewrite <- @add_assoc @mul_assoc : assoc'.
+#[global] Hint Rewrite @add_comm @mul_comm : comm.
+#[global] Hint Rewrite @distr_l @distr_r : distr.
+#[global] Hint Rewrite <- @distr_l @distr_r : distr'.
 
 Ltac rng := cbn; intros; autorewrite with units assoc distr; try congruence.
 Ltac rng' := cbn; intros; autorewrite with units assoc' distr'; try congruence.
@@ -156,7 +156,7 @@ Proof.
 Qed.
 
 (* Hint base for lemma rewriting. *)
-Hint Rewrite
+#[global] Hint Rewrite
   add_cancel_l add_cancel_r
   neg_neg neg_add neg_mul neg_eq
   mul_0_l mul_0_r mul_minus_minus

@@ -87,6 +87,7 @@ Proof.
 Admitted.
 
 #[refine]
+#[export]
 Instance Sort_ghms
   (args : msArgs) : Sort R :=
 {

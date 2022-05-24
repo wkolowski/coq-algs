@@ -105,6 +105,7 @@ Proof.
   intros. apply perm_Permutation, perm_pairingSort.
 Qed.
 
+#[export]
 Instance Sort_pairingSort (A : Ord) : Sort cmp :=
 {
     sort := pairingSort cmp;

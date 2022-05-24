@@ -92,6 +92,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_uqs
   (A : Ord) (small : Small A) (adhoc : AdHocSort small)
   (choosePivot : Pivot A) (partition : Partition A) : Sort trich_le :=
@@ -104,6 +105,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Sort_qs (A : Ord) : Sort trich_le :=
 {
     sort := qs A
@@ -115,6 +117,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Sort_qs2 (A : Ord) : Sort trich_le :=
 {
     sort := qs2 A
@@ -126,6 +129,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Sort_hqs (A : Ord) (n : nat) (s : Sort trich_le) : Sort trich_le :=
 {
     sort := hqs n s

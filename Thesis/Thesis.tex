@@ -22,7 +22,7 @@
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
 % w ponizszym poleceniu mozna zlamac poleceniem \fmlinebreak
 \advisor        {dr Małgorzata Biernacka}
-\date           {Czerwiec 2021} % Data zlozenia pracy
+\date           {Wrzesień 2021} % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
 %\transcriptnum {}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
@@ -235,7 +235,7 @@ We will not worry about the concerns raised, because a single formal world is st
 
 In this section we describe the basic principles on which Coq is founded. Coq is based on a formal system called Calculus of Constructions (CoC)\cite{CoC}, which later evolved into the Calculus of Inductive Constructions (CIC) \cite{CIC} and finally into Predicative Calculus of Cumulative Inductive Constructions (pCuIC) \cite{pCuIC}.
 
-To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2} \cite{Hofmann}, a closely related system which from now on we will call simply ``type theory''. In the \hyperref[coq]{next section}, where we introduce Coq, we will point out the relevant differences from type theory as we go. Our account is based mostly on Appendix A from \cite{HoTTBook} and sections 2.3 and 2.5 from \cite{Overlapping}. The material presented in here is standard, but in the light of \hyperref[formal]{previous section's} closing paragraphs we encourage people familiar with type theory to read it as a description not of a formal system, but of a model of computation.
+To avoid drowning in minute details, we instead describe Martin-L\"{o}f Type Theory (MLTT) \cite{MLTT1} \cite{MLTT2} \cite{Hofmann}, a closely related system which from now on we will call simply ``type theory''. In the \hyperref[coq]{next section}, where we introduce Coq, we will point out the relevant differences from type theory as we go. Our account is based mostly on Appendix A from \cite{HoTTBook} and sections 2.3 and 2.5 from \cite{Overlapping}. The material presented here is standard, but in the light of \hyperref[formal]{previous section's} closing paragraphs we encourage people familiar with type theory to read it as a description not of a formal system, but of a model of computation.
 
 As a model of computation, type theory is a bit unusual, because the most important things it is concerned with are not programs or computations -- as the name suggests, its basic objects of interest are types. We can think of types as specifications that prescribe what is to be computed. Only after we have a type can we talk about the terms of that type, which are the formal counterparts of the informal notion of program/algorithm. This means that every program comes equipped with a specification which tells us what it computes.
 
@@ -275,7 +275,7 @@ This is the end of our description of convertibility of terms, but the matter of
 
 To even be able to ask this question formally, we need another kind of judgement, namely the type convertibility judgement $\typeconv{\Gamma}{A}{B}$ which asserts that in context $\Gamma$ the types $A$ and $B$ are convertible. Similarly to what was the case for term convertibility, if the inference rules for this judgement are defined in the right way, we obtain for free a notion of type computation such that two types are convertible precisely when they compute to the same result.
 
-The most important core rule that involves type convertibility is called the subsumption rule. It says that if we can derive $\term{\Gamma}{t}{A}$ and $\typeconv{\Gamma}{A}{B}$, then we can also derive $\term{\Gamma}{t}{B}$. The other rules that govern type convertibility aren't terribly interesting. Similarly to term convertibility, we have three core rules which establish that type convertibility is an equivalence relation. For example, we have a rule which says that if we can derive $\typeconv{\Gamma}{A}{B}$ and $\typeconv{\Gamma}{B}{C}$, then we can derive $\typeconv{\Gamma}{A}{C}$. Just as in the case of term convertibility, these three rules may sometimes be admissible instead of being included in the definition.
+The most important core rule that involves type convertibility is called the subsumption rule. It says that if we can derive $\term{\Gamma}{t}{A}$ and $\typeconv{\Gamma}{A}{B}$, then we can also derive $\term{\Gamma}{t}{B}$. The other rules that govern type convertibility aren't terribly interesting. Similarly to term convertibility, we have three core rules which establish that type convertibility is an equivalence relation. For example, we have a rule which says that if we can derive $\typeconv{\Gamma}{A}{B}$ and $\typeconv{\Gamma}{B}{C}$, then we can derive $\typeconv{\Gamma}{A}{C}$. Just as in the case of term convertibility, in some presentations of type theory these three rules may be admissible instead of being included in the definition.
 
 Moreover, for each type formation rule we have one congruence rule which says that types formed from equal components are equal. For example, for the type $\Fin{n}$ we have a congruence rule which says if we can derive $\termconv{\Gamma}{n}{m}{\N}$, then we can derive $\typeconv{\Gamma}{\Fin{n}}{\Fin{m}}$. These congruence rules allow us to answer our initial question in the affirmative -- because $2 + 2$ and $3 + 1$ are convertible, i.e. $\termconv{\Gamma}{2 + 2}{3 + 1}{\N}$, the types $\Fin{2 + 2}$ and $\Fin{3 + 1}$ are also convertible, i.e. $\typeconv{\Gamma}{\Fin{2 + 2}}{\Fin{3 + 1}}$.
 
@@ -618,7 +618,7 @@ The biggest temptation faced by an algorithmist when implementing an algorithm i
     qs (h:t) = qs (filter (< h) t) ++ [h] ++ qs (filter (>= h) t)
 \end{minted}
 
-The famous two-line\footnote{Three if we count the type signature.} implementation of quicksort in Haskell, shown in the listing above, clearly shows that the idea behind quicksort is pretty simple and easy to implement correctly. But whenever you see an imperative implementation (a typical example of which is shown in the listing below), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the C implementation is correct -- I didn't check it!}
+The famous two-line\footnote{Three if we count the type.} implementation of quicksort in Haskell, shown in the listing above, clearly shows that the idea behind quicksort is pretty simple and easy to implement correctly. But whenever you see an imperative implementation (a typical example of which is shown in the listing below), you probably aren't very convinced of this fact.\footnote{If you don't believe me, try figuring out whether the C implementation is correct -- I didn't check it!}
 
 \begin{minted}{C}
 // To sort array a[] of size n: qsort(a, 0, n - 1)

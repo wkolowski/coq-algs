@@ -27,6 +27,7 @@ Arguments Inr {F G E} _.
 Notation "F :+: G" := (Coproduct F G) (right associativity, at level 42).
 
 #[refine]
+#[export]
 Instance Functor_Var : Functor Var :=
 {
     fmap := fun A B f '(Var' P) => Var' P
@@ -36,6 +37,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Functor_And : Functor And :=
 {
     fmap := fun A B f '(And' e1 e2) => And' (f e1) (f e2)
@@ -45,6 +47,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Functor_Coproduct
   (F G : Type -> Type) (instF : Functor F) (instG : Functor G)
   : Functor (F :+: G) :=
@@ -64,16 +67,19 @@ Class Denote (F : Type -> Type) : Type :=
     denoteAlgebra : F Prop -> Prop;
 }.
 
+#[export]
 Instance Denote_Var : Denote Var :=
 {
     denoteAlgebra := fun '(Var' P) => P
 }.
 
+#[export]
 Instance Denote_And : Denote And :=
 {
     denoteAlgebra := fun '(And' P Q) => P /\ Q
 }.
 
+#[export]
 Instance Denote_Coproduct
   (F G : Type -> Type) (instF : Denote F) (instG : Denote G)
   : Denote (F :+: G) :=

@@ -299,6 +299,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_gss (A : Ord) (s : Select A) : Sort trich_le :=
 {
     sort := gss s;
@@ -338,6 +339,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Select_min (A : Ord) : Select A :=
 {
     select l :=

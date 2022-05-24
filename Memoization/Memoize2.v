@@ -68,6 +68,7 @@ match x with
 end.
 
 #[refine]
+#[export]
 Instance Functor_Memoize : Functor Memoize :=
 {
     fmap := @fmap_Memoize;

@@ -67,7 +67,7 @@ Parameter tail_singl :
   forall (A : Type) (x : A),
     tail (snoc x empty) = Some empty.
 
-Hint Rewrite isEmpty_empty isEmpty_snoc head_empty head_singl
+#[global] Hint Rewrite isEmpty_empty isEmpty_snoc head_empty head_singl
              tail_empty tail_singl : Queue.
 
 End Queue.

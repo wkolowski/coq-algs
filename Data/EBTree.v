@@ -100,7 +100,7 @@ Inductive Elem {M A : Type} (x : A) : EBTree M A -> Prop :=
         forall (m : M) (v : A) (l r : EBTree M A),
         Elem x r -> Elem x (N m l v r).
 
-Global Hint Constructors EBTree Elem : core.
+#[global] Hint Constructors EBTree Elem : core.
 
 Lemma Elem_N :
   forall {M A : Type} (m : M) (x v : A) (l r : EBTree M A),
@@ -163,7 +163,7 @@ Inductive All {M A : Type} (P : A -> Prop) : EBTree M A -> Prop :=
         forall (m : M) (l : EBTree M A) (v : A) (r : EBTree M A),
           All P l -> P v -> All P r -> All P (N m l v r).
 
-Global Hint Constructors All : core.
+#[global] Hint Constructors All : core.
 
 Ltac All :=
 repeat match goal with
@@ -189,7 +189,7 @@ Inductive isBST {M : Type} {A : Ord} : EBTree M A -> Prop :=
           (forall x : A, Elem x r -> x >= v) -> isBST r ->
             isBST (N m l v r).
 
-Global Hint Constructors isBST : core.
+#[global] Hint Constructors isBST : core.
 
 Ltac isBST :=
 repeat match goal with
@@ -215,7 +215,7 @@ Inductive isBST2 {M : Type} {A : Ord} : EBTree M A -> Prop :=
         All (fun x : A => x ≤ v) l -> All (fun x : A => x >= v) r ->
           isBST2 l -> isBST2 r -> isBST2 (N m l v r).
 
-Global Hint Constructors isBST2 : core.
+#[global] Hint Constructors isBST2 : core.
 
 Ltac isBST2 :=
 repeat match goal with

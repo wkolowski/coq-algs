@@ -16,7 +16,7 @@ Inductive isBST2
 
 Arguments isBST2 {A} _ _.
 
-Global Hint Constructors All isBST2 : core.
+#[global] Hint Constructors All isBST2 : core.
 
 Ltac isBST2 :=
 repeat match goal with

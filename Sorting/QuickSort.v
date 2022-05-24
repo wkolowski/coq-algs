@@ -8,8 +8,8 @@ Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
-Global Hint Unfold lt : core.
-Global Hint Resolve le_n_S length_filter : core.
+#[global] Hint Unfold lt : core.
+#[global] Hint Resolve le_n_S length_filter : core.
 
 (** Time to generalize [ghqs]:
     - Rather that [n], the length of the desired "small list",
@@ -130,6 +130,7 @@ Defined.
 (** Ordinary quicksort using [uqs] *)
 
 #[refine]
+#[export]
 Instance Small_head (A : Ord) : Small A :=
 {
     small :=
@@ -144,6 +145,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance AdHocSort_id (A : Ord) : AdHocSort (Small_head A) :=
 {
     adhoc := id;
@@ -153,6 +155,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance Pivot_head (A : Ord) : Pivot A :=
 {
     pivot :=
@@ -161,6 +164,7 @@ Instance Pivot_head (A : Ord) : Pivot A :=
 Proof. inv 1. Defined.
 
 #[refine]
+#[export]
 Instance Partition_filter (A : Ord) : Partition A :=
 {
     partition x l :=
@@ -180,6 +184,7 @@ Definition qs A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_filter A).
 
 #[refine]
+#[export]
 Instance Partition_bifilter (A : Ord) : Partition A :=
 {
     partition x l :=
@@ -199,6 +204,7 @@ Definition qs2 A :=
   uqs (AdHocSort_id A) (Pivot_head A) (Partition_bifilter A).
 
 #[refine]
+#[export]
 Instance Small_length (A : Ord) (n : nat) : Small A :=
 {
     small l :=
@@ -218,6 +224,7 @@ Proof.
 Defined.
 
 #[refine]
+#[export]
 Instance AdHocSort_Sort
   {A : Ord} (small : Small A) (sort : Sort trich_le) : AdHocSort small :=
 {

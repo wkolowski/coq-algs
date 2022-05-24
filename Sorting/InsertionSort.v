@@ -43,6 +43,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_insertionSort (A : Ord) : Sort trich_le :=
 {
     sort := insertionSort A
@@ -99,6 +100,7 @@ Proof.
 Qed.
 
 #[refine]
+#[export]
 Instance Sort_insertionSort' (A : Ord) : Sort trich_le :=
 {
     sort := insertionSort' trich_leb

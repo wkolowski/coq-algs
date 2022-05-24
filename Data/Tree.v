@@ -37,7 +37,7 @@ Inductive Any {A : Type} (P : A -> Prop) : Tree A -> Prop :=
         forall (x : A) (ts : list (Tree A)),
           Exists (Any P) ts -> Any P (T x ts).
 
-Global Hint Constructors Elem Elem' All Any Exists : core.
+#[global] Hint Constructors Elem Elem' All Any Exists : core.
 
 (** * Induction principles *)
 Fixpoint Tree_rect'
@@ -257,6 +257,7 @@ Require Import CoqMTL.Control.Foldable.
 Require Import CoqMTL.Misc.Monoid.
 
 #[refine]
+#[export]
 Instance Functor_Tree : Functor Tree :=
 {
     fmap := @fmap_Tree
@@ -275,6 +276,7 @@ match t with
 end.
 
 #[refine]
+#[export]
 Instance Foldable_Tree : Foldable Tree :=
 {
     foldMap := @foldMap_Tree;
