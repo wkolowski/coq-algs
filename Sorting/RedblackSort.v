@@ -1,6 +1,6 @@
-Require Import ListLemmas.
-Require Export RedBlack.
-Require Import Sorting.Sort.
+From CoqAlgs Require Import ListLemmas.
+From CoqAlgs Require Export RedBlack.
+From CoqAlgs Require Import Sorting.Sort.
 
 (** Sorting with red-black trees. *)
 

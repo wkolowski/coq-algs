@@ -1,6 +1,7 @@
-Require Export CoqAlgs.Base.
-Require Export Ord.
-Require Export EBTree.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Export EBTree.
+From CoqAlgs Require Import DS.BST.RedBlack.
 
 Class BalanceArgs (A : Ord) : Type :=
 {
@@ -265,9 +266,9 @@ Proof.
       eapply isBST_removeMin; eassumption.
 Qed.
 
-Require Import DS.BST.RedBlack.
-
 Module RB.
+
+Import DS.BST.RedBlack.
 
 #[refine]
 #[export]

@@ -1,11 +1,11 @@
 Require Import Recdef Div2.
 
-Require Import CoqAlgs.Base.
-Require Import Structures.Ord.
-Require Import Sorting.Sort.
-Require Import Sorting.MergeSort.
+From CoqMTL Require Import Control.Monad.Lazy.
 
-Require Import CoqMTL.Control.Monad.Lazy.
+From CoqAlgs Require Import Base.
+From CoqAlgs Require Import Structures.Ord.
+From CoqAlgs Require Import Sorting.Sort.
+From CoqAlgs Require Import Sorting.MergeSort.
 
 (** Sortable collections as in chapter 6.4.3 of Okasaki. *)
 

@@ -1,4 +1,6 @@
-Require Import List Nat.
+Require Import Nat.
+
+Require Import List.
 Import ListNotations.
 
 Class MsArgs : Type :=

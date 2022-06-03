@@ -1,4 +1,4 @@
-Require Export AbstractTheAlgorithm.
+From CoqAlgs Require Export AbstractTheAlgorithm.
 
 (** * The inductive domain method *)
 

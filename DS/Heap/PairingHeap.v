@@ -1,11 +1,10 @@
-Require Export CoqAlgs.Base.
-(* Require Export Ord. *)
+From CoqAlgs Require Export Base.
+(* From CoqAlgs Require Export Ord. *)
+From CoqAlgs Require Export Data.Tree.
+From CoqAlgs Require Export DS.Heap.
+From CoqAlgs Require Export Sorting.Sort.
 
 Set Implicit Arguments.
-
-Require Export Data.Tree.
-Require Export DS.Heap.
-Require Export Sorting.Sort.
 
 Definition PairingHeap (A : Type) : Type := Tree A.
 

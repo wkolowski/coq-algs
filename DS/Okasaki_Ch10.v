@@ -1,15 +1,15 @@
 (** * 10 Data-Structural Bootstrapping *)
 
-Require Import List Div2.
+Require Import Div2 FunInd.
+
+Require Import List.
 Import ListNotations.
 
-Require Import FunInd.
+From CoqMTL Require Import Base.
+From CoqMTL Require Import Control.Functor.
+From CoqMTL Require Import Control.Monad.All.
 
-Require Import CoqMTL.Base.
-Require Import CoqMTL.Control.Functor.
-Require Import CoqMTL.Control.Monad.All.
-
-Require Import CoqAlgs.Base.
+From CoqAlgs Require Import Base.
 
 (** ** 10.1 Structural Decomposition *)
 

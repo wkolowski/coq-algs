@@ -1,4 +1,4 @@
-Require Import QuickSort.
+From CoqAlgs Require Import QuickSort.
 
 Set Implicit Arguments.
 

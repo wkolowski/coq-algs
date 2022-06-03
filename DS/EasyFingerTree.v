@@ -1,5 +1,6 @@
-Require Import CoqAlgs.Base.
 Require Import FunctionalExtensionality.
+
+From CoqAlgs Require Import Base.
 
 Ltac exten H := apply functional_extensionality; intro H.
 

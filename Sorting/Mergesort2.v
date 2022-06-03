@@ -1,7 +1,7 @@
 Require Export Recdef.
 
-Require Export Sorting.Sort.
-Require Export ListLemmas.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export ListLemmas.
 
 Class msArgs : Type :=
 {

@@ -2,10 +2,10 @@ Require Export Coq.Program.Wf.
 Require Export Recdef.
 Require Export Div2.
 
-Require Export Sorting.Sort.
-Require Export ListLemmas.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export ListLemmas.
 
-(*Require Import InsertionSort.*)
+(* From CoqAlgs Require Import InsertionSort. *)
 
 Set Implicit Arguments.
 

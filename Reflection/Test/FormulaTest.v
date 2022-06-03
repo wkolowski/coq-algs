@@ -1,7 +1,7 @@
-Require Export Formula.
+From CoqAlgs Require Export Formula.
 
 (* Uncomment in case you want to test the other implementation. *)
-(* Require Import Formula2. *)
+(* From CoqAlgs Require Import Formula2. *)
 
 Section FormulaTest.
 

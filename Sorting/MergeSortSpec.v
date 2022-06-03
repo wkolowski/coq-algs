@@ -1,4 +1,4 @@
-Require Import MergeSort.
+From CoqAlgs Require Import MergeSort.
 
 Set Implicit Arguments.
 

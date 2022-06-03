@@ -1,22 +1,22 @@
 (*
-Require Import InsertionSort.
-Require Import SelectionSort.
+From CoqAlgs Require Import InsertionSort.
+From CoqAlgs Require Import SelectionSort.
 *)
 
-Require Import MergeSort.
-Require Import QuickSort.
+From CoqAlgs Require Import MergeSort.
+From CoqAlgs Require Import QuickSort.
 
-Require Import TreeSort.
-Require Import RedblackSort.
+From CoqAlgs Require Import TreeSort.
+From CoqAlgs Require Import RedblackSort.
 
-Require Import PairingSort.
-Require Import SplaySort.
+From CoqAlgs Require Import PairingSort.
+From CoqAlgs Require Import SplaySort.
 
-Require Import ListLemmas.
+From CoqAlgs Require Import ListLemmas.
 
-(*Require Import TrichQuicksort.*)
+(* From CoqAlgs Require Import TrichQuicksort. *)
 
-Require Import LeftistHeap.
+From CoqAlgs Require Import LeftistHeap.
 
 Set Implicit Arguments.
 

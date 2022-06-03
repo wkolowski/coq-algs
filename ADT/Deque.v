@@ -1,6 +1,4 @@
-
-
-Require Import CoqAlgs.Base.
+From CoqAlgs Require Import Base.
 
 Module Type Deque.
 
@@ -114,10 +112,7 @@ Parameter tail_cons :
   forall (A : Type) (x : A) (d : Deque A),
     tail (cons x d) = Some d.
 
-(*Require Import CoqMTL.#[refine]
-Instances.Option.
-
-Parameter tail_snoc :
+(*Parameter tail_snoc :
   forall (A : Type) (x : A) (d : Deque A),
     isEmpty d = false -> tail (snoc x d) = fmap_Option (snoc x) (tail d).*)
 

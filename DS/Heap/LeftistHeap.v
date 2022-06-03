@@ -1,5 +1,5 @@
-Require Export Ord.
-Require Import Sorting.Sort.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Import Sorting.Sort.
 
 Set Implicit Arguments.
 

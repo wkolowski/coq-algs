@@ -1,8 +1,7 @@
-Require Import CoqAlgs.Base.
+From CoqMTL Require Import Control.Monad.Lazy.
 
-Require Import CoqMTL.Control.Monad.Lazy.
-
-Require Import Structures.Ord.
+From CoqAlgs Require Import Base.
+From CoqAlgs Require Import Structures.Ord.
 
 Definition Queue (A : Type) : Type :=
   list A * nat * Lazy (list A) * nat * list A.

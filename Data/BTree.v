@@ -1,10 +1,9 @@
-Require Import CoqAlgs.Base.
-Require Import Ord.
-Require Export Data.ListLemmas.
-Require Import Sorting.Sort.
-
 Require Export Classes.EquivDec.
-(* Require Export Compare_trich. *)
+
+From CoqAlgs Require Import Base.
+From CoqAlgs Require Import Ord.
+From CoqAlgs Require Export Data.ListLemmas.
+From CoqAlgs Require Import Sorting.Sort.
 
 Inductive BTree (A : Type) : Type :=
     | empty : BTree A

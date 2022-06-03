@@ -1,9 +1,9 @@
-Require Export CoqAlgs.Base.
-Require Export Ord.
-Require Export Data.ListLemmas.
-
 Require Import Classes.RelationClasses.
 Require Import Permutation.
+
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Export Data.ListLemmas.
 
 (*Set Universe Polymorphism.*)
 

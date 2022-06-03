@@ -1,6 +1,6 @@
-Require Export CoqAlgs.Base.
-Require Export Ord.
-Require Export Data.EBTree.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Export Data.EBTree.
 
 Definition Tree (A : Type) : Type := EBTree nat A.
 

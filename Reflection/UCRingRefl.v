@@ -1,5 +1,5 @@
-Require Export CoqAlgs.Base.
-Require Import UCRing.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Import UCRing.
 
 Set Implicit Arguments.
 

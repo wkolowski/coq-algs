@@ -1,4 +1,4 @@
-Require Import CoqAlgs.Base.
+From CoqAlgs Require Import Base.
 
 Module Type Queue.
 

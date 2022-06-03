@@ -1,4 +1,4 @@
-Require Export WayOfTheCoq.
+From CoqAlgs Require Export WayOfTheCoq.
 
 (** * Not that easy *)
 

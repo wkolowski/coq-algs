@@ -1,7 +1,6 @@
-Require Export Sorting.Sort.
-Require Export ListLemmas.
-
-Require Export PairingHeap.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export ListLemmas.
+From CoqAlgs Require Export PairingHeap.
 
 Set Implicit Arguments.
 

@@ -1,6 +1,5 @@
-Require Export CoqAlgs.Base.
-
-Require Export Sorting.Perm.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Sorting.Perm.
 
 Inductive Sorted {A : Type} (R : A -> A -> Prop) : list A -> Prop :=
     | Sorted0 : Sorted R []

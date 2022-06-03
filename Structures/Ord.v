@@ -1,4 +1,4 @@
-Require Export CoqAlgs.Base.
+From CoqAlgs Require Export Base.
 
 Set Implicit Arguments.
 
@@ -17,7 +17,7 @@ Class Ord : Type :=
 
 Coercion carrier : Ord >-> Sortclass.
 
-(* Global Hint Resolve trich_lt_trans : core. *)
+(* #[global] Hint Resolve trich_lt_trans : core. *)
 
 Definition trich_ltb {A : Ord} (x y : A) : bool :=
 match cmp x y with

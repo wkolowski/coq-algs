@@ -1,4 +1,4 @@
-Require Import CoqMTL.Control.
+From CoqMTL Require Import Control.
 
 Set Universe Polymorphism.
 

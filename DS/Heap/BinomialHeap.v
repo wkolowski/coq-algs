@@ -1,5 +1,5 @@
-Require Export Ord.
-Require Export CoqAlgs.Base.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
 
 Inductive Tree (A : Type) : Type :=
     | T : nat -> A -> list (Tree A) -> Tree A.

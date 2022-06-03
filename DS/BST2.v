@@ -1,7 +1,7 @@
-Require Export CoqAlgs.Base.
-Require Import Data.BTree.
-Require Import Ord.
-Require Import Sorting.Sort.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Import Data.BTree.
+From CoqAlgs Require Import Ord.
+From CoqAlgs Require Import Sorting.Sort.
 
 (** * Definitions of the bst property. *)
 

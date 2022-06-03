@@ -1,5 +1,5 @@
-Require Export Ord.
-Require Export CoqAlgs.Base.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
 
 Inductive BinomialTree (A : Type) : nat -> Type :=
     | node : A -> forall {r : nat}, BinomialForest A r -> BinomialTree A r

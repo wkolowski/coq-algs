@@ -1,5 +1,6 @@
-Require Export CoqAlgs.Base.
-Require Import CoqMTL.Control.Functor.
+From CoqMTL Require Import Control.Functor.
+
+From CoqAlgs Require Export Base.
 
 Set Implicit Arguments.
 

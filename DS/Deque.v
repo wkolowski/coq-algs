@@ -1,12 +1,12 @@
-Require Import CoqAlgs.Base.
+Require Import Div2.
+
+From CoqAlgs Require Import Base.
 
 Set Implicit Arguments.
 
 Definition Deque (A : Type) : Type := list A * list A.
 
 (* Auxiliary function that restores balance. *)
-Require Import Div2.
-
 Function split {A : Type} (n : nat) (l : list A) : list A * list A :=
 match n, l with
     | 0, _ => ([], l)

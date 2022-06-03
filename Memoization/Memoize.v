@@ -1,8 +1,7 @@
-(* Require Export CoqAlgs.Base.
-
-Require Import BTree.
-Require Import BST.
-Require Import Ord.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Import BTree.
+From CoqAlgs Require Import BST.
+From CoqAlgs Require Import Ord.
 
 Set Implicit Arguments.
 
@@ -22,9 +21,8 @@ match b with
     | S b' => fromTo a b' ++ [b]
 end.
 
+(*
 Axiom hehe : False.
-
-Require Import Ord.
 
 #[refine]
 #[export]

@@ -1,6 +1,8 @@
-Require Export CMon.
-Require Export Sorting.InsertionSort.
-Require Export Sorting.SortSpec.
+From CoqMTL Require Import Base.
+
+From CoqAlgs Require Export CMon.
+From CoqAlgs Require Export Sorting.InsertionSort.
+From CoqAlgs Require Export Sorting.SortSpec.
 
 Set Implicit Arguments.
 
@@ -12,8 +14,6 @@ Inductive exp (X : CMon) : Type :=
 Arguments Id  {X}.
 Arguments Var {X} _.
 Arguments Op  {X} _ _.
-
-Require Import CoqMTL.Base.
 
 Fixpoint expDenote {X : CMon} (envX : Env X) (e : exp X) : X -> X :=
 match e with

@@ -1,5 +1,5 @@
-Require Export CoqAlgs.Base.
-Require Import Ord.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Import Ord.
 
 Inductive EBTree (M A : Type) : Type :=
     | E : EBTree M A

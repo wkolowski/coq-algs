@@ -1,8 +1,6 @@
-Require Import CoqAlgs.Base.
-
-Require Import Ord.
-
-Require Import Sorting.Sort.
+From CoqAlgs Require Import Base.
+From CoqAlgs Require Import Ord.
+From CoqAlgs Require Import Sorting.Sort.
 
 Module Type PriorityQueue.
 

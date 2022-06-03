@@ -1,8 +1,8 @@
-Require Export CoqAlgs.Base.
-Require Import BTree.
-Require Import BST.
-Require Export Ord.
-Require Import Sorting.Sort.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Import BTree.
+From CoqAlgs Require Import BST.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Import Sorting.Sort.
 
 (** * Various definitions of binary heaps. *)
 

@@ -1,5 +1,5 @@
-Require Import Ord.
-Require Import BST.
+From CoqAlgs Require Import Ord.
+From CoqAlgs Require Import BST.
 
 Set Implicit Arguments.
 

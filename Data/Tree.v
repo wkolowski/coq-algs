@@ -1,6 +1,9 @@
-Require Export Ord.
+From CoqMTL Require Import Control.Functor.
+From CoqMTL Require Import Control.Foldable.
+From CoqMTL Require Import Misc.Monoid.
 
-Require Export CoqAlgs.Base.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
 
 Inductive Tree (A : Type) : Type :=
     | E : Tree A
@@ -251,10 +254,6 @@ Proof.
 Qed.
 
 (** Revived code *)
-
-Require Import CoqMTL.Control.Functor.
-Require Import CoqMTL.Control.Foldable.
-Require Import CoqMTL.Misc.Monoid.
 
 #[refine]
 #[export]

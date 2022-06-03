@@ -1,4 +1,5 @@
-Require Export Sorting.Sort.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Import Ord.
 
 Set Implicit Arguments.
 
@@ -76,8 +77,6 @@ Proof.
 Qed.
 
 (** Da ultimate selection sort! *)
-
-Require Import Ord.
 
 Function mins'
   {A : Ord} (l : list A) : list A * list A :=

@@ -1,10 +1,10 @@
-Require Export Ord.
-Require Export Sorting.Sort.
+From CoqAlgs Require Export Ord.
+From CoqAlgs Require Export Sorting.Sort.
 
-Require Export BTree.
-Require Export BST.
+From CoqAlgs Require Export BTree.
+From CoqAlgs Require Export BST.
 
-Require Export ListLemmas.
+From CoqAlgs Require Export ListLemmas.
 
 Function insertBT {A : Type} (cmp : A -> A -> bool) (x : A) (t : BTree A) : BTree A :=
 match t with

@@ -1,7 +1,7 @@
-Require Export CoqAlgs.Base.
-Require Export Ord.
-
 Require Import Div2.
+
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
 
 Set Implicit Arguments.
 

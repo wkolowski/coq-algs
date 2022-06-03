@@ -2,8 +2,8 @@
     "Efficiency of Lambda-Encodings in Total Type Theory"
     by Stump and Fu. *)
 
-Require Export Sorting.Sort.
-Require Export Sorting.MergeSort.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export Sorting.MergeSort.
 
 Inductive Braun (A : Type) : Type :=
     | Leaf : A -> Braun A

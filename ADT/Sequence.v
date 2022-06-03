@@ -1,4 +1,4 @@
-Require Import CoqAlgs.Base.
+From CoqAlgs Require Import Base.
 
 (** A LIFO sequence. The most obvious implementation is intended to be a
     list. *)

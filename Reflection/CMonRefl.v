@@ -1,6 +1,6 @@
-Require Export CMon.
-Require Export Sorting.InsertionSort.
-Require Export Sorting.SortSpec.
+From CoqAlgs Require Export CMon.
+From CoqAlgs Require Export Sorting.InsertionSort.
+From CoqAlgs Require Export Sorting.SortSpec.
 
 Set Implicit Arguments.
 

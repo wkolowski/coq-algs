@@ -1,7 +1,8 @@
-Require Export CoqAlgs.Base.
-Require Export Ord.
-(* Require Export BTree. *)
-Require Export EBTree.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Ord.
+(* From CoqAlgs Require Export BTree. *)
+From CoqAlgs Require Export EBTree.
+(* From CoqAlgs Require Export Sorting.Sort. *)
 
 Inductive color : Set :=
     | Red : color
@@ -256,8 +257,6 @@ Proof.
     induction 1; cbn; apply in_or_app; firstorder.
 Qed.
 
-(* Require Export Sorting.Sort.
- *)
 (** Properties of [fromList]. *)
 
 Lemma Elem_fromList :

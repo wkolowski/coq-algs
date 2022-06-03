@@ -1,10 +1,8 @@
-Require Export CoqAlgs.Base.
-Require Export Sorting.Sort.
-Require Export ListLemmas.
-
-Require Import BST.
-
-Require Export SplayTree.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export ListLemmas.
+From CoqAlgs Require Import BST.
+From CoqAlgs Require Export SplayTree.
 
 Set Implicit Arguments.
 

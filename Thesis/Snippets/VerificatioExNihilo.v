@@ -1,4 +1,4 @@
-Require Export ProveTermination.
+From CoqAlgs Require Export ProveTermination.
 
 (** * One induction to rule them all: functional induction *)
 

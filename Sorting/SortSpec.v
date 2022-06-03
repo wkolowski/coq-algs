@@ -1,9 +1,7 @@
-Require Export CoqAlgs.Base.
-
-Require Export Sorting.Sort.
-Require Export ListLemmas.
-
-Require Export Sorting.SelectionSort.
+From CoqAlgs Require Export Base.
+From CoqAlgs Require Export Sorting.Sort.
+From CoqAlgs Require Export ListLemmas.
+From CoqAlgs Require Export Sorting.SelectionSort.
 
 Set Implicit Arguments.
 

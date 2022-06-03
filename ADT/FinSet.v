@@ -1,5 +1,5 @@
-Require Import CoqAlgs.Base.
-Require Import Ord.
+From CoqAlgs Require Import Base.
+From CoqAlgs Require Import Ord.
 
 Module Type FinSet.
 

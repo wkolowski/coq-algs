@@ -1,5 +1,4 @@
-Require Import FunInd.
-Require Import Arith.
+Require Import FunInd Arith Lia.
 
 Inductive NETree (A : Type) : Type :=
     | T : A -> Forest A -> NETree A
@@ -40,8 +39,6 @@ end.
     path are colored. *)
 Definition color {A : Type} (k : nat) (t : NETree A) : NETree (option nat) :=
   fst (auxT t k 1).
-
-Require Import Lia.
 
 Definition wut :=
   T 1 (F (T 2 (F (T 5 E) E)) (F (T 3 E) (F (T 4 E) E))).

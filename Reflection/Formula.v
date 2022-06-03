@@ -1,4 +1,4 @@
-Require Export CoqAlgs.Base.
+From CoqAlgs Require Export Base.
 
 Set Implicit Arguments.
 

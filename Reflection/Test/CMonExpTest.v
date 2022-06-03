@@ -1,4 +1,4 @@
-Require Import CMonRefl2.
+From CoqAlgs Require Import CMonRefl2.
 
 Section Test.
 

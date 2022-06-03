@@ -1,4 +1,4 @@
-Require Export Tree.
+From CoqAlgs Require Export Tree.
 
 Inductive isHeap {A : Type} (R : A -> A -> Prop) : Tree A -> Prop :=
     | isHeap_E : isHeap R E

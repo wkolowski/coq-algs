@@ -1,4 +1,4 @@
-Require Export SpecifyTheProblem.
+From CoqAlgs Require Export SpecifyTheProblem.
 
 (** * Top-down is better than bottom-up *)
 

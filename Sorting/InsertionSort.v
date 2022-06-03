@@ -1,4 +1,4 @@
-Require Export Sorting.Sort.
+From CoqAlgs Require Export Sorting.Sort.
 
 Set Implicit Arguments.
 
