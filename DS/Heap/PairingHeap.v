@@ -289,7 +289,7 @@ Proof.
   intros.
   functional induction mergePairs p l;
   cbn; intros; auto.
-  rewrite !size_merge, IHp0, plus_assoc. reflexivity.
+  rewrite !size_merge, IHp0, Nat.add_assoc. reflexivity.
 Qed.
 
 Lemma size_mergePairs :
@@ -299,7 +299,7 @@ Proof.
   intros.
   functional induction mergePairs p l;
   cbn; intros; auto.
-  rewrite !size_merge, IHp0, plus_assoc.
+  rewrite !size_merge, IHp0, Nat.add_assoc.
   reflexivity.
 Qed.
 
@@ -391,7 +391,7 @@ Proof.
   intros. functional induction mergePairs cmp l; cbn.
     reflexivity.
     rewrite <- plus_n_O. reflexivity.
-    rewrite !countTree_merge, IHp0, plus_assoc. reflexivity.
+    rewrite !countTree_merge, IHp0, Nat.add_assoc. reflexivity.
 Qed.
 
 Lemma countTree_mergePairs :
@@ -401,5 +401,5 @@ Proof.
   intros. functional induction mergePairs cmp l; cbn.
     reflexivity.
     rewrite <- plus_n_O. reflexivity.
-    rewrite !countTree_merge, IHp0, plus_assoc. reflexivity.
+    rewrite !countTree_merge, IHp0, Nat.add_assoc. reflexivity.
 Qed.

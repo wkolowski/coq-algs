@@ -183,7 +183,7 @@ match s with
         else addSeg (merge seg seg') (div2 size, segs')
 end.
 Proof.
-  destruct s; cbn; intros. inv teq. apply lt_div2.
+  destruct s; cbn; intros. inv teq. apply Nat.lt_div2.
   destruct size; cbn in *.
     congruence.
     lia.

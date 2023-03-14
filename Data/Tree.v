@@ -241,7 +241,7 @@ Lemma sum_app :
 Proof.
   induction l1 as [| h1 t1]; cbn.
     reflexivity.
-    intro. rewrite IHt1, plus_assoc. reflexivity.
+    intro. rewrite IHt1, Nat.add_assoc. reflexivity.
 Qed.
 
 Lemma sum_rev :
@@ -250,7 +250,7 @@ Lemma sum_rev :
 Proof.
   induction l as [| h t]; cbn.
     reflexivity.
-    rewrite sum_app, IHt, plus_comm. cbn. rewrite plus_0_r. reflexivity.
+    rewrite sum_app, IHt, Nat.add_comm. cbn. rewrite Nat.add_0_r. reflexivity.
 Qed.
 
 (** Revived code *)

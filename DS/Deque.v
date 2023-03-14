@@ -86,7 +86,7 @@ Proof.
   intros A n l. functional induction @split A n l; cbn; inv 1.
   left. apply le_n_S. destruct (IHp _ e1).
     assumption.
-    inv H. cbn. apply le_0_n.
+    inv H. cbn. apply Nat.le_0_l.
 Qed.
 
 Lemma map_split :

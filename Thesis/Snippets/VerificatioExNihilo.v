@@ -198,10 +198,10 @@ match short l with
           qsf A lt ++ pivot :: eq ++ qsf A gt
 end.
 Proof.
-  intros; subst. apply le_lt_trans with (length rest).
+  intros; subst. apply Nat.le_lt_trans with (length rest).
     apply (partition_len_gt teq2).
     rewrite (choosePivot_len teq1). apply (short_len teq).
-  intros; subst. apply le_lt_trans with (length rest).
+  intros; subst. apply Nat.le_lt_trans with (length rest).
     apply (partition_len_lt teq2).
     rewrite (choosePivot_len teq1). apply (short_len teq).
 Defined.

@@ -106,7 +106,7 @@ Lemma sumOfWuts_app :
 Proof.
   induction l1 as [| h t]; cbn; intros.
     reflexivity.
-    rewrite IHt. rewrite plus_assoc. reflexivity.
+    rewrite IHt. rewrite Nat.add_assoc. reflexivity.
 Qed.
 
 Fixpoint sumOfSizes {A : Type} (l : list (BTree A)) : nat :=
@@ -121,7 +121,7 @@ Lemma sumOfSizes_app :
 Proof.
   induction l1 as [| h1 t1]; cbn; intros.
     reflexivity.
-    rewrite IHt1. apply plus_assoc.
+    rewrite IHt1. apply Nat.add_assoc.
 Qed.
 
 Function bfs_aux
@@ -236,7 +236,7 @@ Lemma size_swap :
   forall (A : Type) (v : A) (l r : BTree A),
     size (node v l r) = size (node v r l).
 Proof.
-  intros. cbn. rewrite plus_comm. trivial.
+  intros. cbn. rewrite Nat.add_comm. trivial.
 Qed.
 
 Lemma size_length :
@@ -409,7 +409,7 @@ Lemma size_mirror :
   forall (A : Type) (t : BTree A),
     size (mirror t) = size t.
 Proof.
-  induction t; cbn; rewrite ?IHt1, ?IHt2, 1?plus_comm; reflexivity.
+  induction t; cbn; rewrite ?IHt1, ?IHt2, 1?Nat.add_comm; reflexivity.
 Qed.
 
 Lemma mirror_singleton :
@@ -438,7 +438,7 @@ Proof.
   induction n as [| n']; cbn.
     exists 0. reflexivity.
     destruct IHn' as [m IH]. rewrite !IH. exists (1 + 2 * m). cbn.
-      rewrite <- plus_n_Sm, plus_0_r. reflexivity.
+      rewrite <- plus_n_Sm, Nat.add_0_r. reflexivity.
 Qed.
 
 Lemma size_complete :
@@ -447,8 +447,8 @@ Lemma size_complete :
 Proof.
   induction n as [| n']; cbn; intros.
     reflexivity.
-    rewrite !IHn', plus_0_r. destruct (pow2_1plus A n').
-      rewrite !H. cbn. rewrite <- !minus_n_O, plus_n_Sm. reflexivity.
+    rewrite !IHn', Nat.add_0_r. destruct (pow2_1plus A n').
+      rewrite !H. cbn. rewrite !Nat.sub_0_r, plus_n_Sm. reflexivity.
 Qed.
 
 Lemma mirror_complete :
@@ -485,10 +485,10 @@ Lemma size_takeWhileBT :
     size (takeWhileBT p t) <= size t.
 Proof.
   induction t; cbn.
-    apply le_0_n.
+    apply Nat.le_0_l.
     destruct (p a); cbn.
       apply le_n_S. lia.
-      apply le_0_n.
+      apply Nat.le_0_l.
 Qed.
 
 Lemma mirror_takeWhileBT :
@@ -518,7 +518,7 @@ Lemma length_bfs :
 Proof.
   intros. unfold bfs.
   rewrite rev_length, length_bfs_aux.
-  cbn. rewrite ?plus_0_r. reflexivity.
+  cbn. rewrite ?Nat.add_0_r. reflexivity.
 Qed.
 
 Fixpoint intersperse {A : Type} (x : A) (t : BTree A) : BTree A :=
@@ -551,21 +551,21 @@ Lemma max_height_intersperse :
       height (intersperse x t1) <= height (intersperse x t2).
 Proof.
   induction t1; cbn; intros.
-    apply le_0_n.
+    apply Nat.le_0_l.
     destruct t2; cbn in *.
       inv H.
       repeat apply le_n_S; repeat apply le_S_n in H.
-        rewrite !Nat.max_id. apply Max.max_lub.
-          destruct (Max.max_dec (height t2_1) (height t2_2)).
-            apply Max.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
-              rewrite H. apply Max.le_max_l.
-            apply Max.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
-              rewrite H. apply Max.le_max_r.
-          destruct (Max.max_dec (height t2_1) (height t2_2)).
-            apply Max.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
-              rewrite H. apply Max.le_max_l.
-            apply Max.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
-              rewrite H. apply Max.le_max_r.
+        rewrite !Nat.max_id. apply Nat.max_lub.
+          destruct (Nat.max_dec (height t2_1) (height t2_2)).
+            apply Nat.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
+              rewrite H. apply Nat.le_max_l.
+            apply Nat.max_lub_l in H. rewrite e in H. apply IHt1_1 in H.
+              rewrite H. apply Nat.le_max_r.
+          destruct (Nat.max_dec (height t2_1) (height t2_2)).
+            apply Nat.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
+              rewrite H. apply Nat.le_max_l.
+            apply Nat.max_lub_r in H. rewrite e in H. apply IHt1_2 in H.
+              rewrite H. apply Nat.le_max_r.
 Qed.
 
 Lemma height_intersperse :
@@ -577,9 +577,9 @@ Proof.
     repeat match goal with
         | |- context [max ?n ?m] =>
             let H := fresh "H" in
-              destruct (Max.max_dec n m) as [H | H]; rewrite ?H
+              destruct (Nat.max_dec n m) as [H | H]; rewrite ?H
     end;
-    rewrite ?IHt1, ?IHt2, ?plus_0_r, ?Nat.mul_max_distr_l,
+    rewrite ?IHt1, ?IHt2, ?Nat.add_0_r, ?Nat.mul_max_distr_l,
             ?Nat.mul_cancel_l, ?Nat.max_id in *;
     lia.
 Qed.
@@ -590,7 +590,7 @@ Lemma S_pow_minus_1 :
 Proof.
   induction n as [| n']; cbn.
     reflexivity.
-    rewrite plus_0_r, Nat.add_sub_swap.
+    rewrite Nat.add_0_r, Nat.add_sub_swap.
       rewrite <- Nat.add_succ_l, IHn'. reflexivity.
       lia.
 Qed.
@@ -601,8 +601,8 @@ Lemma size_intersperse_complete :
 Proof.
   induction n as [| n']; cbn.
     reflexivity.
-    rewrite IHn'. cbn. rewrite !(plus_comm _ (S _)). cbn.
-      rewrite !plus_0_r, <- 4!Nat.add_succ_l.
+    rewrite IHn'. cbn. rewrite !(Nat.add_comm _ (S _)). cbn.
+      rewrite !Nat.add_0_r, <- 4!Nat.add_succ_l.
       rewrite S_pow_minus_1, plus_n_Sm, S_pow_minus_1.
       rewrite Nat.add_succ_l, plus_n_Sm, <- Nat.add_succ_l, S_pow_minus_1.
         lia.
@@ -630,8 +630,8 @@ Proof.
   induction n as [| n']; cbn.
     trivial.
     destruct t; cbn.
-      apply le_0_n.
-      apply le_n_S, Max.max_lub; auto.
+      apply Nat.le_0_l.
+      apply le_n_S, Nat.max_lub; auto.
 Qed.
 
 Lemma take_mirror :
@@ -658,12 +658,12 @@ Proof.
   intros. functional induction @drop A h t.
     destruct _x; inv H.
     reflexivity.
-    cbn in *. apply lt_S_n in H. rewrite IHl, IHl0. reflexivity.
+    cbn in *. rewrite <- Nat.succ_lt_mono in H. rewrite IHl, IHl0. reflexivity.
       eapply Nat.le_lt_trans.
-        apply Max.le_max_r.
+        apply Nat.le_max_r.
         eexact H.
       eapply Nat.le_lt_trans.
-        apply Max.le_max_l.
+        apply Nat.le_max_l.
         eassumption.
 Qed.
 
@@ -696,9 +696,9 @@ Lemma height_zipWith :
       height (zipWith f ta tb) <= height tb.
 Proof.
   induction ta; cbn.
-    intros. split; apply le_0_n.
+    intros. split; apply Nat.le_0_l.
     destruct tb; cbn.
-      split; apply le_0_n.
+      split; apply Nat.le_0_l.
       edestruct IHta1, IHta2. split; apply le_n_S.
         apply Nat.max_le_compat; eauto.
         apply Nat.max_le_compat; eauto.
@@ -856,8 +856,8 @@ Proof.
   induction t; cbn.
     reflexivity.
     destruct (p a).
-      apply le_n_S. apply plus_le_compat; assumption.
-      unfold id. apply le_S. apply plus_le_compat; assumption.
+      apply le_n_S. apply Nat.add_le_mono; assumption.
+      unfold id. apply le_S. apply Nat.add_le_mono; assumption.
 Qed.
 
 Lemma count_size_aux :
@@ -874,7 +874,7 @@ Proof.
       assert (S (size t1_1 + size t1_2 + size t2) <=
                 (size t1_1 + size t1_2 + size t2)).
         rewrite <- H. unfold id.
-          repeat apply plus_le_compat; apply count_size.
+          repeat apply Nat.add_le_mono; apply count_size.
         lia.
 Qed.
 
@@ -897,7 +897,7 @@ Proof.
         assert (S (size t1 + size t2) <=
                   (size t1 + size t2)).
           rewrite <- H1. unfold id.
-            apply plus_le_compat; apply count_size.
+            apply Nat.add_le_mono; apply count_size.
           lia.
 Qed.
 
@@ -932,9 +932,9 @@ Lemma size_subtree :
     subtree t1 t2 -> size t1 < size t2.
 Proof.
   induction 1; cbn.
-    apply le_n_S, le_plus_l.
-    apply le_n_S, le_plus_r.
-    apply lt_trans with (size t2); assumption.
+    apply le_n_S, Nat.le_add_r.
+    apply le_n_S, Nat.le_add_l.
+    apply Nat.lt_trans with (size t2); assumption.
 Qed.
 
 Lemma height_subtree :
@@ -942,9 +942,9 @@ Lemma height_subtree :
     subtree t1 t2 -> height t1 < height t2.
 Proof.
   induction 1; cbn.
-    apply le_n_S, Max.le_max_l.
-    apply le_n_S, Max.le_max_r.
-    apply lt_trans with (height t2); assumption.
+    apply le_n_S, Nat.le_max_l.
+    apply le_n_S, Nat.le_max_r.
+    apply Nat.lt_trans with (height t2); assumption.
 Qed.
 
 (** [removeMin] *)

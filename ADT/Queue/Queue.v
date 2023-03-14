@@ -137,7 +137,7 @@ Lemma size_queue :
     size (queue f r) = length f + length r.
 Proof.
   destruct f; cbn; intros.
-    rewrite rev_length, <- plus_n_O. reflexivity.
+    rewrite rev_length, <- Nat.add_0_r. reflexivity.
     reflexivity.
 Qed.
 
@@ -154,8 +154,8 @@ Lemma size_snoc :
     size (snoc x q) = S (size q).
 Proof.
   destruct q as [[| h t] r]; cbn; intros.
-    rewrite app_length, rev_length, <- plus_n_O, plus_comm; cbn. reflexivity.
-    rewrite plus_comm. cbn. rewrite plus_comm. reflexivity.
+    rewrite app_length, rev_length, Nat.add_0_r, Nat.add_comm; cbn. reflexivity.
+    rewrite Nat.add_comm. cbn. rewrite Nat.add_comm. reflexivity.
 Qed.
 
 (* [fmap] and its properties. *)

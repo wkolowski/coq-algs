@@ -141,7 +141,7 @@ Proof.
   intros. destruct l as [| x [| y t]]; cbn in *.
     lia.
     lia.
-    inversion H; subst; cbn. apply lt_n_S. apply take_length_lt. cbn.
+    inversion H; subst; cbn. rewrite <- Nat.succ_lt_mono. apply take_length_lt. cbn.
       apply div2_lt_S.
   intros. inversion H; subst. apply drop_length_lt. cbn.
     destruct l as [| x [| y t]]; cbn in *; lia.

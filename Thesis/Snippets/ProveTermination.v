@@ -36,10 +36,10 @@ Proof.
       destruct (choosePivot h t) as [pivot rest] eqn: Hpivot;
       destruct (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
       econstructor 2; try eassumption.
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           admit.
           admit.
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           admit.
           admit.
 Abort.
@@ -81,10 +81,10 @@ Proof.
       destruct (choosePivot h t) as [pivot rest] eqn: Hpivot;
       destruct (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
       econstructor 2; try eassumption.
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           apply (partition_len_lt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           apply (partition_len_gt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
 Defined.
@@ -110,7 +110,7 @@ Instance TQSA_nat : TerminatingQSArgs :=
 }.
 Proof.
   all: cbn.
-    destruct l; inversion 1; cbn. apply le_refl.
+    destruct l; inversion 1; cbn. apply Nat.le_refl.
     inversion 1; subst. reflexivity.
     inversion 1; subst. apply len_filter.
     inversion 1; subst. apply len_filter.
@@ -147,7 +147,7 @@ Instance TQSA_default
 }.
 Proof.
   all: cbn.
-    destruct l; inversion 1; cbn. apply le_refl.
+    destruct l; inversion 1; cbn. apply Nat.le_refl.
     inversion 1; subst. reflexivity.
     inversion 1; subst. apply len_filter.
     inversion 1; subst. apply len_filter.
@@ -327,10 +327,10 @@ Proof.
       destruct (choosePivot h t) as [pivot rest] eqn: Hpivot;
       destruct (partition pivot rest) as [[lt eq] gt] eqn: Hpartition.
       econstructor 2; try eassumption.
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           apply (partition_len_lt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
-        apply IH; red. apply le_lt_trans with (length rest).
+        apply IH; red. apply Nat.le_lt_trans with (length rest).
           apply (partition_len_gt Hpartition).
           rewrite (choosePivot_len Hpivot). apply (short_len Hshort).
 Defined.
@@ -368,7 +368,7 @@ Instance TQSA_default
 }.
 Proof.
   all: cbn.
-    destruct l; inversion 1; cbn. apply le_refl.
+    destruct l; inversion 1; cbn. apply Nat.le_refl.
     inversion 1. reflexivity.
     inversion 1; subst. apply len_filter.
     inversion 1; subst. apply len_filter.

@@ -202,9 +202,9 @@ Proof.
     destruct n1, n2; inv H; inv H0.
     destruct n1 as [| [| n1']], n2 as [| [| n2']]; inv H1; inv H2.
       apply R_trans with y; auto. apply (IHSorted 0 (S n2')); auto.
-        apply le_0_n.
+        apply Nat.le_0_l.
       inv H3.
-      apply (IHSorted 0 (S n2') x0 y0); auto. apply le_0_n.
+      apply (IHSorted 0 (S n2') x0 y0); auto. apply Nat.le_0_l.
       inv H3.
       inv H3. inv H2.
       apply (IHSorted (S n1') (S n2') x0 y0); auto.

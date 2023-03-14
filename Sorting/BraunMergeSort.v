@@ -74,7 +74,7 @@ Lemma braunCount_fromList :
     braunCount p (fromList h t) = count p (h :: t).
 Proof.
   induction t as [| h' t']; cbn; intros.
-    rewrite plus_0_r. reflexivity.
+    rewrite Nat.add_0_r. reflexivity.
     rewrite braunCount_braunInsert, IHt'. cbn.
       destruct (p h), (p h'); reflexivity.
 Qed.

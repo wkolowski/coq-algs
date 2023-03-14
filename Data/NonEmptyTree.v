@@ -61,7 +61,7 @@ Proof.
     apply le_S. assumption.
     case_eq (auxT n k acc); intros; case_eq (auxF f k acc); intros.
       rewrite H0, H1 in H2. inversion H2; subst; clear H2.
-        apply Max.max_lub; [eapply specT | eapply specF]; eauto.
+        apply Nat.max_lub; [eapply specT | eapply specF]; eauto.
 Qed.
 
 Inductive elem {A : Type} (x : A) : NETree A -> Prop :=

@@ -23,8 +23,8 @@ Proof.
   induction l as [| h t]; cbn; intros.
     inv teq.
     destruct (extractMin t) eqn: Heq.
-      destruct p0. trich; inv teq; cbn; apply lt_n_S; eapply IHt; eauto.
-      inv teq. cbn. apply le_n_S, le_0_n.
+      destruct p0. trich; inv teq; cbn; rewrite <- Nat.succ_lt_mono; eapply IHt; eauto.
+      inv teq. cbn. apply le_n_S, Nat.le_0_l.
 Defined.
 
 Lemma Permutation_extractMin :
@@ -125,7 +125,7 @@ match mins' l with
 end.
 Proof.
   intros. functional induction mins' l; inv teq; cbn in *.
-    apply mins'_nil in e0. subst. cbn. apply le_n_S, le_0_n.
+    apply mins'_nil in e0. subst. cbn. apply le_n_S, Nat.le_0_l.
     all: apply mins'_length in e0; cbn in e0;
       rewrite e0, ?app_length; lia.
 Defined.
@@ -334,7 +334,7 @@ Lemma lengthOrder_removeFirst_min :
     min l = Some m -> lengthOrder (removeFirst m l) l.
 Proof.
   intros. functional induction min l; inv H; trich; red; cbn; try lia.
-    apply lt_n_S. apply IHo. assumption.
+    rewrite <- Nat.succ_lt_mono. apply IHo. assumption.
 Qed.
 
 #[refine]

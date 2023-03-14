@@ -185,7 +185,7 @@ Proof.
   induction n as [| n']; simpl; intros; auto.
   destruct l; simpl in *.
     inversion H.
-    apply lt_n_S. apply IHn'. lia.
+    rewrite <- Nat.succ_lt_mono. apply IHn'. lia.
 Qed.
 
 Lemma drop_length_le : forall (A : Type) (l : list A) (n : nat),
