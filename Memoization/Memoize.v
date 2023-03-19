@@ -138,7 +138,7 @@ Proof.
     destruct (k <?> fst a) eqn: HT; cbn in *; rewrite ?HT in H; eauto.
       inv H. destruct a. cbn in *. trich.
 Qed.
-Search Elem_insert.
+
 Ltac fib := 
 repeat match goal with
     | p : ?P, H : ?P -> _ |- _ => destruct (H p); clear H

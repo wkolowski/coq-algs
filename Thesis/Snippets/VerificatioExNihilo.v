@@ -421,7 +421,7 @@ Proof.
   destruct l; inversion 1. constructor.
   destruct l; inversion 1. reflexivity.
   inversion 1. reflexivity.
-  inversion 1; subst; clear H. Print VerifiedQSArgs.
+  inversion 1; subst; clear H.
     induction rest as [| h t]; cbn in *.
       reflexivity.
       destruct (p h pivot); cbn.

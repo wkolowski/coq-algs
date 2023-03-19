@@ -61,8 +61,6 @@ match h1 with
 end.
 
 (** We can use [removeMin] and [remove] from BST.v *)
-(* Print removeMin. *)
-(* Print remove. *)
 
 (** Properties [bigger]. *)
 
